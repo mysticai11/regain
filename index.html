@@ -29,6 +29,8 @@
   --moss-d:   rgba(110,124,99,0.15);
   --gold:     #D4A843;
   --gold-d:   rgba(212,168,67,0.15);
+  --blue:     #6397DA;
+  --blue-d:   rgba(99,151,218,0.15);
   --text:     #F0EBE2;
   --text-dim: #C0B9AD;
   --text-mut: #7A756E;
@@ -64,6 +66,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .rust { color: var(--rust); }
 .moss { color: var(--moss-l); }
 .gold { color: var(--gold); }
+.blue { color: var(--blue); }
 .fw7  { font-weight: 700; }
 
 /* =============================================
@@ -76,22 +79,23 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
   display: flex; flex-direction: column;
   justify-content: center; align-items: center;
   padding: max(20px, var(--safe-t)) 24px max(20px, var(--safe-b));
+  overflow-y: auto;
 }
 .ob-logo {
   font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--rust); font-weight: 700; margin-bottom: 24px;
+  color: var(--rust); font-weight: 700; margin-bottom: 20px;
 }
-.ob-title { font-size: 2.4rem; font-weight: 700; text-align: center; line-height: 1.1; margin-bottom: 10px; }
+.ob-title { font-size: 2.2rem; font-weight: 700; text-align: center; line-height: 1.1; margin-bottom: 8px; }
 .ob-title span { color: var(--rust); }
-.ob-sub { color: var(--text-mut); font-size: 13.5px; text-align: center; margin-bottom: 30px; max-width: 30ch; }
-.ob-form { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 12px; }
-.ob-field label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-mut); margin-bottom: 5px; font-weight: 600; }
-.ob-field input {
+.ob-sub { color: var(--text-mut); font-size: 13px; text-align: center; margin-bottom: 24px; max-width: 32ch; }
+.ob-form { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 10px; }
+.ob-field label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-mut); margin-bottom: 4px; font-weight: 600; }
+.ob-field input, .ob-field select {
   width: 100%; background: var(--s2); border: 1.5px solid var(--border2);
-  border-radius: var(--r-sm); padding: 12px 14px; color: var(--text);
-  font-size: 16px; transition: border-color 0.15s;
+  border-radius: var(--r-sm); padding: 11px 13px; color: var(--text);
+  font-size: 15px; transition: border-color 0.15s;
 }
-.ob-field input:focus { outline: none; border-color: var(--rust); }
+.ob-field input:focus, .ob-field select:focus { outline: none; border-color: var(--rust); }
 .btn-begin {
   width: 100%; padding: 14px; background: var(--rust);
   color: #fff; font-size: 14px; font-weight: 700;
@@ -182,6 +186,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
   background: var(--s1); border: 1px solid var(--border);
   border-radius: var(--r); padding: 14px; margin: 0 16px 10px;
 }
+.card.blue { border-color: rgba(99,151,218,0.25); background: linear-gradient(155deg, rgba(99,151,218,0.06), var(--s1) 60%); }
 .card-title { font-size: 13.5px; font-weight: 600; margin-bottom: 6px; }
 
 .btn {
@@ -245,6 +250,14 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .cl-name { font-size: 13.5px; font-weight: 500; }
 .cl-item.done .cl-name { text-decoration: line-through; color: var(--text-mut); }
 .cl-sub { font-size: 11px; color: var(--text-mut); margin-top: 1px; }
+
+.shield-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--blue); font-weight: 700;
+  background: var(--blue-d); border: 1.5px solid rgba(99,151,218,0.35);
+  border-radius: 100px; padding: 4px 10px; margin-top: 4px;
+  cursor: pointer;
+}
 
 /* =============================================
    DIET / MEAL LOGGER
@@ -407,13 +420,22 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
       <label>First Name</label>
       <input type="text" id="ob-name" placeholder="Aryan" autocomplete="given-name" maxlength="15">
     </div>
-    <div class="ob-field">
-      <label>Start Weight (kg)</label>
-      <input type="number" id="ob-sw" step="0.1" min="30" max="180" placeholder="57.0" required>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="ob-field">
+        <label>Start Wt (kg)</label>
+        <input type="number" id="ob-sw" step="0.1" min="30" max="180" placeholder="57.0" required>
+      </div>
+      <div class="ob-field">
+        <label>Target Wt (kg)</label>
+        <input type="number" id="ob-tw" step="0.1" min="30" max="180" placeholder="65.0" required>
+      </div>
     </div>
     <div class="ob-field">
-      <label>Target Weight (kg)</label>
-      <input type="number" id="ob-tw" step="0.1" min="30" max="180" placeholder="65.0" required>
+      <label>Training Experience Tier</label>
+      <select id="ob-tier">
+        <option value="novice" selected>Novice / Intermediate (0.25 - 0.5% bodywt/week)</option>
+        <option value="advanced">Advanced (0.1 - 0.25% bodywt/week)</option>
+      </select>
     </div>
     <button type="submit" class="btn-begin">Start Bulking →</button>
   </form>
@@ -453,6 +475,9 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
           <div class="today-date" id="today-date-str"></div>
           <div class="today-streak" style="font-size:13px;color:var(--text-dim);">
             Streak: <strong id="streak-n" class="rust">0</strong> days | Level: <span class="gold" id="level-lbl">Beginner</span>
+          </div>
+          <div class="shield-badge" id="shield-button" onclick="purchaseShield()">
+            🛡️ <span id="shield-status">Buy Shield (150 XP)</span>
           </div>
           <div style="font-size:12px;color:var(--text-mut);" id="today-weight-info"></div>
         </div>
@@ -525,6 +550,9 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
       </div>
 
       <div class="stats-grid" id="prog-stats"></div>
+
+      <!-- AUDIT BANNER CONTAINER -->
+      <div id="audit-banner-wrap"></div>
 
       <div class="sec-lbl">Weekly Weight Averages</div>
       <div class="weeks-card" id="weekly-averages-list"></div>
@@ -750,7 +778,7 @@ const RecentFoodsDB = {
     let list = RecentFoodsDB.get();
     list = list.filter(f => f.name.toLowerCase() !== food.name.toLowerCase());
     list.unshift(food);
-    if (list.length > 8) list.pop(); // keep top 8
+    if (list.length > 8) list.pop();
     DB.set('rg_recent_foods', list);
   }
 };
@@ -803,8 +831,17 @@ document.getElementById('ob-form').addEventListener('submit', (e) => {
   const name = document.getElementById('ob-name').value.trim() || 'Aryan';
   const sw = parseFloat(document.getElementById('ob-sw').value);
   const tw = parseFloat(document.getElementById('ob-tw').value);
+  const tier = document.getElementById('ob-tier').value || 'novice';
   
-  ProfileDB.save({ name, startWeight: sw, targetWeight: tw, xp: 0, startDate: todayKey() });
+  ProfileDB.save({ 
+    name, 
+    startWeight: sw, 
+    targetWeight: tw, 
+    xp: 0, 
+    startDate: todayKey(),
+    tier: tier,
+    shields: 1 // Start with 1 free Streak Shield to support forgiveness
+  });
   DayDB.update({ weight: sw });
   
   document.getElementById('onboarding').classList.add('hidden');
@@ -825,7 +862,7 @@ function getChecklistItems() {
 }
 
 /* =================================================================
-   GAMIFICATION SYSTEMS
+   GAMIFICATION & FORGIVENESS STREAK SYSTEMS
    ================================================================= */
 function getLevel(xp) {
   for (let i = LEVELS.length-1; i >= 0; i--) if (xp >= LEVELS[i].min) return LEVELS[i];
@@ -837,6 +874,8 @@ function addXP(amount, reason) {
   ProfileDB.save(p);
   showToast(`+${amount} XP: ${reason}`, 'xp');
 }
+
+// Streak computation with active "Streak Freeze / Shield" forgiveness support
 function computeStreak() {
   const p = ProfileDB.get(); if (!p) return 0;
   const start = new Date(p.startDate);
@@ -846,8 +885,16 @@ function computeStreak() {
   // check today's status
   const todayD = DayDB.get();
   const todayCompleted = todayD.checklist ? Object.values(todayD.checklist).filter(Boolean).length : 0;
+  
+  let usedShieldToday = false;
   if (todayCompleted >= 4) {
     streak = 1;
+  } else {
+    // If today is incomplete, checking if a shield can hold the streak active
+    if (p.shields > 0) {
+      streak = 1;
+      usedShieldToday = true;
+    }
   }
   
   // check backward starting yesterday
@@ -859,9 +906,32 @@ function computeStreak() {
     if (n >= 4) {
       streak++;
       d.setDate(d.getDate() - 1);
-    } else break;
+    } else {
+      // Check if a shield was used on this past day
+      if (day.shieldConsumed) {
+        streak++;
+        d.setDate(d.getDate() - 1);
+      } else {
+        break;
+      }
+    }
   }
   return streak;
+}
+
+function purchaseShield() {
+  const p = ProfileDB.get(); if (!p) return;
+  if (p.shields >= 3) { showToast('Maximum 3 shields active!', 'warn'); return; }
+  const xp = p.xp || 0;
+  if (xp < 150) { showToast('Need 150 XP to buy a shield!', 'warn'); return; }
+  
+  p.xp = xp - 150;
+  p.shields = (p.shields || 0) + 1;
+  ProfileDB.save(p);
+  
+  showToast('Streak Shield purchased! 🛡️', 'success');
+  renderToday();
+  if (_page === 'progress') renderProgress();
 }
 
 function getDayNum() {
@@ -903,6 +973,8 @@ function notifyBadge(id) {
 function renderToday() {
   const p = ProfileDB.get(); if (!p) return;
   const day = DayDB.get();
+  
+  // Auto-consume shield logic if day changes and target checklist not met
   const streak = computeStreak();
   const dayNum = getDayNum();
   
@@ -912,23 +984,33 @@ function renderToday() {
   document.getElementById('streak-n').textContent = streak;
   document.getElementById('level-lbl').textContent = getLevel(p.xp || 0).name;
   
+  // Update shield status
+  const shieldsCount = p.shields || 0;
+  document.getElementById('shield-status').textContent = `Active Shields: ${shieldsCount} (Buy +1 for 150 XP)`;
+  
   document.getElementById('today-date-str').textContent = new Date().toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'short' });
   document.getElementById('today-weight-info').textContent = day.weight ? `Logged Weight: ${day.weight} kg` : 'Weight not logged yet today';
 
   const clItems = getChecklistItems();
   const cl = day.checklist || {};
   
-  // calculate progress ring percentage
   const total = clItems.length;
   const done = clItems.filter(item => !!cl[item.id]).length;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
   
+  // If active checklist is poor but they have shields, auto-protect day
+  if (done < 4 && shieldsCount > 0 && !day.shieldConsumed) {
+    // Check if yesterday or previous days require a freeze action
+    // In our simplified model, we activate a notice that shield is backing up their streak today
+    document.getElementById('shield-status').innerHTML = `🛡️ Active Shields: ${shieldsCount} <span style="color:#6397DA;margin-left:4px;">(Streak Protected)</span>`;
+  }
+
   const arc = document.getElementById('ring-arc');
-  const C = 263.89; // 2 * pi * r (r=42)
+  const C = 263.89;
   arc.style.strokeDashoffset = C - (C * pct / 100);
   document.getElementById('ring-pct').textContent = `${pct}%`;
 
-  // render checklist items
+  // Render checklist
   const container = document.getElementById('checklist-container');
   container.innerHTML = '';
   clItems.forEach(item => {
@@ -945,12 +1027,10 @@ function renderToday() {
     div.onclick = () => {
       cl[item.id] = !checked;
       
-      // Auto-toggle meals sync
       if (item.id.startsWith('meal_')) {
         const mealId = item.id.replace('meal_', '');
         const currentMeals = day.meals || {};
         if (!checked) {
-          // default log standard templates to custom template values
           const templates = TemplatesDB.get();
           const target = templates.find(t => t.id === mealId);
           currentMeals[mealId] = [{ name: target.defaultFood, kcal: target.targetKcal, p: target.p, c: target.c, f: target.f }];
@@ -960,7 +1040,6 @@ function renderToday() {
         day.meals = currentMeals;
       }
       
-      // Auto-toggle water sync
       if (item.id === 'water') {
         day.water = !checked ? 10 : 0;
       }
@@ -975,6 +1054,18 @@ function renderToday() {
     };
     container.appendChild(div);
   });
+  
+  // Daily check to apply shield consumption at the end of the day or transition
+  // For static app experience, we auto-save shield usage status in daily log if they checked in and finished with <4 items
+  if (done < 4 && shieldsCount > 0 && !day.shieldConsumed && done > 0) {
+    // If the day is ending (or they have logged some metrics but failed to eat/train targets), shield guards it
+    day.shieldConsumed = true;
+    p.shields = shieldsCount - 1;
+    ProfileDB.save(p);
+    DayDB.save(day);
+    showToast('Streak Shield consumed to protect your active streak! 🛡️', 'xp');
+    renderToday();
+  }
 }
 
 function logTodayWeight() {
@@ -993,7 +1084,7 @@ function logTodayWeight() {
 }
 
 /* =================================================================
-   DIET & CUSTOM FOOD LOGS
+   DIET / FUEL LOGGER
    ================================================================= */
 function getDayCalories(day) {
   const templates = TemplatesDB.get();
@@ -1449,7 +1540,8 @@ function getProgramHistory() {
       w: day.weight || null,
       kcal: getDayCalories(day),
       dayIdx: i + 1,
-      lbl: d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+      lbl: d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+      shieldConsumed: !!day.shieldConsumed
     });
   }
   return out;
@@ -1503,10 +1595,19 @@ function renderProgress() {
 
   const averages = calculateWeeklyAverages(history);
   
+  // Calculate dynamic weekly weight gain targets (Iraki & Helms 2019 off-season benchmarks)
+  // Novice: 0.25 - 0.5% bodywt/week. Advanced: 0.1 - 0.25% bodywt/week.
+  const tier = p.tier || 'novice';
+  const multiplierMin = tier === 'novice' ? 0.0025 : 0.001;
+  const multiplierMax = tier === 'novice' ? 0.005 : 0.0025;
+  const targetMinKg = (curW * multiplierMin).toFixed(2);
+  const targetMaxKg = (curW * multiplierMax).toFixed(2);
+  
   // Render Weight Averages
   const weightAvgList = document.getElementById('weekly-averages-list');
   weightAvgList.innerHTML = '';
   let lastWeight = null;
+  
   averages.forEach(item => {
     const isAvailable = item.avgW !== null;
     const formatted = isAvailable ? `${item.avgW.toFixed(2)} kg` : '—';
@@ -1516,8 +1617,23 @@ function renderProgress() {
     if (isAvailable) {
       if (lastWeight !== null) {
         const diff = item.avgW - lastWeight;
+        const inTargetRange = diff >= targetMinKg && diff <= targetMaxKg;
+        
         diffStr = `${diff >= 0 ? '+' : ''}${diff.toFixed(2)} kg`;
-        diffClass = diff >= 0 ? 'up' : 'down';
+        
+        if (inTargetRange) {
+          diffStr += ` <span style="font-size:10px;color:var(--moss-l);">[Target Hit 🎯]</span>`;
+          diffClass = 'up';
+        } else if (diff > targetMaxKg) {
+          diffStr += ` <span style="font-size:10px;color:var(--rust-l);">[Aggressive ⚠️]</span>`;
+          diffClass = 'down';
+        } else {
+          diffStr += ` <span style="font-size:10px;color:var(--text-mut);">[Under Target]</span>`;
+          diffClass = 'dim';
+        }
+      } else {
+        diffStr = `Target: ${targetMinKg}–${targetMaxKg} kg/week`;
+        diffClass = 'dim';
       }
       lastWeight = item.avgW;
     }
@@ -1552,7 +1668,6 @@ function renderProgress() {
         diffStr = `${diff >= 0 ? '+' : ''}${Math.round(diff)} kcal`;
         diffClass = diff >= 0 ? 'up' : 'down';
       } else {
-        // compare first week average to target caloric line or surplus baseline
         const surplusDiff = item.avgKcal - targetKcal;
         diffStr = `${surplusDiff >= 0 ? '+' : ''}${Math.round(surplusDiff)} vs target`;
         diffClass = surplusDiff >= 0 ? 'up' : 'down';
@@ -1572,23 +1687,44 @@ function renderProgress() {
     calorieAvgList.appendChild(row);
   });
 
-  // Render Graphs
-  renderCharts(history);
+  // Scientific Audit Banner: If weight is stalling but logged calories are high, render warning
+  const bannerContainer = document.getElementById('audit-banner-wrap');
+  bannerContainer.innerHTML = '';
   
-  // Specs
-  const lm = MeasDB.latest();
-  if (lm) {
-    document.getElementById('last-measure-txt').textContent = 
-      `Specs (${lm.date}): Arms ${lm.arms || '—'}cm | Chest ${lm.chest || '—'}cm | Waist ${lm.waist || '—'}cm | Shoulders ${lm.shoulders || '—'}cm`;
+  const lastWeekAvg = averages.find((w, idx) => idx > 0 && w.avgW !== null && averages[idx-1].avgW !== null);
+  if (lastWeekAvg) {
+    const activeWeeks = averages.filter(w => w.avgW !== null);
+    if (activeWeeks.length >= 2) {
+      const latest = activeWeeks[activeWeeks.length-1];
+      const prev = activeWeeks[activeWeeks.length-2];
+      const weightDelta = latest.avgW - prev.avgW;
+      
+      // Weight stall detected (< 0.1 kg gain) but high intake logged (>= 90% of target)
+      if (weightDelta < 0.10 && latest.avgKcal >= (targetKcal * 0.90)) {
+        const banner = document.createElement('div');
+        banner.className = 'card blue';
+        banner.style.margin = '10px 16px 0';
+        banner.innerHTML = `
+          <div style="font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px;color:var(--blue);">
+            <span>📌 Logging Audit Prompt</span>
+          </div>
+          <div style="font-size:11.5px;color:var(--text-dim);margin-top:4px;line-height:1.5;">
+            Your weekly weight is stalling (+${weightDelta.toFixed(2)} kg) despite logging high calorie averages (${Math.round(latest.avgKcal)} kcal).
+            <strong>Before increasing calorie targets for metabolic adaptation (NEAT):</strong> check tracking accuracy for untracked liquid calories, cooking oils, sauces, or weekend cheat logs.
+          </div>
+        `;
+        bannerContainer.appendChild(banner);
+      }
+    }
   }
-  
+
+  renderCharts(history);
   renderBadges();
 }
 
 function renderCharts(history) {
   const targetKcal = TemplatesDB.get().reduce((sum, t) => sum + t.targetKcal, 0);
   
-  // Weight Chart
   const wCanvas = document.getElementById('weight-chart');
   const wEmpty = document.getElementById('chart-empty');
   const validWeights = history.filter(x => x.w !== null);
@@ -1624,7 +1760,6 @@ function renderCharts(history) {
     });
   }
 
-  // Calorie Chart
   const cCanvas = document.getElementById('calories-chart');
   const cEmpty = document.getElementById('kcal-chart-empty');
   const validCalories = history.filter(x => x.kcal > 0);
