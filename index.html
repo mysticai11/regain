@@ -1725,12 +1725,18 @@ function renderProgress() {
 function renderCharts(history) {
   const targetKcal = TemplatesDB.get().reduce((sum, t) => sum + t.targetKcal, 0);
   
+  // Weight Chart
   const wCanvas = document.getElementById('weight-chart');
   const wEmpty = document.getElementById('chart-empty');
   const validWeights = history.filter(x => x.w !== null);
   
-  if (validWeights.length < 2) {
+  if (typeof Chart === 'undefined') {
     wEmpty.classList.remove('hidden');
+    wEmpty.textContent = 'Charts offline (requires internet connection).';
+    wCanvas.style.display = 'none';
+  } else if (validWeights.length < 2) {
+    wEmpty.classList.remove('hidden');
+    wEmpty.textContent = 'Log weight for a few days to see the curve.';
     wCanvas.style.display = 'none';
   } else {
     wEmpty.classList.add('hidden');
@@ -1760,12 +1766,18 @@ function renderCharts(history) {
     });
   }
 
+  // Calorie Chart
   const cCanvas = document.getElementById('calories-chart');
   const cEmpty = document.getElementById('kcal-chart-empty');
   const validCalories = history.filter(x => x.kcal > 0);
   
-  if (validCalories.length < 2) {
+  if (typeof Chart === 'undefined') {
     cEmpty.classList.remove('hidden');
+    cEmpty.textContent = 'Charts offline (requires internet connection).';
+    cCanvas.style.display = 'none';
+  } else if (validCalories.length < 2) {
+    cEmpty.classList.remove('hidden');
+    cEmpty.textContent = 'Log meals on the Diet page to see the calorie graph.';
     cCanvas.style.display = 'none';
   } else {
     cEmpty.classList.add('hidden');
