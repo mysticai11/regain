@@ -247,7 +247,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .cl-sub { font-size: 11px; color: var(--text-mut); margin-top: 1px; }
 
 /* =============================================
-   DIET / MEAL LOGGER (UPGRADED)
+   DIET / MEAL LOGGER
    ============================================= */
 .kcal-bar-card {
   margin: 0 16px 10px; padding: 14px;
@@ -347,7 +347,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
    ============================================= */
 .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 4px 16px; }
 .stat-card { background: var(--s1); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 10px 12px; }
-.stat-val  { font-size: 18px; font-weight: 700; font-family: 'Space Mono', monospace; }
+.stat-val  { font-size: 17px; font-weight: 700; font-family: 'Space Mono', monospace; }
 .stat-lbl  { font-size: 9px; color: var(--text-mut); text-transform: uppercase; margin-top: 3px; }
 
 .chart-card { background: var(--s1); border: 1px solid var(--border); border-radius: var(--r); padding: 12px; margin: 0 16px 10px; }
@@ -529,10 +529,19 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
       <div class="sec-lbl">Weekly Weight Averages</div>
       <div class="weeks-card" id="weekly-averages-list"></div>
 
-      <div class="sec-lbl">Weight Curve</div>
+      <div class="sec-lbl">Weekly Calorie Averages</div>
+      <div class="weeks-card" id="weekly-calories-list"></div>
+
+      <div class="sec-lbl">Weight Curve (kg)</div>
       <div class="chart-card">
         <canvas id="weight-chart"></canvas>
         <div id="chart-empty" class="chart-empty hidden" style="text-align:center;font-size:12px;color:var(--text-mut);padding:24px 0;">Log weight for a few days to see the curve.</div>
+      </div>
+
+      <div class="sec-lbl">Calorie Intake (kcal)</div>
+      <div class="chart-card">
+        <canvas id="calories-chart"></canvas>
+        <div id="kcal-chart-empty" class="chart-empty hidden" style="text-align:center;font-size:12px;color:var(--text-mut);padding:24px 0;">Log meals on the Diet page to see the calorie graph.</div>
       </div>
 
       <div class="sec-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px 4px;">
@@ -770,6 +779,7 @@ let _activeMealSlot = null;
 let _restInterval = null;
 let _restSecs = 0;
 let _weightChart = null;
+let _caloriesChart = null;
 
 function navigate(page) {
   if (_page === page) return;
@@ -983,8 +993,24 @@ function logTodayWeight() {
 }
 
 /* =================================================================
-   DIET & CUSTOM FOODS (UPGRADED WITH RECENT FOODS & TEMPLATES)
+   DIET & CUSTOM FOOD LOGS
    ================================================================= */
+function getDayCalories(day) {
+  const templates = TemplatesDB.get();
+  const meals = day.meals || {};
+  const cl = day.checklist || {};
+  let total = 0;
+  templates.forEach(t => {
+    const logged = meals[t.id] || [];
+    if (logged.length > 0) {
+      logged.forEach(f => total += (f.kcal || 0));
+    } else if (cl[`meal_${t.id}`]) {
+      total += t.targetKcal;
+    }
+  });
+  return total;
+}
+
 function renderDiet() {
   const day = DayDB.get();
   const meals = day.meals || {};
@@ -992,7 +1018,6 @@ function renderDiet() {
   
   let totalKcal = 0, totalP = 0, totalC = 0, totalF = 0;
   
-  // render lists
   const container = document.getElementById('meals-list');
   container.innerHTML = '';
   
@@ -1041,7 +1066,6 @@ function renderDiet() {
     container.appendChild(div);
   });
   
-  // update stats
   document.getElementById('kcal-total').textContent = totalKcal.toLocaleString();
   const targetKcalTotal = templates.reduce((sum, t) => sum + t.targetKcal, 0);
   const pct = targetKcalTotal > 0 ? Math.min(100, Math.round((totalKcal / targetKcalTotal) * 100)) : 0;
@@ -1054,7 +1078,6 @@ function renderDiet() {
   document.getElementById('mc').textContent = `${totalC}g`;
   document.getElementById('mf').textContent = `${totalF}g`;
 
-  // Water Glasses
   const water = day.water || 0;
   const glasses = document.getElementById('water-glasses');
   glasses.innerHTML = '';
@@ -1089,7 +1112,6 @@ function toggleMealEatenQuick(mealId) {
     delete meals[mealId];
     cl[`meal_${mealId}`] = false;
   } else {
-    // log templates to today
     meals[mealId] = [{ name: target.defaultFood, kcal: target.targetKcal, p: target.p, c: target.c, f: target.f }];
     cl[`meal_${mealId}`] = true;
     addXP(10, `Eaten ${target.name}`);
@@ -1111,16 +1133,13 @@ function openFoodLogger(mealId) {
   const t = TemplatesDB.get().find(x => x.id === mealId);
   document.getElementById('food-modal-title').textContent = `Log to ${t.name}`;
   
-  // reset inputs
   document.getElementById('food-name').value = '';
   document.getElementById('food-kcal').value = '';
   document.getElementById('food-p').value = '';
   document.getElementById('food-c').value = '';
   document.getElementById('food-f').value = '';
   
-  // render recents
   renderRecentFoodsList();
-  
   toggleOverlay('food-modal', true);
 }
 
@@ -1158,11 +1177,8 @@ document.getElementById('food-form').addEventListener('submit', (e) => {
   const f = parseFloat(document.getElementById('food-f').value);
   
   const foodItem = { name, kcal, p, c, f };
-  
-  // Save to recent memory
   RecentFoodsDB.add(foodItem);
   
-  // Save to day's logs
   const day = DayDB.get();
   const meals = day.meals || {};
   if (!meals[_activeMealSlot]) meals[_activeMealSlot] = [];
@@ -1184,11 +1200,8 @@ document.getElementById('food-form').addEventListener('submit', (e) => {
 
 function toggleOverlay(id, show) {
   const el = document.getElementById(id);
-  if (show) {
-    el.classList.add('show');
-  } else {
-    el.classList.remove('show');
-  }
+  if (show) el.classList.add('show');
+  else el.classList.remove('show');
 }
 
 function closeFoodModal(e) {
@@ -1203,7 +1216,7 @@ function openTemplateEditor() {
   const container = document.getElementById('templates-list');
   container.innerHTML = '';
   
-  templates.forEach((t, i) => {
+  templates.forEach((t) => {
     const div = document.createElement('div');
     div.className = 'card';
     div.style.margin = '0 0 10px 0';
@@ -1419,9 +1432,9 @@ function updateRestDisplay() {
 }
 
 /* =================================================================
-   PROGRESS, CALENDAR & WEEKLY AVERAGES
+   PROGRESS & BULKING TRENDS
    ================================================================= */
-function getWeightHistory() {
+function getProgramHistory() {
   const p = ProfileDB.get(); if (!p) return [];
   const start = new Date(p.startDate);
   const out = [];
@@ -1430,47 +1443,55 @@ function getWeightHistory() {
     if (d > new Date()) break;
     const k = d.toISOString().split('T')[0];
     const day = DB.get(`rg_day_${k}`) || {};
-    if (day.weight) {
-      out.push({
-        dateStr: k,
-        w: day.weight,
-        dayIdx: i + 1,
-        lbl: d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
-      });
-    }
+    
+    out.push({
+      dateStr: k,
+      w: day.weight || null,
+      kcal: getDayCalories(day),
+      dayIdx: i + 1,
+      lbl: d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+    });
   }
   return out;
 }
 
-function calculateWeeklyAverages(wh, p) {
-  const start = new Date(p.startDate);
+function calculateWeeklyAverages(history) {
   const weeks = [
-    { name: 'Week 1 (Days 1–7)', weights: [] },
-    { name: 'Week 2 (Days 8–14)', weights: [] },
-    { name: 'Week 3 (Days 15–21)', weights: [] },
-    { name: 'Week 4 (Days 22–28)', weights: [] },
-    { name: 'Week 5 (Days 29-30)', weights: [] }
+    { name: 'Week 1 (Days 1–7)', weights: [], calories: [] },
+    { name: 'Week 2 (Days 8–14)', weights: [], calories: [] },
+    { name: 'Week 3 (Days 15–21)', weights: [], calories: [] },
+    { name: 'Week 4 (Days 22–28)', weights: [], calories: [] },
+    { name: 'Week 5 (Days 29-30)', weights: [], calories: [] }
   ];
   
-  wh.forEach(item => {
-    if (item.dayIdx >= 1 && item.dayIdx <= 7) weeks[0].weights.push(item.w);
-    else if (item.dayIdx >= 8 && item.dayIdx <= 14) weeks[1].weights.push(item.w);
-    else if (item.dayIdx >= 15 && item.dayIdx <= 21) weeks[2].weights.push(item.w);
-    else if (item.dayIdx >= 22 && item.dayIdx <= 28) weeks[3].weights.push(item.w);
-    else if (item.dayIdx >= 29) weeks[4].weights.push(item.w);
+  history.forEach(item => {
+    let weekIdx = -1;
+    if (item.dayIdx >= 1 && item.dayIdx <= 7) weekIdx = 0;
+    else if (item.dayIdx >= 8 && item.dayIdx <= 14) weekIdx = 1;
+    else if (item.dayIdx >= 15 && item.dayIdx <= 21) weekIdx = 2;
+    else if (item.dayIdx >= 22 && item.dayIdx <= 28) weekIdx = 3;
+    else if (item.dayIdx >= 29) weekIdx = 4;
+    
+    if (weekIdx !== -1) {
+      if (item.w !== null) weeks[weekIdx].weights.push(item.w);
+      if (item.kcal > 0) weeks[weekIdx].calories.push(item.kcal);
+    }
   });
   
-  return weeks.map((w, idx) => {
-    const avg = w.weights.length > 0 ? (w.weights.reduce((s, x) => s + x, 0) / w.weights.length) : null;
-    return { name: w.name, avg };
+  return weeks.map(w => {
+    const avgW = w.weights.length > 0 ? (w.weights.reduce((s, x) => s + x, 0) / w.weights.length) : null;
+    const avgKcal = w.calories.length > 0 ? (w.calories.reduce((s, x) => s + x, 0) / w.calories.length) : null;
+    return { name: w.name, avgW, avgKcal };
   });
 }
 
 function renderProgress() {
   const p = ProfileDB.get(); if (!p) return;
-  const wh = getWeightHistory();
+  const history = getProgramHistory();
   const streak = computeStreak();
-  const curW = wh.length ? wh[wh.length-1].w : p.startWeight;
+  
+  const validWeights = history.filter(x => x.w !== null);
+  const curW = validWeights.length ? validWeights[validWeights.length-1].w : p.startWeight;
   const gained = (curW - p.startWeight).toFixed(1);
   
   document.getElementById('prog-stats').innerHTML = `
@@ -1480,25 +1501,25 @@ function renderProgress() {
     <div class="stat-card"><div class="stat-val gold">${p.xp || 0}</div><div class="stat-lbl">XP Earned</div></div>
   `;
 
-  // Weekly Averages render
-  const averagesList = document.getElementById('weekly-averages-list');
-  averagesList.innerHTML = '';
-  const averages = calculateWeeklyAverages(wh, p);
+  const averages = calculateWeeklyAverages(history);
   
-  let lastVal = null;
+  // Render Weight Averages
+  const weightAvgList = document.getElementById('weekly-averages-list');
+  weightAvgList.innerHTML = '';
+  let lastWeight = null;
   averages.forEach(item => {
-    const isAvailable = item.avg !== null;
-    const formattedAvg = isAvailable ? `${item.avg.toFixed(2)} kg` : '—';
+    const isAvailable = item.avgW !== null;
+    const formatted = isAvailable ? `${item.avgW.toFixed(2)} kg` : '—';
     let diffStr = '';
     let diffClass = '';
     
     if (isAvailable) {
-      if (lastVal !== null) {
-        const diff = item.avg - lastVal;
+      if (lastWeight !== null) {
+        const diff = item.avgW - lastWeight;
         diffStr = `${diff >= 0 ? '+' : ''}${diff.toFixed(2)} kg`;
         diffClass = diff >= 0 ? 'up' : 'down';
       }
-      lastVal = item.avg;
+      lastWeight = item.avgW;
     }
     
     const row = document.createElement('div');
@@ -1506,17 +1527,55 @@ function renderProgress() {
     row.innerHTML = `
       <div class="week-row-l">${item.name}</div>
       <div class="week-row-r">
-        <div class="week-avg">${formattedAvg}</div>
+        <div class="week-avg">${formatted}</div>
         <div class="week-diff ${diffClass}">${diffStr}</div>
       </div>
     `;
-    averagesList.appendChild(row);
+    weightAvgList.appendChild(row);
   });
 
-  // Render Chart
-  renderChart(wh);
+  // Render Calorie Averages
+  const calorieAvgList = document.getElementById('weekly-calories-list');
+  calorieAvgList.innerHTML = '';
+  let lastCal = null;
+  const targetKcal = TemplatesDB.get().reduce((sum, t) => sum + t.targetKcal, 0);
   
-  // Render specs
+  averages.forEach(item => {
+    const isAvailable = item.avgKcal !== null;
+    const formatted = isAvailable ? `${Math.round(item.avgKcal)} kcal/day` : '—';
+    let diffStr = '';
+    let diffClass = '';
+    
+    if (isAvailable) {
+      if (lastCal !== null) {
+        const diff = item.avgKcal - lastCal;
+        diffStr = `${diff >= 0 ? '+' : ''}${Math.round(diff)} kcal`;
+        diffClass = diff >= 0 ? 'up' : 'down';
+      } else {
+        // compare first week average to target caloric line or surplus baseline
+        const surplusDiff = item.avgKcal - targetKcal;
+        diffStr = `${surplusDiff >= 0 ? '+' : ''}${Math.round(surplusDiff)} vs target`;
+        diffClass = surplusDiff >= 0 ? 'up' : 'down';
+      }
+      lastCal = item.avgKcal;
+    }
+    
+    const row = document.createElement('div');
+    row.className = 'week-row';
+    row.innerHTML = `
+      <div class="week-row-l">${item.name}</div>
+      <div class="week-row-r">
+        <div class="week-avg">${formatted}</div>
+        <div class="week-diff ${diffClass}">${diffStr}</div>
+      </div>
+    `;
+    calorieAvgList.appendChild(row);
+  });
+
+  // Render Graphs
+  renderCharts(history);
+  
+  // Specs
   const lm = MeasDB.latest();
   if (lm) {
     document.getElementById('last-measure-txt').textContent = 
@@ -1526,39 +1585,92 @@ function renderProgress() {
   renderBadges();
 }
 
-function renderChart(wh) {
-  const canvas = document.getElementById('weight-chart');
-  const empty = document.getElementById('chart-empty');
-  if (wh.length < 2) {
-    empty.classList.remove('hidden');
-    canvas.style.display = 'none';
-    return;
-  }
-  empty.classList.add('hidden');
-  canvas.style.display = 'block';
+function renderCharts(history) {
+  const targetKcal = TemplatesDB.get().reduce((sum, t) => sum + t.targetKcal, 0);
   
-  if (_weightChart) _weightChart.destroy();
-  _weightChart = new Chart(canvas, {
-    type: 'line',
-    data: {
-      labels: wh.map(x => x.lbl),
-      datasets: [{
-        data: wh.map(x => x.w),
-        borderColor: '#C45A35',
-        backgroundColor: 'rgba(196,90,53,0.06)',
-        fill: true, tension: 0.35, borderWidth: 2,
-        pointBackgroundColor: '#C45A35', pointRadius: 3
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#7A756E', font: { size: 9 } } },
-        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#7A756E', font: { size: 9 } } }
+  // Weight Chart
+  const wCanvas = document.getElementById('weight-chart');
+  const wEmpty = document.getElementById('chart-empty');
+  const validWeights = history.filter(x => x.w !== null);
+  
+  if (validWeights.length < 2) {
+    wEmpty.classList.remove('hidden');
+    wCanvas.style.display = 'none';
+  } else {
+    wEmpty.classList.add('hidden');
+    wCanvas.style.display = 'block';
+    
+    if (_weightChart) _weightChart.destroy();
+    _weightChart = new Chart(wCanvas, {
+      type: 'line',
+      data: {
+        labels: validWeights.map(x => x.lbl),
+        datasets: [{
+          data: validWeights.map(x => x.w),
+          borderColor: '#C45A35',
+          backgroundColor: 'rgba(196,90,53,0.06)',
+          fill: true, tension: 0.35, borderWidth: 2,
+          pointBackgroundColor: '#C45A35', pointRadius: 3
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#7A756E', font: { size: 9 } } },
+          y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#7A756E', font: { size: 9 } } }
+        }
       }
-    }
-  });
+    });
+  }
+
+  // Calorie Chart
+  const cCanvas = document.getElementById('calories-chart');
+  const cEmpty = document.getElementById('kcal-chart-empty');
+  const validCalories = history.filter(x => x.kcal > 0);
+  
+  if (validCalories.length < 2) {
+    cEmpty.classList.remove('hidden');
+    cCanvas.style.display = 'none';
+  } else {
+    cEmpty.classList.add('hidden');
+    cCanvas.style.display = 'block';
+    
+    if (_caloriesChart) _caloriesChart.destroy();
+    _caloriesChart = new Chart(cCanvas, {
+      type: 'bar',
+      data: {
+        labels: validCalories.map(x => x.lbl),
+        datasets: [
+          {
+            label: 'Intake',
+            data: validCalories.map(x => x.kcal),
+            backgroundColor: '#6E7C63',
+            borderRadius: 4,
+            barPercentage: 0.75
+          },
+          {
+            label: 'Target',
+            data: Array(validCalories.length).fill(targetKcal),
+            type: 'line',
+            borderColor: '#C45A35',
+            borderWidth: 1.5,
+            borderDash: [5, 5],
+            pointRadius: 0,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#7A756E', font: { size: 9 } } },
+          y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#7A756E', font: { size: 9 } } }
+        }
+      }
+    });
+  }
 }
 
 function renderBadges() {
@@ -1607,7 +1719,7 @@ function resetAll() {
 }
 
 /* =================================================================
-   TOAST NOTIFICATION CONTROLLER
+   TOAST & NOTIFICATIONS
    ================================================================= */
 let _toastTimer = null;
 function showToast(msg, type = '') {
@@ -1618,9 +1730,6 @@ function showToast(msg, type = '') {
   _toastTimer = setTimeout(() => { t.className = ''; }, 2500);
 }
 
-/* =================================================================
-   WORKOUT NAV BADGE
-   ================================================================= */
 function updateWorkoutBadge() {
   const s = getWorkoutToday();
   const day = DayDB.get();
