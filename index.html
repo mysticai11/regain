@@ -201,23 +201,73 @@ input::placeholder { color: var(--text-muted); }
 'use strict';
 
 // ── Hard constants (§2 of brief — never rendered as demographic labels) ──────
-var CAL_TARGET  = 2500;
-var PROT_TARGET = 100;   // g
-var CARB_TARGET = 350;   // g  (derived: ~(2500-400-702)/4)
-var FAT_TARGET  = 78;    // g  (derived: ~28% of kcal from fat)
-var GAIN_LOW    = 0.135; // kg/week (0.25% of 54kg)
-var GAIN_HIGH   = 0.27;  // kg/week (0.5%  of 54kg)
-var START_DATE_DEFAULT = null; // set at onboarding
+var CAL_TARGET_REST  = 3090;
+var CAL_TARGET_GYM   = 3500;
+var PROT_TARGET_REST = 130;
+var PROT_TARGET_GYM  = 152;
+var GAIN_LOW         = 0.135; // kg/week (0.25% of 54kg)
+var GAIN_HIGH        = 0.27;  // kg/week (0.5%  of 54kg)
 
-// ── Default meal templates — 5 feedings, calorie-dense, low-volume ───────────
-var DEFAULT_MEALS = [
-  {id:'breakfast', name:'Breakfast',       kcal:500, protein:20, carbs:70, fat:15, icon:'egg'},
-  {id:'shake',     name:'Mass shake',      kcal:485, protein:22, carbs:65, fat:15, icon:'bowl'},
-  {id:'lunch',     name:'Lunch',           kcal:560, protein:22, carbs:80, fat:17, icon:'bowl'},
-  {id:'snack',     name:'Afternoon snack', kcal:320, protein:12, carbs:45, fat:10, icon:'bowl'},
-  {id:'dinner',    name:'Dinner',          kcal:645, protein:24, carbs:90, fat:21, icon:'bowl'},
-];
-// Totals: 2510 kcal, 100g P, 350g C, 78g F ≈ 2500 kcal ✓
+// ── Default meal plan checklist — 5 feedings + additions + extras, calorie-dense, low-volume ──
+var DEFAULT_MEAL_PLAN = {
+  breakfast: {
+    label: 'Breakfast',
+    items: [
+      {id:'bf_oats', name:'50g oats', kcal:195, protein:7, carbs:33, fat:3.5},
+      {id:'bf_milk', name:'250ml whole milk', kcal:150, protein:8, carbs:12, fat:8},
+      {id:'bf_dates', name:'2 medium dates', kcal:130, protein:1, carbs:35, fat:0},
+      {id:'bf_eggs', name:'2 whole eggs', kcal:155, protein:13, carbs:1, fat:11}
+    ]
+  },
+  lunch: {
+    label: 'Lunch',
+    items: [
+      {id:'lh_rice', name:'250g cooked rice', kcal:325, protein:7, carbs:70, fat:1},
+      {id:'lh_sabzi', name:'1 serving sabzi (veg)', kcal:100, protein:3, carbs:12, fat:4},
+      {id:'lh_oil', name:'1 tbsp ghee / olive oil', kcal:120, protein:0, carbs:0, fat:14},
+      {id:'lh_dahi', name:'150g dahi (curd)', kcal:90, protein:5, carbs:7, fat:5}
+    ]
+  },
+  shake: {
+    label: 'Post-Workout Shake',
+    items: [
+      {id:'sk_milk', name:'300ml whole milk', kcal:185, protein:10, carbs:14, fat:10},
+      {id:'sk_oats', name:'40g oats', kcal:155, protein:7, carbs:26, fat:3},
+      {id:'sk_pb', name:'1 tbsp peanut butter', kcal:95, protein:4, carbs:3, fat:8},
+      {id:'sk_bananas', name:'2 bananas', kcal:210, protein:3, carbs:54, fat:1}
+    ]
+  },
+  snack: {
+    label: 'Evening Snack',
+    items: [
+      {id:'sn_eggs', name:'3 whole eggs in 2 tsp olive oil', kcal:315, protein:19, carbs:2, fat:25}
+    ]
+  },
+  dinner: {
+    label: 'Dinner',
+    items: [
+      {id:'dn_rice', name:'250g cooked rice', kcal:325, protein:7, carbs:70, fat:1},
+      {id:'dn_sabzi', name:'1 serving sabzi (veg)', kcal:100, protein:3, carbs:12, fat:4},
+      {id:'dn_oil', name:'1 tbsp ghee / olive oil', kcal:120, protein:0, carbs:0, fat:14},
+      {id:'dn_paneer', name:'100g paneer', kcal:265, protein:18, carbs:1, fat:20}
+    ]
+  },
+  additions: {
+    label: 'Daily Additions',
+    items: [
+      {id:'ad_kiwi', name:'1 kiwi', kcal:42, protein:1, carbs:10, fat:0},
+      {id:'ad_yogurt', name:'150g Greek yogurt', kcal:145, protein:14, carbs:6, fat:7}
+    ]
+  },
+  gym_extras: {
+    label: 'Gym Day Extras',
+    gymOnly: true,
+    items: [
+      {id:'gm_bar', name:'1 protein bar', kcal:220, protein:20, carbs:22, fat:8},
+      {id:'gm_bananas', name:'2 extra bananas', kcal:210, protein:3, carbs:54, fat:1}
+    ]
+  }
+};
 
 // ── Workout Programs ────────────────────────────────────────────────────────
 var PROGRAM_2DAY = [
@@ -402,7 +452,7 @@ function daysBetween(a,b){ return Math.round((b-a)/86400000); }
 
 // ── App state ──────────────────────────────────────────────────────────────────
 var profile = ls('rg_profile', null);
-var mealTemplates = ls('rg_meals', DEFAULT_MEALS);
+// no mealTemplates here - loaded from profile
 var tab = 'today';
 var charts = {};
 var timer = {active:false, remaining:0, total:0, interval:null};
@@ -413,12 +463,63 @@ var confirmLoggingAccurate = false; // tracks if user confirmed logging in disco
 function dayRecord(key) { return ls('rg_day_'+key, {weight:null,sleep:null,readiness:null,meals:{},extra:[],workout:{},workoutDone:false,shielded:false}); }
 function saveDayRecord(key,rec){ sv('rg_day_'+key, rec); }
 
+function getTargetsForDate(dateStr) {
+  if(!profile) return { kcal: CAL_TARGET_REST, protein: PROT_TARGET_REST, carbs: 415, fat: 100 };
+  var d = new Date(dateStr + 'T00:00:00');
+  var tdays = profile.trainingDays || [1,3,5];
+  var isTrain = tdays.includes(d.getDay());
+  return {
+    kcal: isTrain ? (profile.calTargetGym || CAL_TARGET_GYM) : (profile.calTargetRest || CAL_TARGET_REST),
+    protein: isTrain ? (profile.protTargetGym || PROT_TARGET_GYM) : (profile.protTargetRest || PROT_TARGET_REST),
+    carbs: isTrain ? 475 : 415,
+    fat: isTrain ? 110 : 100
+  };
+}
+
+function getWeeklyAvocadosCount() {
+  if(!profile) return 0;
+  var dayNum = currentDayNum();
+  var weekNum = Math.ceil(dayNum/7);
+  var startDayOfThisWeek = (weekNum - 1) * 7 + 1;
+  var endDayOfThisWeek = weekNum * 7;
+  var count = 0;
+  var start = new Date(profile.startDate);
+  for (var i = startDayOfThisWeek; i <= endDayOfThisWeek; i++) {
+    var d = addDays(start, i - 1);
+    var key = dateKey(d);
+    var rec = dayRecord(key);
+    count += (rec.avocados || 0);
+  }
+  return count;
+}
+
 function getDayTotals(key) {
   var rec = dayRecord(key);
-  var tmpl = ls('rg_meals', DEFAULT_MEALS);
+  var plan = (profile && profile.mealPlan) || DEFAULT_MEAL_PLAN;
   var t = {kcal:0, protein:0, carbs:0, fat:0};
-  tmpl.forEach(function(m){ if(rec.meals[m.id]){ t.kcal+=m.kcal; t.protein+=m.protein; t.carbs+=m.carbs; t.fat+=m.fat; } });
-  (rec.extra||[]).forEach(function(e){ t.kcal+=e.kcal; t.protein+=e.protein; t.carbs+=e.carbs; t.fat+=e.fat; });
+  Object.keys(plan).forEach(function(gKey){
+    var group = plan[gKey];
+    (group.items||[]).forEach(function(item){
+      if(rec.meals[item.id]){
+        t.kcal += item.kcal;
+        t.protein += item.protein;
+        t.carbs += item.carbs;
+        t.fat += item.fat;
+      }
+    });
+  });
+  if(rec.avocados) {
+    t.kcal += rec.avocados * 240;
+    t.protein += rec.avocados * 3;
+    t.carbs += rec.avocados * 13;
+    t.fat += rec.avocados * 22;
+  }
+  (rec.extra||[]).forEach(function(e){
+    t.kcal += e.kcal * (e.servings || 1);
+    t.protein += e.protein * (e.servings || 1);
+    t.carbs += e.carbs * (e.servings || 1);
+    t.fat += e.fat * (e.servings || 1);
+  });
   return {kcal:Math.round(t.kcal), protein:+t.protein.toFixed(1), carbs:+t.carbs.toFixed(1), fat:+t.fat.toFixed(1)};
 }
 
@@ -578,43 +679,132 @@ function macroBar(label, val, target, color) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // TODAY TAB
 // ═══════════════════════════════════════════════════════════════════════════════
+function renderChecklistHTML(rec, isTrainingDay) {
+  var plan = (profile && profile.mealPlan) || DEFAULT_MEAL_PLAN;
+  var html = '';
+  Object.keys(plan).forEach(function(gKey){
+    var group = plan[gKey];
+    if(group.gymOnly && !isTrainingDay) return;
+    
+    html += '<div class="meal-group" style="margin-top:16px">'
+      + '<div class="eyebrow" style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center">'
+        + '<span>' + group.label + '</span>'
+      + '</div>';
+      
+    (group.items||[]).forEach(function(item){
+      var logged = !!rec.meals[item.id];
+      html += '<div class="meal-row" style="padding: 10px 12px; background: var(--surface); border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between">'
+        + '<div style="display:flex; align-items:center; gap:10px">'
+          + '<input type="checkbox" class="plan-chk" data-itemid="' + item.id + '"' + (logged ? ' checked' : '') + ' style="width: 18px; height: 18px; accent-color: var(--sage-light); cursor: pointer">'
+          + '<div>'
+            + '<div style="font-size: 13px; font-weight: 500;' + (logged ? 'text-decoration: line-through; color: var(--text-muted)' : 'color: var(--text)') + '">' + item.name + '</div>'
+            + '<div style="font-size: 11px; color: var(--text-muted); font-family: \'Space Mono\', monospace; margin-top: 1px">' + item.kcal + ' kcal · ' + item.protein + 'P · ' + item.carbs + 'C · ' + item.fat + 'F</div>'
+          + '</div>'
+        + '</div>'
+        + '<button class="edit-item-btn" data-itemid="' + item.id + '" data-group="' + gKey + '" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:12px; padding:4px">' + ic('settings', '14') + '</button>'
+        + '</div>';
+    });
+    
+    html += '</div>';
+  });
+  return html;
+}
+
+function openEditItemSheet(itemId, groupKey) {
+  var plan = (profile && profile.mealPlan) || DEFAULT_MEAL_PLAN;
+  var group = plan[groupKey];
+  var item = group.items.find(function(it){ return it.id === itemId; });
+  if(!item) return;
+  
+  var overlay = document.createElement('div'); overlay.className = 'overlay';
+  overlay.innerHTML = '<div class="sheet" style="position:relative"><div class="sheet-handle"></div>'
+    + '<div class="sheet-title">Edit Item</div>'
+    + '<label class="eyebrow" style="margin-top:12px">Name / Portion</label>'
+    + '<input type="text" id="editItemName" value="' + item.name + '">'
+    + '<label class="eyebrow" style="margin-top:12px">Calories (kcal)</label>'
+    + '<input type="number" id="editItemKcal" value="' + item.kcal + '" inputmode="numeric">'
+    + '<label class="eyebrow" style="margin-top:12px">Protein (g)</label>'
+    + '<input type="number" id="editItemProt" value="' + item.protein + '" inputmode="numeric">'
+    + '<label class="eyebrow" style="margin-top:12px">Carbs (g)</label>'
+    + '<input type="number" id="editItemCarb" value="' + item.carbs + '" inputmode="numeric">'
+    + '<label class="eyebrow" style="margin-top:12px">Fat (g)</label>'
+    + '<input type="number" id="editItemFat" value="' + item.fat + '" inputmode="numeric">'
+    + '<div class="modal-actions" style="margin-top:16px">'
+      + '<button class="btn" id="cancelEditItemBtn">Cancel</button>'
+      + '<button class="btn btn-primary" id="saveEditItemBtn">Save</button>'
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(overlay);
+  
+  overlay.querySelector('#cancelEditItemBtn').addEventListener('click', function(){ overlay.remove(); });
+  overlay.querySelector('#saveEditItemBtn').addEventListener('click', function(){
+    item.name = document.getElementById('editItemName').value.trim() || item.name;
+    item.kcal = parseInt(document.getElementById('editItemKcal').value, 10) || 0;
+    item.protein = parseFloat(document.getElementById('editItemProt').value) || 0;
+    item.carbs = parseFloat(document.getElementById('editItemCarb').value) || 0;
+    item.fat = parseFloat(document.getElementById('editItemFat').value) || 0;
+    
+    profile.mealPlan = plan;
+    sv('rg_profile', profile);
+    overlay.remove();
+    renderToday();
+  });
+}
+
 function renderToday() {
   var key = todayKey();
   var rec = dayRecord(key);
   var tot = getDayTotals(key);
-  var ct = profile.calTarget||CAL_TARGET;
-  var pt = profile.protTarget||PROT_TARGET;
+  var targets = getTargetsForDate(key);
+  var ct = targets.kcal;
+  var pt = targets.protein;
   var dayNum = currentDayNum();
   var weekNum = Math.ceil(dayNum/7);
   var streak = computeStreak();
   var status = dayStatus(tot.kcal, ct);
   var recents = ls('rg_recent_foods',[]);
-  var tmpl = ls('rg_meals', DEFAULT_MEALS);
 
   var shieldRow = (yesterdayMissed() && (profile.shields||0) > 0)
     ? '<button class="shield-btn" id="useShieldBtn">'+ic('shield')+' Use streak shield for yesterday &nbsp;<span style="color:var(--text-muted)">('+(profile.shields||0)+' left)</span></button>'
     : '';
 
-  var mealsHTML = tmpl.map(function(m){
-    var logged = !!rec.meals[m.id];
-    return '<div class="meal-row">'
-      +'<div class="meal-icon">'+ic(m.icon||'bowl')+'</div>'
-      +'<div class="meal-info">'
-        +'<div class="meal-name">'+m.name+'</div>'
-        +'<div class="meal-macros">'+m.kcal+' kcal · '+m.protein+'P · '+m.carbs+'C · '+m.fat+'F</div>'
-      +'</div>'
-      +'<button class="meal-toggle" data-meal="'+m.id+'" aria-label="'+(logged?'Unlog':'Log')+' '+m.name+'" style="color:'+(logged?'var(--sage-light)':'var(--text-muted)')+'">'+ic(logged?'check':'plus')+'</button>'
-      +'</div>';
-  }).join('');
+  var tdays = profile.trainingDays||[1,3,5];
+  var today = new Date();
+  var isTrainingDay = tdays.includes(today.getDay());
+  
+  var planHTML = renderChecklistHTML(rec, isTrainingDay);
+
+  var avoCount = getWeeklyAvocadosCount();
+  var loggedTodayAvo = rec.avocados || 0;
+  var avoBtnHTML = '<div style="display:flex; gap:6px">'
+    + (loggedTodayAvo > 0 ? '<button class="btn btn-sm" id="remAvoBtn" style="border-color: var(--rust-dark); padding: 4px 8px">-</button>' : '')
+    + '<button class="btn btn-sm" id="addAvoBtn" style="border-color: var(--sage-dark); padding: 4px 12px">+1 Log</button>'
+  + '</div>';
+
+  var avocadoHTML = '<div class="meal-group" style="margin-top:16px">'
+    + '<div class="eyebrow" style="margin-bottom:8px">Weekly Allowance</div>'
+    + '<div class="meal-row" style="padding: 10px 12px; background: var(--surface); border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between">'
+      + '<div style="display:flex; align-items:center; gap:10px">'
+        + '<div style="font-size:18px">🥑</div>'
+        + '<div>'
+          + '<div style="font-size: 13px; font-weight: 500">Avocados</div>'
+          + '<div style="font-size: 11px; color: var(--text-muted); font-family: \'Space Mono\', monospace; margin-top: 1px">' + avoCount + ' / 2 consumed this week</div>'
+        + '</div>'
+      + '</div>'
+      + avoBtnHTML
+    + '</div>'
+  + '</div>';
 
   var extraHTML = (rec.extra||[]).map(function(e,i){
-    return '<div class="meal-row">'
-      +'<div class="meal-icon">'+ic('bowl')+'</div>'
-      +'<div class="meal-info">'
-        +'<div class="meal-name">'+e.name+' <span class="dim small">(×'+e.servings+')</span></div>'
-        +'<div class="meal-macros">'+e.kcal+' kcal · '+e.protein+'P · '+e.carbs+'C · '+e.fat+'F</div>'
+    return '<div class="meal-row" style="padding: 10px 12px; background: var(--surface); border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between">'
+      +'<div style="display:flex; align-items:center; gap:10px">'
+        +'<div style="font-size:18px">🍚</div>'
+        +'<div>'
+          +'<div style="font-size: 13px; font-weight: 500">'+e.name+' <span class="dim small">(×'+e.servings+')</span></div>'
+          +'<div style="font-size: 11px; color: var(--text-muted); font-family: \'Space Mono\', monospace; margin-top: 1px">'+e.kcal+' kcal · '+e.protein+'P · '+e.carbs+'C · '+e.fat+'F</div>'
+        +'</div>'
       +'</div>'
-      +'<button class="meal-toggle" data-extra="'+i+'" style="color:var(--text-muted)">'+ic('x')+'</button>'
+      +'<button class="meal-toggle" data-extra="'+i+'" style="color:var(--text-muted); background:none; border:none; cursor:pointer">'+ic('x')+'</button>'
       +'</div>';
   }).join('');
 
@@ -627,14 +817,11 @@ function renderToday() {
     : '';
 
   // --- Mission Control Logic ---
-  var tdays = profile.trainingDays||[1,3,5];
-  var today = new Date();
-  var isTrainingDay = tdays.includes(today.getDay());
   var session = getSessionType();
-  var exCount = session.exercises.length;
+  var exCount = (session && session.exercises) ? session.exercises.length : 0;
   var doneCount = 0;
   var nextEx = null;
-  if(isTrainingDay) {
+  if(isTrainingDay && session && session.exercises) {
     session.exercises.forEach(function(ex){
       if((rec.workout||{})[ex.id] && (rec.workout||{})[ex.id].length > 0) doneCount++;
       else if(!nextEx) nextEx = ex.name;
@@ -713,13 +900,13 @@ function renderToday() {
       +'<div class="gauge-readout"><span class="mono big">'+tot.kcal.toLocaleString()+'</span><span class="dim"> / '+ct.toLocaleString()+' kcal</span></div>'
     +'</div>'
     +'<div class="section">'
-      +'<div class="section-head"><span class="eyebrow">today\'s meals</span><button class="btn-ghost" id="editMealsBtn">edit templates</button></div>'
-      +mealsHTML+extraHTML
+      +'<div class="section-head"><span class="eyebrow">today\'s checklist</span><button class="btn-ghost" id="editMealsBtn">reset plan</button></div>'
+      +planHTML+avocadoHTML+extraHTML
       +'<button class="add-food-btn" id="addFoodBtn">'+ic('plus')+' add custom food</button>'
     +'</div>'
     +(recentChips ? '<div class="section"><span class="eyebrow" style="margin-bottom:8px">recent</span><div class="chips-row">'+recentChips+'</div></div>' : '');
 
-  attachTodayEvents(key, rec, tmpl);
+  attachTodayEvents(key, rec);
 }
 
 function openRecoverySheet(dayKey) {
@@ -737,17 +924,43 @@ function openRecoverySheet(dayKey) {
   });
 }
 
-function attachTodayEvents(key, rec, tmpl) {
-  // Meal toggles
-  document.querySelectorAll('.meal-toggle[data-meal]').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var id = btn.dataset.meal; rec = dayRecord(key);
-      rec.meals[id] = !rec.meals[id];
-      profile.xp = Math.max(0, (profile.xp||0) + (rec.meals[id] ? 10 : -10));
+function attachTodayEvents(key, rec) {
+  // Plan item toggles
+  document.querySelectorAll('.plan-chk').forEach(function(chk){
+    chk.addEventListener('change', function(){
+      var id = chk.dataset.itemid; rec = dayRecord(key);
+      rec.meals[id] = chk.checked;
+      profile.xp = Math.max(0, (profile.xp||0) + (chk.checked ? 10 : -10));
       saveDayRecord(key, rec); sv('rg_profile', profile);
       renderToday();
     });
   });
+  // Plan item settings / edit
+  document.querySelectorAll('.edit-item-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      openEditItemSheet(btn.dataset.itemid, btn.dataset.group);
+    });
+  });
+  // Avocado logging
+  var addAvo = document.getElementById('addAvoBtn');
+  if(addAvo) {
+    addAvo.addEventListener('click', function(){
+      rec = dayRecord(key); rec.avocados = (rec.avocados || 0) + 1;
+      profile.xp = (profile.xp||0)+5; sv('rg_profile', profile);
+      saveDayRecord(key, rec); renderToday();
+    });
+  }
+  var remAvo = document.getElementById('remAvoBtn');
+  if(remAvo) {
+    remAvo.addEventListener('click', function(){
+      rec = dayRecord(key);
+      if((rec.avocados||0) > 0) {
+        rec.avocados--;
+        profile.xp = Math.max(0, (profile.xp||0)-5); sv('rg_profile', profile);
+        saveDayRecord(key, rec); renderToday();
+      }
+    });
+  }
   // Extra food remove
   document.querySelectorAll('.meal-toggle[data-extra]').forEach(function(btn){
     btn.addEventListener('click', function(){
@@ -789,7 +1002,7 @@ function attachTodayEvents(key, rec, tmpl) {
   // Settings
   var sg = document.getElementById('settingsBtn');
   if(sg) sg.addEventListener('click', openSettings);
-  // Edit meals
+  // Edit meals (reset plan)
   var em = document.getElementById('editMealsBtn');
   if(em) em.addEventListener('click', openMealEditor);
 }
@@ -813,8 +1026,18 @@ function renderProgress() {
     var r = dayRecord(k); var t = getDayTotals(k);
     return {key:k,weight:r.weight,readiness:r.readiness,kcal:t.kcal,protein:t.protein,carbs:t.carbs,fat:t.fat};
   });
-  var ct = profile.calTarget||CAL_TARGET;
-  var pt = profile.protTarget||PROT_TARGET;
+
+  // Calculate weighted average targets for the past 7 days for the dashboard
+  var last7 = records.slice(-7);
+  var sumCt = 0, sumPt = 0;
+  last7.forEach(function(r){
+    var t = getTargetsForDate(r.key);
+    sumCt += t.kcal; sumPt += t.protein;
+  });
+  var avgCt = last7.length ? Math.round(sumCt / last7.length) : CAL_TARGET_REST;
+  var avgPt = last7.length ? Math.round(sumPt / last7.length) : PROT_TARGET_REST;
+  var ct = avgCt; // for rendering
+  var pt = avgPt; // for rendering
 
   // Weekly weight averages
   var weeklyWeights = [];
@@ -887,8 +1110,8 @@ function renderProgress() {
     +'<div class="section"><span class="eyebrow">adherence ledger</span><div class="ledger-grid" id="ledger"></div><div class="legend"><span><span class="dot" style="background:#486440"></span>on target</span><span><span class="dot" style="background:#6B2A1E"></span>aggressive</span><span><span class="dot" style="background:#2D2918"></span>under/none</span></div></div>'
     +'<div id="advisoryZone"></div>';
 
-  buildProgressCharts(records, weeklyWeights, ct, pt);
-  buildLedger(records, ct);
+  buildProgressCharts(records, weeklyWeights);
+  buildLedger(records);
   runDiscovery(records, weeklyWeights, ct, reg);
 
   var exSel = document.getElementById('exSelect');
@@ -941,7 +1164,7 @@ function chartDefaults() {
 }
 function destroyCharts() { Object.values(charts).forEach(function(c){if(c)c.destroy();}); charts={}; }
 
-function buildProgressCharts(records, weeklyWeights, ct, pt) {
+function buildProgressCharts(records, weeklyWeights) {
   if(typeof Chart === 'undefined') return;
   destroyCharts();
 
@@ -971,8 +1194,11 @@ function buildProgressCharts(records, weeklyWeights, ct, pt) {
       charts.kcal = new Chart(kc, {type:'bar',data:{
         labels:last14.map(function(r){return r.key.slice(5);}),
         datasets:[
-          {data:last14.map(function(r){return r.kcal;}),backgroundColor:last14.map(function(r){return r.kcal>=ct*0.9&&r.kcal<=ct*1.15?'#7C9473':r.kcal>ct*1.15?'#B5503D':'#2E2720';}),borderRadius:3},
-          {type:'line',data:last14.map(function(){return ct;}),borderColor:'#4A3A22',borderDash:[5,4],pointRadius:0,borderWidth:1.5,fill:false}
+          {data:last14.map(function(r){return r.kcal;}),backgroundColor:last14.map(function(r){
+            var dailyCt = getTargetsForDate(r.key).kcal;
+            return r.kcal>=dailyCt*0.9&&r.kcal<=dailyCt*1.15?'#7C9473':r.kcal>dailyCt*1.15?'#B5503D':'#2E2720';
+          }),borderRadius:3},
+          {type:'line',data:last14.map(function(r){return getTargetsForDate(r.key).kcal;}),borderColor:'#4A3A22',borderDash:[5,4],pointRadius:0,borderWidth:1.5,fill:false}
         ]
       },options:chartDefaults()});
     } else {
@@ -997,7 +1223,7 @@ function buildProgressCharts(records, weeklyWeights, ct, pt) {
         labels:records.map(function(r){return r.key.slice(5);}),
         datasets:[
           {data:rolling,borderColor:'#D17B68',backgroundColor:'rgba(209,123,104,0.06)',fill:true,tension:0.3,pointRadius:0,borderWidth:2,spanGaps:true},
-          {type:'line',data:records.map(function(){return pt;}),borderColor:'#4A3A22',borderDash:[5,4],pointRadius:0,borderWidth:1.5,fill:false}
+          {type:'line',data:records.map(function(r){return getTargetsForDate(r.key).protein;}),borderColor:'#4A3A22',borderDash:[5,4],pointRadius:0,borderWidth:1.5,fill:false}
         ]
       },options:chartDefaults()});
     } else {
@@ -1031,12 +1257,13 @@ function buildE1RMChart(exId, records) {
   },options:opts});
 }
 
-function buildLedger(records, ct) {
+function buildLedger(records) {
   var grid = document.getElementById('ledger'); if(!grid) return;
   var colorMap={none:'#2D2918',under:'#2D2918',target:'#486440',aggressive:'#6B2A1E'};
   grid.innerHTML = records.map(function(r){
-    var s = dayStatus(r.kcal,ct);
-    return '<div class="ledger-cell" style="background:'+colorMap[s]+'" title="'+r.key+': '+r.kcal+' kcal, '+r.protein+'g protein"></div>';
+    var dailyCt = getTargetsForDate(r.key).kcal;
+    var s = dayStatus(r.kcal, dailyCt);
+    return '<div class="ledger-cell" style="background:'+colorMap[s]+'" title="' + r.key + ': ' + r.kcal + ' kcal (target: ' + dailyCt + '), ' + r.protein + 'g protein"></div>';
   }).join('');
 }
 
@@ -1482,13 +1709,32 @@ function openSettings() {
   var tdays=(profile.trainingDays||[1,3,5]).slice();
   var overlay=document.createElement('div'); overlay.className='overlay';
   var splitVal = profile.programSplit || '3day';
+  var equipVal = profile.equipment || 'full';
+  var dietVal = profile.dietaryPattern || 'nonveg';
+  
   overlay.innerHTML='<div class="sheet" style="position:relative">'
     +'<div class="sheet-handle"></div>'
     +'<div class="sheet-title">Settings</div>'
-    +'<label class="eyebrow" style="margin-top:12px">Calorie target (kcal/day)</label>'
-    +'<input type="number" id="setTarget" value="'+(profile.calTarget||CAL_TARGET)+'" inputmode="numeric">'
-    +'<label class="eyebrow" style="margin-top:12px">Protein target (g/day)</label>'
-    +'<input type="number" id="setProt" value="'+(profile.protTarget||PROT_TARGET)+'" inputmode="numeric">'
+    +'<div style="display:flex;gap:10px">'
+      +'<div style="flex:1">'
+        +'<label class="eyebrow" style="margin-top:12px">Rest-Day kcal</label>'
+        +'<input type="number" id="setTargetRest" value="'+(profile.calTargetRest||CAL_TARGET_REST)+'" inputmode="numeric">'
+      +'</div>'
+      +'<div style="flex:1">'
+        +'<label class="eyebrow" style="margin-top:12px">Gym-Day kcal</label>'
+        +'<input type="number" id="setTargetGym" value="'+(profile.calTargetGym||CAL_TARGET_GYM)+'" inputmode="numeric">'
+      +'</div>'
+    +'</div>'
+    +'<div style="display:flex;gap:10px">'
+      +'<div style="flex:1">'
+        +'<label class="eyebrow" style="margin-top:12px">Rest-Day Protein (g)</label>'
+        +'<input type="number" id="setProtRest" value="'+(profile.protTargetRest||PROT_TARGET_REST)+'" inputmode="numeric">'
+      +'</div>'
+      +'<div style="flex:1">'
+        +'<label class="eyebrow" style="margin-top:12px">Gym-Day Protein (g)</label>'
+        +'<input type="number" id="setProtGym" value="'+(profile.protTargetGym||PROT_TARGET_GYM)+'" inputmode="numeric">'
+      +'</div>'
+    +'</div>'
     +'<label class="eyebrow" style="margin-top:12px">Training days</label>'
     +'<div class="day-toggles">'+dayNames.map(function(d,i){return '<button class="day-toggle'+(tdays.includes(i)?' active':'')+'" data-day="'+i+'">'+d+'</button>';}).join('')+'</div>'
     +'<label class="eyebrow" style="margin-top:12px">Workout Split</label>'
@@ -1500,6 +1746,20 @@ function openSettings() {
       +'</select>'
       +'<button class="btn" id="previewSplitBtn">Preview</button>'
     +'</div>'
+    +'<label class="eyebrow" style="margin-top:12px">Equipment Access</label>'
+    +'<select id="setEquip">'
+      +'<option value="full"'+(equipVal==='full'?' selected':'')+'>Full Gym</option>'
+      +'<option value="home"'+(equipVal==='home'?' selected':'')+'>Home Gym</option>'
+      +'<option value="db"'+(equipVal==='db'?' selected':'')+'>Dumbbells Only</option>'
+      +'<option value="body"'+(equipVal==='body'?' selected':'')+'>Bodyweight</option>'
+    +'</select>'
+    +'<label class="eyebrow" style="margin-top:12px">Dietary Pattern</label>'
+    +'<select id="setDiet">'
+      +'<option value="nonveg"'+(dietVal==='nonveg'?' selected':'')+'>Non-Vegetarian</option>'
+      +'<option value="eggitarian"'+(dietVal==='eggitarian'?' selected':'')+'>Eggitarian</option>'
+      +'<option value="veg"'+(dietVal==='veg'?' selected':'')+'>Vegetarian</option>'
+      +'<option value="vegan"'+(dietVal==='vegan'?' selected':'')+'>Vegan</option>'
+    +'</select>'
     +'<label class="eyebrow" style="margin-top:12px">Experience tier</label>'
     +'<select id="setExp"><option value="novice"'+(profile.experience==='novice'?' selected':'')+'>Novice / Intermediate</option><option value="advanced"'+(profile.experience==='advanced'?' selected':'')+'>Advanced</option></select>'
     +'<label class="eyebrow" style="margin-top:12px">Streak shields</label>'
@@ -1528,10 +1788,14 @@ function openSettings() {
   });
   overlay.querySelector('#closeSettingsBtn').addEventListener('click',function(){overlay.remove();});
   overlay.querySelector('#saveSettingsBtn').addEventListener('click',function(){
-    profile.calTarget=parseInt(document.getElementById('setTarget').value,10)||CAL_TARGET;
-    profile.protTarget=parseInt(document.getElementById('setProt').value,10)||PROT_TARGET;
+    profile.calTargetRest=parseInt(document.getElementById('setTargetRest').value,10)||CAL_TARGET_REST;
+    profile.calTargetGym=parseInt(document.getElementById('setTargetGym').value,10)||CAL_TARGET_GYM;
+    profile.protTargetRest=parseInt(document.getElementById('setProtRest').value,10)||PROT_TARGET_REST;
+    profile.protTargetGym=parseInt(document.getElementById('setProtGym').value,10)||PROT_TARGET_GYM;
     profile.trainingDays=tdays;
     profile.programSplit=document.getElementById('setSplit').value;
+    profile.equipment=document.getElementById('setEquip').value;
+    profile.dietaryPattern=document.getElementById('setDiet').value;
     profile.experience=document.getElementById('setExp').value;
     sv('rg_profile',profile);
     overlay.remove(); renderTab();
@@ -1751,21 +2015,69 @@ function renderOnboarding() {
   document.getElementById('app').innerHTML =
     '<div class="onboard">'
     +'<div class="onboard-title">Regain</div>'
-    +'<div class="onboard-sub">One-time setup. Your data stays on this device — no account needed.</div>'
-    +'<label>Your name (optional)</label>'
+    +'<div class="onboard-sub">One-time configuration. All data remains locally on this device.</div>'
+    
+    +'<label style="margin-top:16px">Your Name (optional)</label>'
     +'<input type="text" id="obName" placeholder="e.g. Arjun">'
-    +'<label style="margin-top:16px">Starting weight (kg)</label>'
-    +'<input type="number" step="0.1" id="obWeight" placeholder="e.g. 54.0" inputmode="decimal">'
-    +'<div style="font-size:11px;color:var(--text-muted);margin-top:4px">Calorie target (2,500 kcal) and protein target (100g) are set automatically based on your profile. Adjust anytime in settings.</div>'
-    +'<button class="btn btn-primary" style="margin-top:24px" id="obStartBtn">Start tracking</button>'
+    
+    +'<label style="margin-top:16px">Starting Weight (kg)</label>'
+    +'<input type="number" step="0.1" id="obWeight" value="54.0" placeholder="e.g. 54.0" inputmode="decimal">'
+    
+    +'<label style="margin-top:16px">Equipment Access</label>'
+    +'<select id="obEquipment">'
+      +'<option value="full">Full Gym (Barbell, Dumbbells, Cables, Machines)</option>'
+      +'<option value="home">Home Gym (Barbell, Dumbbells, Bench)</option>'
+      +'<option value="db">Dumbbells Only</option>'
+      +'<option value="body">Bodyweight / Calisthenics</option>'
+    +'</select>'
+    
+    +'<label style="margin-top:16px">Dietary Pattern</label>'
+    +'<select id="obDiet">'
+      +'<option value="nonveg">Non-Vegetarian</option>'
+      +'<option value="eggitarian">Eggitarian</option>'
+      +'<option value="veg">Vegetarian</option>'
+      +'<option value="vegan">Vegan</option>'
+    +'</select>'
+    
+    +'<label style="margin-top:16px">Default Workout Split</label>'
+    +'<select id="obSplit">'
+      +'<option value="3day" selected>3 Days/Week (Full Body)</option>'
+      +'<option value="2day">2 Days/Week (Full Body)</option>'
+      +'<option value="4day">4 Days/Week (Upper/Lower Split)</option>'
+    +'</select>'
+    
+    +'<button class="btn btn-primary" style="margin-top:28px" id="obStartBtn">Start tracking</button>'
     +'</div>';
+
   document.getElementById('obStartBtn').addEventListener('click',function(){
     var name=(document.getElementById('obName').value.trim())||'You';
     var w=parseFloat(document.getElementById('obWeight').value);
     if(!w||w<30||w>250){showToast('Enter a valid starting weight','warn');return;}
-    profile={name:name,startDate:todayKey(),startWeight:w,calTarget:CAL_TARGET,protTarget:PROT_TARGET,trainingDays:[1,3,5],experience:'novice',xp:0,shields:1};
+    
+    var equip = document.getElementById('obEquipment').value;
+    var diet = document.getElementById('obDiet').value;
+    var split = document.getElementById('obSplit').value;
+    
+    profile = {
+      name: name,
+      startDate: todayKey(),
+      startWeight: w,
+      calTargetRest: CAL_TARGET_REST,
+      calTargetGym: CAL_TARGET_GYM,
+      protTargetRest: PROT_TARGET_REST,
+      protTargetGym: PROT_TARGET_GYM,
+      trainingDays: split === '4day' ? [1,2,4,5] : split === '2day' ? [1,4] : [1,3,5],
+      programSplit: split,
+      equipment: equip,
+      dietaryPattern: diet,
+      experience: 'novice',
+      xp: 0,
+      shields: 1,
+      version: 4,
+      mealPlan: JSON.parse(JSON.stringify(DEFAULT_MEAL_PLAN))
+    };
+    
     sv('rg_profile',profile);
-    sv('rg_meals',DEFAULT_MEALS);
     var firstDay=dayRecord(todayKey()); firstDay.weight=w; saveDayRecord(todayKey(),firstDay);
     renderApp();
   });
@@ -1776,12 +2088,12 @@ function renderOnboarding() {
 // ═══════════════════════════════════════════════════════════════════════════════
 function renderHistory() {
   var keys = allDayKeys().reverse(); // Newest first
-  var ct = profile.calTarget || CAL_TARGET;
-  var pt = profile.protTarget || PROT_TARGET;
   
   var listHTML = keys.map(function(k) {
     var rec = dayRecord(k);
     var tot = getDayTotals(k);
+    var targets = getTargetsForDate(k);
+    var ct = targets.kcal;
     var d = new Date(k + 'T00:00:00');
     var dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
     var formattedDate = dayName + ', ' + d.toLocaleDateString();
@@ -1849,7 +2161,12 @@ function renderTab() {
 // ── Boot ────────────────────────────────────────────────────────────────────────
 FoodDB.open().then(function(){
   profile = ls('rg_profile',null);
-  mealTemplates = ls('rg_meals',DEFAULT_MEALS);
+  if(profile) {
+    if(!profile.mealPlan) {
+      profile.mealPlan = JSON.parse(JSON.stringify(DEFAULT_MEAL_PLAN));
+      sv('rg_profile', profile);
+    }
+  }
   if(!profile) renderOnboarding();
   else renderApp();
 }).catch(function(err){
