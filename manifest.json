@@ -1,0 +1,14 @@
+{
+  "name": "Regain",
+  "short_name": "Regain",
+  "description": "Personal hardgainer bulk tracker — daily calorie, macro, weight and training log",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#15130F",
+  "theme_color": "#15130F",
+  "icons": [
+    { "src": "icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
