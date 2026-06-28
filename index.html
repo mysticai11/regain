@@ -299,6 +299,38 @@ function getActiveProgram() {
   return PROGRAM_3DAY;
 }
 
+var ALTERNATES = [
+  {id:'hack_squat', name:'Hack squat', muscle:'quads,glutes', sets:4, reps:'10–12', rir:'1–2', rest:150, cue:'2.5 min rest'},
+  {id:'bulgarian_split', name:'Bulgarian split squat', muscle:'quads,glutes', sets:3, reps:'10–12', rir:'1–2', rest:90, cue:'90s rest'},
+  {id:'db_bench', name:'Dumbbell bench press', muscle:'chest,triceps', sets:4, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest'},
+  {id:'machine_chest', name:'Machine chest press', muscle:'chest,triceps', sets:4, reps:'10–12', rir:'1–2', rest:120, cue:'2 min rest'},
+  {id:'db_row', name:'Dumbbell row', muscle:'back,biceps', sets:4, reps:'10–12', rir:'1–2', rest:120, cue:'2 min rest'},
+  {id:'pullup', name:'Pull-up / Assisted pull-up', muscle:'back,biceps', sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest'},
+  {id:'db_shoulder', name:'Dumbbell shoulder press', muscle:'shoulders', sets:3, reps:'10–12', rir:'1–2', rest:120, cue:'2 min rest'},
+  {id:'db_curl', name:'Dumbbell bicep curl', muscle:'biceps', sets:3, reps:'12–15', rir:'1–2', rest:90, cue:'90s rest'},
+  {id:'db_lateral', name:'Dumbbell lateral raise', muscle:'shoulders', sets:3, reps:'15–20', rir:'1–2', rest:60, cue:'60s rest'},
+];
+
+function getExerciseData(id) {
+  var allProg = PROGRAM_2DAY.concat(PROGRAM_3DAY, PROGRAM_4DAY);
+  var allEx = ALTERNATES.slice();
+  allProg.forEach(function(s){ allEx = allEx.concat(s.exercises); });
+  return allEx.find(function(e){ return e.id === id; });
+}
+
+function getAllExercisesForMuscle(muscleStr) {
+  var allProg = PROGRAM_2DAY.concat(PROGRAM_3DAY, PROGRAM_4DAY);
+  var allEx = ALTERNATES.slice();
+  allProg.forEach(function(s){ allEx = allEx.concat(s.exercises); });
+  var seen = {}; var out = [];
+  allEx.forEach(function(e){
+    if(!seen[e.id] && (e.muscle === muscleStr || e.muscle.indexOf(muscleStr)>-1 || muscleStr.indexOf(e.muscle)>-1)) {
+      seen[e.id] = true; out.push(e);
+    }
+  });
+  return out;
+}
+
 // Volume table calculation dynamically based on active program
 function getWeeklyVolume() {
   var prog = getActiveProgram();
@@ -344,6 +376,7 @@ var ICONS = {
   trend_up:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M15 7h7v7"/></svg>',
   cook:    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12c.5-5 4-8 9-8a9 9 0 0 1 7 11H2z"/><path d="M2 12h17M12 12v8"/></svg>',
   book:    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>',
+  refresh: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>',
 };
 function ic(name, size) {
   var s = ICONS[name] || '';
@@ -1008,20 +1041,25 @@ function renderGym() {
   var session = getSessionType();
   var key = todayKey();
   var rec = dayRecord(key);
-  var exHTML = session.exercises.map(function(ex){
+  var exHTML = session.exercises.map(function(exOrig){
+    var exId = (rec.swaps && rec.swaps[exOrig.id]) ? rec.swaps[exOrig.id] : exOrig.id;
+    var ex = getExerciseData(exId) || exOrig;
     var sets = (rec.workout||{})[ex.id]||[];
     var chips = sets.map(function(s){
       return '<span class="set-chip">'+s.weight+'kg × '+s.reps+'<span style="font-size:10px;color:var(--text-muted)"> (e1RM '+calcE1RM(s.weight,s.reps).toFixed(0)+')</span></span>';
     }).join('');
     var best = getBestE1RM(ex.id);
     return '<div class="exercise-card" id="excard-'+ex.id+'">'
-      +'<div class="exercise-name">'+ex.name+'<span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">'+ex.sets+'×'+ex.reps+' · '+ex.rir+' RIR</span></div>'
-      +'<div class="exercise-cue">'+ex.cue+(best?' · best e1RM: '+best.toFixed(1)+'kg':'')+'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+        +'<div><div class="exercise-name">'+ex.name+'<span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">'+(ex.sets||exOrig.sets)+'×'+(ex.reps||exOrig.reps)+' · '+(ex.rir||exOrig.rir)+' RIR</span></div>'
+        +'<div class="exercise-cue">'+(ex.cue||exOrig.cue)+(best?' · best e1RM: '+best.toFixed(1)+'kg':'')+'</div></div>'
+        +'<button class="icon-btn swap-btn" data-swap-orig="'+exOrig.id+'" data-swap-curr="'+ex.id+'" data-muscle="'+exOrig.muscle+'" title="Swap exercise">'+ic('refresh')+'</button>'
+      +'</div>'
       +'<div class="set-chips">'+chips+'</div>'
       +'<div class="set-add-row">'
         +'<input type="number" step="0.25" min="0" placeholder="kg" class="set-weight" data-ex="'+ex.id+'" inputmode="decimal">'
         +'<input type="number" min="1" max="50" placeholder="reps" class="set-reps" data-ex="'+ex.id+'" inputmode="numeric">'
-        +'<button class="btn btn-sm" data-logset="'+ex.id+'" data-rest="'+ex.rest+'">Log</button>'
+        +'<button class="btn btn-sm" data-logset="'+ex.id+'" data-rest="'+(ex.rest||exOrig.rest)+'">Log</button>'
       +'</div>'
     +'</div>';
   }).join('');
@@ -1078,6 +1116,38 @@ function attachGymEvents(key, rec, session) {
       wEl.value=''; rEl.value='';
       renderGym();
       startRestTimer(rest);
+    });
+  });
+
+  document.querySelectorAll('.swap-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      openSwapSheet(btn.dataset.swapOrig, btn.dataset.swapCurr, btn.dataset.muscle, key);
+    });
+  });
+}
+
+function openSwapSheet(origId, currId, muscleStr, dayKey) {
+  var exList = getAllExercisesForMuscle(muscleStr);
+  var overlay=document.createElement('div'); overlay.className='overlay';
+  var rows = exList.map(function(e) {
+    var isSel = e.id === currId;
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05)">'
+      +'<div><div style="font-size:14px;font-weight:500">'+e.name+'</div><div style="font-size:11px;color:var(--text-muted)">'+e.muscle+'</div></div>'
+      +'<button class="btn btn-sm'+(isSel?' btn-primary':'')+'" data-selectswap="'+e.id+'">'+(isSel?'Selected':'Select')+'</button>'
+      +'</div>';
+  }).join('');
+  overlay.innerHTML='<div class="sheet"><div class="sheet-handle"></div><div class="sheet-title">Swap Exercise</div><div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Swaps apply to this session only.</div>'+rows+'<button class="btn" style="margin-top:14px;width:100%" id="closeSwapBtn">Cancel</button></div>';
+  document.body.appendChild(overlay);
+  overlay.querySelector('#closeSwapBtn').addEventListener('click', function(){overlay.remove();});
+  overlay.querySelectorAll('[data-selectswap]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var sid = b.dataset.selectswap;
+      var rec = dayRecord(dayKey);
+      rec.swaps = rec.swaps || {};
+      if(sid === origId) delete rec.swaps[origId];
+      else rec.swaps[origId] = sid;
+      saveDayRecord(dayKey, rec);
+      overlay.remove(); renderGym();
     });
   });
 }
@@ -1311,11 +1381,14 @@ function openSettings() {
     +'<label class="eyebrow" style="margin-top:12px">Training days</label>'
     +'<div class="day-toggles">'+dayNames.map(function(d,i){return '<button class="day-toggle'+(tdays.includes(i)?' active':'')+'" data-day="'+i+'">'+d+'</button>';}).join('')+'</div>'
     +'<label class="eyebrow" style="margin-top:12px">Workout Split</label>'
-    +'<select id="setSplit">'
-      +'<option value="2day"'+(splitVal==='2day'?' selected':'')+'>2 Days/Wk (Full Body)</option>'
-      +'<option value="3day"'+(splitVal==='3day'?' selected':'')+'>3 Days/Wk (Full Body)</option>'
-      +'<option value="4day"'+(splitVal==='4day'?' selected':'')+'>4 Days/Wk (Upper/Lower)</option>'
-    +'</select>'
+    +'<div style="display:flex;gap:8px">'
+      +'<select id="setSplit" style="flex:1">'
+        +'<option value="2day"'+(splitVal==='2day'?' selected':'')+'>2 Days/Wk (Full Body)</option>'
+        +'<option value="3day"'+(splitVal==='3day'?' selected':'')+'>3 Days/Wk (Full Body)</option>'
+        +'<option value="4day"'+(splitVal==='4day'?' selected':'')+'>4 Days/Wk (Upper/Lower)</option>'
+      +'</select>'
+      +'<button class="btn" id="previewSplitBtn">Preview</button>'
+    +'</div>'
     +'<label class="eyebrow" style="margin-top:12px">Experience tier</label>'
     +'<select id="setExp"><option value="novice"'+(profile.experience==='novice'?' selected':'')+'>Novice / Intermediate</option><option value="advanced"'+(profile.experience==='advanced'?' selected':'')+'>Advanced</option></select>'
     +'<label class="eyebrow" style="margin-top:12px">Streak shields</label>'
@@ -1362,6 +1435,22 @@ function openSettings() {
   overlay.querySelector('#editCustomFoodsBtn').addEventListener('click',function(){
     overlay.remove(); openCustomFoodsManager();
   });
+  overlay.querySelector('#previewSplitBtn').addEventListener('click', function(){
+    openSplitPreview();
+  });
+}
+
+function openSplitPreview() {
+  var val = document.getElementById('setSplit').value;
+  var prog = val==='2day'?PROGRAM_2DAY:val==='4day'?PROGRAM_4DAY:PROGRAM_3DAY;
+  var overlay=document.createElement('div'); overlay.className='overlay';
+  var html = prog.map(function(s){
+    var exStr = s.exercises.map(function(e){ return '<div style="font-size:13px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between"><span>'+e.name+'</span><span style="font-size:11px;color:var(--text-muted)">'+e.muscle+'</span></div>'; }).join('');
+    return '<div style="margin-bottom:16px"><div style="font-weight:600;color:var(--amber-light);margin-bottom:6px">'+s.label+'</div>'+exStr+'</div>';
+  }).join('');
+  overlay.innerHTML='<div class="sheet"><div class="sheet-handle"></div><div class="sheet-title" style="margin-bottom:12px">Split Preview</div>'+html+'<button class="btn" style="margin-top:16px;width:100%" id="closePreviewBtn">Close</button></div>';
+  document.body.appendChild(overlay);
+  overlay.querySelector('#closePreviewBtn').addEventListener('click',function(){overlay.remove();});
 }
 
 // ── Custom foods manager ───────────────────────────────────────────────────────
