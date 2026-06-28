@@ -1,5 +1,5 @@
 // sw.js — Regain v5 service worker
-const CACHE = 'regain-v5';
+const CACHE = 'regain-v6';
 const LOCAL_ASSETS = ['./', './index.html', './db.js', './manifest.json', './icon-192.svg', './icon-512.svg'];
 
 self.addEventListener('install', e => {
