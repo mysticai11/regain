@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Regain</string>
+    <string name="title_activity_main">Regain</string>
+    <string name="package_name">com.mysticai.regain</string>
+    <string name="custom_url_scheme">com.mysticai.regain</string>
+</resources>

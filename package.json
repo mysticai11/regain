@@ -1,0 +1,27 @@
+{
+  "name": "regain",
+  "version": "1.0.0",
+  "description": "A personal, offline-first Progressive Web App for tracking calories, macros, weight, and structured training during a long-term bulk.",
+  "main": "db.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node build_dist.js",
+    "sync": "node build_dist.js && npx cap sync"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mysticai11/regain.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mysticai11/regain/issues"
+  },
+  "homepage": "https://github.com/mysticai11/regain#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1"
+  }
+}
