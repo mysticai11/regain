@@ -271,71 +271,65 @@ var DEFAULT_MEAL_PLAN = {
 
 // ── Workout Programs ────────────────────────────────────────────────────────
 var PROGRAM_2DAY = [
-  { label: 'Session A', exercises: [
-    {id:'squat',          name:'Back Squat',               muscle:'quads,glutes',    sets:4, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause 1s at bottom', type:'compound'},
-    {id:'bench',          name:'Flat Bench Press',         muscle:'chest,triceps',   sets:4, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at chest', type:'compound'},
-    {id:'barbell_row',    name:'Barbell Row',              muscle:'back,biceps',     sets:4, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at stretch', type:'compound'},
-    {id:'rdl',            name:'Romanian Deadlift',        muscle:'hamstrings,glutes',sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · pause at stretch', type:'compound'},
-    {id:'lat_pulldown',   name:'Lat Pulldown',             muscle:'back,biceps',     sets:3, reps:'8–12', rir:'0–1', rest:90,  cue:'90s rest · machine', type:'machine'},
-    {id:'calf_stand',     name:'Standing Calf Raise',      muscle:'calves',          sets:4, reps:'10–15',rir:'0–1', rest:60,  cue:'60s rest · full stretch at bottom', type:'machine'},
+  { label: 'Day A', exercises: [
+    {id:'leg_press',      name:'Leg Press',                muscle:'quads,glutes',    sets:3, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest · full depth', type:'machine'},
+    {id:'bench',          name:'Bench / Incline Press',    muscle:'chest,triceps',   sets:3, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest · pause at chest', type:'compound'},
+    {id:'lat_pulldown',   name:'Lat Pulldown',             muscle:'back,biceps',     sets:3, reps:'8–12', rir:'0–1', rest:90,  cue:'90s rest · squeeze at chest', type:'machine'},
+    {id:'lateral_raise',  name:'Lateral Raise',            muscle:'shoulders',       sets:2, reps:'12–15',rir:'0–1', rest:60,  cue:'60s rest · control eccentric', type:'machine'}
   ]},
-  { label: 'Session B', exercises: [
-    {id:'squat',          name:'Back Squat',               muscle:'quads,glutes',    sets:4, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause 1s at bottom', type:'compound'},
-    {id:'bench',          name:'Flat Bench Press',         muscle:'chest,triceps',   sets:4, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at chest', type:'compound'},
-    {id:'barbell_row',    name:'Barbell Row',              muscle:'back,biceps',     sets:4, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at stretch', type:'compound'},
-    {id:'rdl',            name:'Romanian Deadlift',        muscle:'hamstrings,glutes',sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · pause at stretch', type:'compound'},
-    {id:'lat_pulldown',   name:'Lat Pulldown',             muscle:'back,biceps',     sets:3, reps:'8–12', rir:'0–1', rest:90,  cue:'90s rest · machine', type:'machine'},
-    {id:'calf_stand',     name:'Standing Calf Raise',      muscle:'calves',          sets:4, reps:'10–15',rir:'0–1', rest:60,  cue:'60s rest · full stretch at bottom', type:'machine'},
+  { label: 'Day B', exercises: [
+    {id:'rdl',            name:'Romanian Deadlift',        muscle:'hamstrings,glutes',sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · hinge, pause at stretch', type:'compound'},
+    {id:'barbell_row',    name:'Row',                      muscle:'back,biceps',     sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · pull to waist', type:'compound'},
+    {id:'ohp',            name:'Overhead Press',           muscle:'shoulders,triceps',sets:2, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · press overhead', type:'compound'},
+    {id:'bicep_curl',     name:'Biceps Curl',              muscle:'biceps',          sets:2, reps:'10–12',rir:'0–1', rest:90,  cue:'90s rest · squeeze biceps', type:'machine'}
   ]}
 ];
 
 var PROGRAM_3DAY = [
-  { label: 'Session A', exercises: [
-    {id:'squat',          name:'Back Squat',               muscle:'quads,glutes',    sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause 1s at bottom', type:'compound'},
-    {id:'bench',          name:'Flat Bench Press',         muscle:'chest,triceps',   sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at chest', type:'compound'},
-    {id:'barbell_row',    name:'Barbell Row',              muscle:'back,biceps',     sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at stretch', type:'compound'},
-    {id:'rdl',            name:'Romanian Deadlift',        muscle:'hamstrings,glutes',sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · pause at stretch', type:'compound'},
-    {id:'lat_pulldown',   name:'Lat Pulldown',             muscle:'back,biceps',     sets:2, reps:'8–12', rir:'0–1', rest:90,  cue:'90s rest · machine', type:'machine'},
-    {id:'calf_stand',     name:'Standing Calf Raise',      muscle:'calves',          sets:3, reps:'10–15',rir:'0–1', rest:60,  cue:'60s rest · full stretch at bottom', type:'machine'},
+  { label: 'Day A', exercises: [
+    {id:'squat',          name:'Squat (or Leg Press)',     muscle:'quads,glutes',    sets:3, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest · squat deep', type:'compound'},
+    {id:'bench',          name:'Bench Press',              muscle:'chest,triceps',   sets:3, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest · bar to chest', type:'compound'},
+    {id:'barbell_row',    name:'Row',                      muscle:'back,biceps',     sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · barbell or dumbbell row', type:'compound'},
+    {id:'lateral_raise',  name:'Lateral Raise',            muscle:'shoulders',       sets:2, reps:'12–15',rir:'0–1', rest:60,  cue:'60s rest · lateral raise', type:'machine'}
   ]},
-  { label: 'Session B', exercises: [
-    {id:'squat',          name:'Back Squat',               muscle:'quads,glutes',    sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause 1s at bottom', type:'compound'},
-    {id:'bench',          name:'Flat Bench Press',         muscle:'chest,triceps',   sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at chest', type:'compound'},
-    {id:'barbell_row',    name:'Barbell Row',              muscle:'back,biceps',     sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at stretch', type:'compound'},
-    {id:'rdl',            name:'Romanian Deadlift',        muscle:'hamstrings,glutes',sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · pause at stretch', type:'compound'},
-    {id:'lat_pulldown',   name:'Lat Pulldown',             muscle:'back,biceps',     sets:2, reps:'8–12', rir:'0–1', rest:90,  cue:'90s rest · machine', type:'machine'},
-    {id:'calf_stand',     name:'Standing Calf Raise',      muscle:'calves',          sets:3, reps:'10–15',rir:'0–1', rest:60,  cue:'60s rest · full stretch at bottom', type:'machine'},
+  { label: 'Day B', exercises: [
+    {id:'rdl',            name:'Romanian Deadlift',        muscle:'hamstrings,glutes',sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · pause at stretch', type:'compound'},
+    {id:'ohp',            name:'Overhead Press',           muscle:'shoulders,triceps',sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · vertical press', type:'compound'},
+    {id:'lat_pulldown',   name:'Lat Pulldown',             muscle:'back,biceps',     sets:3, reps:'8–12', rir:'0–1', rest:90,  cue:'90s rest · squeeze shoulder blades', type:'machine'},
+    {id:'bicep_curl',     name:'Biceps Curl',              muscle:'biceps',          sets:2, reps:'10–12',rir:'0–1', rest:90,  cue:'90s rest · contract biceps', type:'machine'}
+  ]},
+  { label: 'Day C', exercises: [
+    {id:'leg_press',      name:'Leg Press (or Squat)',     muscle:'quads,glutes',    sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · leg press', type:'machine'},
+    {id:'incline_bench',  name:'Incline DB Press',         muscle:'chest,triceps',   sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · dumbbell press', type:'compound'},
+    {id:'cable_row',      name:'Cable Row',                muscle:'back,biceps',     sets:3, reps:'8–12', rir:'0–1', rest:90,  cue:'90s rest · horizontal cable row', type:'machine'},
+    {id:'tricep_push',    name:'Close-Grip Bench or Triceps Pressdown',muscle:'triceps',sets:2, reps:'10–12',rir:'0–1', rest:90,  cue:'90s rest · triceps overload', type:'machine'}
   ]}
 ];
 
 var PROGRAM_4DAY = [
-  { label: 'Upper A', exercises: [
-    {id:'bench',          name:'Flat Bench Press',         muscle:'chest,triceps',   sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at chest', type:'compound'},
-    {id:'barbell_row',    name:'Barbell Row',              muscle:'back,biceps',     sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at stretch', type:'compound'},
-    {id:'ohp',            name:'Overhead Press',           muscle:'shoulders,triceps',sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · overhead press', type:'compound'},
-    {id:'lat_pulldown',   name:'Lat Pulldown',             muscle:'back,biceps',     sets:3, reps:'8–12', rir:'0–1', rest:90,  cue:'90s rest · machine', type:'machine'},
-    {id:'bicep_curl',     name:'Biceps Curl',              muscle:'biceps',          sets:2, reps:'10–15',rir:'0–1', rest:90,  cue:'90s rest · dumbbell/barbell', type:'machine'},
-    {id:'tricep_push',    name:'Cable Triceps Pressdown',  muscle:'triceps',         sets:2, reps:'10–15',rir:'0–1', rest:90,  cue:'90s rest · cable', type:'machine'},
+  { label: 'Day 1 (Lower)', exercises: [
+    {id:'squat',          name:'Squat',                    muscle:'quads,glutes',    sets:3, reps:'8',    rir:'1–2', rest:150, cue:'2.5 min rest · squat patterns', type:'compound'},
+    {id:'leg_press',      name:'Leg Press',                muscle:'quads,glutes',    sets:3, reps:'10',   rir:'1–2', rest:120, cue:'2 min rest · leg press volume', type:'machine'},
+    {id:'leg_curl',       name:'Leg Curl',                 muscle:'hamstrings',      sets:3, reps:'10',   rir:'0–1', rest:90,  cue:'90s rest · hamstring curl', type:'machine'},
+    {id:'calf_stand',     name:'Standing Calf Raise',      muscle:'calves',          sets:3, reps:'15',   rir:'0–1', rest:60,  cue:'60s rest · full stretch at bottom', type:'machine'}
   ]},
-  { label: 'Lower A', exercises: [
-    {id:'squat',          name:'Back Squat',               muscle:'quads,glutes',    sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause 1s at bottom', type:'compound'},
-    {id:'rdl',            name:'Romanian Deadlift',        muscle:'hamstrings,glutes',sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · pause at stretch', type:'compound'},
-    {id:'leg_curl',       name:'Leg Curl Machine',         muscle:'hamstrings',      sets:3, reps:'10–15',rir:'0–1', rest:90,  cue:'90s rest · machine', type:'machine'},
-    {id:'calf_stand',     name:'Standing Calf Raise',      muscle:'calves',          sets:3, reps:'10–15',rir:'0–1', rest:60,  cue:'60s rest · full stretch at bottom', type:'machine'},
+  { label: 'Day 2 (Upper)', exercises: [
+    {id:'bench',          name:'Bench Press',              muscle:'chest,triceps',   sets:3, reps:'8',    rir:'1–2', rest:150, cue:'2.5 min rest · flat bench press', type:'compound'},
+    {id:'ohp',            name:'Overhead Press',           muscle:'shoulders,triceps',sets:3, reps:'8',    rir:'1–2', rest:120, cue:'2 min rest · overhead press', type:'compound'},
+    {id:'lateral_raise',  name:'Lateral Raise',            muscle:'shoulders',       sets:3, reps:'15',   rir:'0–1', rest:60,  cue:'60s rest · lateral raise', type:'machine'},
+    {id:'tricep_push',    name:'Triceps Pressdown',        muscle:'triceps',         sets:2, reps:'10',   rir:'0–1', rest:90,  cue:'90s rest · tricep pump', type:'machine'}
   ]},
-  { label: 'Upper B', exercises: [
-    {id:'incline_bench',  name:'Incline Bench Press',      muscle:'chest,triceps',   sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · incline bench press', type:'compound'},
-    {id:'db_row',         name:'Dumbbell Row',             muscle:'back,biceps',     sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · DB row', type:'compound'},
-    {id:'ohp',            name:'Overhead Press',           muscle:'shoulders,triceps',sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · overhead press', type:'compound'},
-    {id:'pull_up',        name:'Lat Pulldown / Pull-up',   muscle:'back,biceps',     sets:3, reps:'8–12', rir:'0–1', rest:90,  cue:'90s rest · pulldown or assisted pull-up', type:'machine'},
-    {id:'hammer_curl',    name:'Hammer Curl',              muscle:'biceps',          sets:2, reps:'10–15',rir:'0–1', rest:90,  cue:'90s rest · neutral grip curl', type:'machine'},
-    {id:'tricep_ext',     name:'Triceps Overhead Extension',muscle:'triceps',         sets:2, reps:'10–15',rir:'0–1', rest:90,  cue:'90s rest · extension', type:'machine'},
+  { label: 'Day 3 (Lower)', exercises: [
+    {id:'rdl',            name:'Romanian Deadlift',        muscle:'hamstrings,glutes',sets:3, reps:'8',    rir:'1–2', rest:120, cue:'2 min rest · RDL stretch', type:'compound'},
+    {id:'leg_ext',        name:'Leg Extension',            muscle:'quads',           sets:3, reps:'12',   rir:'0–1', rest:90,  cue:'90s rest · quad isolation', type:'machine'},
+    {id:'hip_thrust',     name:'Hip Thrust',               muscle:'hamstrings,glutes',sets:3, reps:'10',   rir:'1–2', rest:120, cue:'2 min rest · glute overload', type:'compound'},
+    {id:'calf_stand',     name:'Standing Calf Raise',      muscle:'calves',          sets:3, reps:'15',   rir:'0–1', rest:60,  cue:'60s rest · calf stretch', type:'machine'}
   ]},
-  { label: 'Lower B', exercises: [
-    {id:'squat_var',      name:'Front / Goblet Squat',     muscle:'quads,glutes',    sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · front squat variation', type:'compound'},
-    {id:'hip_thrust',     name:'Hip Thrust / RDL',         muscle:'hamstrings,glutes',sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · glute hinge', type:'compound'},
-    {id:'leg_curl',       name:'Leg Curl Machine',         muscle:'hamstrings',      sets:3, reps:'10–15',rir:'0–1', rest:90,  cue:'90s rest · machine', type:'machine'},
-    {id:'calf_stand',     name:'Standing Calf Raise',      muscle:'calves',          sets:3, reps:'10–15',rir:'0–1', rest:60,  cue:'60s rest · full stretch at bottom', type:'machine'},
+  { label: 'Day 4 (Upper)', exercises: [
+    {id:'barbell_row',    name:'Row',                      muscle:'back,biceps',     sets:3, reps:'10',   rir:'1–2', rest:120, cue:'2 min rest · row variations', type:'compound'},
+    {id:'lat_pulldown',   name:'Lat Pulldown',             muscle:'back,biceps',     sets:3, reps:'10',   rir:'0–1', rest:90,  cue:'90s rest · pulldowns', type:'machine'},
+    {id:'rear_delt_fly',  name:'Rear-Delt Fly',            muscle:'shoulders',       sets:3, reps:'15',   rir:'0–1', rest:60,  cue:'60s rest · rear-delt pump', type:'machine'},
+    {id:'bicep_curl',     name:'Biceps Curl',              muscle:'biceps',          sets:2, reps:'10',   rir:'0–1', rest:90,  cue:'90s rest · biceps pump', type:'machine'}
   ]}
 ];
 
@@ -391,10 +385,6 @@ function getWeeklyVolume() {
       });
     });
   });
-  // If 3-day, we multiply by 1.5 since A and B are run 3x total per week
-  if(profile && profile.programSplit === '3day') {
-    Object.keys(v).forEach(function(k){ v[k] = Math.round(v[k] * 1.5); });
-  }
   return Object.keys(v).map(function(k){ return {muscle:k, sets:v[k]}; });
 }
 
