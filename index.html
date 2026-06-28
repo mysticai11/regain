@@ -272,80 +272,70 @@ var DEFAULT_MEAL_PLAN = {
 // ── Workout Programs ────────────────────────────────────────────────────────
 var PROGRAM_2DAY = [
   { label: 'Session A', exercises: [
-    {id:'squat',          name:'Squat',                    muscle:'quads,glutes',    sets:4, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest · pause 1s at bottom'},
-    {id:'bench',          name:'Bench press',              muscle:'chest,triceps',   sets:4, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest · pause at chest'},
-    {id:'barbell_row',    name:'Barbell row',              muscle:'back,biceps',     sets:4, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest · pause at stretch'},
-    {id:'rdl',            name:'Romanian deadlift',        muscle:'hamstrings',      sets:4, reps:'10–12',rir:'1–2', rest:120, cue:'2 min rest · pause at stretch'},
-    {id:'ohp',            name:'Overhead press',           muscle:'shoulders',       sets:3, reps:'10–12',rir:'1–2', rest:120, cue:'2 min rest · full ROM'},
-    {id:'barbell_curl',   name:'Barbell curl',             muscle:'biceps',          sets:3, reps:'12–15',rir:'1–2', rest:90,  cue:'90s rest · full ROM'},
-    {id: 'tricep_push',   name: 'Cable tricep pushdown',   muscle: 'triceps',        sets: 3, reps: '12–15', rir: '1–2', rest: 90, cue: '90s rest · pause at contraction'},
+    {id:'squat',          name:'Back Squat',               muscle:'quads,glutes',    sets:4, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause 1s at bottom', type:'compound'},
+    {id:'bench',          name:'Flat Bench Press',         muscle:'chest,triceps',   sets:4, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at chest', type:'compound'},
+    {id:'barbell_row',    name:'Barbell Row',              muscle:'back,biceps',     sets:4, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at stretch', type:'compound'},
+    {id:'rdl',            name:'Romanian Deadlift',        muscle:'hamstrings,glutes',sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · pause at stretch', type:'compound'},
+    {id:'lat_pulldown',   name:'Lat Pulldown',             muscle:'back,biceps',     sets:3, reps:'8–12', rir:'0–1', rest:90,  cue:'90s rest · machine', type:'machine'},
+    {id:'calf_stand',     name:'Standing Calf Raise',      muscle:'calves',          sets:4, reps:'10–15',rir:'0–1', rest:60,  cue:'60s rest · full stretch at bottom', type:'machine'},
   ]},
   { label: 'Session B', exercises: [
-    {id:'leg_press',      name:'Leg press',                muscle:'quads,glutes',    sets:4, reps:'10–12',rir:'1–2', rest:150, cue:'2.5 min rest · full depth'},
-    {id:'incline_db',     name:'Incline dumbbell press',   muscle:'chest,triceps',   sets:4, reps:'10–12',rir:'1–2', rest:120, cue:'2 min rest · pause at stretch'},
-    {id:'lat_pulldown',   name:'Lat pulldown',             muscle:'back',            sets:4, reps:'10–12',rir:'1–2', rest:120, cue:'2 min rest · pause at stretch'},
-    {id:'leg_curl',       name:'Leg curl',                 muscle:'hamstrings',      sets:4, reps:'10–12',rir:'1–2', rest:90,  cue:'90s rest · full ROM'},
-    {id:'cable_lateral',  name:'Cable lateral raise',      muscle:'shoulders',       sets:3, reps:'15–20',rir:'1–2', rest:60,  cue:'60s rest · control the eccentric'},
-    {id:'hammer_curl',    name:'Hammer curl',              muscle:'biceps',          sets:3, reps:'12–15',rir:'1–2', rest:90,  cue:'90s rest · full ROM'},
-    {id: 'skullcrusher',  name: 'EZ bar skull crusher',    muscle: 'triceps',        sets: 3, reps: '12–15', rir: '1–2', rest: 90, cue: '90s rest · pause at stretch'},
+    {id:'squat',          name:'Back Squat',               muscle:'quads,glutes',    sets:4, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause 1s at bottom', type:'compound'},
+    {id:'bench',          name:'Flat Bench Press',         muscle:'chest,triceps',   sets:4, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at chest', type:'compound'},
+    {id:'barbell_row',    name:'Barbell Row',              muscle:'back,biceps',     sets:4, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at stretch', type:'compound'},
+    {id:'rdl',            name:'Romanian Deadlift',        muscle:'hamstrings,glutes',sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · pause at stretch', type:'compound'},
+    {id:'lat_pulldown',   name:'Lat Pulldown',             muscle:'back,biceps',     sets:3, reps:'8–12', rir:'0–1', rest:90,  cue:'90s rest · machine', type:'machine'},
+    {id:'calf_stand',     name:'Standing Calf Raise',      muscle:'calves',          sets:4, reps:'10–15',rir:'0–1', rest:60,  cue:'60s rest · full stretch at bottom', type:'machine'},
   ]}
 ];
 
 var PROGRAM_3DAY = [
   { label: 'Session A', exercises: [
-    {id:'squat',          name:'Squat',                    muscle:'quads,glutes',    sets:4, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest · pause 1s at bottom'},
-    {id:'bench',          name:'Bench press',              muscle:'chest,triceps',   sets:4, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest · pause at chest'},
-    {id:'barbell_row',    name:'Barbell row',              muscle:'back,biceps',     sets:4, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest · pause at stretch'},
-    {id:'rdl',            name:'Romanian deadlift',        muscle:'hamstrings',      sets:3, reps:'10–12',rir:'1–2', rest:120, cue:'2 min rest · pause at stretch'},
-    {id:'lat_pulldown',   name:'Lat pulldown',             muscle:'back',            sets:3, reps:'10–12',rir:'1–2', rest:90,  cue:'90s rest · pause at stretch'},
-    {id:'ohp',            name:'Overhead press',           muscle:'shoulders',       sets:3, reps:'10–12',rir:'1–2', rest:120, cue:'2 min rest · full ROM'},
-    {id:'barbell_curl',   name:'Barbell curl',             muscle:'biceps',          sets:3, reps:'12–15',rir:'1–2', rest:90,  cue:'90s rest · full ROM'},
-    {id:'tricep_push',    name:'Cable tricep pushdown',    muscle:'triceps',         sets:3, reps:'12–15',rir:'1–2', rest:90,  cue:'90s rest · pause at contraction'},
-    {id:'calf_stand',     name:'Standing calf raise',      muscle:'calves',          sets:3, reps:'15–20',rir:'0–1', rest:60,  cue:'60s rest · full ROM'},
+    {id:'squat',          name:'Back Squat',               muscle:'quads,glutes',    sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause 1s at bottom', type:'compound'},
+    {id:'bench',          name:'Flat Bench Press',         muscle:'chest,triceps',   sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at chest', type:'compound'},
+    {id:'barbell_row',    name:'Barbell Row',              muscle:'back,biceps',     sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at stretch', type:'compound'},
+    {id:'rdl',            name:'Romanian Deadlift',        muscle:'hamstrings,glutes',sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · pause at stretch', type:'compound'},
+    {id:'lat_pulldown',   name:'Lat Pulldown',             muscle:'back,biceps',     sets:2, reps:'8–12', rir:'0–1', rest:90,  cue:'90s rest · machine', type:'machine'},
+    {id:'calf_stand',     name:'Standing Calf Raise',      muscle:'calves',          sets:3, reps:'10–15',rir:'0–1', rest:60,  cue:'60s rest · full stretch at bottom', type:'machine'},
   ]},
   { label: 'Session B', exercises: [
-    {id:'leg_press',      name:'Leg press',                muscle:'quads,glutes',    sets:4, reps:'10–12',rir:'1–2', rest:150, cue:'2.5 min rest · full depth'},
-    {id:'incline_db',     name:'Incline dumbbell press',   muscle:'chest,triceps',   sets:4, reps:'10–12',rir:'1–2', rest:120, cue:'2 min rest · pause at stretch'},
-    {id:'cable_row',      name:'Seated cable row',         muscle:'back,biceps',     sets:4, reps:'10–12',rir:'1–2', rest:120, cue:'2 min rest · pause at stretch'},
-    {id:'leg_curl',       name:'Leg curl',                 muscle:'hamstrings',      sets:3, reps:'10–12',rir:'1–2', rest:90,  cue:'90s rest · full ROM'},
-    {id:'cable_lateral',  name:'Cable lateral raise',      muscle:'shoulders',       sets:3, reps:'15–20',rir:'1–2', rest:60,  cue:'60s rest · control the eccentric'},
-    {id:'face_pull',      name:'Face pull',                muscle:'shoulders,back',  sets:3, reps:'15–20',rir:'1–2', rest:60,  cue:'60s rest · external rotation at peak'},
-    {id:'hammer_curl',    name:'Hammer curl',              muscle:'biceps',          sets:3, reps:'12–15',rir:'1–2', rest:90,  cue:'90s rest · full ROM'},
-    {id:'skullcrusher',   name:'EZ bar skull crusher',     muscle:'triceps',         sets:3, reps:'12–15',rir:'1–2', rest:90,  cue:'90s rest · pause at stretch'},
-    {id:'calf_seated',    name:'Seated calf raise',        muscle:'calves',          sets:3, reps:'15–20',rir:'0–1', rest:60,  cue:'60s rest · full ROM'},
+    {id:'squat',          name:'Back Squat',               muscle:'quads,glutes',    sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause 1s at bottom', type:'compound'},
+    {id:'bench',          name:'Flat Bench Press',         muscle:'chest,triceps',   sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at chest', type:'compound'},
+    {id:'barbell_row',    name:'Barbell Row',              muscle:'back,biceps',     sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at stretch', type:'compound'},
+    {id:'rdl',            name:'Romanian Deadlift',        muscle:'hamstrings,glutes',sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · pause at stretch', type:'compound'},
+    {id:'lat_pulldown',   name:'Lat Pulldown',             muscle:'back,biceps',     sets:2, reps:'8–12', rir:'0–1', rest:90,  cue:'90s rest · machine', type:'machine'},
+    {id:'calf_stand',     name:'Standing Calf Raise',      muscle:'calves',          sets:3, reps:'10–15',rir:'0–1', rest:60,  cue:'60s rest · full stretch at bottom', type:'machine'},
   ]}
 ];
 
 var PROGRAM_4DAY = [
   { label: 'Upper A', exercises: [
-    {id:'bench',          name:'Bench press',              muscle:'chest,triceps',   sets:4, reps:'6–8',  rir:'1–2', rest:150, cue:'2.5 min rest'},
-    {id:'barbell_row',    name:'Barbell row',              muscle:'back,biceps',     sets:4, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest'},
-    {id:'ohp',            name:'Overhead press',           muscle:'shoulders',       sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest'},
-    {id:'lat_pulldown',   name:'Lat pulldown',             muscle:'back',            sets:3, reps:'10–12',rir:'1–2', rest:90,  cue:'90s rest'},
-    {id:'barbell_curl',   name:'Barbell curl',             muscle:'biceps',          sets:3, reps:'12–15',rir:'1–2', rest:90,  cue:'90s rest'},
-    {id:'tricep_push',    name:'Cable tricep pushdown',    muscle:'triceps',         sets:3, reps:'12–15',rir:'1–2', rest:90,  cue:'90s rest'},
+    {id:'bench',          name:'Flat Bench Press',         muscle:'chest,triceps',   sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at chest', type:'compound'},
+    {id:'barbell_row',    name:'Barbell Row',              muscle:'back,biceps',     sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause at stretch', type:'compound'},
+    {id:'ohp',            name:'Overhead Press',           muscle:'shoulders,triceps',sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · overhead press', type:'compound'},
+    {id:'lat_pulldown',   name:'Lat Pulldown',             muscle:'back,biceps',     sets:3, reps:'8–12', rir:'0–1', rest:90,  cue:'90s rest · machine', type:'machine'},
+    {id:'bicep_curl',     name:'Biceps Curl',              muscle:'biceps',          sets:2, reps:'10–15',rir:'0–1', rest:90,  cue:'90s rest · dumbbell/barbell', type:'machine'},
+    {id:'tricep_push',    name:'Cable Triceps Pressdown',  muscle:'triceps',         sets:2, reps:'10–15',rir:'0–1', rest:90,  cue:'90s rest · cable', type:'machine'},
   ]},
   { label: 'Lower A', exercises: [
-    {id:'squat',          name:'Squat',                    muscle:'quads,glutes',    sets:4, reps:'6–8',  rir:'1–2', rest:150, cue:'2.5 min rest'},
-    {id:'rdl',            name:'Romanian deadlift',        muscle:'hamstrings',      sets:4, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest'},
-    {id:'leg_press',      name:'Leg press',                muscle:'quads,glutes',    sets:3, reps:'10–12',rir:'1–2', rest:120, cue:'2 min rest'},
-    {id:'leg_curl',       name:'Leg curl',                 muscle:'hamstrings',      sets:3, reps:'12–15',rir:'1–2', rest:90,  cue:'90s rest'},
-    {id:'calf_stand',     name:'Standing calf raise',      muscle:'calves',          sets:4, reps:'10–15',rir:'0–1', rest:60,  cue:'60s rest'},
+    {id:'squat',          name:'Back Squat',               muscle:'quads,glutes',    sets:3, reps:'8–12', rir:'1–2', rest:150, cue:'2.5 min rest · pause 1s at bottom', type:'compound'},
+    {id:'rdl',            name:'Romanian Deadlift',        muscle:'hamstrings,glutes',sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · pause at stretch', type:'compound'},
+    {id:'leg_curl',       name:'Leg Curl Machine',         muscle:'hamstrings',      sets:3, reps:'10–15',rir:'0–1', rest:90,  cue:'90s rest · machine', type:'machine'},
+    {id:'calf_stand',     name:'Standing Calf Raise',      muscle:'calves',          sets:3, reps:'10–15',rir:'0–1', rest:60,  cue:'60s rest · full stretch at bottom', type:'machine'},
   ]},
   { label: 'Upper B', exercises: [
-    {id:'incline_db',     name:'Incline dumbbell press',   muscle:'chest,triceps',   sets:4, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest'},
-    {id:'cable_row',      name:'Seated cable row',         muscle:'back,biceps',     sets:4, reps:'10–12',rir:'1–2', rest:120, cue:'2 min rest'},
-    {id:'cable_lateral',  name:'Cable lateral raise',      muscle:'shoulders',       sets:4, reps:'12–15',rir:'1–2', rest:60,  cue:'60s rest'},
-    {id:'face_pull',      name:'Face pull',                muscle:'shoulders,back',  sets:3, reps:'15–20',rir:'1–2', rest:60,  cue:'60s rest'},
-    {id:'hammer_curl',    name:'Hammer curl',              muscle:'biceps',          sets:3, reps:'12–15',rir:'1–2', rest:90,  cue:'90s rest'},
-    {id:'skullcrusher',   name:'EZ bar skull crusher',     muscle:'triceps',         sets:3, reps:'12–15',rir:'1–2', rest:90,  cue:'90s rest'},
+    {id:'incline_bench',  name:'Incline Bench Press',      muscle:'chest,triceps',   sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · incline bench press', type:'compound'},
+    {id:'db_row',         name:'Dumbbell Row',             muscle:'back,biceps',     sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · DB row', type:'compound'},
+    {id:'ohp',            name:'Overhead Press',           muscle:'shoulders,triceps',sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · overhead press', type:'compound'},
+    {id:'pull_up',        name:'Lat Pulldown / Pull-up',   muscle:'back,biceps',     sets:3, reps:'8–12', rir:'0–1', rest:90,  cue:'90s rest · pulldown or assisted pull-up', type:'machine'},
+    {id:'hammer_curl',    name:'Hammer Curl',              muscle:'biceps',          sets:2, reps:'10–15',rir:'0–1', rest:90,  cue:'90s rest · neutral grip curl', type:'machine'},
+    {id:'tricep_ext',     name:'Triceps Overhead Extension',muscle:'triceps',         sets:2, reps:'10–15',rir:'0–1', rest:90,  cue:'90s rest · extension', type:'machine'},
   ]},
   { label: 'Lower B', exercises: [
-    {id:'leg_press',      name:'Leg press',                muscle:'quads,glutes',    sets:4, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest'},
-    {id:'leg_curl',       name:'Leg curl',                 muscle:'hamstrings',      sets:4, reps:'8–10', rir:'1–2', rest:90,  cue:'90s rest'},
-    {id:'leg_ext',        name:'Leg extension',            muscle:'quads',           sets:3, reps:'12–15',rir:'1–2', rest:90,  cue:'90s rest'},
-    {id:'rdl',            name:'Romanian deadlift',        muscle:'hamstrings',      sets:3, reps:'10–12',rir:'1–2', rest:120, cue:'2 min rest'},
-    {id:'calf_seated',    name:'Seated calf raise',        muscle:'calves',          sets:4, reps:'15–20',rir:'0–1', rest:60,  cue:'60s rest'},
+    {id:'squat_var',      name:'Front / Goblet Squat',     muscle:'quads,glutes',    sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · front squat variation', type:'compound'},
+    {id:'hip_thrust',     name:'Hip Thrust / RDL',         muscle:'hamstrings,glutes',sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest · glute hinge', type:'compound'},
+    {id:'leg_curl',       name:'Leg Curl Machine',         muscle:'hamstrings',      sets:3, reps:'10–15',rir:'0–1', rest:90,  cue:'90s rest · machine', type:'machine'},
+    {id:'calf_stand',     name:'Standing Calf Raise',      muscle:'calves',          sets:3, reps:'10–15',rir:'0–1', rest:60,  cue:'60s rest · full stretch at bottom', type:'machine'},
   ]}
 ];
 
@@ -910,17 +900,68 @@ function renderToday() {
 }
 
 function openRecoverySheet(dayKey) {
+  var rec = dayRecord(dayKey);
+  var sleepVal = rec.sleep != null ? rec.sleep : 8;
+  var readinessVal = rec.readiness != null ? rec.readiness : 3;
+  var recoveryVal = rec.recovery || 'good';
+
   var overlay=document.createElement('div'); overlay.className='overlay';
-  overlay.innerHTML='<div class="sheet"><div class="sheet-handle"></div><div class="sheet-title">Recovery</div><p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">How well did you sleep and recover?</p><button class="btn" style="width:100%;margin-bottom:10px;border-color:var(--sage-dark)" data-rec="good">🟢 Good (Ready to train)</button><button class="btn" style="width:100%;margin-bottom:16px;border-color:var(--rust-dark)" data-rec="bad">🔴 Poor (Fatigued / Sore)</button><button class="btn" style="width:100%" id="closeRecBtn">Cancel</button></div>';
+  overlay.innerHTML='<div class="sheet">'
+    +'<div class="sheet-handle"></div>'
+    +'<div class="sheet-title">Sleep & Recovery</div>'
+    
+    +'<label class="eyebrow" style="margin-top:12px">Sleep Duration (hours)</label>'
+    +'<input type="number" step="0.5" id="recSleep" value="'+sleepVal+'" style="width:100%" inputmode="decimal">'
+    
+    +'<label class="eyebrow" style="margin-top:12px">Readiness (1 = Poor, 5 = Great)</label>'
+    +'<div style="display:flex;gap:6px;margin-top:4px">'
+      +[1,2,3,4,5].map(function(num){
+        return '<button class="btn btn-sm ready-btn'+(readinessVal===num?' active':'')+'" data-val="'+num+'" style="flex:1">'+num+'</button>';
+      }).join('')
+    +'</div>'
+    
+    +'<label class="eyebrow" style="margin-top:16px">Recovery feel</label>'
+    +'<div style="display:flex;gap:10px;margin-top:4px">'
+      +'<button class="btn rec-feel-btn'+(recoveryVal==='good'?' active':'')+'" style="flex:1;border-color:var(--sage-dark)" data-rec="good">🟢 Good (Ready)</button>'
+      +'<button class="btn rec-feel-btn'+(recoveryVal==='bad'?' active':'')+'" style="flex:1;border-color:var(--rust-dark)" data-rec="bad">🔴 Poor (Fatigued)</button>'
+    +'</div>'
+    
+    +'<div class="modal-actions" style="margin-top:20px">'
+      +'<button class="btn" id="closeRecBtn" style="flex:1">Cancel</button>'
+      +'<button class="btn btn-primary" id="saveRecBtn" style="flex:1">Save</button>'
+    +'</div>'
+    +'</div>';
   document.body.appendChild(overlay);
-  overlay.querySelector('#closeRecBtn').addEventListener('click',function(){overlay.remove();});
-  overlay.querySelectorAll('[data-rec]').forEach(function(b){
-    b.addEventListener('click', function(){
-      var rec = dayRecord(dayKey);
-      rec.recovery = b.dataset.rec;
-      saveDayRecord(dayKey, rec);
-      overlay.remove(); renderToday();
+
+  var selectedReadiness = readinessVal;
+  var selectedRecovery = recoveryVal;
+
+  overlay.querySelectorAll('.ready-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      overlay.querySelectorAll('.ready-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      selectedReadiness = parseInt(btn.dataset.val, 10);
     });
+  });
+
+  overlay.querySelectorAll('.rec-feel-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      overlay.querySelectorAll('.rec-feel-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      selectedRecovery = btn.dataset.rec;
+    });
+  });
+
+  overlay.querySelector('#closeRecBtn').addEventListener('click',function(){overlay.remove();});
+  overlay.querySelector('#saveRecBtn').addEventListener('click',function(){
+    var sleepHours = parseFloat(document.getElementById('recSleep').value) || 8;
+    rec = dayRecord(dayKey);
+    rec.sleep = sleepHours;
+    rec.readiness = selectedReadiness;
+    rec.recovery = selectedRecovery;
+    saveDayRecord(dayKey, rec);
+    overlay.remove();
+    renderToday();
   });
 }
 
@@ -1268,6 +1309,20 @@ function buildLedger(records) {
 }
 
 // ── Discovery layer ────────────────────────────────────────────────────────────
+function getSessionTypeForDate(dateStr) {
+  var tdays = profile ? (profile.trainingDays||[1,3,5]) : [1,3,5];
+  var start = new Date(profile.startDate); start.setHours(0,0,0,0);
+  var target = new Date(dateStr + 'T00:00:00');
+  var count = 0;
+  var d = new Date(start);
+  while(d <= target) {
+    if(tdays.includes(d.getDay())) count++;
+    d.setDate(d.getDate()+1);
+  }
+  var prog = getActiveProgram();
+  return prog[(count - 1 + prog.length) % prog.length] || prog[0];
+}
+
 function runDiscovery(records, weeklyWeights, ct, reg) {
   var zone = document.getElementById('advisoryZone'); if(!zone) return;
   var advisories = [];
@@ -1282,9 +1337,9 @@ function runDiscovery(records, weeklyWeights, ct, reg) {
       var wA2 = w2.reduce(function(s,r){return s+r.weight;},0)/w2.length;
       if(Math.abs(wA2-wA1)/wA1 < 0.0015) { // < ~0.15% change
         if(!confirmLoggingAccurate) {
-          advisories.push('<div class="advisory"><div class="advisory-icon">'+ic('info')+'</div><div><strong style="color:var(--amber)">Weight stall detected</strong><br>Weight hasn\'t moved for 2 weeks despite high logged intake. Before raising calories, verify logging accuracy: did you track all cooking oils, sauces, drinks, and weekend meals?<div class="advisory-actions"><button class="btn btn-sm" id="confirmLoggingBtn">Yes, logging is accurate</button><button class="btn btn-sm btn-ghost" id="dismissStallBtn">Dismiss</button></div></div></div>');
+          advisories.push('<div class="advisory"><div class="advisory-icon">'+ic('info')+'</div><div><strong style="color:var(--amber)">Weight stall detected</strong><br>Weight has stalled for 2 weeks. Before adding calories, verify logging accuracy: did you log all cooking oils, sauces, snacks, and weekend meals?<div class="advisory-actions"><button class="btn btn-sm" id="confirmLoggingBtn">Yes, logging is accurate</button><button class="btn btn-sm btn-ghost" id="dismissStallBtn">Dismiss</button></div></div></div>');
         } else {
-          advisories.push('<div class="advisory"><div class="advisory-icon">'+ic('info')+'</div><div><strong style="color:var(--amber)">Try +250 kcal</strong><br>You confirmed accurate logging and weight is flat. Consider adding 250 kcal/day (e.g. one extra mass shake) and re-evaluate in 2 weeks.</div></div>');
+          advisories.push('<div class="advisory"><div class="advisory-icon">'+ic('info')+'</div><div><strong style="color:var(--amber)">Try +250 kcal</strong><br>You confirmed accurate logging and weight is flat. Consider adding 250 kcal/day (e.g. extra peanut butter or bananas in your shake) and re-evaluate in 2 weeks.</div></div>');
         }
       }
     }
@@ -1298,32 +1353,35 @@ function runDiscovery(records, weeklyWeights, ct, reg) {
     }
   }
 
-  // 3. e1RM stall → volume suggestion
+  // 3. e1RM decline/stall check
   var prog = getActiveProgram();
   var allEx = [];
   prog.forEach(function(s){ allEx = allEx.concat(s.exercises); });
   var seen={}; var uniqueEx=[];
   allEx.forEach(function(e){if(!seen[e.id]){seen[e.id]=true;uniqueEx.push(e);}});
+  
   uniqueEx.forEach(function(ex){
-    // Get e1RM from last 3 sessions for this exercise
     var exSessions = [];
     records.forEach(function(r){
       var sets = (dayRecord(r.key).workout||{})[ex.id]||[];
       var best=0; sets.forEach(function(s){var e=calcE1RM(s.weight,s.reps);if(e>best)best=e;});
       if(best>0) exSessions.push(best);
     });
-    if(exSessions.length >= 4) {
-      var last3 = exSessions.slice(-3);
-      var allFlat = last3.every(function(v){return Math.abs(v-last3[0])/last3[0]<0.02;});
-      if(allFlat) {
-        advisories.push('<div class="advisory"><div class="advisory-icon">'+ic('trend_up')+'</div><div><strong style="color:var(--sage-light)">'+ex.name+' plateau</strong><br>e1RM has been flat for 3 sessions. Consider adding 1 extra set, or try a slight load/rep range change next session.</div></div>');
-      }
-    }
-    // e1RM decline → deload flag
+    
+    // e1RM decline (2+ consecutive sessions decline -> Deload suggestion)
     if(exSessions.length >= 3) {
       var lA=exSessions[exSessions.length-1], lB=exSessions[exSessions.length-2], lC=exSessions[exSessions.length-3];
-      if(lA<lB && lB<lC) {
-        advisories.push('<div class="advisory"><div class="advisory-icon">'+ic('info')+'</div><div><strong style="color:var(--rust-light)">'+ex.name+' — 3 declining sessions</strong><br>Performance has dropped 3 sessions in a row. Consider a deload: keep the movement, cut weight by 30%, cut sets in half for 1 week.</div></div>');
+      if(lA < lB && lB < lC) {
+        advisories.push('<div class="advisory"><div class="advisory-icon">'+ic('info')+'</div><div><strong style="color:var(--rust-light)">'+ex.name+' — Performance Dip (Deload)</strong><br>e1RM has dropped 2 sessions in a row. Consider a deload week: cut working weight by 30% and sets in half to recover fatigue.</div></div>');
+      } else {
+        // e1RM stall (4+ flat sessions -> Volume suggestion)
+        if(exSessions.length >= 4) {
+          var last4 = exSessions.slice(-4);
+          var allFlat = last4.every(function(v){return Math.abs(v-last4[0])/last4[0]<0.02;});
+          if(allFlat) {
+            advisories.push('<div class="advisory"><div class="advisory-icon">'+ic('trend_up')+'</div><div><strong style="color:var(--sage-light)">'+ex.name+' plateau</strong><br>e1RM has stalled for 4 sessions. If your recovery is good, suggest adding 1 extra set/week to push overload.</div></div>');
+          }
+        }
       }
     }
   });
@@ -1334,14 +1392,95 @@ function runDiscovery(records, weeklyWeights, ct, reg) {
     records.slice(-21).forEach(function(r){
       var d = new Date(r.key).getDay();
       dayCount[d]++;
-      if(r.kcal < (profile.calTarget||CAL_TARGET)*0.9) dayMiss[d]++;
+      var dailyCt = getTargetsForDate(r.key).kcal;
+      if(r.kcal < dailyCt*0.9) dayMiss[d]++;
     });
     var names=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
     for(var di=0;di<7;di++){
       if(dayCount[di]>=3 && dayMiss[di]/dayCount[di]>0.6){
-        advisories.push('<div class="advisory"><div class="advisory-icon">'+ic('info')+'</div><div><strong style="color:var(--amber)">Pattern: '+names[di]+' gaps</strong><br>You tend to miss calorie targets on '+names[di]+'s. Consider setting a reminder or prepping an easy high-calorie option (shake, peanut butter & rice) for that day.</div></div>');
+        advisories.push('<div class="advisory"><div class="advisory-icon">'+ic('info')+'</div><div><strong style="color:var(--amber)">Pattern: '+names[di]+' gaps</strong><br>You missed calorie targets on '+(dayMiss[di])+' of the last '+(dayCount[di])+' '+names[di]+'s. Consider prepping an extra banana/shake for that day.</div></div>');
       }
     }
+  }
+
+  // 5. Sleep & Readiness Correlation
+  var correlationEx = uniqueEx[0]; // analyze the primary compound exercise
+  if(records.length >= 14 && correlationEx) {
+    var upSleep = [], downSleep = [];
+    var upReady = [], downReady = [];
+    var e1rms = [];
+    var keyToE1RM = {};
+    records.forEach(function(r){
+      var sets = (dayRecord(r.key).workout||{})[correlationEx.id]||[];
+      var best = 0; sets.forEach(function(s){var e=calcE1RM(s.weight,s.reps);if(e>best)best=e;});
+      if(best > 0) {
+        e1rms.push(best);
+        keyToE1RM[r.key] = best;
+      }
+    });
+    
+    if(e1rms.length >= 5) {
+      var avgE1rm = e1rms.reduce(function(a,b){return a+b;},0)/e1rms.length;
+      records.forEach(function(r){
+        var e = keyToE1RM[r.key];
+        if(e) {
+          var rec = dayRecord(r.key);
+          var sleep = rec.sleep != null ? rec.sleep : 8;
+          var readiness = rec.readiness != null ? rec.readiness : 3;
+          if(e >= avgE1rm) {
+            upSleep.push(sleep);
+            upReady.push(readiness);
+          } else {
+            downSleep.push(sleep);
+            downReady.push(readiness);
+          }
+        }
+      });
+      
+      if(upSleep.length >= 2 && downSleep.length >= 2) {
+        var avgUpSleep = upSleep.reduce(function(a,b){return a+b;},0)/upSleep.length;
+        var avgDownSleep = downSleep.reduce(function(a,b){return a+b;},0)/downSleep.length;
+        var avgUpReady = upReady.reduce(function(a,b){return a+b;},0)/upReady.length;
+        var avgDownReady = downReady.reduce(function(a,b){return a+b;},0)/downReady.length;
+        
+        if(avgUpSleep - avgDownSleep > 0.6) {
+          advisories.push('<div class="advisory"><div class="advisory-icon">'+ic('info')+'</div><div><strong style="color:var(--sage-light)">Sleep & Performance Correlation</strong><br>Your best '+correlationEx.name+' sets averaged '+(avgUpSleep).toFixed(1)+'h sleep, compared to only '+(avgDownSleep).toFixed(1)+'h on lower performance days. Prioritize sleep length!</div></div>');
+        }
+        if(avgUpReady - avgDownReady > 0.6) {
+          advisories.push('<div class="advisory"><div class="advisory-icon">'+ic('info')+'</div><div><strong style="color:var(--sage-light)">Readiness Correlation</strong><br>Your performance drops correlate with low morning readiness (avg '+(avgDownReady).toFixed(1)+'/5 vs '+(avgUpReady).toFixed(1)+'/5 on peak days). Check recovery before training.</div></div>');
+        }
+      }
+    }
+  }
+
+  // 6. Adherence / Session Skipping Auto-Regulation
+  if(records.length >= 14 && profile.trainingDays) {
+    var skippedCounts = {};
+    var scheduledCounts = {};
+    
+    records.slice(-28).forEach(function(r){
+      var d = new Date(r.key + 'T00:00:00');
+      var isTrain = profile.trainingDays.includes(d.getDay());
+      if(isTrain) {
+        var sType = getSessionTypeForDate(r.key);
+        if (sType) {
+          scheduledCounts[sType.label] = (scheduledCounts[sType.label] || 0) + 1;
+          var rec = dayRecord(r.key);
+          var loggedSets = Object.keys(rec.workout || {});
+          if(!rec.workoutDone && loggedSets.length === 0) {
+            skippedCounts[sType.label] = (skippedCounts[sType.label] || 0) + 1;
+          }
+        }
+      }
+    });
+    
+    Object.keys(scheduledCounts).forEach(function(label){
+      var sched = scheduledCounts[label];
+      var skip = skippedCounts[label] || 0;
+      if(sched >= 3 && (skip / sched) >= 0.5) {
+        advisories.push('<div class="advisory"><div class="advisory-icon">'+ic('info')+'</div><div><strong style="color:var(--amber)">Auto-Regulation: '+label+' Skips</strong><br>You have skipped '+label+' in ' + Math.round((skip/sched)*100) + '% of scheduled days. Try running a shortened 20-minute version with only Squats/Bench/Rows instead of skipping entirely.</div></div>');
+      }
+    });
   }
 
   zone.innerHTML = advisories.join('');
@@ -1350,6 +1489,38 @@ function runDiscovery(records, weeklyWeights, ct, reg) {
   if(cb) cb.addEventListener('click', function(){ confirmLoggingAccurate=true; renderProgress(); });
   var db = document.getElementById('dismissStallBtn');
   if(db) db.addEventListener('click', function(){ document.getElementById('advisoryZone').innerHTML=''; });
+}
+
+function getTopRepRange(rangeStr) {
+  var parts = String(rangeStr).split('–');
+  if (parts.length === 2) return parseInt(parts[1], 10);
+  var parts2 = String(rangeStr).split('-');
+  if (parts2.length === 2) return parseInt(parts2[1], 10);
+  return parseInt(rangeStr, 10) || 12;
+}
+
+function openWarmUpSheet(exName, exId) {
+  var inputEl = document.querySelector('.set-weight[data-ex="' + exId + '"]');
+  var workingWeight = parseFloat(inputEl ? inputEl.value : '') || 40;
+  var w50 = (Math.round((workingWeight * 0.5) / 2.5) * 2.5).toFixed(1);
+  var w70 = (Math.round((workingWeight * 0.7) / 2.5) * 2.5).toFixed(1);
+  var w85 = (Math.round((workingWeight * 0.85) / 2.5) * 2.5).toFixed(1);
+  
+  var overlay = document.createElement('div'); overlay.className = 'overlay';
+  overlay.innerHTML = '<div class="sheet">'
+    +'<div class="sheet-handle"></div>'
+    +'<div class="sheet-title">Warm-Up: ' + exName + '</div>'
+    +'<p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">Ramp up to your working weight of <strong>' + workingWeight + ' kg</strong> (rounded to nearest 2.5kg):</p>'
+    +'<div style="background:var(--surface-raised);padding:12px;border-radius:10px;font-family:\'Space Mono\',monospace;font-size:13px;line-height:1.8">'
+      +'<div style="display:flex;justify-content:space-between"><span>Set 1 (50%):</span><strong>' + w50 + ' kg × 5 reps</strong></div>'
+      +'<div style="display:flex;justify-content:space-between"><span>Set 2 (70%):</span><strong>' + w70 + ' kg × 3 reps</strong></div>'
+      +'<div style="display:flex;justify-content:space-between"><span>Set 3 (85%):</span><strong>' + w85 + ' kg × 1 rep</strong></div>'
+    +'</div>'
+    +'<p style="font-size:11px;color:var(--text-muted);margin-top:10px">Rest 60-90s between warmups, then 2-3 mins before your first working set.</p>'
+    +'<button class="btn btn-primary" style="width:100%;margin-top:16px" id="closeWarmBtn">Got it</button>'
+    +'</div>';
+  document.body.appendChild(overlay);
+  overlay.querySelector('#closeWarmBtn').addEventListener('click', function(){ overlay.remove(); });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1387,14 +1558,25 @@ function renderGym() {
       return '<span class="set-chip">'+s.weight+'kg × '+s.reps+'<span style="font-size:10px;color:var(--text-muted)"> (e1RM '+calcE1RM(s.weight,s.reps).toFixed(0)+')</span></span>';
     }).join('');
     var best = getBestE1RM(ex.id);
+    
+    var targetSets = ex.sets||exOrig.sets;
+    var repsStr = ex.reps||exOrig.reps;
+    var topRep = getTopRepRange(repsStr);
+    var hitTop = sets.length >= targetSets && sets.every(function(s){ return s.reps >= topRep; });
+    var progressionPrompt = hitTop ? '<div class="progression-tip" style="color:var(--sage-light);font-size:12px;margin-top:6px;font-family:\'Space Mono\',monospace">🎉 Top range hit! Add load & reset reps.</div>' : '';
+    
+    var isCompound = ex.type === 'compound' || exOrig.type === 'compound';
+    var warmUpLink = isCompound ? '<button class="btn-ghost warm-up-btn" data-exname="'+ex.name+'" data-exid="'+ex.id+'" style="font-size:10px;padding:1px 5px;margin-left:8px;border:1px solid var(--border);border-radius:4px;cursor:pointer">Warm Up</button>' : '';
+
     return '<div class="exercise-card" id="excard-'+ex.id+'">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start">'
-        +'<div><div class="exercise-name">'+ex.name+'<span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">'+(ex.sets||exOrig.sets)+'×'+(ex.reps||exOrig.reps)+' · '+(ex.rir||exOrig.rir)+' RIR</span></div>'
+        +'<div><div class="exercise-name" style="display:flex;align-items:center;flex-wrap:wrap">'+ex.name+'<span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">'+(ex.sets||exOrig.sets)+'×'+(ex.reps||exOrig.reps)+' · '+(ex.rir||exOrig.rir)+' RIR</span>' + warmUpLink + '</div>'
         +'<div class="exercise-cue">'+(ex.cue||exOrig.cue)+(best?' · best e1RM: '+best.toFixed(1)+'kg':'')+'</div></div>'
         +'<button class="icon-btn swap-btn" data-swap-orig="'+exOrig.id+'" data-swap-curr="'+ex.id+'" data-muscle="'+exOrig.muscle+'" title="Swap exercise">'+ic('refresh')+'</button>'
       +'</div>'
       +'<div class="set-chips">'+chips+'</div>'
-      +'<div class="set-add-row">'
+      +progressionPrompt
+      +'<div class="set-add-row" style="margin-top:8px">'
         +'<input type="number" step="0.25" min="0" placeholder="kg" class="set-weight" data-ex="'+ex.id+'" inputmode="decimal">'
         +'<input type="number" min="1" max="50" placeholder="reps" class="set-reps" data-ex="'+ex.id+'" inputmode="numeric">'
         +'<button class="btn btn-sm" data-logset="'+ex.id+'" data-rest="'+(ex.rest||exOrig.rest)+'">Log</button>'
@@ -1428,6 +1610,12 @@ function attachGymEvents(key, rec, session) {
   var volBtn = document.getElementById('volBtn');
   if(volBtn) volBtn.addEventListener('click', function(){
     openSheet('<div class="sheet-title">Weekly Volume Summary</div>'+buildVolumeTable()+'<div style="font-size:11px;color:var(--text-muted);margin-top:12px">Target range: 10–18 sets/muscle/week (Pelland et al. 2024 meta-regression)</div>');
+  });
+
+  document.querySelectorAll('.warm-up-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      openWarmUpSheet(btn.dataset.exname, btn.dataset.exid);
+    });
   });
 
   document.querySelectorAll('[data-logset]').forEach(function(btn){
