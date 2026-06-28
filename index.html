@@ -518,9 +518,9 @@ function computeStreak() {
   var streak = 0;
   var d = addDays(new Date(),-1); d.setHours(0,0,0,0);
   var start = new Date(profile.startDate); start.setHours(0,0,0,0);
-  var ct = profile.calTarget || CAL_TARGET;
   while(d >= start) {
     var key = dateKey(d); var rec = dayRecord(key);
+    var ct = getTargetsForDate(key).kcal;
     if(getDayTotals(key).kcal >= ct*0.9 || rec.shielded) { streak++; d = addDays(d,-1); }
     else break;
   }
@@ -533,7 +533,8 @@ function yesterdayMissed() {
   var start = new Date(profile.startDate); start.setHours(0,0,0,0);
   if(d < start) return false;
   var key = dateKey(d); var rec = dayRecord(key);
-  return getDayTotals(key).kcal < (profile.calTarget||CAL_TARGET)*0.9 && !rec.shielded;
+  var ct = getTargetsForDate(key).kcal;
+  return getDayTotals(key).kcal < ct*0.9 && !rec.shielded;
 }
 
 // ── Workout session type (A/B alternation) ────────────────────────────────────
