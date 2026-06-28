@@ -191,6 +191,27 @@ var FOODS = [
   {id:271, name:'Cheeseburger, fast food',       kcal:313, protein:19.0, carbs:28.0, fat:14.0, serving_g:120, unit:'1 burger'},
   {id:272, name:'Chicken sandwich, grilled',     kcal:283, protein:28.0, carbs:28.0, fat:7.6,  serving_g:143, unit:'1 sandwich'},
   {id:273, name:'Doner kebab (meat + pita)',     kcal:215, protein:15.0, carbs:18.0, fat:9.0,  serving_g:250, unit:'1 serving'},
+  // ─── INDIAN REGIONAL ─────────────────────────────────────────────────────
+  {id:280, name:'Paneer, raw',                   kcal:296, protein:18.0, carbs:3.0,  fat:24.0, serving_g:100, unit:'100g'},
+  {id:281, name:'Paneer tikka, grilled',         kcal:260, protein:16.0, carbs:6.0,  fat:20.0, serving_g:150, unit:'1 serving'},
+  {id:282, name:'Chicken tikka masala',          kcal:160, protein:14.0, carbs:5.0,  fat:9.0,  serving_g:200, unit:'1 bowl'},
+  {id:283, name:'Tandoori chicken, roasted',     kcal:148, protein:21.0, carbs:3.0,  fat:5.5,  serving_g:150, unit:'1 piece'},
+  {id:284, name:'Dal tadka / Moong dal cooked',  kcal:116, protein:6.0,  carbs:17.0, fat:2.5,  serving_g:200, unit:'1 bowl'},
+  {id:285, name:'Dal makhani',                   kcal:135, protein:5.0,  carbs:13.0, fat:7.0,  serving_g:200, unit:'1 bowl'},
+  {id:286, name:'Chana masala / Chickpea curry', kcal:145, protein:6.5,  carbs:19.0, fat:5.0,  serving_g:200, unit:'1 bowl'},
+  {id:287, name:'Rajma / Kidney bean curry',     kcal:130, protein:5.5,  carbs:20.0, fat:3.5,  serving_g:200, unit:'1 bowl'},
+  {id:288, name:'Roti / Chapati (whole wheat)',  kcal:297, protein:9.0,  carbs:56.0, fat:3.5,  serving_g:40,  unit:'1 roti'},
+  {id:289, name:'Paratha, plain (cooked with oil)',kcal:330,protein:7.0, carbs:49.0, fat:11.0, serving_g:80,  unit:'1 paratha'},
+  {id:290, name:'Aloo paratha, stuffed',         kcal:285, protein:6.0,  carbs:41.0, fat:10.0, serving_g:120, unit:'1 paratha'},
+  {id:291, name:'Basmati rice, cooked',          kcal:130, protein:2.7,  carbs:28.0, fat:0.3,  serving_g:180, unit:'1 cup'},
+  {id:292, name:'Chicken biryani',               kcal:160, protein:9.5,  carbs:19.0, fat:5.0,  serving_g:300, unit:'1 large plate'},
+  {id:293, name:'Soya chunks, raw (Nutrela)',    kcal:345, protein:52.0, carbs:33.0, fat:0.5,  serving_g:50,  unit:'50g dry'},
+  {id:294, name:'Ghee (Clarified butter)',       kcal:899, protein:0.3,  carbs:0,    fat:99.5, serving_g:14,  unit:'1 tbsp'},
+  {id:295, name:'Lassi, sweet (whole milk)',     kcal:75,  protein:2.5,  carbs:11.0, fat:2.0,  serving_g:250, unit:'1 glass'},
+  {id:296, name:'Samosa, potato & pea',          kcal:260, protein:4.0,  carbs:30.0, fat:14.0, serving_g:80,  unit:'1 piece'},
+  {id:297, name:'Idli, steamed',                 kcal:140, protein:3.5,  carbs:29.0, fat:0.5,  serving_g:50,  unit:'1 piece'},
+  {id:298, name:'Dosa, plain',                   kcal:165, protein:4.0,  carbs:29.0, fat:3.5,  serving_g:100, unit:'1 dosa'},
+  {id:299, name:'Mutton curry',                  kcal:170, protein:15.0, carbs:4.0,  fat:10.0, serving_g:200, unit:'1 bowl'},
 ];
 
 // ─── IndexedDB Wrapper ────────────────────────────────────────────────────────
