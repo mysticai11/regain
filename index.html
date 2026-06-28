@@ -20,7 +20,7 @@
 :root {
   --bg:#15130F; --surface:#1F1B15; --surface-raised:#262019; --surface-hi:#2E2720;
   --border:#332B20; --border-strong:#4A3A22;
-  --text:#F3EEE3; --text-secondary:#A89E8C; --text-muted:#6E6657;
+  --text:#F8F4ED; --text-secondary:#C0B5A1; --text-muted:#968E7E;
   --amber:#D98B3F; --amber-light:#F0B36B; --amber-dark:#A8651F;
   --sage:#7C9473; --sage-light:#A8C29C; --sage-dark:#57714F;
   --rust:#B5503D; --rust-light:#D17B68; --rust-dark:#823828;
@@ -81,7 +81,7 @@ input::placeholder { color: var(--text-muted); }
 .btn-sm { padding: 6px 12px; font-size: 12px; }
 .btn-ghost { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 13px; cursor: pointer; padding: 0; }
 /* ── Section ── */
-.section { margin-bottom: 22px; }
+.section { margin-bottom: 32px; }
 .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 /* ── Meal rows ── */
 .meal-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid rgba(242,237,228,0.05); }
@@ -97,6 +97,13 @@ input::placeholder { color: var(--text-muted); }
 .chip:active { background: var(--surface-raised); }
 /* ── Add food btn ── */
 .add-food-btn { background: none; border: none; color: var(--text-muted); font-size: 13px; padding: 10px 0; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: inherit; }
+/* ── Mission Control ── */
+.mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+.mc-card { background: var(--surface); border-radius: 12px; padding: 12px; border: 1px solid var(--border); cursor: pointer; user-select: none; }
+.mc-card:active { background: var(--surface-raised); }
+.mc-icon { font-size: 18px; margin-bottom: 4px; display: block; }
+.mc-val { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+.mc-sub { font-size: 11px; color: var(--text-muted); line-height: 1.3; }
 /* ── Stat grid (Progress) ── */
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
 .stat-card { background: var(--surface); border-radius: 12px; padding: 13px 14px; }
@@ -619,6 +626,69 @@ function renderToday() {
     ? '<div class="advisory" style="margin-bottom:12px">'+ic('info')+'<div><span style="color:var(--amber)">Protein check:</span> Only '+tot.protein+'g / '+pt+'g today. Try a shake or some Greek yogurt before dinner.</div></div>'
     : '';
 
+  // --- Mission Control Logic ---
+  var tdays = profile.trainingDays||[1,3,5];
+  var today = new Date();
+  var isTrainingDay = tdays.includes(today.getDay());
+  var session = getSessionType();
+  var exCount = session.exercises.length;
+  var doneCount = 0;
+  var nextEx = null;
+  if(isTrainingDay) {
+    session.exercises.forEach(function(ex){
+      if((rec.workout||{})[ex.id] && (rec.workout||{})[ex.id].length > 0) doneCount++;
+      else if(!nextEx) nextEx = ex.name;
+    });
+  }
+  var trainStatus = !isTrainingDay ? 'Rest Day' : doneCount>=exCount ? 'Done ✔️' : doneCount>0 ? 'In progress' : 'Not started';
+  var trainColor = !isTrainingDay ? 'var(--text-muted)' : doneCount>=exCount ? 'var(--sage-light)' : doneCount>0 ? 'var(--amber-light)' : 'var(--text-secondary)';
+  var trainSub = !isTrainingDay ? 'Recovery is growth' : doneCount>=exCount ? exCount+' exercises' : nextEx ? 'Next: '+nextEx : session.label;
+
+  var eatColor = status==='target' ? 'var(--sage-light)' : status==='aggressive' ? 'var(--rust-light)' : 'var(--amber-light)';
+  var eatStatus = status==='target' ? 'Target hit ✔️' : status==='aggressive' ? 'High surplus' : tot.kcal + ' / ' + ct + ' kcal';
+  var protColor = tot.protein >= pt ? 'var(--sage-light)' : tot.protein >= pt*0.8 ? 'var(--amber-light)' : 'var(--rust-light)';
+  var eatSub = '<span style="color:'+protColor+'">'+tot.protein+'g P</span> · '+tot.carbs+'g C · '+tot.fat+'g F';
+
+  var records = [];
+  allDayKeys().forEach(function(k){ var r=dayRecord(k); if(r.weight||r.kcal||r.protein) records.push({key:k,weight:r.weight,kcal:r.kcal||0,protein:r.protein||0}); });
+  records.sort(function(a,b){return a.key>b.key?1:-1;});
+  var last14w = records.slice(-14).filter(function(r){return r.weight!=null;});
+  var wColor = 'var(--text-secondary)';
+  var wStatus = 'No weigh-ins';
+  var wSub = 'Log weight today';
+  if(last14w.length >= 2) {
+    var firstW = last14w[0].weight;
+    var lastW = last14w[last14w.length-1].weight;
+    var daysDiff = Math.max(1, daysBetween(new Date(last14w[0].key), new Date(last14w[last14w.length-1].key)));
+    var weeklyGain = ((lastW - firstW) / daysDiff) * 7;
+    if(weeklyGain > 0 && weeklyGain < 0.5) wColor = 'var(--sage-light)';
+    else if(weeklyGain >= 0.5) wColor = 'var(--amber-light)';
+    
+    wStatus = lastW + ' kg (' + (weeklyGain>=0?'+':'')+weeklyGain.toFixed(2)+'/wk)';
+    var targetW = profile.targetWeight || 60;
+    if(weeklyGain > 0 && lastW < targetW) {
+      var weeksLeft = (targetW - lastW) / weeklyGain;
+      var hitDate = addDays(today, weeksLeft * 7);
+      wSub = 'Est. '+targetW+'kg: ' + hitDate.toLocaleDateString([], {month:'short', day:'numeric'});
+    } else {
+      wSub = 'Trend: ' + (weeklyGain>=0?'Gaining':'Losing');
+    }
+  } else if (rec.weight) {
+    wStatus = rec.weight + ' kg';
+    wSub = 'Need more data for trend';
+  }
+
+  var recColor = rec.recovery === 'good' ? 'var(--sage-light)' : rec.recovery === 'bad' ? 'var(--rust-light)' : 'var(--text-secondary)';
+  var recStatus = rec.recovery === 'good' ? 'Recovered ✔️' : rec.recovery === 'bad' ? 'Fatigued' : 'Not logged';
+  var recSub = rec.recovery ? 'Logged today' : 'Tap to log recovery';
+
+  var mcHTML = '<div class="mc-grid">'
+    +'<div class="mc-card" onclick="document.querySelector(\'[data-tab=gym]\').click()"><div class="mc-icon">🏋️</div><div class="mc-val" style="color:'+trainColor+'">'+trainStatus+'</div><div class="mc-sub">'+trainSub+'</div></div>'
+    +'<div class="mc-card" onclick="document.getElementById(\'addFoodBtn\').scrollIntoView()"><div class="mc-icon">🍚</div><div class="mc-val" style="color:'+eatColor+'">'+eatStatus+'</div><div class="mc-sub">'+eatSub+'</div></div>'
+    +'<div class="mc-card" onclick="document.getElementById(\'weightInput\').focus()"><div class="mc-icon">⚖️</div><div class="mc-val" style="color:'+wColor+'">'+wStatus+'</div><div class="mc-sub">'+wSub+'</div></div>'
+    +'<div class="mc-card" id="recoveryCard"><div class="mc-icon">😴</div><div class="mc-val" style="color:'+recColor+'">'+recStatus+'</div><div class="mc-sub">'+recSub+'</div></div>'
+  +'</div>';
+
   document.getElementById('content').innerHTML =
     '<div class="topbar">'
       +'<div><span class="eyebrow">day '+dayNum+' · week '+weekNum+'</span><div class="title">Today</div></div>'
@@ -629,31 +699,18 @@ function renderToday() {
       +'</div>'
     +'</div>'
     +shieldRow
-    +'<div class="gauge-wrap">'+buildGauge(tot.kcal, ct)+'</div>'
-    +'<div class="gauge-readout"><span class="mono big">'+tot.kcal.toLocaleString()+'</span><span class="dim"> / '+ct.toLocaleString()+' kcal</span></div>'
-    +'<div class="status-pill-wrap">'+statusPill(status, Math.max(ct-tot.kcal,0))+'</div>'
-    +'<div class="macro-grid">'
-      +macroBar('Protein', tot.protein, pt, 'var(--amber-light)')
-      +macroBar('Carbs',   tot.carbs,   CARB_TARGET, 'var(--sage-light)')
-      +macroBar('Fat',     tot.fat,     FAT_TARGET,  'var(--rust-light)')
-    +'</div>'
+    +mcHTML
     +proteinNag
     +'<div class="section">'
-      +'<div class="section-head"><span class="eyebrow">weight & readiness</span></div>'
+      +'<div class="section-head"><span class="eyebrow">weight log</span></div>'
       +'<div class="row-input">'
         +'<input type="number" step="0.1" id="weightInput" value="'+(rec.weight||'')+'" placeholder="Weight (kg)" inputmode="decimal">'
         +'<button class="btn" id="saveWeightBtn">Save</button>'
       +'</div>'
-      +'<div style="margin-top:10px;">'
-        +'<label class="eyebrow" style="margin-bottom:6px;display:block">Sleep (hours)</label>'
-        +'<input type="number" step="0.5" min="3" max="12" id="sleepInput" value="'+(rec.sleep||'')+'" placeholder="e.g. 7.5" inputmode="decimal" style="max-width:140px">'
-      +'</div>'
-      +'<div style="margin-top:10px;">'
-        +'<label class="eyebrow" style="margin-bottom:6px;display:block">Morning readiness (1–5)</label>'
-        +'<div class="star-row" id="starRow">'
-          +[1,2,3,4,5].map(function(n){return '<button class="star-btn'+(n<=(rec.readiness||0)?' active':'')+'" data-star="'+n+'">★</button>';}).join('')
-        +'</div>'
-      +'</div>'
+    +'</div>'
+    +'<div class="section" style="margin-bottom:0">'
+      +'<div class="gauge-wrap">'+buildGauge(tot.kcal, ct)+'</div>'
+      +'<div class="gauge-readout"><span class="mono big">'+tot.kcal.toLocaleString()+'</span><span class="dim"> / '+ct.toLocaleString()+' kcal</span></div>'
     +'</div>'
     +'<div class="section">'
       +'<div class="section-head"><span class="eyebrow">today\'s meals</span><button class="btn-ghost" id="editMealsBtn">edit templates</button></div>'
@@ -663,6 +720,21 @@ function renderToday() {
     +(recentChips ? '<div class="section"><span class="eyebrow" style="margin-bottom:8px">recent</span><div class="chips-row">'+recentChips+'</div></div>' : '');
 
   attachTodayEvents(key, rec, tmpl);
+}
+
+function openRecoverySheet(dayKey) {
+  var overlay=document.createElement('div'); overlay.className='overlay';
+  overlay.innerHTML='<div class="sheet"><div class="sheet-handle"></div><div class="sheet-title">Recovery</div><p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">How well did you sleep and recover?</p><button class="btn" style="width:100%;margin-bottom:10px;border-color:var(--sage-dark)" data-rec="good">🟢 Good (Ready to train)</button><button class="btn" style="width:100%;margin-bottom:16px;border-color:var(--rust-dark)" data-rec="bad">🔴 Poor (Fatigued / Sore)</button><button class="btn" style="width:100%" id="closeRecBtn">Cancel</button></div>';
+  document.body.appendChild(overlay);
+  overlay.querySelector('#closeRecBtn').addEventListener('click',function(){overlay.remove();});
+  overlay.querySelectorAll('[data-rec]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var rec = dayRecord(dayKey);
+      rec.recovery = b.dataset.rec;
+      saveDayRecord(dayKey, rec);
+      overlay.remove(); renderToday();
+    });
+  });
 }
 
 function attachTodayEvents(key, rec, tmpl) {
@@ -701,22 +773,8 @@ function attachTodayEvents(key, rec, tmpl) {
     rec = dayRecord(key); rec.weight = v; saveDayRecord(key,rec);
     showToast('Weight saved','ok');
   });
-  // Sleep save (on blur/change)
-  var si = document.getElementById('sleepInput');
-  if(si) si.addEventListener('change', function(){
-    var v = parseFloat(si.value);
-    if(v>=3&&v<=12){ rec=dayRecord(key); rec.sleep=v; saveDayRecord(key,rec); }
-  });
-  // Readiness stars
-  document.querySelectorAll('.star-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var n = parseInt(btn.dataset.star,10);
-      rec = dayRecord(key); rec.readiness=n; saveDayRecord(key,rec);
-      document.querySelectorAll('.star-btn').forEach(function(b){
-        b.classList.toggle('active', parseInt(b.dataset.star,10)<=n);
-      });
-    });
-  });
+  var rc = document.getElementById('recoveryCard');
+  if(rc) rc.addEventListener('click', function(){ openRecoverySheet(key); });
   // Add food
   var af = document.getElementById('addFoodBtn');
   if(af) af.addEventListener('click', function(){ openFoodSearch(function(food,srvs){ addFoodToDay(key,food,srvs); }); });
@@ -780,6 +838,37 @@ function renderProgress() {
   var last7 = records.slice(-7);
   var avgKcal7 = last7.length ? Math.round(last7.reduce(function(s,r){return s+r.kcal;},0)/last7.length) : 0;
 
+  var measurements = profile.measurements || [];
+  var photos = profile.photos || [];
+
+  var measHTML = '<div class="section"><div class="section-head"><span class="eyebrow">body measurements (cm)</span><button class="btn-ghost" id="addMeasBtn">log new</button></div>';
+  if(measurements.length) {
+    measHTML += '<div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px">';
+    measurements.slice(-5).forEach(function(m){
+      measHTML += '<div style="background:var(--surface);padding:10px;border-radius:10px;min-width:120px;font-size:13px"><div class="eyebrow" style="margin-bottom:6px">'+new Date(m.date).toLocaleDateString([],{month:'short',day:'numeric'})+'</div>'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:2px"><span class="dim">Chest</span><span>'+(m.chest||'–')+'</span></div>'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:2px"><span class="dim">Arms</span><span>'+(m.arms||'–')+'</span></div>'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:2px"><span class="dim">Waist</span><span>'+(m.waist||'–')+'</span></div>'
+        +'<div style="display:flex;justify-content:space-between"><span class="dim">Thighs</span><span>'+(m.thighs||'–')+'</span></div></div>';
+    });
+    measHTML += '</div>';
+  } else {
+    measHTML += '<div class="chart-empty">Log measurements every 2 weeks</div>';
+  }
+  measHTML += '</div>';
+
+  var photoHTML = '<div class="section"><div class="section-head"><span class="eyebrow">progress photos</span><button class="btn-ghost" id="addPhotoBtn">upload</button></div>';
+  if(photos.length) {
+    photoHTML += '<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">';
+    photos.slice(-5).forEach(function(p){
+      photoHTML += '<div style="flex-shrink:0;width:100px"><img src="'+p.srcBase64+'" style="width:100px;height:100px;object-fit:cover;border-radius:10px;border:1px solid var(--border)"><div class="eyebrow" style="text-align:center;margin-top:4px">'+new Date(p.date).toLocaleDateString([],{month:'short',day:'numeric'})+'</div></div>';
+    });
+    photoHTML += '</div>';
+  } else {
+    photoHTML += '<div class="chart-empty">Take your first progress photo</div>';
+  }
+  photoHTML += '<input type="file" id="photoInput" accept="image/*" style="display:none"></div>';
+
   document.getElementById('content').innerHTML =
     '<div class="topbar"><div><span class="eyebrow">day '+currentDayNum()+' of program</span><div class="title">Progress</div></div></div>'
     +'<div class="stat-grid">'
@@ -790,12 +879,13 @@ function renderProgress() {
     +'</div>'
     +(reg ? renderRegression(reg, weeklyWeights[0]) : '')
     +'<div class="section"><span class="eyebrow">weekly weight trend</span><div class="chart-wrap"><canvas id="weightChart"></canvas></div><div id="weightEmpty" class="chart-empty hidden"></div></div>'
-    +'<div class="section"><span class="eyebrow">daily calories (last 14 days)</span><div class="chart-wrap"><canvas id="kcalChart"></canvas></div></div>'
-    +'<div class="section"><span class="eyebrow">protein trend (7-day rolling avg)</span><div class="chart-wrap"><canvas id="protChart"></canvas></div></div>'
+    +'<div class="section"><span class="eyebrow">daily calories (last 14 days)</span><div class="chart-wrap"><canvas id="kcalChart"></canvas></div><div id="kcalEmpty" class="chart-empty hidden"></div></div>'
+    +'<div class="section"><span class="eyebrow">protein trend (7-day rolling avg)</span><div class="chart-wrap"><canvas id="protChart"></canvas></div><div id="protEmpty" class="chart-empty hidden"></div></div>'
+    +measHTML
+    +photoHTML
     +'<div class="section ex-select-wrap"><span class="eyebrow">strength / e1RM</span><select id="exSelect" style="margin-top:8px">'+buildExOptions()+'</select><div class="chart-wrap" style="margin-top:10px"><canvas id="e1rmChart"></canvas></div><div class="e1rm-note">Estimated 1RM via Epley formula. Trend based on best set per session.</div></div>'
     +'<div class="section"><span class="eyebrow">adherence ledger</span><div class="ledger-grid" id="ledger"></div><div class="legend"><span><span class="dot" style="background:#486440"></span>on target</span><span><span class="dot" style="background:#6B2A1E"></span>aggressive</span><span><span class="dot" style="background:#2D2918"></span>under/none</span></div></div>'
-    +'<div id="advisoryZone"></div>'
-    +'<div class="section"><div class="section-head"><span class="eyebrow">data backup</span></div><div style="display:flex;gap:8px"><button class="btn btn-sm" id="exportBtn">'+ic('download')+' Export JSON</button><button class="btn btn-sm" id="importBtn">'+ic('upload')+' Import JSON</button></div><div style="font-size:11px;color:var(--text-muted);margin-top:6px">Nutrition data from USDA FoodData Central (public domain)</div></div>';
+    +'<div id="advisoryZone"></div>';
 
   buildProgressCharts(records, weeklyWeights, ct, pt);
   buildLedger(records, ct);
@@ -805,10 +895,15 @@ function renderProgress() {
   if(exSel) exSel.addEventListener('change', function(){ buildE1RMChart(exSel.value, records); });
   if(exSel && exSel.value) buildE1RMChart(exSel.value, records);
 
-  var expBtn = document.getElementById('exportBtn');
-  if(expBtn) expBtn.addEventListener('click', exportData);
-  var impBtn = document.getElementById('importBtn');
-  if(impBtn) impBtn.addEventListener('click', importData);
+  var addMeasBtn = document.getElementById('addMeasBtn');
+  if(addMeasBtn) addMeasBtn.addEventListener('click', openMeasSheet);
+
+  var photoInput = document.getElementById('photoInput');
+  var addPhotoBtn = document.getElementById('addPhotoBtn');
+  if(addPhotoBtn && photoInput) {
+    addPhotoBtn.addEventListener('click', function(){ photoInput.click(); });
+    photoInput.addEventListener('change', function(){ handlePhotoUpload(photoInput.files[0]); });
+  }
 }
 
 function renderRegression(reg, baseW) {
@@ -839,8 +934,8 @@ function chartDefaults() {
     responsive:true, maintainAspectRatio:false,
     plugins:{legend:{display:false}},
     scales:{
-      x:{ticks:{color:'#6E6657',font:{family:'Space Mono',size:9}},grid:{display:false}},
-      y:{ticks:{color:'#6E6657',font:{family:'Space Mono',size:9}},grid:{color:'rgba(255,255,255,0.03)'}}
+      x:{ticks:{color:'#968E7E',font:{family:'Space Mono',size:9}},grid:{display:false}},
+      y:{ticks:{color:'#968E7E',font:{family:'Space Mono',size:9}},grid:{color:'rgba(255,255,255,0.03)'}}
     }
   };
 }
@@ -871,31 +966,47 @@ function buildProgressCharts(records, weeklyWeights, ct, pt) {
   // Kcal chart (last 14 days)
   var kc = document.getElementById('kcalChart');
   if(kc) {
-    var last14 = records.slice(-14);
-    charts.kcal = new Chart(kc, {type:'bar',data:{
-      labels:last14.map(function(r){return r.key.slice(5);}),
-      datasets:[
-        {data:last14.map(function(r){return r.kcal;}),backgroundColor:last14.map(function(r){return r.kcal>=ct*0.9&&r.kcal<=ct*1.15?'#486440':r.kcal>ct*1.15?'#6B2A1E':'#2D2918';}),borderRadius:3},
-        {type:'line',data:last14.map(function(){return ct;}),borderColor:'#4A3A22',borderDash:[5,4],pointRadius:0,borderWidth:1.5,fill:false}
-      ]
-    },options:chartDefaults()});
+    if(records.length >= 2) {
+      var last14 = records.slice(-14);
+      charts.kcal = new Chart(kc, {type:'bar',data:{
+        labels:last14.map(function(r){return r.key.slice(5);}),
+        datasets:[
+          {data:last14.map(function(r){return r.kcal;}),backgroundColor:last14.map(function(r){return r.kcal>=ct*0.9&&r.kcal<=ct*1.15?'#7C9473':r.kcal>ct*1.15?'#B5503D':'#2E2720';}),borderRadius:3},
+          {type:'line',data:last14.map(function(){return ct;}),borderColor:'#4A3A22',borderDash:[5,4],pointRadius:0,borderWidth:1.5,fill:false}
+        ]
+      },options:chartDefaults()});
+    } else {
+      kc.style.display='none';
+      if(document.getElementById('kcalEmpty')) {
+        document.getElementById('kcalEmpty').textContent='Log calories for 2+ days to see trend';
+        document.getElementById('kcalEmpty').classList.remove('hidden');
+      }
+    }
   }
 
   // Protein chart (7-day rolling avg)
   var pc = document.getElementById('protChart');
   if(pc) {
-    var protData = records.map(function(r){return r.protein;});
-    var rolling = protData.map(function(_,i){
-      var slice = protData.slice(Math.max(0,i-6),i+1).filter(function(v){return v>0;});
-      return slice.length ? +(slice.reduce(function(a,b){return a+b;},0)/slice.length).toFixed(1) : null;
-    });
-    charts.prot = new Chart(pc, {type:'line',data:{
-      labels:records.map(function(r){return r.key.slice(5);}),
-      datasets:[
-        {data:rolling,borderColor:'#F0B36B',backgroundColor:'rgba(240,179,107,0.06)',fill:true,tension:0.3,pointRadius:0,borderWidth:2,spanGaps:true},
-        {type:'line',data:records.map(function(){return pt;}),borderColor:'#4A3A22',borderDash:[5,4],pointRadius:0,borderWidth:1.5,fill:false}
-      ]
-    },options:chartDefaults()});
+    if(records.length >= 2) {
+      var protData = records.map(function(r){return r.protein;});
+      var rolling = protData.map(function(_,i){
+        var slice = protData.slice(Math.max(0,i-6),i+1).filter(function(v){return v>0;});
+        return slice.length ? +(slice.reduce(function(a,b){return a+b;},0)/slice.length).toFixed(1) : null;
+      });
+      charts.prot = new Chart(pc, {type:'line',data:{
+        labels:records.map(function(r){return r.key.slice(5);}),
+        datasets:[
+          {data:rolling,borderColor:'#D17B68',backgroundColor:'rgba(209,123,104,0.06)',fill:true,tension:0.3,pointRadius:0,borderWidth:2,spanGaps:true},
+          {type:'line',data:records.map(function(){return pt;}),borderColor:'#4A3A22',borderDash:[5,4],pointRadius:0,borderWidth:1.5,fill:false}
+        ]
+      },options:chartDefaults()});
+    } else {
+      pc.style.display='none';
+      if(document.getElementById('protEmpty')) {
+        document.getElementById('protEmpty').textContent='Log protein for 2+ days to see trend';
+        document.getElementById('protEmpty').classList.remove('hidden');
+      }
+    }
   }
 }
 
@@ -911,7 +1022,7 @@ function buildE1RMChart(exId, records) {
   });
   var ec = document.getElementById('e1rmChart');
   if(!ec) return;
-  if(points.length < 2) { ec.parentElement.innerHTML='<div class="chart-empty">No sets logged for this exercise yet.</div>'; return; }
+  if(points.length < 2) { ec.parentElement.innerHTML='<div class="chart-empty">Log your first set today 💪</div>'; return; }
   var opts = chartDefaults();
   opts.scales.y.title = {display:true,text:'e1RM (kg)',color:'#6E6657',font:{size:9}};
   charts.e1rm = new Chart(ec, {type:'line',data:{
@@ -1394,6 +1505,11 @@ function openSettings() {
     +'<label class="eyebrow" style="margin-top:12px">Streak shields</label>'
     +'<div style="display:flex;gap:10px;align-items:center;margin-top:6px"><span class="mono" style="font-size:18px;color:var(--amber)">'+(profile.shields||0)+'</span><button class="btn btn-sm" id="buyShieldBtn"'+(((profile.xp||0)<100)?' disabled':'')+'>Buy shield (100 XP)</button></div>'
     +'<div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">'
+      +'<span class="eyebrow" style="margin-bottom:8px;display:block">Data Backup</span>'
+      +'<div style="display:flex;gap:8px;margin-bottom:12px">'
+        +'<button class="btn btn-sm" id="exportBtn">'+ic('download')+' Export</button>'
+        +'<button class="btn btn-sm" id="importBtn">'+ic('upload')+' Import</button>'
+      +'</div>'
       +'<button class="btn btn-sm" id="editCustomFoodsBtn">Manage custom foods</button>'
       +'<button class="btn btn-sm" style="margin-top:8px;color:var(--rust-light);border-color:var(--rust-dark)" id="resetBtn">Reset all data</button>'
     +'</div>'
@@ -1435,6 +1551,11 @@ function openSettings() {
   overlay.querySelector('#editCustomFoodsBtn').addEventListener('click',function(){
     overlay.remove(); openCustomFoodsManager();
   });
+  
+  var expBtn = overlay.querySelector('#exportBtn');
+  if(expBtn) expBtn.addEventListener('click', exportData);
+  var impBtn = overlay.querySelector('#importBtn');
+  if(impBtn) impBtn.addEventListener('click', importData);
   overlay.querySelector('#previewSplitBtn').addEventListener('click', function(){
     openSplitPreview();
   });
@@ -1536,6 +1657,59 @@ function showToast(msg, type) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // EXPORT / IMPORT
 // ═══════════════════════════════════════════════════════════════════════════════
+function openMeasSheet() {
+  var overlay=document.createElement('div'); overlay.className='overlay';
+  overlay.innerHTML='<div class="sheet"><div class="sheet-handle"></div><div class="sheet-title">Log Measurements (cm)</div>'
+    +'<div class="row-input"><input type="number" id="mChest" placeholder="Chest" inputmode="decimal"></div>'
+    +'<div class="row-input"><input type="number" id="mArms" placeholder="Arms (flexed)" inputmode="decimal"></div>'
+    +'<div class="row-input"><input type="number" id="mWaist" placeholder="Waist (navel)" inputmode="decimal"></div>'
+    +'<div class="row-input"><input type="number" id="mThighs" placeholder="Thighs" inputmode="decimal"></div>'
+    +'<div class="modal-actions" style="margin-top:16px"><button class="btn" id="cancelMeasBtn">Cancel</button><button class="btn btn-primary" id="saveMeasBtn">Save</button></div></div>';
+  document.body.appendChild(overlay);
+  overlay.querySelector('#cancelMeasBtn').addEventListener('click',function(){overlay.remove();});
+  overlay.querySelector('#saveMeasBtn').addEventListener('click',function(){
+    var m = {
+      date: new Date().toISOString(),
+      chest: parseFloat(document.getElementById('mChest').value)||null,
+      arms: parseFloat(document.getElementById('mArms').value)||null,
+      waist: parseFloat(document.getElementById('mWaist').value)||null,
+      thighs: parseFloat(document.getElementById('mThighs').value)||null
+    };
+    if(!profile.measurements) profile.measurements=[];
+    profile.measurements.push(m);
+    sv('rg_profile', profile);
+    overlay.remove(); renderProgress();
+  });
+}
+
+function handlePhotoUpload(file) {
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var MAX_WIDTH = 400; var MAX_HEIGHT = 400;
+      var width = img.width; var height = img.height;
+      if (width > height) {
+        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+      } else {
+        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+      }
+      canvas.width = width; canvas.height = height;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      if(!profile.photos) profile.photos=[];
+      profile.photos.push({date: new Date().toISOString(), srcBase64: dataUrl});
+      sv('rg_profile', profile);
+      renderProgress();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 function exportData() {
   FoodDB.exportAll().then(function(dbData){
     var data = {version:2, exported: new Date().toISOString(), profile:ls('rg_profile',null), meals:ls('rg_meals',DEFAULT_MEALS), recentFoods:ls('rg_recent_foods',[]), dayKeys:allDayKeys(), days:{}, idb:dbData};
