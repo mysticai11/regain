@@ -662,33 +662,85 @@ function macroBar(label, val, target, color) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function renderChecklistHTML(rec, isTrainingDay) {
   var plan = (profile && profile.mealPlan) || DEFAULT_MEAL_PLAN;
-  var html = '';
-  Object.keys(plan).forEach(function(gKey){
-    var group = plan[gKey];
-    if(group.gymOnly && !isTrainingDay) return;
-    
-    html += '<div class="meal-group" style="margin-top:16px">'
-      + '<div class="eyebrow" style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center">'
-        + '<span>' + group.label + '</span>'
-      + '</div>';
+  var badAppetite = rec.badAppetite || false;
+  
+  if (!badAppetite) {
+    // Normal rendering
+    var html = '';
+    Object.keys(plan).forEach(function(gKey){
+      var group = plan[gKey];
+      if(group.gymOnly && !isTrainingDay) return;
       
-    (group.items||[]).forEach(function(item){
-      var logged = !!rec.meals[item.id];
-      html += '<div class="meal-row" style="padding: 10px 12px; background: var(--surface); border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between">'
-        + '<div style="display:flex; align-items:center; gap:10px">'
-          + '<input type="checkbox" class="plan-chk" data-itemid="' + item.id + '"' + (logged ? ' checked' : '') + ' style="width: 18px; height: 18px; accent-color: var(--sage-light); cursor: pointer">'
-          + '<div>'
-            + '<div style="font-size: 13px; font-weight: 500;' + (logged ? 'text-decoration: line-through; color: var(--text-muted)' : 'color: var(--text)') + '">' + item.name + '</div>'
-            + '<div style="font-size: 11px; color: var(--text-muted); font-family: \'Space Mono\', monospace; margin-top: 1px">' + item.kcal + ' kcal · ' + item.protein + 'P · ' + item.carbs + 'C · ' + item.fat + 'F</div>'
-          + '</div>'
-        + '</div>'
-        + '<button class="edit-item-btn" data-itemid="' + item.id + '" data-group="' + gKey + '" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:12px; padding:4px">' + ic('settings', '14') + '</button>'
+      html += '<div class="meal-group" style="margin-top:16px">'
+        + '<div class="eyebrow" style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center">'
+          + '<span>' + group.label + '</span>'
         + '</div>';
+        
+      (group.items||[]).forEach(function(item){
+        var logged = !!rec.meals[item.id];
+        html += '<div class="meal-row" style="padding: 10px 12px; background: var(--surface); border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between">'
+          + '<div style="display:flex; align-items:center; gap:10px">'
+            + '<input type="checkbox" class="plan-chk" data-itemid="' + item.id + '"' + (logged ? ' checked' : '') + ' style="width: 18px; height: 18px; accent-color: var(--sage-light); cursor: pointer">'
+            + '<div>'
+              + '<div style="font-size: 13px; font-weight: 500;' + (logged ? 'text-decoration: line-through; color: var(--text-muted)' : 'color: var(--text)') + '">' + item.name + '</div>'
+              + '<div style="font-size: 11px; color: var(--text-muted); font-family: \'Space Mono\', monospace; margin-top: 1px">' + item.kcal + ' kcal · ' + item.protein + 'P · ' + item.carbs + 'C · ' + item.fat + 'F</div>'
+            + '</div>'
+          + '</div>'
+          + '<button class="edit-item-btn" data-itemid="' + item.id + '" data-group="' + gKey + '" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:12px; padding:4px">' + ic('settings', '14') + '</button>'
+          + '</div>';
+      });
+      
+      html += '</div>';
+    });
+    return html;
+  } else {
+    // Low Appetite rendering - grouped by priority
+    var priorityHTML = '';
+    var optionalHTML = '';
+    
+    Object.keys(plan).forEach(function(gKey){
+      var group = plan[gKey];
+      if(group.gymOnly && !isTrainingDay) return;
+      
+      (group.items||[]).forEach(function(item){
+        var nameL = item.name.toLowerCase();
+        var isOptional = nameL.includes('paneer') || nameL.includes('dahi') || nameL.includes('curd') || nameL.includes('egg') || nameL.includes('sabzi') || nameL.includes('vegetable') || nameL.includes('kiwi');
+        
+        var logged = !!rec.meals[item.id];
+        var row = '<div class="meal-row" style="padding: 10px 12px; background: var(--surface); border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;' + (isOptional ? 'opacity: 0.6' : '') + '">'
+          + '<div style="display:flex; align-items:center; gap:10px">'
+            + '<input type="checkbox" class="plan-chk" data-itemid="' + item.id + '"' + (logged ? ' checked' : '') + ' style="width: 18px; height: 18px; accent-color: var(--sage-light); cursor: pointer">'
+            + '<div>'
+              + '<div style="font-size: 13px; font-weight: 500;' + (logged ? 'text-decoration: line-through; color: var(--text-muted)' : 'color: var(--text)') + '">' + item.name + '</div>'
+              + '<div style="font-size: 11px; color: var(--text-muted); font-family: \'Space Mono\', monospace; margin-top: 1px">' + item.kcal + ' kcal · ' + item.protein + 'P · ' + item.carbs + 'C · ' + item.fat + 'F</div>'
+            + '</div>'
+          + '</div>'
+          + '<button class="edit-item-btn" data-itemid="' + item.id + '" data-group="' + gKey + '" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:12px; padding:4px">' + ic('settings', '14') + '</button>'
+          + '</div>';
+          
+        if (isOptional) {
+          optionalHTML += row;
+        } else {
+          priorityHTML += row;
+        }
+      });
     });
     
-    html += '</div>';
-  });
-  return html;
+    var html = '';
+    if (priorityHTML) {
+      html += '<div class="meal-group" style="margin-top:16px">'
+        + '<div class="eyebrow" style="margin-bottom:8px; color:var(--amber-light)">🚀 Priority (Energy-Dense Surplus Boosters)</div>'
+        + priorityHTML
+        + '</div>';
+    }
+    if (optionalHTML) {
+      html += '<div class="meal-group" style="margin-top:16px">'
+        + '<div class="eyebrow" style="margin-bottom:8px; color:var(--text-muted)">⚠️ Optional (High-Volume/Protein - Can Skip if Full)</div>'
+        + optionalHTML
+        + '</div>';
+    }
+    return html;
+  }
 }
 
 function openEditItemSheet(itemId, groupKey) {
@@ -730,6 +782,59 @@ function openEditItemSheet(itemId, groupKey) {
     overlay.remove();
     renderToday();
   });
+}
+
+function buildWeeklyDigestHTML() {
+  var keys = allDayKeys();
+  var records = keys.map(function(k){
+    var r = dayRecord(k); var t = getDayTotals(k);
+    var hasWorkout = (r.workoutDone || (r.workout && Object.keys(r.workout).length > 0));
+    return {key:k,weight:r.weight,kcal:t.kcal,workoutDone:hasWorkout};
+  });
+  
+  // Get records from the past 7 days (the current week)
+  var last7 = records.slice(-7);
+  if (last7.length === 0) return '';
+  
+  var sumKcal = 0, countKcal = 0;
+  var sumW = 0, countW = 0;
+  var firstW = null, lastW = null;
+  var gymDaysDone = 0, gymDaysScheduled = 0;
+  
+  last7.forEach(function(r){
+    if (r.kcal > 0) {
+      sumKcal += r.kcal;
+      countKcal++;
+    }
+    if (r.weight != null) {
+      if (firstW === null) firstW = r.weight;
+      lastW = r.weight;
+    }
+    
+    var d = new Date(r.key + 'T00:00:00');
+    var isTrain = (profile.trainingDays || [1,3,5]).includes(d.getDay());
+    if (isTrain) {
+      gymDaysScheduled++;
+      if (r.workoutDone) gymDaysDone++;
+    }
+  });
+  
+  var avgK = countKcal ? Math.round(sumKcal / countKcal) : 0;
+  var deltaW = (firstW != null && lastW != null) ? (lastW - firstW) : null;
+  
+  var digestStr = '';
+  digestStr += avgK ? 'avg ' + avgK + ' kcal' : 'no kcal';
+  if (deltaW != null) {
+    digestStr += ', ' + (deltaW >= 0 ? '+' : '') + deltaW.toFixed(2) + 'kg';
+  } else {
+    digestStr += ', -- kg';
+  }
+  digestStr += ', ' + gymDaysDone + '/' + gymDaysScheduled + ' gym';
+  
+  return '<div style="background:var(--surface-raised); border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-top:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center">'
+    +'<div><span class="eyebrow" style="margin:0">Weekly Digest</span><div style="font-weight:600;font-size:13.5px;color:var(--text-secondary);margin-top:2px">Closing the loop</div></div>'
+    +'<div class="mono" style="font-size:12px;color:var(--sage-light);text-align:right">' + digestStr + '</div>'
+    +'</div>';
 }
 
 function renderToday() {
@@ -817,45 +922,45 @@ function renderToday() {
   var protColor = tot.protein >= pt ? 'var(--sage-light)' : tot.protein >= pt*0.8 ? 'var(--amber-light)' : 'var(--rust-light)';
   var eatSub = '<span style="color:'+protColor+'">'+tot.protein+'g P</span> · '+tot.carbs+'g C · '+tot.fat+'g F';
 
-  var records = [];
-  allDayKeys().forEach(function(k){ var r=dayRecord(k); if(r.weight||r.kcal||r.protein) records.push({key:k,weight:r.weight,kcal:r.kcal||0,protein:r.protein||0}); });
-  records.sort(function(a,b){return a.key>b.key?1:-1;});
-  var last14w = records.slice(-14).filter(function(r){return r.weight!=null;});
-  var wColor = 'var(--text-secondary)';
-  var wStatus = 'No weigh-ins';
-  var wSub = 'Log weight today';
-  if(last14w.length >= 2) {
-    var firstW = last14w[0].weight;
-    var lastW = last14w[last14w.length-1].weight;
-    var daysDiff = Math.max(1, daysBetween(new Date(last14w[0].key), new Date(last14w[last14w.length-1].key)));
-    var weeklyGain = ((lastW - firstW) / daysDiff) * 7;
-    if(weeklyGain > 0 && weeklyGain < 0.5) wColor = 'var(--sage-light)';
-    else if(weeklyGain >= 0.5) wColor = 'var(--amber-light)';
-    
-    wStatus = lastW + ' kg (' + (weeklyGain>=0?'+':'')+weeklyGain.toFixed(2)+'/wk)';
-    var targetW = profile.targetWeight || 60;
-    if(weeklyGain > 0 && lastW < targetW) {
-      var weeksLeft = (targetW - lastW) / weeklyGain;
-      var hitDate = addDays(today, weeksLeft * 7);
-      wSub = 'Est. '+targetW+'kg: ' + hitDate.toLocaleDateString([], {month:'short', day:'numeric'});
-    } else {
-      wSub = 'Trend: ' + (weeklyGain>=0?'Gaining':'Losing');
-    }
-  } else if (rec.weight) {
-    wStatus = rec.weight + ' kg';
-    wSub = 'Need more data for trend';
-  }
+  // --- Check-in details ---
+  var isCheckinDone = rec.weight != null && rec.sleep != null && rec.readiness != null;
+  var checkinVal = isCheckinDone ? rec.weight + ' kg' : 'Start Check-in';
+  var checkinColor = isCheckinDone ? 'var(--sage-light)' : 'var(--amber-light)';
+  var checkinSub = isCheckinDone ? '😴 ' + rec.sleep + 'h · ⚡ ' + rec.readiness + '/5' : 'Log morning stats';
 
-  var recColor = rec.recovery === 'good' ? 'var(--sage-light)' : rec.recovery === 'bad' ? 'var(--rust-light)' : 'var(--text-secondary)';
-  var recStatus = rec.recovery === 'good' ? 'Recovered ✔️' : rec.recovery === 'bad' ? 'Fatigued' : 'Not logged';
-  var recSub = rec.recovery ? 'Logged today' : 'Tap to log recovery';
-
-  var mcHTML = '<div class="mc-grid">'
+  var mcHTML = '<div class="mc-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 8px">'
     +'<div class="mc-card" onclick="document.querySelector(\'[data-tab=gym]\').click()"><div class="mc-icon">🏋️</div><div class="mc-val" style="color:'+trainColor+'">'+trainStatus+'</div><div class="mc-sub">'+trainSub+'</div></div>'
     +'<div class="mc-card" onclick="document.getElementById(\'addFoodBtn\').scrollIntoView()"><div class="mc-icon">🍚</div><div class="mc-val" style="color:'+eatColor+'">'+eatStatus+'</div><div class="mc-sub">'+eatSub+'</div></div>'
-    +'<div class="mc-card" onclick="document.getElementById(\'weightInput\').focus()"><div class="mc-icon">⚖️</div><div class="mc-val" style="color:'+wColor+'">'+wStatus+'</div><div class="mc-sub">'+wSub+'</div></div>'
-    +'<div class="mc-card" id="recoveryCard"><div class="mc-icon">😴</div><div class="mc-val" style="color:'+recColor+'">'+recStatus+'</div><div class="mc-sub">'+recSub+'</div></div>'
+    +'<div class="mc-card" id="checkinCard" style="cursor:pointer"><div class="mc-icon">☀️</div><div class="mc-val" style="color:'+checkinColor+'">'+checkinVal+'</div><div class="mc-sub">'+checkinSub+'</div></div>'
   +'</div>';
+
+  var noteHTML = rec.note ? '<div style="background:var(--surface-raised);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--text-secondary);margin-top:10px;display:flex;align-items:center;gap:6px"><span>📝</span><span style="font-style:italic">"' + rec.note + '"</span></div>' : '';
+
+  // --- Low Appetite Toggle ---
+  var appetiteActive = rec.badAppetite || false;
+  var appetiteToggleHTML = '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface-raised);padding:8px 12px;border-radius:8px;border:1px solid var(--border);margin-top:16px;margin-bottom:12px">'
+    +'<div style="font-size:12.5px;color:var(--text-secondary);display:flex;align-items:center;gap:6px"><span>🤢</span><span>My appetite is low today</span></div>'
+    +'<input type="checkbox" id="appetiteToggle" ' + (appetiteActive ? 'checked' : '') + ' style="width:18px;height:18px;accent-color:var(--sage-light);margin:0;cursor:pointer">'
+    +'</div>';
+
+  // --- Weekly Digest (on Sunday/Monday weekend window) ---
+  var weeklyDigestHTML = '';
+  var todayDay = new Date().getDay();
+  if (todayDay === 0 || todayDay === 1) {
+    weeklyDigestHTML = buildWeeklyDigestHTML();
+  }
+
+  // --- Export reminder nudge ---
+  var backupNudgeHTML = '';
+  var lastBackup = parseInt(ls('rg_last_backup', '0'), 10);
+  if (lastBackup === 0) {
+    sv('rg_last_backup', Date.now());
+  } else if (Date.now() - lastBackup > 30 * 24 * 60 * 60 * 1000) {
+    backupNudgeHTML = '<div class="advisory" style="margin-bottom:12px;border-color:var(--amber-dark)">'
+      +'<div style="flex:1"><strong style="color:var(--amber-light)">💾 Backup Reminder</strong><br>You haven\'t backed up your logs in over 30 days. Export a copy to protect your data.'
+      +'<div style="margin-top:8px"><button class="btn btn-sm" id="exportNudgeBtn">Export Now</button></div></div>'
+      +'</div>';
+  }
 
   document.getElementById('content').innerHTML =
     '<div class="topbar">'
@@ -868,18 +973,15 @@ function renderToday() {
     +'</div>'
     +shieldRow
     +mcHTML
+    +noteHTML
+    +weeklyDigestHTML
+    +backupNudgeHTML
     +proteinNag
-    +'<div class="section">'
-      +'<div class="section-head"><span class="eyebrow">weight log</span></div>'
-      +'<div class="row-input">'
-        +'<input type="number" step="0.1" id="weightInput" value="'+(rec.weight||'')+'" placeholder="Weight (kg)" inputmode="decimal">'
-        +'<button class="btn" id="saveWeightBtn">Save</button>'
-      +'</div>'
-    +'</div>'
     +'<div class="section" style="margin-bottom:0">'
       +'<div class="gauge-wrap">'+buildGauge(tot.kcal, ct)+'</div>'
       +'<div class="gauge-readout"><span class="mono big">'+tot.kcal.toLocaleString()+'</span><span class="dim"> / '+ct.toLocaleString()+' kcal</span></div>'
     +'</div>'
+    +appetiteToggleHTML
     +'<div class="section">'
       +'<div class="section-head"><span class="eyebrow">today\'s checklist</span><button class="btn-ghost" id="editMealsBtn">reset plan</button></div>'
       +planHTML+avocadoHTML+extraHTML
@@ -890,42 +992,56 @@ function renderToday() {
   attachTodayEvents(key, rec);
 }
 
-function openRecoverySheet(dayKey) {
+function openCheckinSheet(dayKey) {
   var rec = dayRecord(dayKey);
+  
+  // Find last logged weight for pre-fill
+  var preW = rec.weight;
+  if (!preW) {
+    var keys = allDayKeys().reverse();
+    for (var i = 0; i < keys.length; i++) {
+      var r = dayRecord(keys[i]);
+      if (r.weight) {
+        preW = r.weight;
+        break;
+      }
+    }
+  }
+  if (!preW) preW = parseFloat(profile.startWeight) || 54.0;
+
   var sleepVal = rec.sleep != null ? rec.sleep : 8;
   var readinessVal = rec.readiness != null ? rec.readiness : 3;
-  var recoveryVal = rec.recovery || 'good';
+  var noteVal = rec.note || '';
 
-  var overlay=document.createElement('div'); overlay.className='overlay';
-  overlay.innerHTML='<div class="sheet">'
+  var overlay = document.createElement('div'); overlay.className = 'overlay';
+  overlay.innerHTML = '<div class="sheet">'
     +'<div class="sheet-handle"></div>'
-    +'<div class="sheet-title">Sleep & Recovery</div>'
+    +'<div class="sheet-title">☀️ Morning Check-in</div>'
     
-    +'<label class="eyebrow" style="margin-top:12px">Sleep Duration (hours)</label>'
+    +'<label class="eyebrow" style="margin-top:12px">Body Weight (kg)</label>'
+    +'<input type="number" step="0.1" id="recWeight" value="'+preW+'" style="width:100%" inputmode="decimal">'
+    
+    +'<label class="eyebrow" style="margin-top:16px">Sleep Duration (hours)</label>'
     +'<input type="number" step="0.5" id="recSleep" value="'+sleepVal+'" style="width:100%" inputmode="decimal">'
     
-    +'<label class="eyebrow" style="margin-top:12px">Readiness (1 = Poor, 5 = Great)</label>'
+    +'<label class="eyebrow" style="margin-top:16px">Readiness (1 = Poor, 5 = Great)</label>'
     +'<div style="display:flex;gap:6px;margin-top:4px">'
       +[1,2,3,4,5].map(function(num){
         return '<button class="btn btn-sm ready-btn'+(readinessVal===num?' active':'')+'" data-val="'+num+'" style="flex:1">'+num+'</button>';
       }).join('')
     +'</div>'
     
-    +'<label class="eyebrow" style="margin-top:16px">Recovery feel</label>'
-    +'<div style="display:flex;gap:10px;margin-top:4px">'
-      +'<button class="btn rec-feel-btn'+(recoveryVal==='good'?' active':'')+'" style="flex:1;border-color:var(--sage-dark)" data-rec="good">🟢 Good (Ready)</button>'
-      +'<button class="btn rec-feel-btn'+(recoveryVal==='bad'?' active':'')+'" style="flex:1;border-color:var(--rust-dark)" data-rec="bad">🔴 Poor (Fatigued)</button>'
-    +'</div>'
+    +'<label class="eyebrow" style="margin-top:16px">Daily Note (optional)</label>'
+    +'<input type="text" id="recNote" value="'+noteVal+'" placeholder="e.g. Felt strong, sore shoulders, exam stress..." style="width:100%">'
     
     +'<div class="modal-actions" style="margin-top:20px">'
-      +'<button class="btn" id="closeRecBtn" style="flex:1">Cancel</button>'
-      +'<button class="btn btn-primary" id="saveRecBtn" style="flex:1">Save</button>'
+      +'<button class="btn" id="closeCheckinBtn" style="flex:1">Cancel</button>'
+      +'<button class="btn btn-primary" id="saveCheckinBtn" style="flex:1">Save</button>'
     +'</div>'
     +'</div>';
   document.body.appendChild(overlay);
 
   var selectedReadiness = readinessVal;
-  var selectedRecovery = recoveryVal;
 
   overlay.querySelectorAll('.ready-btn').forEach(function(btn){
     btn.addEventListener('click', function(){
@@ -935,21 +1051,19 @@ function openRecoverySheet(dayKey) {
     });
   });
 
-  overlay.querySelectorAll('.rec-feel-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      overlay.querySelectorAll('.rec-feel-btn').forEach(function(b){ b.classList.remove('active'); });
-      btn.classList.add('active');
-      selectedRecovery = btn.dataset.rec;
-    });
-  });
-
-  overlay.querySelector('#closeRecBtn').addEventListener('click',function(){overlay.remove();});
-  overlay.querySelector('#saveRecBtn').addEventListener('click',function(){
-    var sleepHours = parseFloat(document.getElementById('recSleep').value) || 8;
+  overlay.querySelector('#closeCheckinBtn').addEventListener('click',function(){overlay.remove();});
+  overlay.querySelector('#saveCheckinBtn').addEventListener('click',function(){
+    var w = parseFloat(document.getElementById('recWeight').value);
+    if(w && (w<20 || w>300)) { showToast('Enter a valid weight', 'warn'); return; }
+    var s = parseFloat(document.getElementById('recSleep').value) || 8;
+    var n = document.getElementById('recNote').value.trim();
+    
     rec = dayRecord(dayKey);
-    rec.sleep = sleepHours;
+    rec.weight = w || null;
+    rec.sleep = s;
     rec.readiness = selectedReadiness;
-    rec.recovery = selectedRecovery;
+    rec.recovery = selectedReadiness >= 3 ? 'good' : 'bad';
+    rec.note = n;
     saveDayRecord(dayKey, rec);
     overlay.remove();
     renderToday();
@@ -1010,16 +1124,26 @@ function attachTodayEvents(key, rec) {
       saveDayRecord(key,rec); renderToday();
     });
   });
-  // Weight save
-  var wb = document.getElementById('saveWeightBtn');
-  if(wb) wb.addEventListener('click', function(){
-    var v = parseFloat(document.getElementById('weightInput').value);
-    if(!v||v<20||v>300){showToast('Enter a valid weight','warn');return;}
-    rec = dayRecord(key); rec.weight = v; saveDayRecord(key,rec);
-    showToast('Weight saved','ok');
-  });
-  var rc = document.getElementById('recoveryCard');
-  if(rc) rc.addEventListener('click', function(){ openRecoverySheet(key); });
+  var rc = document.getElementById('checkinCard');
+  if(rc) rc.addEventListener('click', function(){ openCheckinSheet(key); });
+  
+  var appTog = document.getElementById('appetiteToggle');
+  if(appTog) {
+    appTog.addEventListener('change', function(){
+      rec = dayRecord(key);
+      rec.badAppetite = appTog.checked;
+      saveDayRecord(key, rec);
+      renderToday();
+    });
+  }
+
+  var expNudge = document.getElementById('exportNudgeBtn');
+  if(expNudge) {
+    expNudge.addEventListener('click', function(){
+      exportData();
+      renderToday();
+    });
+  }
   // Add food
   var af = document.getElementById('addFoodBtn');
   if(af) af.addEventListener('click', function(){ openFoodSearch(function(food,srvs){ addFoodToDay(key,food,srvs); }); });
@@ -1124,6 +1248,29 @@ function renderProgress() {
   }
   photoHTML += '<input type="file" id="photoInput" accept="image/*" style="display:none"></div>';
 
+  var notesHTML = '';
+  var recentNotes = [];
+  records.forEach(function(r){
+    var dayRec = dayRecord(r.key);
+    if(dayRec.note) {
+      recentNotes.push({date: r.key, note: dayRec.note, weight: dayRec.weight});
+    }
+  });
+  if (recentNotes.length > 0) {
+    notesHTML += '<div class="section"><span class="eyebrow">daily notes log</span>'
+      +'<div style="max-height:200px;overflow-y:auto;background:var(--surface);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;border:1px solid var(--border)">';
+    recentNotes.reverse().slice(0, 10).forEach(function(n){
+      notesHTML += '<div style="font-size:12px;border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:6px">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:2px">'
+          +'<span class="mono" style="color:var(--text-muted)">' + new Date(n.date + 'T00:00:00').toLocaleDateString([], {month:'short', day:'numeric'}) + '</span>'
+          +(n.weight ? '<span class="mono" style="color:var(--sage-light)">' + n.weight + ' kg</span>' : '')
+        +'</div>'
+        +'<div style="color:var(--text-secondary);font-style:italic">"' + n.note + '"</div>'
+        +'</div>';
+    });
+    notesHTML += '</div></div>';
+  }
+
   var targetW = profile.targetWeight || 60.0;
   var goalText = 'Log weight regularly to estimate target date';
   if(weeklyWeights.length >= 2) {
@@ -1170,6 +1317,7 @@ function renderProgress() {
     +'<div class="section"><span class="eyebrow">protein trend (7-day rolling avg)</span><div class="chart-wrap"><canvas id="protChart"></canvas></div><div id="protEmpty" class="chart-empty hidden"></div></div>'
     +measHTML
     +photoHTML
+    +notesHTML
     +'<div class="section ex-select-wrap"><span class="eyebrow">strength / e1RM</span><select id="exSelect" style="margin-top:8px">'+buildExOptions()+'</select><div class="chart-wrap" style="margin-top:10px"><canvas id="e1rmChart"></canvas></div><div class="e1rm-note">Estimated 1RM via Epley formula. Trend based on best set per session.</div></div>'
     +'<div class="section"><span class="eyebrow">adherence ledger</span><div class="ledger-grid" id="ledger"></div><div class="legend"><span><span class="dot" style="background:#486440"></span>on target</span><span><span class="dot" style="background:#6B2A1E"></span>aggressive</span><span><span class="dot" style="background:#2D2918"></span>under/none</span></div></div>'
     +'<div id="advisoryZone"></div>';
@@ -1549,6 +1697,45 @@ function openWarmUpSheet(exName, exId) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // GYM TAB
 // ═══════════════════════════════════════════════════════════════════════════════
+function getExercisePR(exId) {
+  var prVal = null;
+  allDayKeys().forEach(function(key){
+    var r = dayRecord(key);
+    var sets = (r.workout || {})[exId] || [];
+    sets.forEach(function(s){
+      if (s.weight != null && s.reps != null) {
+        if (!prVal || s.weight > prVal.weight || (s.weight === prVal.weight && s.reps > prVal.reps)) {
+          prVal = { weight: s.weight, reps: s.reps };
+        }
+      }
+    });
+  });
+  return prVal;
+}
+
+function getLastSessionWeightReps(exId, rec) {
+  var todaySets = (rec.workout || {})[exId] || [];
+  if (todaySets.length > 0) {
+    var lastSet = todaySets[todaySets.length - 1];
+    return { weight: lastSet.weight, reps: lastSet.reps };
+  }
+  
+  var keys = allDayKeys().reverse();
+  var todayK = todayKey();
+  for (var i = 0; i < keys.length; i++) {
+    if (keys[i] === todayK) continue;
+    var r = dayRecord(keys[i]);
+    var prevSets = (r.workout || {})[exId] || [];
+    if (prevSets.length > 0) {
+      return { weight: prevSets[0].weight, reps: prevSets[0].reps };
+    }
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// GYM TAB
+// ═══════════════════════════════════════════════════════════════════════════════
 function renderGym() {
   var tdays = profile.trainingDays||[1,3,5];
   var today = new Date();
@@ -1591,17 +1778,24 @@ function renderGym() {
     var isCompound = ex.type === 'compound' || exOrig.type === 'compound';
     var warmUpLink = isCompound ? '<button class="btn-ghost warm-up-btn" data-exname="'+ex.name+'" data-exid="'+ex.id+'" style="font-size:10px;padding:1px 5px;margin-left:8px;border:1px solid var(--border);border-radius:4px;cursor:pointer">Warm Up</button>' : '';
 
+    var pr = getExercisePR(ex.id);
+    var prStr = pr ? ' · PR: ' + pr.weight + 'kg × ' + pr.reps : '';
+
+    var lastVal = getLastSessionWeightReps(ex.id, rec);
+    var preW = lastVal ? lastVal.weight : '';
+    var preR = lastVal ? lastVal.reps : '';
+
     return '<div class="exercise-card" id="excard-'+ex.id+'">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start">'
         +'<div><div class="exercise-name" style="display:flex;align-items:center;flex-wrap:wrap">'+ex.name+'<span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">'+(ex.sets||exOrig.sets)+'×'+(ex.reps||exOrig.reps)+' · '+(ex.rir||exOrig.rir)+' RIR</span>' + warmUpLink + '</div>'
-        +'<div class="exercise-cue">'+(ex.cue||exOrig.cue)+(best?' · best e1RM: '+best.toFixed(1)+'kg':'')+'</div></div>'
+        +'<div class="exercise-cue">'+(ex.cue||exOrig.cue)+(best?' · best e1RM: '+best.toFixed(1)+'kg':'') + prStr + '</div></div>'
         +'<button class="icon-btn swap-btn" data-swap-orig="'+exOrig.id+'" data-swap-curr="'+ex.id+'" data-muscle="'+exOrig.muscle+'" title="Swap exercise">'+ic('refresh')+'</button>'
       +'</div>'
       +'<div class="set-chips">'+chips+'</div>'
       +progressionPrompt
       +'<div class="set-add-row" style="margin-top:8px">'
-        +'<input type="number" step="0.25" min="0" placeholder="kg" class="set-weight" data-ex="'+ex.id+'" inputmode="decimal">'
-        +'<input type="number" min="1" max="50" placeholder="reps" class="set-reps" data-ex="'+ex.id+'" inputmode="numeric">'
+        +'<input type="number" step="0.25" min="0" placeholder="kg" class="set-weight" data-ex="'+ex.id+'" value="'+preW+'" inputmode="decimal">'
+        +'<input type="number" min="1" max="50" placeholder="reps" class="set-reps" data-ex="'+ex.id+'" value="'+preR+'" inputmode="numeric">'
         +'<button class="btn btn-sm" data-logset="'+ex.id+'" data-rest="'+(ex.rest||exOrig.rest)+'">Log</button>'
       +'</div>'
     +'</div>';
@@ -2197,6 +2391,7 @@ function exportData() {
     var a = document.createElement('a'); a.href=url; a.download='regain-backup-'+todayKey()+'.json'; a.click();
     URL.revokeObjectURL(url);
     showToast('Backup exported','ok');
+    sv('rg_last_backup', Date.now());
   });
 }
 
