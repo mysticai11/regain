@@ -48,7 +48,8 @@ body {
 .topbar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
 .topbar-right { display: flex; align-items: center; gap: 12px; }
 .stat-chip { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text-secondary); }
-.icon-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; line-height: 0; }
+.icon-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 10px; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; line-height: 0; border-radius: 10px; }
+.icon-btn:active, .icon-btn:focus-visible { background: var(--surface); color: var(--amber-light); }
 .icon { display: inline-flex; vertical-align: middle; flex-shrink: 0; }
 /* ── Gauge ── */
 .gauge-wrap { position: relative; margin: 0 auto; width: 100%; max-width: 320px; }
@@ -141,7 +142,8 @@ input::placeholder { color: var(--text-muted); }
 .set-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; min-height: 28px; }
 .set-chip { background: var(--surface-raised); border-radius: 8px; padding: 4px 10px; font-size: 12px; font-family: 'Space Mono', monospace; }
 .set-add-row { display: flex; gap: 8px; }
-.set-add-row input { flex: 1; }
+.set-add-row input { flex: 1; min-width: 0; }
+.set-add-row .btn { min-width: 64px; min-height: 44px; }
 .timer-bar { background: var(--surface); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; }
 .timer-bar .mono { font-size: 16px; flex: 1; }
 /* ── Volume summary ── */
@@ -157,7 +159,7 @@ input::placeholder { color: var(--text-muted); }
 /* ── Bottom nav ── */
 .bottomnav { display: flex; justify-content: space-around; padding: 8px 0 calc(8px + var(--safe-b));
   background: var(--bg); border-top: 1px solid var(--border); position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; max-width: 480px; margin: 0 auto; }
-.navitem { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--text-muted); font-size: 10px; cursor: pointer; padding: 6px 16px; font-family: inherit; }
+.navitem { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--text-muted); font-size: 10px; cursor: pointer; padding: 6px 16px; min-height: 44px; font-family: inherit; }
 .navitem.active { color: var(--amber); }
 /* ── Overlay / Modal ── */
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: flex-end; justify-content: center; z-index: 50; padding: 0; }
@@ -344,10 +346,88 @@ var PROGRAM_4DAY = [
   ]}
 ];
 
+var PROGRAM_5DAY = [
+  { label: 'Day 1 (Push)', exercises: [
+    {id:'machine_chest',    name:'Machine Chest Press',        muscle:'chest,triceps',   sets:4, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · smooth lockout', type:'machine'},
+    {id:'shoulder_press',   name:'Machine Shoulder Press',     muscle:'shoulders,triceps', sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · brace core', type:'machine'},
+    {id:'cable_fly',        name:'Cable Fly / Pec Deck',       muscle:'chest',          sets:3, reps:'10–12', rir:'0–1', rest:75,  cue:'75s rest · squeeze at peak', type:'machine'},
+    {id:'cable_lateral',    name:'Cable Lateral Raise',        muscle:'shoulders',      sets:3, reps:'12–15', rir:'0–1', rest:60,  cue:'60s rest · keep slight bend', type:'machine'}
+  ]},
+  { label: 'Day 2 (Pull)', exercises: [
+    {id:'lat_pulldown',     name:'Lat Pulldown',               muscle:'back,biceps',    sets:4, reps:'8–10', rir:'0–1', rest:90,  cue:'90s rest · strong elbow drive', type:'machine'},
+    {id:'cable_row',        name:'Cable Row',                  muscle:'back,biceps',    sets:4, reps:'8–12', rir:'1–2', rest:90,  cue:'90s rest · chest to pad', type:'machine'},
+    {id:'single_arm_cable', name:'Single-Arm Cable Row',       muscle:'back,biceps',    sets:3, reps:'10–12', rir:'0–1', rest:60,  cue:'60s rest · one side at a time', type:'machine'},
+    {id:'bicep_curl',       name:'EZ-Bar / Machine Curl',      muscle:'biceps',         sets:3, reps:'8–12', rir:'0–1', rest:75,  cue:'75s rest · full squeeze', type:'machine'}
+  ]},
+  { label: 'Day 3 (Legs)', exercises: [
+    {id:'hack_squat',       name:'Hack Squat',                 muscle:'quads,glutes',   sets:4, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest · full depth', type:'machine'},
+    {id:'leg_curl',         name:'Seated Leg Curl',            muscle:'hamstrings',     sets:3, reps:'8–10', rir:'1–2', rest:90,  cue:'90s rest · slow lowering', type:'machine'},
+    {id:'leg_extension',    name:'Leg Extension',              muscle:'quads',          sets:3, reps:'10–12', rir:'0–1', rest:75,  cue:'75s rest · strong peak contraction', type:'machine'},
+    {id:'calf_press',       name:'Calf Press',                 muscle:'calves',         sets:4, reps:'12–15', rir:'0–1', rest:60,  cue:'60s rest · pause at top', type:'machine'}
+  ]},
+  { label: 'Day 4 (Upper)', exercises: [
+    {id:'incline_bench',    name:'Incline DB Press',           muscle:'chest,triceps',  sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · 30–45° incline', type:'compound'},
+    {id:'ohp',              name:'Shoulder Press',             muscle:'shoulders,triceps', sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · strict overhead press', type:'compound'},
+    {id:'rear_delt_fly',    name:'Rear-Delt Fly',              muscle:'shoulders',      sets:3, reps:'12–15', rir:'0–1', rest:60,  cue:'60s rest · rear delt focus', type:'machine'},
+    {id:'tricep_push',      name:'Triceps Pressdown',          muscle:'triceps',        sets:3, reps:'10–12', rir:'0–1', rest:60,  cue:'60s rest · slow extension', type:'machine'}
+  ]},
+  { label: 'Day 5 (Lower)', exercises: [
+    {id:'rdl',              name:'Romanian Deadlift',          muscle:'hamstrings,glutes', sets:4, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · hinge and pause', type:'compound'},
+    {id:'hip_thrust',       name:'Hip Thrust / Glute Drive',   muscle:'hamstrings,glutes', sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · drive through heels', type:'machine'},
+    {id:'leg_press',        name:'Leg Press',                  muscle:'quads,glutes',   sets:3, reps:'10–12', rir:'1–2', rest:120, cue:'2 min rest · controlled tempo', type:'machine'},
+    {id:'calf_stand',       name:'Standing Calf Raise',        muscle:'calves',         sets:4, reps:'12–15', rir:'0–1', rest:60,  cue:'60s rest · stretch at bottom', type:'machine'}
+  ]}
+];
+
+var PROGRAM_6DAY = [
+  { label: 'Day 1 (Push A)', exercises: [
+    {id:'machine_chest',    name:'Machine Chest Press',        muscle:'chest,triceps',   sets:4, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · controlled press', type:'machine'},
+    {id:'shoulder_press',   name:'Machine Shoulder Press',     muscle:'shoulders,triceps', sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · brace and lock out', type:'machine'},
+    {id:'cable_fly',        name:'Cable Fly / Pec Deck',       muscle:'chest',          sets:3, reps:'10–12', rir:'0–1', rest:75,  cue:'75s rest · slow squeeze', type:'machine'},
+    {id:'cable_lateral',    name:'Cable Lateral Raise',        muscle:'shoulders',      sets:3, reps:'12–15', rir:'0–1', rest:60,  cue:'60s rest · slight bend', type:'machine'}
+  ]},
+  { label: 'Day 2 (Pull A)', exercises: [
+    {id:'lat_pulldown',     name:'Lat Pulldown',               muscle:'back,biceps',    sets:4, reps:'8–10', rir:'0–1', rest:90,  cue:'90s rest · full stretch', type:'machine'},
+    {id:'cable_row',        name:'Cable Row',                  muscle:'back,biceps',    sets:4, reps:'8–12', rir:'1–2', rest:90,  cue:'90s rest · chest to pad', type:'machine'},
+    {id:'rear_delt_fly',    name:'Rear-Delt Fly',              muscle:'shoulders',      sets:3, reps:'12–15', rir:'0–1', rest:60,  cue:'60s rest · rear-delt focus', type:'machine'},
+    {id:'bicep_curl',       name:'EZ-Bar / Machine Curl',      muscle:'biceps',         sets:3, reps:'8–12', rir:'0–1', rest:75,  cue:'75s rest · squeeze hard', type:'machine'}
+  ]},
+  { label: 'Day 3 (Legs A)', exercises: [
+    {id:'hack_squat',       name:'Hack Squat',                 muscle:'quads,glutes',   sets:4, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest · full depth', type:'machine'},
+    {id:'leg_extension',    name:'Leg Extension',              muscle:'quads',          sets:3, reps:'10–12', rir:'0–1', rest:75,  cue:'75s rest · quad isolation', type:'machine'},
+    {id:'leg_curl',         name:'Seated Leg Curl',            muscle:'hamstrings',     sets:3, reps:'8–10', rir:'1–2', rest:90,  cue:'90s rest · slow lowering', type:'machine'},
+    {id:'calf_press',       name:'Calf Press',                 muscle:'calves',         sets:4, reps:'12–15', rir:'0–1', rest:60,  cue:'60s rest · pause at top', type:'machine'}
+  ]},
+  { label: 'Day 4 (Push B)', exercises: [
+    {id:'incline_bench',    name:'Incline DB Press',           muscle:'chest,triceps',  sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · angle focus', type:'compound'},
+    {id:'ohp',              name:'Shoulder Press',             muscle:'shoulders,triceps', sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · strict', type:'compound'},
+    {id:'tricep_push',      name:'Triceps Pressdown',          muscle:'triceps',        sets:3, reps:'10–12', rir:'0–1', rest:60,  cue:'60s rest · slow extension', type:'machine'},
+    {id:'cable_lateral',    name:'Cable Lateral Raise',        muscle:'shoulders',      sets:3, reps:'12–15', rir:'0–1', rest:60,  cue:'60s rest · slight bend', type:'machine'}
+  ]},
+  { label: 'Day 5 (Pull B)', exercises: [
+    {id:'single_arm_cable', name:'Single-Arm Cable Row',       muscle:'back,biceps',    sets:3, reps:'10–12', rir:'0–1', rest:60,  cue:'60s rest · alternate sides', type:'machine'},
+    {id:'lat_pulldown',     name:'Assisted Pull-Up / Pulldown', muscle:'back,biceps',   sets:3, reps:'8–12', rir:'0–1', rest:90,  cue:'90s rest · slow tempo', type:'machine'},
+    {id:'barbell_row',      name:'Barbell / T-Bar Row',        muscle:'back,biceps',    sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · full row', type:'compound'},
+    {id:'cable_curl',       name:'Cable Curl',                 muscle:'biceps',         sets:3, reps:'10–12', rir:'0–1', rest:75,  cue:'75s rest · elbow stable', type:'machine'}
+  ]},
+  { label: 'Day 6 (Legs B)', exercises: [
+    {id:'rdl',              name:'Romanian Deadlift',          muscle:'hamstrings,glutes', sets:4, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · hinge and pause', type:'compound'},
+    {id:'hip_thrust',       name:'Hip Thrust / Glute Drive',   muscle:'hamstrings,glutes', sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · drive through heels', type:'machine'},
+    {id:'leg_press',        name:'Leg Press',                  muscle:'quads,glutes',   sets:3, reps:'10–12', rir:'1–2', rest:120, cue:'2 min rest · controlled tempo', type:'machine'},
+    {id:'calf_stand',       name:'Standing Calf Raise',        muscle:'calves',         sets:4, reps:'12–15', rir:'0–1', rest:60,  cue:'60s rest · stretch at bottom', type:'machine'}
+  ]}
+];
+
 function getActiveProgram() {
   if(!profile) return PROGRAM_3DAY;
   if(profile.programSplit === '2day') return PROGRAM_2DAY;
   if(profile.programSplit === '4day') return PROGRAM_4DAY;
+  if(profile.programSplit === '5day' || profile.programSplit === '6day') {
+    var customRoutines = profile.customRoutines || {};
+    return (profile.trainingDays || []).map(function(day){
+      return {label:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][day]+' custom routine', exercises:customRoutines[day]||[]};
+    });
+  }
   return PROGRAM_3DAY;
 }
 
@@ -364,14 +444,14 @@ var ALTERNATES = [
 ];
 
 function getExerciseData(id) {
-  var allProg = PROGRAM_2DAY.concat(PROGRAM_3DAY, PROGRAM_4DAY);
+  var allProg = PROGRAM_2DAY.concat(PROGRAM_3DAY, PROGRAM_4DAY, PROGRAM_5DAY, PROGRAM_6DAY);
   var allEx = ALTERNATES.slice();
   allProg.forEach(function(s){ allEx = allEx.concat(s.exercises); });
   return allEx.find(function(e){ return e.id === id; });
 }
 
 function getAllExercisesForMuscle(muscleStr) {
-  var allProg = PROGRAM_2DAY.concat(PROGRAM_3DAY, PROGRAM_4DAY);
+  var allProg = PROGRAM_2DAY.concat(PROGRAM_3DAY, PROGRAM_4DAY, PROGRAM_5DAY, PROGRAM_6DAY);
   var allEx = ALTERNATES.slice();
   allProg.forEach(function(s){ allEx = allEx.concat(s.exercises); });
   var seen = {}; var out = [];
@@ -389,7 +469,7 @@ function getWeeklyVolume() {
   var v = { 'Quads / Glutes': 0, 'Hamstrings': 0, 'Chest': 0, 'Back': 0, 'Shoulders': 0, 'Biceps': 0, 'Triceps': 0, 'Calves': 0 };
   prog.forEach(function(sess){
     sess.exercises.forEach(function(ex){
-      var m = ex.muscle.split(',');
+      var m = String(ex.muscle || '').toLowerCase().split(',').map(function(mu){ return mu.trim(); });
       m.forEach(function(mu){
         var mapped = mu==='quads'?'Quads / Glutes':mu==='glutes'?'Quads / Glutes':mu==='hamstrings'?'Hamstrings':mu==='chest'?'Chest':mu==='back'?'Back':mu==='shoulders'?'Shoulders':mu==='biceps'?'Biceps':mu==='triceps'?'Triceps':mu==='calves'?'Calves':'';
         if(mapped) v[mapped] += ex.sets;
@@ -664,6 +744,11 @@ function yesterdayMissed() {
 // ── Workout session type (A/B alternation) ────────────────────────────────────
 function getSessionType() {
   var tdays = profile ? (profile.trainingDays||[1,3,5]) : [1,3,5];
+  var todayDay = new Date().getDay();
+  if(profile && (profile.programSplit === '5day' || profile.programSplit === '6day')) {
+    var custom = (profile.customRoutines && profile.customRoutines[todayDay]) || [];
+    return { label: 'Custom routine', exercises: custom };
+  }
   var start = new Date(profile.startDate); start.setHours(0,0,0,0);
   var today = new Date(); today.setHours(0,0,0,0);
   var count = 0;
@@ -1993,16 +2078,26 @@ function renderGym() {
       var nd = addDays(today,i);
       if(tdays.includes(nd.getDay())){ nextDay = nextNames[nd.getDay()]; break; }
     }
+    var routineManagerHTML = (profile.programSplit === '5day' || profile.programSplit === '6day')
+      ? '<button class="btn btn-primary" id="manageRoutineRestBtn" style="width:100%;margin-top:8px">Manage custom routines</button>' : '';
     document.getElementById('content').innerHTML =
       '<div class="topbar"><div><span class="eyebrow">'+dayName+'</span><div class="title">Gym</div></div></div>'
       +'<div class="rest-day">'+ic('moon','32')+'<div class="rest-label">Rest day</div><div class="small dim">next session: '+nextDay+'</div></div>'
+      +routineManagerHTML
       +'<div class="section"><span class="eyebrow">weekly volume targets</span>'+buildVolumeTable()+'</div>';
+    var manageRoutineRestBtn = document.getElementById('manageRoutineRestBtn');
+    if(manageRoutineRestBtn) manageRoutineRestBtn.addEventListener('click', openCustomRoutineManager);
     return;
   }
 
   var session = getSessionType();
   var key = todayKey();
   var rec = dayRecord(key);
+  var customMode = profile.programSplit === '5day' || profile.programSplit === '6day';
+  var addExerciseHTML = customMode ? '<button class="btn btn-primary" id="addRoutineExerciseBtn" style="width:100%;margin-bottom:12px">'+ic('plus')+' Add exercise to today</button>' : '';
+  var emptyRoutineHTML = customMode && !session.exercises.length
+    ? '<div class="rest-day"><div class="rest-label">No exercises yet</div><div class="small dim">Add your trainer’s routine for today, then log each set manually.</div></div>'
+    : '';
   var exHTML = session.exercises.map(function(exOrig){
     var exId = (rec.swaps && rec.swaps[exOrig.id]) ? rec.swaps[exOrig.id] : exOrig.id;
     var ex = getExerciseData(exId) || exOrig;
@@ -2034,11 +2129,13 @@ function renderGym() {
       + '<input type="text" class="ex-note-input" data-ex="'+ex.id+'" value="'+noteVal+'" placeholder="Add technique cues (e.g. elbows in, keep chest up...)" style="font-size:11px; color:var(--text-secondary); background:transparent; border:none; padding:2px 0; width:100%">'
       + '</div>';
 
+    var routineRemoveLink = customMode ? '<button class="btn-ghost remove-routine-btn" data-exid="'+ex.id+'" style="font-size:10px;padding:2px 6px;color:var(--rust-light);margin-left:6px">Remove</button>' : '';
+    var swapLink = customMode ? '' : '<button class="icon-btn swap-btn" data-swap-orig="'+exOrig.id+'" data-swap-curr="'+ex.id+'" data-muscle="'+exOrig.muscle+'" title="Swap exercise">'+ic('refresh')+'</button>';
     return '<div class="exercise-card" id="excard-'+ex.id+'">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start">'
-        +'<div><div class="exercise-name" style="display:flex;align-items:center;flex-wrap:wrap">'+ex.name+'<span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">'+(ex.sets||exOrig.sets)+'×'+(ex.reps||exOrig.reps)+' · '+(ex.rir||exOrig.rir)+' RIR</span>' + warmUpLink + '</div>'
+        +'<div><div class="exercise-name" style="display:flex;align-items:center;flex-wrap:wrap">'+ex.name+'<span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">'+(ex.sets||exOrig.sets)+'×'+(ex.reps||exOrig.reps)+(customMode?'':' · '+(ex.rir||exOrig.rir)+' RIR')+'</span>' + warmUpLink + routineRemoveLink + '</div>'
         +'<div class="exercise-cue">'+(ex.cue||exOrig.cue)+(best?' · best e1RM: '+best.toFixed(1)+'kg':'') + prStr + '</div></div>'
-        +'<button class="icon-btn swap-btn" data-swap-orig="'+exOrig.id+'" data-swap-curr="'+ex.id+'" data-muscle="'+exOrig.muscle+'" title="Swap exercise">'+ic('refresh')+'</button>'
+        +swapLink
       +'</div>'
       +'<div class="set-chips">'+chips+'</div>'
       +progressionPrompt
@@ -2054,9 +2151,11 @@ function renderGym() {
   document.getElementById('content').innerHTML =
     '<div class="topbar">'
       +'<div><span class="eyebrow">'+dayName+' · '+session.label+'</span><div class="title">Gym</div></div>'
-      +'<button class="icon-btn" id="volBtn" title="Weekly volume">'+ic('chart')+'</button>'
+      +'<div style="display:flex;gap:8px"><button class="icon-btn" id="volBtn" title="Weekly volume">'+ic('chart')+'</button>'+(customMode?'<button class="icon-btn" id="editRoutineBtn" title="Manage custom routines">'+ic('settings')+'</button>':'')+'</div>'
     +'</div>'
     +'<div id="restTimerWrap"></div>'
+    +addExerciseHTML
+    +emptyRoutineHTML
     +exHTML;
 
   attachGymEvents(key, rec, session);
@@ -2077,6 +2176,22 @@ function attachGymEvents(key, rec, session) {
   var volBtn = document.getElementById('volBtn');
   if(volBtn) volBtn.addEventListener('click', function(){
     openSheet('<div class="sheet-title">Weekly Volume Summary</div>'+buildVolumeTable()+'<div style="font-size:11px;color:var(--text-muted);margin-top:12px">Target range: 10–18 sets/muscle/week (Pelland et al. 2024 meta-regression)</div>');
+  });
+
+  var addRoutineBtn = document.getElementById('addRoutineExerciseBtn');
+  if(addRoutineBtn) addRoutineBtn.addEventListener('click', function(){ openCustomRoutineSheet(key); });
+  var editRoutineBtn = document.getElementById('editRoutineBtn');
+  if(editRoutineBtn) editRoutineBtn.addEventListener('click', openCustomRoutineManager);
+
+  document.querySelectorAll('.remove-routine-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if(!confirm('Remove this exercise from today’s routine?')) return;
+      var day = new Date(key+'T00:00:00').getDay();
+      profile.customRoutines = profile.customRoutines || {};
+      profile.customRoutines[day] = (profile.customRoutines[day]||[]).filter(function(ex){ return ex.id !== btn.dataset.exid; });
+      sv('rg_profile', profile);
+      renderGym();
+    });
   });
 
   document.querySelectorAll('.warm-up-btn').forEach(function(btn){
@@ -2125,6 +2240,86 @@ function attachGymEvents(key, rec, session) {
   document.querySelectorAll('.swap-btn').forEach(function(btn){
     btn.addEventListener('click', function(){
       openSwapSheet(btn.dataset.swapOrig, btn.dataset.swapCurr, btn.dataset.muscle, key);
+    });
+  });
+}
+
+function openCustomRoutineSheet(dayKey) {
+  var day = new Date(dayKey+'T00:00:00').getDay();
+  var dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var overlay = document.createElement('div'); overlay.className='overlay';
+  overlay.innerHTML = '<div class="sheet"><div class="sheet-handle"></div>'
+    +'<div class="sheet-title">Add exercise · '+dayNames[day]+'</div>'
+    +'<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Enter your trainer’s exercise. Sets, reps, and weight are logged manually on the Gym screen.</div>'
+    +'<label class="eyebrow">Exercise name</label><input id="customExName" type="text" placeholder="e.g. Chest press machine">'
+    +'<label class="eyebrow">Muscle group</label><input id="customExMuscle" type="text" placeholder="e.g. chest, triceps">'
+    +'<div style="display:flex;gap:8px"><div style="flex:1"><label class="eyebrow">Planned sets</label><input id="customExSets" type="number" min="1" value="3" inputmode="numeric"></div><div style="flex:1"><label class="eyebrow">Rep range</label><input id="customExReps" type="text" value="8–12" placeholder="optional"></div></div>'
+    +'<div style="display:flex;gap:8px"><div style="flex:1"><label class="eyebrow">Rest seconds</label><input id="customExRest" type="number" min="0" value="90" inputmode="numeric"></div><div style="flex:1"><label class="eyebrow">Type</label><select id="customExType"><option value="machine">Machine</option><option value="compound">Compound</option><option value="isolation">Isolation</option></select></div></div>'
+    +'<label class="eyebrow">Notes / cue</label><input id="customExCue" type="text" placeholder="optional technique cue">'
+    +'<div class="modal-actions" style="margin-top:10px"><button class="btn" id="cancelRoutineBtn">Cancel</button><button class="btn btn-primary" id="saveRoutineBtn">Add exercise</button></div></div>';
+  document.body.appendChild(overlay);
+  overlay.querySelector('#cancelRoutineBtn').addEventListener('click', function(){ overlay.remove(); });
+  overlay.querySelector('#saveRoutineBtn').addEventListener('click', function(){
+    var name = overlay.querySelector('#customExName').value.trim();
+    if(!name){ showToast('Enter an exercise name','warn'); return; }
+    var exercise = {
+      id:'custom_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+      name:name,
+      muscle:overlay.querySelector('#customExMuscle').value.trim() || 'other',
+      sets:parseInt(overlay.querySelector('#customExSets').value,10)||3,
+      reps:overlay.querySelector('#customExReps').value.trim() || 'manual',
+      rir:'',
+      rest:parseInt(overlay.querySelector('#customExRest').value,10)||90,
+      cue:overlay.querySelector('#customExCue').value.trim(),
+      type:overlay.querySelector('#customExType').value
+    };
+    profile.customRoutines = profile.customRoutines || {};
+    profile.customRoutines[day] = profile.customRoutines[day] || [];
+    profile.customRoutines[day].push(exercise);
+    sv('rg_profile', profile);
+    overlay.remove();
+    renderGym();
+  });
+}
+
+function openCustomRoutineManager() {
+  var days = profile.trainingDays || [];
+  var names = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var routines = profile.customRoutines || {};
+  var overlay = document.createElement('div'); overlay.className='overlay';
+  var rows = days.map(function(day){
+    var routine = routines[day] || [];
+    var count = routine.length;
+    var exerciseList = routine.map(function(ex){
+      return '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px;color:var(--text-secondary)"><span style="flex:1">'+ex.name+'</span><button class="btn-ghost" data-routine-remove="'+day+'" data-exid="'+ex.id+'" style="color:var(--rust-light);font-size:11px">Remove</button></div>';
+    }).join('');
+    return '<div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border)">' 
+      +'<div style="flex:1"><div style="font-size:14px;font-weight:600">'+names[day]+'</div><div style="font-size:11px;color:var(--text-muted)">'+count+' exercise'+(count===1?'':'s')+' saved</div>'+exerciseList+'</div>'
+      +'<button class="btn btn-sm" data-routine-day="'+day+'">Add</button></div>';
+  }).join('');
+  overlay.innerHTML = '<div class="sheet"><div class="sheet-handle"></div><div class="sheet-title">Custom routines</div>'
+    +'<div style="font-size:12px;color:var(--text-muted);line-height:1.45">Build each training day separately. Your sets, reps, and weight stay in the daily log.</div>'
+    +rows
+    +'<button class="btn" id="closeRoutineManagerBtn" style="margin-top:10px">Close</button></div>';
+  document.body.appendChild(overlay);
+  overlay.querySelector('#closeRoutineManagerBtn').addEventListener('click', function(){ overlay.remove(); });
+  overlay.querySelectorAll('[data-routine-remove]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var day = btn.dataset.routineRemove;
+      profile.customRoutines[day] = (profile.customRoutines[day] || []).filter(function(ex){ return ex.id !== btn.dataset.exid; });
+      sv('rg_profile', profile);
+      overlay.remove();
+      openCustomRoutineManager();
+    });
+  });
+  overlay.querySelectorAll('[data-routine-day]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var day = parseInt(btn.dataset.routineDay,10);
+      var now = new Date();
+      var offset = (day - now.getDay() + 7) % 7;
+      var target = addDays(now, offset);
+      overlay.remove();
+      openCustomRoutineSheet(dateKey(target));
     });
   });
 }
@@ -2515,6 +2710,8 @@ function openSettings() {
         +'<option value="2day"'+(splitVal==='2day'?' selected':'')+'>2 Days/Wk (Full Body)</option>'
         +'<option value="3day"'+(splitVal==='3day'?' selected':'')+'>3 Days/Wk (Full Body)</option>'
         +'<option value="4day"'+(splitVal==='4day'?' selected':'')+'>4 Days/Wk (Upper/Lower)</option>'
+        +'<option value="5day"'+(splitVal==='5day'?' selected':'')+'>5 Days/Wk (Wednesday Rest)</option>'
+        +'<option value="6day"'+(splitVal==='6day'?' selected':'')+'>6 Days/Wk (Sunday Rest)</option>'
       +'</select>'
       +'<button class="btn" id="previewSplitBtn">Preview</button>'
     +'</div>'
@@ -2567,8 +2764,10 @@ function openSettings() {
     profile.calTargetGym=parseInt(document.getElementById('setTargetGym').value,10)||CAL_TARGET_GYM;
     profile.protTargetRest=parseInt(document.getElementById('setProtRest').value,10)||PROT_TARGET_REST;
     profile.protTargetGym=parseInt(document.getElementById('setProtGym').value,10)||PROT_TARGET_GYM;
-    profile.trainingDays=tdays;
     profile.programSplit=document.getElementById('setSplit').value;
+    if(profile.programSplit === '6day') profile.trainingDays=[1,2,3,4,5,6];
+    else if(profile.programSplit === '5day') profile.trainingDays=[0,1,2,4,5,6];
+    else profile.trainingDays=tdays;
     profile.equipment=document.getElementById('setEquip').value;
     profile.dietaryPattern=document.getElementById('setDiet').value;
     profile.experience=document.getElementById('setExp').value;
@@ -2609,6 +2808,10 @@ function openSettings() {
 
 function openSplitPreview() {
   var val = document.getElementById('setSplit').value;
+  if(val === '5day' || val === '6day') {
+    openSheet('<div class="sheet-title">Custom routine</div><div style="font-size:13px;color:var(--text-secondary);line-height:1.5">This split starts empty. Choose your training days in Settings, then add each exercise, planned set count, rep range, and rest time from the Gym tab. Every set’s weight and reps are entered manually when you train.</div>');
+    return;
+  }
   var prog = val==='2day'?PROGRAM_2DAY:val==='4day'?PROGRAM_4DAY:PROGRAM_3DAY;
   var overlay=document.createElement('div'); overlay.className='overlay';
   var html = prog.map(function(s){
@@ -2830,6 +3033,8 @@ function renderOnboarding() {
       +'<option value="3day" selected>3 Days/Week (Full Body)</option>'
       +'<option value="2day">2 Days/Week (Full Body)</option>'
       +'<option value="4day">4 Days/Week (Upper/Lower Split)</option>'
+      +'<option value="5day">5 Days/Week (Wednesday Rest)</option>'
+      +'<option value="6day">6 Days/Week (Sunday Rest)</option>'
     +'</select>'
     
     +'<button class="btn btn-primary" style="margin-top:28px" id="obStartBtn">Start tracking</button>'
@@ -2855,7 +3060,7 @@ function renderOnboarding() {
       calTargetGym: CAL_TARGET_GYM,
       protTargetRest: PROT_TARGET_REST,
       protTargetGym: PROT_TARGET_GYM,
-      trainingDays: split === '4day' ? [1,2,4,5] : split === '2day' ? [1,4] : [1,3,5],
+      trainingDays: split === '6day' ? [1,2,3,4,5,6] : split === '5day' ? [0,1,2,4,5] : split === '4day' ? [1,2,4,5] : split === '2day' ? [1,4] : [1,3,5],
       programSplit: split,
       equipment: equip,
       dietaryPattern: diet,
