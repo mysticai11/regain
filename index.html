@@ -136,11 +136,15 @@ input::placeholder { color: var(--text-muted); }
 /* ── Gym tab ── */
 .rest-day { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 50px 0 40px; color: var(--text-muted); text-align: center; }
 .rest-label { font-size: 18px; font-weight: 500; color: var(--text); }
-.exercise-card { background: var(--surface); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+.exercise-card { background: var(--surface); border-radius: 10px; padding: 11px 12px; margin-bottom: 8px; }
 .exercise-name { font-size: 15px; font-weight: 600; }
 .exercise-cue { font-size: 12px; color: var(--text-muted); margin-top: 2px; margin-bottom: 10px; }
 .set-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; min-height: 28px; }
 .set-chip { background: var(--surface-raised); border-radius: 8px; padding: 4px 10px; font-size: 12px; font-family: 'Space Mono', monospace; }
+.exercise-extra { display: none; }
+.exercise-card.expanded .exercise-extra { display: block; }
+.exercise-card .details-toggle { color: var(--text-muted); font-size: 11px; padding: 5px 7px; margin-left: 4px; }
+.logged-count { font-size: 10px; color: var(--text-muted); font-family: 'Space Mono', monospace; margin: 2px 0 0; }
 .set-add-row { display: flex; gap: 8px; }
 .set-add-row input { flex: 1; min-width: 0; }
 .set-add-row .btn { min-width: 64px; min-height: 44px; }
@@ -205,6 +209,24 @@ input::placeholder { color: var(--text-muted); }
 .e1rm-note { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 /* ── Progress exercise selector ── */
 .ex-select-wrap { margin-bottom: 10px; }
+/* ── Compact task-first layout ── */
+.content { padding: 16px 14px calc(var(--nav-h) + var(--safe-b) + 18px); }
+.topbar { margin-bottom: 12px; }
+.section { margin-bottom: 22px; }
+.section-head { margin-bottom: 7px; }
+.macro-grid { gap: 6px; margin-bottom: 14px; }
+.macro-card { border-radius: 8px; padding: 8px 9px 7px; }
+.mc-grid { gap: 8px; margin-bottom: 18px; }
+.mc-card { border-radius: 9px; padding: 10px; }
+.stat-grid { gap: 8px; margin-bottom: 16px; }
+.stat-card { border-radius: 9px; padding: 10px 11px; }
+.advisory { border-radius: 9px; padding: 10px 11px; margin-bottom: 8px; }
+.regression-card { border-radius: 9px; padding: 10px 11px; margin-bottom: 10px; }
+.chart-wrap { height: 136px; }
+.chart-empty { height: 136px; }
+.meal-row { padding: 9px 0; }
+.section > .eyebrow { margin-bottom: 7px; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--amber-light); outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -623,6 +645,7 @@ function pad(n)    { return String(n).padStart(2,'0'); }
 function dateKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
 function todayKey(){ return dateKey(new Date()); }
 function addDays(d, n){ var r = new Date(d); r.setDate(r.getDate()+n); return r; }
+function esc(value){ return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]; }); }
 function daysBetween(a,b){ return Math.round((b-a)/86400000); }
 
 // ── App state ──────────────────────────────────────────────────────────────────
@@ -2114,7 +2137,7 @@ function renderGym() {
     var progressionPrompt = hitTop ? '<div class="progression-tip" style="color:var(--sage-light);font-size:12px;margin-top:6px;font-family:\'Space Mono\',monospace">🎉 Top range hit! Add load & reset reps.</div>' : '';
     
     var isCompound = ex.type === 'compound' || exOrig.type === 'compound';
-    var warmUpLink = isCompound ? '<button class="btn-ghost warm-up-btn" data-exname="'+ex.name+'" data-exid="'+ex.id+'" style="font-size:10px;padding:1px 5px;margin-left:8px;border:1px solid var(--border);border-radius:4px;cursor:pointer">Warm Up</button>' : '';
+    var warmUpLink = isCompound ? '<button class="btn-ghost warm-up-btn" data-exname="'+esc(ex.name)+'" data-exid="'+esc(ex.id)+'" style="font-size:10px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;cursor:pointer">Warm Up</button>' : '';
 
     var pr = getExercisePR(ex.id);
     var prStr = pr ? ' · ' + ic('trophy', 11) + ' PR: ' + pr.weight + 'kg × ' + pr.reps : '';
@@ -2123,28 +2146,32 @@ function renderGym() {
     var preW = lastVal ? lastVal.weight : '';
     var preR = lastVal ? lastVal.reps : '';
 
-    var noteVal = (profile.exerciseNotes && profile.exerciseNotes[ex.id]) || '';
+    var noteVal = esc((profile.exerciseNotes && profile.exerciseNotes[ex.id]) || '');
     var noteInputHTML = '<div class="ex-note-row" style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.05); padding-top:8px; display:flex; align-items:center; gap:6px">'
       + ic('note', 12)
-      + '<input type="text" class="ex-note-input" data-ex="'+ex.id+'" value="'+noteVal+'" placeholder="Add technique cues (e.g. elbows in, keep chest up...)" style="font-size:11px; color:var(--text-secondary); background:transparent; border:none; padding:2px 0; width:100%">'
+      + '<input type="text" class="ex-note-input" data-ex="'+esc(ex.id)+'" value="'+noteVal+'" placeholder="Add technique cues (e.g. elbows in, keep chest up...)" style="font-size:11px; color:var(--text-secondary); background:transparent; border:none; padding:2px 0; width:100%">'
       + '</div>';
 
     var routineRemoveLink = customMode ? '<button class="btn-ghost remove-routine-btn" data-exid="'+ex.id+'" style="font-size:10px;padding:2px 6px;color:var(--rust-light);margin-left:6px">Remove</button>' : '';
     var swapLink = customMode ? '' : '<button class="icon-btn swap-btn" data-swap-orig="'+exOrig.id+'" data-swap-curr="'+ex.id+'" data-muscle="'+exOrig.muscle+'" title="Swap exercise">'+ic('refresh')+'</button>';
+    var detailsLink = '<button class="btn-ghost details-toggle" data-expand-ex="'+esc(ex.id)+'">Details</button>';
+    var exerciseExtra = '<div class="exercise-extra">'
+      +'<div class="exercise-cue">'+esc(ex.cue||exOrig.cue)+(best?' · best e1RM: '+best.toFixed(1)+'kg':'') + prStr + '</div>'
+      +(sets.length ? '<div class="set-chips">'+chips+'</div>' : '')
+      +progressionPrompt
+      +'<div style="display:flex;align-items:center;gap:8px;margin-top:10px">'+warmUpLink+routineRemoveLink+noteInputHTML+'</div>'
+      +'</div>';
     return '<div class="exercise-card" id="excard-'+ex.id+'">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start">'
-        +'<div><div class="exercise-name" style="display:flex;align-items:center;flex-wrap:wrap">'+ex.name+'<span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">'+(ex.sets||exOrig.sets)+'×'+(ex.reps||exOrig.reps)+(customMode?'':' · '+(ex.rir||exOrig.rir)+' RIR')+'</span>' + warmUpLink + routineRemoveLink + '</div>'
-        +'<div class="exercise-cue">'+(ex.cue||exOrig.cue)+(best?' · best e1RM: '+best.toFixed(1)+'kg':'') + prStr + '</div></div>'
+        +'<div style="min-width:0"><div class="exercise-name" style="display:flex;align-items:center;flex-wrap:wrap">'+esc(ex.name)+'<span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">'+(ex.sets||exOrig.sets)+'×'+esc(ex.reps||exOrig.reps)+(customMode?'':' · '+esc(ex.rir||exOrig.rir)+' RIR')+'</span></div><div class="logged-count">'+sets.length+' set'+(sets.length===1?'':'s')+' logged '+detailsLink+'</div></div>'
         +swapLink
       +'</div>'
-      +'<div class="set-chips">'+chips+'</div>'
-      +progressionPrompt
       +'<div class="set-add-row" style="margin-top:8px">'
         +'<input type="number" step="0.25" min="0" placeholder="kg" class="set-weight" data-ex="'+ex.id+'" value="'+preW+'" inputmode="decimal">'
         +'<input type="number" min="1" max="50" placeholder="reps" class="set-reps" data-ex="'+ex.id+'" value="'+preR+'" inputmode="numeric">'
         +'<button class="btn btn-sm" data-logset="'+ex.id+'" data-rest="'+(ex.rest||exOrig.rest)+'">Log</button>'
       +'</div>'
-      +noteInputHTML
+      +exerciseExtra
     +'</div>';
   }).join('');
 
@@ -2176,6 +2203,15 @@ function attachGymEvents(key, rec, session) {
   var volBtn = document.getElementById('volBtn');
   if(volBtn) volBtn.addEventListener('click', function(){
     openSheet('<div class="sheet-title">Weekly Volume Summary</div>'+buildVolumeTable()+'<div style="font-size:11px;color:var(--text-muted);margin-top:12px">Target range: 10–18 sets/muscle/week (Pelland et al. 2024 meta-regression)</div>');
+  });
+
+  document.querySelectorAll('[data-expand-ex]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var card = document.getElementById('excard-'+btn.dataset.expandEx);
+      if(!card) return;
+      var expanded = card.classList.toggle('expanded');
+      btn.textContent = expanded ? 'Hide details' : 'Details';
+    });
   });
 
   var addRoutineBtn = document.getElementById('addRoutineExerciseBtn');
