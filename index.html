@@ -376,6 +376,12 @@ input::placeholder { color: #7f95ad; }
 .progress-entry { display:flex; gap:8px; align-items:center; margin-top:10px; }
 .progress-entry input { flex:1; min-width:0; }
 .progress-entry .btn { flex:0 0 auto; }
+.weight-entry-list { margin-top:12px; }
+.weight-entry-row { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 0; border-top:1px solid rgba(58,85,115,.35); font-size:12px; }
+.weight-entry-row .btn-ghost { min-height:28px; padding:3px 6px; }
+.session-timer { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; margin:8px 0 12px; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
+.session-timer strong { font-family:'Space Mono',monospace; color:var(--amber); }
+.partial-badge { color:var(--amber); font-size:11px; font-weight:700; }
 .history-workout { padding:14px 0; border-bottom:1px solid rgba(58,85,115,.35); }
 .history-workout summary { cursor:pointer; list-style:none; }
 .history-workout summary::-webkit-details-marker { display:none; }
@@ -865,6 +871,7 @@ var profile = ls('rg_profile', null);
 var tab = 'today';
 var charts = {};
 var timer = {active:false, remaining:0, total:0, interval:null};
+var workoutTimer = {interval:null};
 var foodPanel = null; // {mode:'add'|'search', cb}
 var confirmLoggingAccurate = false; // tracks if user confirmed logging in discovery
 
@@ -2424,6 +2431,7 @@ function renderGym() {
       +'<div style="display:flex;gap:8px"><button class="btn btn-sm" id="chooseWorkoutBtn">Change workout</button><button class="icon-btn" id="volBtn" title="Weekly volume">'+ic('chart')+'</button></div>'
     +'</div>'
     +'<div class="workout-picker">'+IRON_LOG_PROGRAM.map(function(s,i){return '<button class="chip '+(i===selected.index?'active':'')+'" data-pick-workout="'+i+'">'+esc(s.label.split('·')[0].trim())+'</button>';}).join('')+'</div>'
+    +'<div class="session-timer" id="sessionTimer"></div>'
     +'<div class="progress-entry"><label class="small dim" for="workoutDuration">Duration</label><input id="workoutDuration" type="number" min="1" max="360" placeholder="minutes" value="'+(rec.workoutMeta&&rec.workoutMeta.durationMinutes||'')+'" inputmode="numeric"><span class="small dim">min</span></div>'
     +'<div id="restTimerWrap"></div>'
     +addExerciseHTML
@@ -2431,6 +2439,24 @@ function renderGym() {
     +exHTML;
 
   attachGymEvents(key, rec, session);
+  renderWorkoutTimer(key, rec, session);
+}
+
+function renderWorkoutTimer(dayKey, rec, session) {
+  var wrap=document.getElementById('sessionTimer'); if(!wrap) return;
+  var meta=rec.workoutMeta||{}, hasSets=Object.keys(rec.workout||{}).some(function(id){return (rec.workout[id]||[]).some(Boolean);});
+  if(!meta.startedAt) {
+    wrap.innerHTML='<span class="small dim">Session timer not started</span><button class="btn btn-primary btn-sm" id="startWorkoutBtn">Start workout</button>';
+    document.getElementById('startWorkoutBtn').onclick=function(){startWorkoutSession(dayKey,session);};
+    return;
+  }
+  var status=meta.status==='partial'?'<span class="partial-badge">Partial workout</span>':(rec.workoutDone?'<span class="small dim">Completed</span>':'<button class="btn btn-sm" id="finishPartialBtn">Finish partial</button>');
+  wrap.innerHTML='<span><strong id="workoutElapsed">'+Math.floor(workoutElapsed(meta)/60)+':'+pad(workoutElapsed(meta)%60)+'</strong><span class="small dim"> session</span></span>'+status;
+  if(meta.status!=='partial'&&!rec.workoutDone) document.getElementById('finishPartialBtn').onclick=function(){finishPartialWorkout(dayKey);};
+  if(meta.status!=='partial'&&!rec.workoutDone) {
+    if(workoutTimer.interval) clearInterval(workoutTimer.interval);
+    workoutTimer.interval=setInterval(function(){var el=document.getElementById('workoutElapsed');if(el){var seconds=workoutElapsed(rec.workoutMeta);el.textContent=Math.floor(seconds/60)+':'+pad(seconds%60);}},1000);
+  }
 }
 
 function buildVolumeTable() {
@@ -2510,6 +2536,9 @@ function attachGymEvents(key, rec, session) {
       rec = dayRecord(key);
       rec.workout = rec.workout||{};
       rec.workout[id] = rec.workout[id]||[];
+      rec.workoutMeta=rec.workoutMeta||{};
+      if(!rec.workoutMeta.startedAt) rec.workoutMeta.startedAt=new Date().toISOString();
+      rec.workoutMeta.sessionLabel=session.label;
       rec.workout[id][setIndex] = {weight:w,reps:r,rir:rirValue};
       var durationEl=document.getElementById('workoutDuration'), duration=parseInt(durationEl&&durationEl.value,10);
       rec.workoutMeta=rec.workoutMeta||{sessionLabel:session.label};
@@ -2520,6 +2549,9 @@ function attachGymEvents(key, rec, session) {
       var allDone = session.exercises.every(function(ex){return (rec.workout[ex.id]||[]).filter(Boolean).length>=(ex.sets||2);});
       if(allDone && !rec.workoutDone){
         rec.workoutDone=true; rec.workoutMeta.completedAt=new Date().toISOString(); profile.xp=(profile.xp||0)+30; sv('rg_profile',profile);
+        rec.workoutMeta.status='complete';
+        rec.workoutMeta.durationMinutes=Math.max(1,Math.round(workoutElapsed(rec.workoutMeta)/60));
+        if(workoutTimer.interval) clearInterval(workoutTimer.interval);
         showToast('Session complete! +30 XP 🎉','ok');
       } else {
         profile.xp=(profile.xp||0)+3; sv('rg_profile',profile);
@@ -2677,6 +2709,36 @@ function renderTimer() {
     +'</div>';
   var skip=document.getElementById('skipTimerBtn');
   if(skip) skip.addEventListener('click',function(){clearInterval(timer.interval);timer.active=false;renderTimer();});
+}
+
+function workoutElapsed(meta) {
+  if(!meta || !meta.startedAt) return 0;
+  var end = meta.completedAt || meta.partialAt || new Date().toISOString();
+  return Math.max(0, Math.floor((new Date(end).getTime()-new Date(meta.startedAt).getTime())/1000));
+}
+
+function startWorkoutSession(dayKey, session) {
+  var rec=dayRecord(dayKey);
+  rec.workoutMeta=rec.workoutMeta||{};
+  if(!rec.workoutMeta.startedAt) {
+    rec.workoutMeta.startedAt=new Date().toISOString();
+    rec.workoutMeta.sessionLabel=session.label;
+    saveDayRecord(dayKey,rec);
+  }
+  renderGym();
+}
+
+function finishPartialWorkout(dayKey) {
+  var rec=dayRecord(dayKey);
+  if(!rec.workoutMeta || !rec.workoutMeta.startedAt) return;
+  rec.workoutDone=false;
+  rec.workoutMeta.status='partial';
+  rec.workoutMeta.partialAt=new Date().toISOString();
+  rec.workoutMeta.durationMinutes=Math.max(1,Math.round(workoutElapsed(rec.workoutMeta)/60));
+  saveDayRecord(dayKey,rec);
+  if(workoutTimer.interval) clearInterval(workoutTimer.interval);
+  showToast('Partial workout saved','ok');
+  renderGym();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -3455,11 +3517,47 @@ function workoutHistoryHTML(records) {
     var date=new Date(item.key+'T00:00:00').toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'});
     var details=ids.map(function(id){
       var ex=getExerciseData(id)||{name:id}, sets=(rec.workout[id]||[]).filter(Boolean);
-      return '<div><strong>'+esc(ex.name)+'</strong>'+sets.map(function(s,i){return '<div class="history-set-row"><span>Set '+(i+1)+'</span><span>'+s.weight+' kg × '+s.reps+(s.rir===0?' · failure':(s.rir!=null?' · '+s.rir+' RIR':''))+'</span></div>';}).join('')+'</div>';
+      var pr=getExercisePR(id);
+      return '<div><strong>'+esc(ex.name)+'</strong>'+sets.map(function(s,i){var isPR=pr&&s.weight===pr.weight&&s.reps===pr.reps;return '<div class="history-set-row"><span>Set '+(i+1)+'</span><span>'+s.weight+' kg × '+s.reps+(s.rir===0?' · failure':(s.rir!=null?' · '+s.rir+' RIR':''))+(isPR?' · <b style="color:var(--amber)">PR</b>':'')+'</span></div>';}).join('')+'</div>';
     }).join('');
-    rows.push('<details class="history-workout"><summary><strong>'+esc(meta.sessionLabel||'Workout')+'</strong><span>'+date+' · '+total+' sets'+(meta.durationMinutes?' · '+meta.durationMinutes+' min':'')+'</span></summary><div style="padding-top:12px">'+details+'</div></details>');
+    var statusLabel=meta.status==='partial'?' · partial':(rec.workoutDone?' · complete':'');
+    rows.push('<details class="history-workout"><summary><strong>'+esc(meta.sessionLabel||'Workout')+'</strong><span>'+date+' · '+total+' sets'+(meta.durationMinutes?' · '+meta.durationMinutes+' min':'')+statusLabel+'</span></summary><div style="padding-top:12px">'+details+'</div></details>');
   });
   return rows.length?rows.join(''):'<div class="empty-note">Completed workouts will appear here.</div>';
+}
+
+function weightEntriesHTML(entries) {
+  return entries.slice().reverse().slice(0,8).map(function(e){
+    var label=new Date(e.createdAt||e.dayKey+'T12:00:00').toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+    return '<div class="weight-entry-row"><span>'+label+' · <b>'+e.weight+' kg</b></span><span><button class="btn-ghost" data-edit-weight="'+esc(e.id)+'">Edit</button><button class="btn-ghost" data-delete-weight="'+esc(e.id)+'">Delete</button></span></div>';
+  }).join('');
+}
+
+function editWeightEntry(id) {
+  var entries=Array.isArray(profile.weightEntries)?profile.weightEntries:[];
+  var entry=entries.find(function(e){return e.id===id;}); if(!entry) return;
+  var value=prompt('Bodyweight in kg',entry.weight);
+  if(value===null) return;
+  var weight=parseFloat(value);
+  if(!weight||weight<20||weight>300){showToast('Enter a valid weight','warn');return;}
+  entry.weight=weight;
+  sv('rg_profile',profile);
+  if(entry.dayKey){var rec=dayRecord(entry.dayKey);rec.weight=weight;saveDayRecord(entry.dayKey,rec);}
+  renderProgressSimple();
+}
+
+function deleteWeightEntry(id) {
+  if(!confirm('Delete this weight entry?')) return;
+  var entries=profile.weightEntries||[], target=entries.find(function(e){return e.id===id;});
+  profile.weightEntries=entries.filter(function(e){return e.id!==id;});
+  if(target&&target.dayKey) {
+    var sameDay=profile.weightEntries.filter(function(e){return e.dayKey===target.dayKey;}).sort(function(a,b){return String(a.createdAt).localeCompare(String(b.createdAt));});
+    var rec=dayRecord(target.dayKey);
+    rec.weight=sameDay.length?sameDay[sameDay.length-1].weight:null;
+    saveDayRecord(target.dayKey,rec);
+  }
+  sv('rg_profile',profile);
+  renderProgressSimple();
 }
 
 function renderProgressSimple() {
@@ -3481,13 +3579,15 @@ function renderProgressSimple() {
   document.getElementById('content').innerHTML=
     '<div class="topbar"><div><span class="eyebrow">your trends</span><div class="title">Progress</div></div><button class="icon-btn" id="settingsBtn" aria-label="Settings">'+ic('settings')+'</button></div>'
     +'<div class="stat-strip"><span><b>'+(current!=null?current.toFixed(1)+' kg':'—')+'</b><small>current weight</small></span><span><b>'+records.filter(function(r){return dayRecord(r.key).workoutDone;}).length+'</b><small>workouts logged</small></span><span><b>'+exOptions.length+'</b><small>lifts tracked</small></span></div>'
-    +'<section class="chart-section"><div class="section-head"><span class="eyebrow">bodyweight trajectory</span><span id="weightMeta" class="small dim"></span></div><div class="range-row"><button class="range active" data-range="1w">1 week</button><button class="range" data-range="1m">1 month</button><button class="range" data-range="3m">3 months</button></div><div id="weightPlot"></div><div class="chart-legend"><span><i></i>weight</span><span><i class="goal"></i>goal line</span></div><div class="progress-entry"><input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="Log bodyweight now" inputmode="decimal"><button class="btn btn-primary" id="saveProgressWeight">Save</button></div></section>'
+    +'<section class="chart-section"><div class="section-head"><span class="eyebrow">bodyweight trajectory</span><span id="weightMeta" class="small dim"></span></div><div class="range-row"><button class="range active" data-range="1w">1 week</button><button class="range" data-range="1m">1 month</button><button class="range" data-range="3m">3 months</button></div><div id="weightPlot"></div><div class="chart-legend"><span><i></i>weight</span><span><i class="goal"></i>goal line</span></div><div class="progress-entry"><input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="Log bodyweight now" inputmode="decimal"><button class="btn btn-primary" id="saveProgressWeight">Save</button></div><div class="weight-entry-list">'+weightEntriesHTML(entries)+'</div></section>'
     +'<section class="chart-section"><div class="section-head"><span class="eyebrow">lift strength</span><select id="liftSelect" class="compact-select">'+exOptions.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join('')+'</select></div><div id="liftPlot"></div><div class="small dim">Estimated 1RM from your best logged set each workout.</div></section>'
     +'<section class="chart-section"><div class="section-head"><span class="eyebrow">overall strength</span><span class="small dim">baseline = 100</span></div><div id="overallPlot"></div><div class="small dim">Average normalized estimated 1RM across lifts logged in each workout.</div></section>'
     +'<details class="history-details" open><summary>Workout history</summary>'+workoutHistoryHTML(records)+'</details>';
   document.getElementById('settingsBtn').onclick=openSettings;
   document.querySelectorAll('[data-range]').forEach(function(btn){btn.onclick=function(){range=btn.dataset.range;document.querySelectorAll('[data-range]').forEach(function(b){b.classList.toggle('active',b===btn);});render();};});
   document.getElementById('liftSelect').onchange=render;
+  document.querySelectorAll('[data-edit-weight]').forEach(function(btn){btn.onclick=function(){editWeightEntry(btn.dataset.editWeight);};});
+  document.querySelectorAll('[data-delete-weight]').forEach(function(btn){btn.onclick=function(){deleteWeightEntry(btn.dataset.deleteWeight);};});
   document.getElementById('saveProgressWeight').onclick=function(){var value=parseFloat(document.getElementById('progressWeight').value);if(!value||value<20||value>300){showToast('Enter a valid weight','warn');return;}profile.weightEntries=profile.weightEntries||[];profile.weightEntries.push({id:'weight_'+Date.now(),dayKey:todayKey(),weight:value,createdAt:new Date().toISOString()});sv('rg_profile',profile);var r=dayRecord(todayKey());r.weight=value;saveDayRecord(todayKey(),r);showToast('Weight saved','ok');renderProgressSimple();};
   render();
 }

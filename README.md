@@ -88,6 +88,8 @@ The onboarding goal supports muscle gain, fat loss, recomposition, or strength. 
 
 Workout logs preserve the planned session, every set's weight and reps, optional RIR/failure effort, and session duration. Progress supports bodyweight entries whenever needed, with 1-week, 1-month, and 3-month ranges. Strength charts use estimated 1RM from each lift and an overall index normalized to the first logged workout.
 
+Progress entries can be edited or deleted. Gym sessions include a persistent elapsed timer, personal-best markers in workout history, and an explicit partial-workout status when a session ends before all planned sets are complete.
+
 ## Data Backup
 
 All data lives on-device only. To back up:
