@@ -381,7 +381,6 @@ input::placeholder { color: #7f95ad; }
 .weight-entry-row .btn-ghost { min-height:28px; padding:3px 6px; }
 .session-timer { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; margin:8px 0 12px; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
 .session-timer strong { font-family:'Space Mono',monospace; color:var(--amber); }
-.partial-badge { color:var(--amber); font-size:11px; font-weight:700; }
 .history-workout { padding:14px 0; border-bottom:1px solid rgba(58,85,115,.35); }
 .history-workout summary { cursor:pointer; list-style:none; }
 .history-workout summary::-webkit-details-marker { display:none; }
@@ -2432,7 +2431,6 @@ function renderGym() {
     +'</div>'
     +'<div class="workout-picker">'+IRON_LOG_PROGRAM.map(function(s,i){return '<button class="chip '+(i===selected.index?'active':'')+'" data-pick-workout="'+i+'">'+esc(s.label.split('·')[0].trim())+'</button>';}).join('')+'</div>'
     +'<div class="session-timer" id="sessionTimer"></div>'
-    +'<div class="progress-entry"><label class="small dim" for="workoutDuration">Duration</label><input id="workoutDuration" type="number" min="1" max="360" placeholder="minutes" value="'+(rec.workoutMeta&&rec.workoutMeta.durationMinutes||'')+'" inputmode="numeric"><span class="small dim">min</span></div>'
     +'<div id="restTimerWrap"></div>'
     +addExerciseHTML
     +emptyRoutineHTML
@@ -2444,16 +2442,19 @@ function renderGym() {
 
 function renderWorkoutTimer(dayKey, rec, session) {
   var wrap=document.getElementById('sessionTimer'); if(!wrap) return;
-  var meta=rec.workoutMeta||{}, hasSets=Object.keys(rec.workout||{}).some(function(id){return (rec.workout[id]||[]).some(Boolean);});
+  var meta=rec.workoutMeta||{};
   if(!meta.startedAt) {
     wrap.innerHTML='<span class="small dim">Session timer not started</span><button class="btn btn-primary btn-sm" id="startWorkoutBtn">Start workout</button>';
     document.getElementById('startWorkoutBtn').onclick=function(){startWorkoutSession(dayKey,session);};
     return;
   }
-  var status=meta.status==='partial'?'<span class="partial-badge">Partial workout</span>':(rec.workoutDone?'<span class="small dim">Completed</span>':'<button class="btn btn-sm" id="finishPartialBtn">Finish partial</button>');
-  wrap.innerHTML='<span><strong id="workoutElapsed">'+Math.floor(workoutElapsed(meta)/60)+':'+pad(workoutElapsed(meta)%60)+'</strong><span class="small dim"> session</span></span>'+status;
-  if(meta.status!=='partial'&&!rec.workoutDone) document.getElementById('finishPartialBtn').onclick=function(){finishPartialWorkout(dayKey);};
-  if(meta.status!=='partial'&&!rec.workoutDone) {
+  if(meta.completedAt) {
+    wrap.innerHTML='<span><strong>'+Math.floor(workoutElapsed(meta)/60)+':'+pad(workoutElapsed(meta)%60)+'</strong><span class="small dim"> total session time</span></span><span class="small dim">Session ended</span>';
+    return;
+  }
+  wrap.innerHTML='<span><strong id="workoutElapsed">'+Math.floor(workoutElapsed(meta)/60)+':'+pad(workoutElapsed(meta)%60)+'</strong><span class="small dim"> session</span></span><button class="btn btn-primary btn-sm" id="endWorkoutBtn">End session</button>';
+  document.getElementById('endWorkoutBtn').onclick=function(){endWorkoutSession(dayKey);};
+  if(!meta.completedAt) {
     if(workoutTimer.interval) clearInterval(workoutTimer.interval);
     workoutTimer.interval=setInterval(function(){var el=document.getElementById('workoutElapsed');if(el){var seconds=workoutElapsed(rec.workoutMeta);el.textContent=Math.floor(seconds/60)+':'+pad(seconds%60);}},1000);
   }
@@ -2540,18 +2541,13 @@ function attachGymEvents(key, rec, session) {
       if(!rec.workoutMeta.startedAt) rec.workoutMeta.startedAt=new Date().toISOString();
       rec.workoutMeta.sessionLabel=session.label;
       rec.workout[id][setIndex] = {weight:w,reps:r,rir:rirValue};
-      var durationEl=document.getElementById('workoutDuration'), duration=parseInt(durationEl&&durationEl.value,10);
       rec.workoutMeta=rec.workoutMeta||{sessionLabel:session.label};
       rec.workoutMeta.sessionLabel=session.label;
-      if(duration>0) rec.workoutMeta.durationMinutes=duration;
       rec.workoutMeta.updatedAt=new Date().toISOString();
       // Check if all exercises done (2+ sets each)
       var allDone = session.exercises.every(function(ex){return (rec.workout[ex.id]||[]).filter(Boolean).length>=(ex.sets||2);});
       if(allDone && !rec.workoutDone){
-        rec.workoutDone=true; rec.workoutMeta.completedAt=new Date().toISOString(); profile.xp=(profile.xp||0)+30; sv('rg_profile',profile);
-        rec.workoutMeta.status='complete';
-        rec.workoutMeta.durationMinutes=Math.max(1,Math.round(workoutElapsed(rec.workoutMeta)/60));
-        if(workoutTimer.interval) clearInterval(workoutTimer.interval);
+        rec.workoutDone=true; profile.xp=(profile.xp||0)+30; sv('rg_profile',profile);
         showToast('Session complete! +30 XP 🎉','ok');
       } else {
         profile.xp=(profile.xp||0)+3; sv('rg_profile',profile);
@@ -2713,7 +2709,7 @@ function renderTimer() {
 
 function workoutElapsed(meta) {
   if(!meta || !meta.startedAt) return 0;
-  var end = meta.completedAt || meta.partialAt || new Date().toISOString();
+  var end = meta.completedAt || new Date().toISOString();
   return Math.max(0, Math.floor((new Date(end).getTime()-new Date(meta.startedAt).getTime())/1000));
 }
 
@@ -2728,16 +2724,14 @@ function startWorkoutSession(dayKey, session) {
   renderGym();
 }
 
-function finishPartialWorkout(dayKey) {
+function endWorkoutSession(dayKey) {
   var rec=dayRecord(dayKey);
   if(!rec.workoutMeta || !rec.workoutMeta.startedAt) return;
-  rec.workoutDone=false;
-  rec.workoutMeta.status='partial';
-  rec.workoutMeta.partialAt=new Date().toISOString();
+  rec.workoutMeta.completedAt=new Date().toISOString();
   rec.workoutMeta.durationMinutes=Math.max(1,Math.round(workoutElapsed(rec.workoutMeta)/60));
   saveDayRecord(dayKey,rec);
   if(workoutTimer.interval) clearInterval(workoutTimer.interval);
-  showToast('Partial workout saved','ok');
+  showToast('Session ended and time saved','ok');
   renderGym();
 }
 
@@ -3520,7 +3514,7 @@ function workoutHistoryHTML(records) {
       var pr=getExercisePR(id);
       return '<div><strong>'+esc(ex.name)+'</strong>'+sets.map(function(s,i){var isPR=pr&&s.weight===pr.weight&&s.reps===pr.reps;return '<div class="history-set-row"><span>Set '+(i+1)+'</span><span>'+s.weight+' kg × '+s.reps+(s.rir===0?' · failure':(s.rir!=null?' · '+s.rir+' RIR':''))+(isPR?' · <b style="color:var(--amber)">PR</b>':'')+'</span></div>';}).join('')+'</div>';
     }).join('');
-    var statusLabel=meta.status==='partial'?' · partial':(rec.workoutDone?' · complete':'');
+    var statusLabel=rec.workoutDone?' · complete':'';
     rows.push('<details class="history-workout"><summary><strong>'+esc(meta.sessionLabel||'Workout')+'</strong><span>'+date+' · '+total+' sets'+(meta.durationMinutes?' · '+meta.durationMinutes+' min':'')+statusLabel+'</span></summary><div style="padding-top:12px">'+details+'</div></details>');
   });
   return rows.length?rows.join(''):'<div class="empty-note">Completed workouts will appear here.</div>';
