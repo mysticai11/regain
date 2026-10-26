@@ -405,6 +405,9 @@ input::placeholder { color: #7f95ad; }
 .stat-strip small { color:var(--text-muted); font-size:11px; margin-top:3px; }
 .progress-intro { color:var(--text-secondary); font-size:13px; line-height:1.45; margin:-8px 0 14px; }
 .progress-card { background:linear-gradient(145deg,rgba(24,38,58,.98),rgba(15,27,43,.98)); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px; }
+.progress-nav { display:flex; gap:8px; margin:-8px 0 14px; }
+.progress-nav .btn { flex:1; }
+.progress-nav .btn.active { background:var(--amber); color:#142000; border-color:var(--amber); }
 .progress-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:8px; }
 .progress-card h2 { font-size:18px; margin:3px 0 0; }
 .progress-card-head > strong { color:var(--text); font:20px 'Space Mono',monospace; }
@@ -412,6 +415,16 @@ input::placeholder { color: #7f95ad; }
 .progress-card .range-row { margin:10px 0 6px; }
 .progress-more { margin-top:10px; color:var(--text-secondary); font-size:12px; }
 .progress-more summary { cursor:pointer; color:var(--text-muted); }
+.food-log-list { margin:8px 0 10px; }
+.food-log-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 0; border-top:1px solid rgba(58,85,115,.35); }
+.food-log-row strong, .food-log-row small { display:block; }
+.food-log-row strong { font-size:13px; }
+.food-log-row small { color:var(--text-muted); font-size:11px; margin-top:2px; }
+.nutrition-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:10px; }
+.nutrition-summary div { background:var(--surface-raised); border-radius:10px; padding:10px 8px; }
+.nutrition-summary strong, .nutrition-summary span { display:block; }
+.nutrition-summary strong { font:18px 'Space Mono',monospace; color:var(--text); }
+.nutrition-summary span { color:var(--text-muted); font-size:10px; margin-top:4px; }
 .range-row { display:flex; gap:6px; margin-bottom:18px; }
 .range { border:0; background:var(--surface); color:var(--text-muted); border-radius:9px; padding:8px 13px; font-weight:700; cursor:pointer; }
 .range.active { background:var(--amber); color:#142000; }
@@ -788,6 +801,15 @@ function weeklyVolumeChart() {
     var pct = Math.round(v.sets / max * 100);
     return '<div class="volume-bar-row"><span>'+esc(v.muscle)+'</span><div class="volume-bar-track"><i style="width:'+pct+'%"></i></div><b>'+v.sets+'</b></div>';
   }).join('')+'</div><div class="small dim" style="margin-top:8px">Completed working sets in the last 7 days · general target 10–20. Chest and quads are easy to compare against your 12 and 10 set goals.</div>';
+}
+
+function nutritionProgressHTML(records) {
+  var recent=records.slice(-7), days=recent.filter(function(r){return r.kcal>0;});
+  if(!days.length) return '<div class="empty-note">Log food for a few days to see this summary.</div>';
+  var kcal=Math.round(days.reduce(function(sum,r){return sum+r.kcal;},0)/days.length);
+  var protein=Math.round(days.reduce(function(sum,r){return sum+r.protein;},0)/days.length);
+  var target=days.reduce(function(sum,r){return sum+getTargetsForDate(r.key).kcal;},0)/days.length;
+  return '<div class="nutrition-summary"><div><strong>'+kcal+'</strong><span>avg kcal eaten</span></div><div><strong>'+protein+'g</strong><span>avg protein</span></div><div><strong>'+Math.round(target)+'</strong><span>avg target</span></div></div><div class="small dim" style="margin-top:10px">Compare your 7-day average with the target, not one individual day.</div>';
 }
 
 
@@ -3818,7 +3840,8 @@ function deleteWeightEntry(id) {
   renderProgressSimple();
 }
 
-function renderProgressSimple() {
+function renderProgressSimple(mode) {
+  mode=mode||'body';
   var entries=getWeightHistory(), records=allDayKeys().map(function(k){var r=dayRecord(k),t=getDayTotals(k);return {key:k,weight:r.weight,kcal:t.kcal,protein:t.protein};});
   var current=entries.length?entries[entries.length-1].weight:null, range='1w';
   var exOptions=[]; getActiveProgram().forEach(function(s){s.exercises.forEach(function(e){if(!exOptions.some(function(x){return x.id===e.id;}))exOptions.push(e);});});
@@ -3827,36 +3850,40 @@ function renderProgressSimple() {
     var rangeEntries=getProgressRows(range,entries), weightValues=getRollingWeightValues(rangeEntries,entries);
     var cutoff = range === 'all' ? 0 : Date.now() - ({'1w':7,'1m':30,'3m':90}[range]||30)*86400000;
     var rangeRecords=records.filter(function(r){return new Date(r.key+'T23:59:59').getTime()>=cutoff;});
-    var selected=document.getElementById('liftSelect').value, liftValues=[];
+    var liftControl=document.getElementById('liftSelect');
+    var selected=liftControl?liftControl.value:null, liftValues=[];
     rangeRecords.forEach(function(r){var best=0;(dayRecord(r.key).workout||{})[selected]&&dayRecord(r.key).workout[selected].forEach(function(s){if(s)best=Math.max(best,calcE1RM(s.weight,s.reps));});if(best)liftValues.push({value:best,label:r.key+' · '+best.toFixed(1)+' kg'});});
     var allLiftValues=[];
     rangeRecords.forEach(function(r){var total=0,count=0;Object.keys(dayRecord(r.key).workout||{}).forEach(function(id){var best=0;(dayRecord(r.key).workout[id]||[]).forEach(function(s){if(s){best=Math.max(best,calcE1RM(s.weight,s.reps));}});if(best){total+=best;count++;}});if(count)allLiftValues.push({value:total/count,label:r.key});});
     var first=allLiftValues.length?allLiftValues[0].value:1;
-    document.getElementById('weightPlot').innerHTML=progressPlot(weightValues,profile.targetWeight);
-    document.getElementById('liftPlot').innerHTML=progressPlot(liftValues);
+    var weightPlot=document.getElementById('weightPlot'); if(weightPlot) weightPlot.innerHTML=progressPlot(weightValues,profile.targetWeight);
+    var liftPlot=document.getElementById('liftPlot'); if(liftPlot) liftPlot.innerHTML=progressPlot(liftValues);
     var direction=goalDirection(), latest=weightValues.length?weightValues[weightValues.length-1].value:null;
     var trend=weightValues.length>1?latest-weightValues[0].value:0;
     var status=weightValues.length>1?(direction*trend>0?'moving toward goal':direction*trend<0?'moving away from goal':'flat'):'need more entries';
-    document.getElementById('weightMeta').textContent=latest!=null?(latest+' kg 7-day avg · goal '+(profile.targetWeight||'—')+' kg · '+status):'No weight entries yet';
+    var weightMeta=document.getElementById('weightMeta'); if(weightMeta) weightMeta.textContent=latest!=null?(latest+' kg 7-day avg · goal '+(profile.targetWeight||'—')+' kg · '+status):'No weight entries yet';
     var liftMeta=document.getElementById('liftMeta');
     if(liftMeta) {
       var firstLift=liftValues.length?liftValues[0].value:null, latestLift=liftValues.length?liftValues[liftValues.length-1].value:null;
       liftMeta.textContent=latestLift!=null?(latestLift.toFixed(1)+' kg e1RM'+(firstLift!=null&&liftValues.length>1?' · '+(latestLift-firstLift>=0?'+':'')+(latestLift-firstLift).toFixed(1)+' since start':'')):'No lift entries yet';
     }
   };
+  var bodySection='<section class="progress-card"><div class="progress-card-head"><div><span class="eyebrow">'+esc(goalLabel())+'</span><h2>Bodyweight</h2></div><strong>'+(current!=null?current.toFixed(1)+' kg':'—')+'</strong></div><div id="weightMeta" class="progress-summary"></div><div class="range-row"><button class="range active" data-range="1w">7d</button><button class="range" data-range="1m">30d</button><button class="range" data-range="3m">90d</button></div><div id="weightPlot"></div><div class="progress-entry"><input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="Log weight" inputmode="decimal"><button class="btn btn-primary" id="saveProgressWeight">Save</button></div><details class="progress-more"><summary>Recent weigh-ins</summary><div class="weight-entry-list">'+weightEntriesHTML(entries)+'</div></details></section><section class="progress-card"><div class="progress-card-head"><div><span class="eyebrow">Nutrition</span><h2>Calories & protein</h2></div><span class="progress-summary">last 7 days</span></div>'+nutritionProgressHTML(records)+'</section>';
+  var liftSection='<section class="progress-card"><div class="progress-card-head"><div><span class="eyebrow">Strength</span><h2>Lift progress</h2></div><span id="liftMeta" class="progress-summary"></span></div><select id="liftSelect" class="compact-select">'+exOptions.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join('')+'</select><div id="liftPlot"></div><div class="progress-summary">Estimated 1RM from your best set. Choose a lift above.</div></section><section class="progress-card"><div class="progress-card-head"><div><span class="eyebrow">Training</span><h2>Weekly work</h2></div><span class="progress-summary">last 7 days</span></div>'+weeklyVolumeChart()+'</section>';
   document.getElementById('content').innerHTML=
     '<div class="topbar"><div><span class="eyebrow">'+personalizedEyebrow('simple progress')+'</span><div class="title">Progress</div></div><button class="icon-btn" id="settingsBtn" aria-label="Settings">'+ic('settings')+'</button></div>'
-    +'<div class="progress-intro">Two things matter here: move toward your weight goal and get stronger. Tap a card to see the detail.</div>'
-    +'<section class="progress-card"><div class="progress-card-head"><div><span class="eyebrow">'+esc(goalLabel())+'</span><h2>Bodyweight</h2></div><strong>'+(current!=null?current.toFixed(1)+' kg':'—')+'</strong></div><div id="weightMeta" class="progress-summary"></div><div class="range-row"><button class="range active" data-range="1w">7d</button><button class="range" data-range="1m">30d</button><button class="range" data-range="3m">90d</button></div><div id="weightPlot"></div><div class="progress-entry"><input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="Log weight" inputmode="decimal"><button class="btn btn-primary" id="saveProgressWeight">Save</button></div><details class="progress-more"><summary>Recent weigh-ins</summary><div class="weight-entry-list">'+weightEntriesHTML(entries)+'</div></details></section>'
-    +'<section class="progress-card"><div class="progress-card-head"><div><span class="eyebrow">Strength</span><h2>Lift progress</h2></div><span id="liftMeta" class="progress-summary"></span></div><select id="liftSelect" class="compact-select">'+exOptions.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join('')+'</select><div id="liftPlot"></div><div class="progress-summary">Estimated 1RM from your best set. Choose a lift above.</div></section>'
-    +'<section class="progress-card"><div class="progress-card-head"><div><span class="eyebrow">Training</span><h2>Weekly work</h2></div><span class="progress-summary">last 7 days</span></div>'+weeklyVolumeChart()+'</section>'
+    +'<div class="progress-intro">'+(mode==='body'?'Weight and nutrition in one place. Log often enough to see the trend.':'Choose a lift to see strength change and weekly training work.')+'</div>'
+    +'<div class="progress-nav"><button class="btn '+(mode==='body'?'active':'')+'" id="bodyProgressBtn">Body & food</button><button class="btn '+(mode==='lifts'?'active':'')+'" id="liftProgressBtn">Lifts</button></div>'
+    +(mode==='body'?bodySection:liftSection)
     +'<details class="history-details"><summary>Workout history · '+records.filter(function(r){return r.workoutDone || Object.keys(dayRecord(r.key).workout||{}).some(function(id){return (dayRecord(r.key).workout[id]||[]).some(Boolean);});}).length+' sessions</summary>'+workoutHistoryHTML(records)+'</details>';
   document.getElementById('settingsBtn').onclick=openSettings;
+  document.getElementById('bodyProgressBtn').onclick=function(){renderProgressSimple('body');};
+  document.getElementById('liftProgressBtn').onclick=function(){renderProgressSimple('lifts');};
   document.querySelectorAll('[data-range]').forEach(function(btn){btn.onclick=function(){range=btn.dataset.range;document.querySelectorAll('[data-range]').forEach(function(b){b.classList.toggle('active',b===btn);});render();};});
-  document.getElementById('liftSelect').onchange=render;
+  var liftSelect=document.getElementById('liftSelect'); if(liftSelect) liftSelect.onchange=render;
   document.querySelectorAll('[data-edit-weight]').forEach(function(btn){btn.onclick=function(){editWeightEntry(btn.dataset.editWeight);};});
   document.querySelectorAll('[data-delete-weight]').forEach(function(btn){btn.onclick=function(){deleteWeightEntry(btn.dataset.deleteWeight);};});
-  document.getElementById('saveProgressWeight').onclick=function(){var value=parseFloat(document.getElementById('progressWeight').value);if(!value||value<20||value>300){showToast('Enter a valid weight','warn');return;}profile.weightEntries=profile.weightEntries||[];profile.weightEntries.push({id:'weight_'+Date.now(),dayKey:todayKey(),weight:value,createdAt:new Date().toISOString()});sv('rg_profile',profile);var r=dayRecord(todayKey());r.weight=value;saveDayRecord(todayKey(),r);showToast('Weight saved','ok');renderProgressSimple();};
+  var saveWeight=document.getElementById('saveProgressWeight'); if(saveWeight) saveWeight.onclick=function(){var value=parseFloat(document.getElementById('progressWeight').value);if(!value||value<20||value>300){showToast('Enter a valid weight','warn');return;}profile.weightEntries=profile.weightEntries||[];profile.weightEntries.push({id:'weight_'+Date.now(),dayKey:todayKey(),weight:value,createdAt:new Date().toISOString()});sv('rg_profile',profile);var r=dayRecord(todayKey());r.weight=value;saveDayRecord(todayKey(),r);showToast('Bodyweight saved','ok');renderProgressSimple('body');};
   render();
 }
 
@@ -3894,7 +3921,7 @@ function renderTodaySimple() {
     +'<section class="simple-section"><div class="section-head"><span class="eyebrow">protein</span><span class="mono">'+tot.protein+' / '+targets.protein+'g</span></div><div class="progress-track protein-track"><span style="width:'+proteinPct+'%"></span></div></section>'
     +'<section class="today-workout '+(!hasWorkout?'rest':'')+'"><div><span class="eyebrow">today\'s workout</span><strong>'+ (hasWorkout?esc(session.label):'Rest day')+'</strong><span class="small dim">'+(hasWorkout?done+' of '+session.exercises.length+' exercises logged':'You can train today if you need to move the plan')+'</span></div><button class="btn '+(hasWorkout?'btn-primary':'')+'" id="startWorkout">'+(hasWorkout?'Start':'Choose')+'</button></section>'
     +'<section class="simple-section"><div class="section-head"><span class="eyebrow">bodyweight</span><span class="small dim">once daily</span></div><div class="inline-entry"><input type="number" id="todayWeight" step="0.1" inputmode="decimal" placeholder="kg" value="'+(rec.weight||'')+'"><button class="btn" id="saveTodayWeight">Save</button></div></section>'
-    +'<section class="simple-section"><div class="section-head"><span class="eyebrow">add food</span><button class="btn-ghost" id="foodSearchBtn">Search all foods</button></div>'+recentHtml+'<div class="food-actions"><button class="btn" id="quickFoodBtn">Quick add</button><button class="btn btn-primary" id="addFoodBtn">Search food</button></div></section>'
+    +'<section class="simple-section"><div class="section-head"><span class="eyebrow">today\'s food</span><button class="btn-ghost" id="foodSearchBtn">Search all foods</button></div>'+(rec.extra.length?'<div class="food-log-list">'+rec.extra.map(function(item,i){return '<div class="food-log-row"><span><strong>'+esc(item.name)+'</strong><small>'+Math.round(item.kcal* (item.servings||1))+' kcal · '+Math.round((item.protein||0)*(item.servings||1))+'g protein</small></span><button class="btn-ghost food-delete" data-food-index="'+i+'" aria-label="Delete '+esc(item.name)+'">Delete</button></div>';}).join('')+'</div>':'<div class="small dim">Nothing logged yet</div>')+recentHtml+'<div class="food-actions"><button class="btn" id="quickFoodBtn">Quick add</button><button class="btn btn-primary" id="addFoodBtn">Search food</button></div></section>'
     +'<section class="simple-section"><div class="section-head"><div><span class="readiness-label">How ready are you?</span><div class="readiness-help">Optional · tap one</div></div><span class="small dim">'+(rec.readiness?'Saved':'Not logged')+'</span></div><div class="readiness-row">'+[{n:1,l:'Low'},{n:2,l:'Below'},{n:3,l:'Okay'},{n:4,l:'Good'},{n:5,l:'Great'}].map(function(x){return '<button class="ready-dot '+(rec.readiness===x.n?'active':'')+'" data-ready="'+x.n+'">'+x.l+'</button>';}).join('')+'</div></section>';
   document.getElementById('settingsBtn').onclick=openSettings;
   document.getElementById('calorieDetails').onclick=function(){document.getElementById('macroDetails').classList.toggle('open');};
@@ -3904,6 +3931,7 @@ function renderTodaySimple() {
   document.getElementById('foodSearchBtn').onclick=document.getElementById('addFoodBtn').onclick;
   document.getElementById('quickFoodBtn').onclick=function(){addQuickFood(key);};
   document.querySelectorAll('.quick-recent').forEach(function(btn){btn.onclick=function(){var r=JSON.parse(decodeURIComponent(btn.dataset.food));rec.extra.push({name:r.name,kcal:r.kcal,protein:r.protein||0,carbs:r.carbs||0,fat:r.fat||0,servings:1});saveDayRecord(key,rec);renderTodaySimple();};});
+  document.querySelectorAll('.food-delete').forEach(function(btn){btn.onclick=function(){var current=dayRecord(key);current.extra.splice(parseInt(btn.dataset.foodIndex,10),1);saveDayRecord(key,current);showToast('Food entry deleted','ok');renderTodaySimple();};});
   document.querySelectorAll('.ready-dot').forEach(function(btn){btn.onclick=function(){rec.readiness=parseInt(btn.dataset.ready,10);saveDayRecord(key,rec);renderTodaySimple();};});
 }
 
