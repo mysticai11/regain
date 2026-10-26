@@ -88,7 +88,7 @@ The onboarding goal supports muscle gain, fat loss, recomposition, or strength. 
 
 Workout logs preserve the planned session, every set's weight and reps, optional RIR/failure effort, and session duration. Progress supports bodyweight entries whenever needed, with 1-week, 1-month, and 3-month ranges. Strength charts use estimated 1RM from each lift and an overall index normalized to the first logged workout.
 
-Progress entries can be edited or deleted. Gym sessions include a persistent elapsed timer with explicit Start session and End session actions; the total elapsed time is saved in workout history. Personal-best markers appear in workout history.
+Progress entries can be edited or deleted. Gym sessions use one simple whole-session timer: tap Start and End when you remember, or enter the total minutes afterward if you forgot. Exercise rest timers are intentionally omitted so each set can be logged without extra steps. Personal-best markers appear in workout history.
 
 The app is designed for separate private profiles on separate phones. Gain and loss goals use goal-aware labels and trend direction, while workout history and the training plan remain independent on each device.
 

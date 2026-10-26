@@ -359,7 +359,7 @@ input::placeholder { color: #7f95ad; }
 .readiness-help { color:var(--text-muted); font-size:12px; margin-top:3px; }
 .workout-picker { display:flex; gap:8px; overflow-x:auto; padding:4px 0 12px; }
 .workout-picker .chip.active { background:var(--amber); color:#142000; border-color:var(--amber); font-weight:700; }
-.planned-set { display:grid; grid-template-columns:28px 1fr 1fr 1fr 48px; gap:7px; align-items:center; margin-top:7px; }
+.planned-set { display:grid; grid-template-columns:24px 1fr 1fr 1fr 44px; gap:6px; align-items:center; margin-top:7px; }
 .planned-set .set-number { color:var(--text-muted); font-size:12px; text-align:center; }
 .planned-set input { min-height:42px; }
 .planned-set select { min-height:42px; font-size:12px; padding:0 6px; }
@@ -379,8 +379,9 @@ input::placeholder { color: #7f95ad; }
 .weight-entry-list { margin-top:12px; }
 .weight-entry-row { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 0; border-top:1px solid rgba(58,85,115,.35); font-size:12px; }
 .weight-entry-row .btn-ghost { min-height:28px; padding:3px 6px; }
-.session-timer { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; margin:8px 0 12px; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
+.session-timer { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px; margin:8px 0 12px; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
 .session-timer strong { font-family:'Space Mono',monospace; color:var(--amber); }
+.session-timer .timer-actions { display:flex; gap:6px; }
 .history-workout { padding:14px 0; border-bottom:1px solid rgba(58,85,115,.35); }
 .history-workout summary { cursor:pointer; list-style:none; }
 .history-workout summary::-webkit-details-marker { display:none; }
@@ -555,7 +556,7 @@ var PROGRAM_4DAY = [
 
 var PROGRAM_5DAY = [
   { label: 'Day 1 (Push)', exercises: [
-    {id:'machine_chest',    name:'Machine Chest Press',        muscle:'chest,triceps',   sets:4, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · smooth lockout', type:'machine'},
+    {id:'machine_chest',    name:'Machine Chest Press',        muscle:'chest,triceps',   sets:2, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · smooth lockout', type:'machine'},
     {id:'shoulder_press',   name:'Machine Shoulder Press',     muscle:'shoulders,triceps', sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · brace core', type:'machine'},
     {id:'cable_fly',        name:'Cable Fly / Pec Deck',       muscle:'chest',          sets:3, reps:'10–12', rir:'0–1', rest:75,  cue:'75s rest · squeeze at peak', type:'machine'},
     {id:'cable_lateral',    name:'Cable Lateral Raise',        muscle:'shoulders',      sets:3, reps:'12–15', rir:'0–1', rest:60,  cue:'60s rest · keep slight bend', type:'machine'}
@@ -588,7 +589,7 @@ var PROGRAM_5DAY = [
 
 var PROGRAM_6DAY = [
   { label: 'Day 1 (Push A)', exercises: [
-    {id:'machine_chest',    name:'Machine Chest Press',        muscle:'chest,triceps',   sets:4, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · controlled press', type:'machine'},
+    {id:'machine_chest',    name:'Machine Chest Press',        muscle:'chest,triceps',   sets:2, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · controlled press', type:'machine'},
     {id:'shoulder_press',   name:'Machine Shoulder Press',     muscle:'shoulders,triceps', sets:3, reps:'8–10', rir:'1–2', rest:120, cue:'2 min rest · brace and lock out', type:'machine'},
     {id:'cable_fly',        name:'Cable Fly / Pec Deck',       muscle:'chest',          sets:3, reps:'10–12', rir:'0–1', rest:75,  cue:'75s rest · slow squeeze', type:'machine'},
     {id:'cable_lateral',    name:'Cable Lateral Raise',        muscle:'shoulders',      sets:3, reps:'12–15', rir:'0–1', rest:60,  cue:'60s rest · slight bend', type:'machine'}
@@ -887,7 +888,6 @@ var profile = ls('rg_profile', null);
 // no mealTemplates here - loaded from profile
 var tab = 'today';
 var charts = {};
-var timer = {active:false, remaining:0, total:0, interval:null};
 var workoutTimer = {interval:null};
 var foodPanel = null; // {mode:'add'|'search', cb}
 var confirmLoggingAccurate = false; // tracks if user confirmed logging in discovery
@@ -2421,8 +2421,8 @@ function renderGym() {
     var plannedRows = Array.from({length: ex.sets || exOrig.sets}, function(_,i){
       var logged=sets[i], loggedHtml=logged
         ? '<span class="set-complete">✓</span>'
-        : '<button class="btn btn-primary btn-sm" data-logset="'+ex.id+'" data-set-index="'+i+'" data-rest="'+(ex.rest||exOrig.rest)+'">Log</button>';
-      return '<div class="planned-set"><span class="set-number">'+(i+1)+'</span><input type="number" step="0.25" min="0" placeholder="kg" class="set-weight" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+(logged?logged.weight:preW)+'" inputmode="decimal"><input type="number" min="1" max="50" placeholder="reps" class="set-reps" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+(logged?logged.reps:preR)+'" inputmode="numeric"><select class="set-rir" data-ex="'+ex.id+'" data-set-index="'+i+'" aria-label="RIR"><option value="">RIR</option><option value="0" '+(logged&&logged.rir===0?'selected':'')+'>Failure</option><option value="1" '+(logged&&logged.rir===1?'selected':'')+'>1 RIR</option><option value="2" '+(logged&&logged.rir===2?'selected':'')+'>2 RIR</option><option value="3" '+(logged&&logged.rir===3?'selected':'')+'>3+ RIR</option></select>'+loggedHtml+'</div>';
+        : '<button class="btn btn-primary btn-sm" data-logset="'+ex.id+'" data-set-index="'+i+'">Log</button>';
+      return '<div class="planned-set"><span class="set-number">'+(i+1)+'</span><input type="number" step="0.25" min="0" placeholder="kg" aria-label="Weight for set '+(i+1)+'" class="set-weight" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+(logged?logged.weight:preW)+'" inputmode="decimal"><input type="number" min="1" max="50" placeholder="reps" aria-label="Reps for set '+(i+1)+'" class="set-reps" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+(logged?logged.reps:preR)+'" inputmode="numeric"><select class="set-rir" data-ex="'+ex.id+'" data-set-index="'+i+'" aria-label="Effort for set '+(i+1)+'"><option value="">Effort</option><option value="0" '+(logged&&logged.rir===0?'selected':'')+'>Failure</option><option value="1" '+(logged&&logged.rir===1?'selected':'')+'>1 RIR</option><option value="2" '+(logged&&logged.rir===2?'selected':'')+'>2 RIR</option><option value="3" '+(logged&&logged.rir===3?'selected':'')+'>3+ RIR</option></select>'+loggedHtml+'</div>';
     }).join('');
     var best = getBestE1RM(ex.id);
     
@@ -2470,7 +2470,6 @@ function renderGym() {
     +'</div>'
     +'<div class="workout-picker">'+IRON_LOG_PROGRAM.map(function(s,i){return '<button class="chip '+(i===selected.index?'active':'')+'" data-pick-workout="'+i+'">'+esc(s.label.split('·')[0].trim())+'</button>';}).join('')+'</div>'
     +'<div class="session-timer" id="sessionTimer"></div>'
-    +'<div id="restTimerWrap"></div>'
     +addExerciseHTML
     +emptyRoutineHTML
     +exHTML;
@@ -2483,15 +2482,17 @@ function renderWorkoutTimer(dayKey, rec, session) {
   var wrap=document.getElementById('sessionTimer'); if(!wrap) return;
   var meta=rec.workoutMeta||{};
   if(!meta.startedAt) {
-    wrap.innerHTML='<span class="small dim">Session timer not started</span><button class="btn btn-primary btn-sm" id="startWorkoutBtn">Start workout</button>';
+    wrap.innerHTML='<span class="small dim">No session time yet</span><span class="timer-actions"><button class="btn btn-primary btn-sm" id="startWorkoutBtn">Start</button><button class="btn btn-sm" id="manualDurationBtn">Enter time</button></span>';
     document.getElementById('startWorkoutBtn').onclick=function(){startWorkoutSession(dayKey,session);};
+    document.getElementById('manualDurationBtn').onclick=function(){setManualSessionDuration(dayKey,session);};
     return;
   }
   if(meta.completedAt) {
-    wrap.innerHTML='<span><strong>'+Math.floor(workoutElapsed(meta)/60)+':'+pad(workoutElapsed(meta)%60)+'</strong><span class="small dim"> total session time</span></span><span class="small dim">Session ended</span>';
+    wrap.innerHTML='<span><strong>'+formatDuration(meta.durationMinutes||Math.round(workoutElapsed(meta)/60))+'</strong><span class="small dim"> total</span></span><span class="timer-actions"><span class="small dim">Saved</span><button class="btn btn-sm" id="editDurationBtn">Edit</button></span>';
+    document.getElementById('editDurationBtn').onclick=function(){setManualSessionDuration(dayKey,session);};
     return;
   }
-  wrap.innerHTML='<span><strong id="workoutElapsed">'+Math.floor(workoutElapsed(meta)/60)+':'+pad(workoutElapsed(meta)%60)+'</strong><span class="small dim"> session</span></span><button class="btn btn-primary btn-sm" id="endWorkoutBtn">End session</button>';
+  wrap.innerHTML='<span><strong id="workoutElapsed">'+formatDuration(Math.floor(workoutElapsed(meta)/60))+'</strong><span class="small dim"> session</span></span><span class="timer-actions"><button class="btn btn-primary btn-sm" id="endWorkoutBtn">End</button></span>';
   document.getElementById('endWorkoutBtn').onclick=function(){
     var hasSets=Object.keys(rec.workout||{}).some(function(id){return (rec.workout[id]||[]).some(Boolean);});
     if(!hasSets&&!confirm('No sets are logged. End this session anyway?')) return;
@@ -2597,7 +2598,6 @@ function attachGymEvents(key, rec, session) {
       }
       saveDayRecord(key,rec);
       renderGym();
-      startRestTimer(rest);
     });
   });
 
@@ -2734,39 +2734,15 @@ function openSwapSheet(origId, currId, muscleStr, dayKey) {
   });
 }
 
-function startRestTimer(secs) {
-  if(timer.interval) clearInterval(timer.interval);
-  timer.active=true; timer.remaining=secs; timer.total=secs;
-  renderTimer();
-  timer.interval = setInterval(function(){
-    timer.remaining--;
-    if(timer.remaining<=0){clearInterval(timer.interval);timer.active=false;}
-    renderTimer();
-  },1000);
-}
-
-function renderTimer() {
-  var wrap = document.getElementById('restTimerWrap'); if(!wrap) return;
-  if(!timer.active){wrap.innerHTML='';return;}
-  var pct = timer.remaining/timer.total;
-  var circ = 2*Math.PI*22;
-  wrap.innerHTML = '<div class="timer-bar">'
-    +'<svg viewBox="0 0 50 50" width="40" height="40">'
-      +'<circle cx="25" cy="25" r="22" fill="none" stroke="#332B20" stroke-width="4"/>'
-      +'<circle cx="25" cy="25" r="22" fill="none" stroke="#D98B3F" stroke-width="4" stroke-dasharray="'+circ.toFixed(1)+'" stroke-dashoffset="'+(circ*(1-pct)).toFixed(1)+'" transform="rotate(-90 25 25)" stroke-linecap="round"/>'
-    +'</svg>'
-    +'<div class="mono">'+Math.floor(timer.remaining/60)+':'+pad(timer.remaining%60)+'</div>'
-    +'<div class="small dim">rest</div>'
-    +'<button class="icon-btn" id="skipTimerBtn">'+ic('skip')+'</button>'
-    +'</div>';
-  var skip=document.getElementById('skipTimerBtn');
-  if(skip) skip.addEventListener('click',function(){clearInterval(timer.interval);timer.active=false;renderTimer();});
-}
-
 function workoutElapsed(meta) {
   if(!meta || !meta.startedAt) return 0;
   var end = meta.completedAt || new Date().toISOString();
   return Math.max(0, Math.floor((new Date(end).getTime()-new Date(meta.startedAt).getTime())/1000));
+}
+
+function formatDuration(minutes) {
+  var total=Math.max(0,Number(minutes)||0);
+  return Math.floor(total/60)+':'+pad(total%60);
 }
 
 function startWorkoutSession(dayKey, session) {
@@ -2789,6 +2765,26 @@ function endWorkoutSession(dayKey) {
   saveDayRecord(dayKey,rec);
   if(workoutTimer.interval) clearInterval(workoutTimer.interval);
   showToast('Session ended and time saved','ok');
+  renderGym();
+}
+
+function setManualSessionDuration(dayKey, session) {
+  var rec=dayRecord(dayKey);
+  rec.workoutMeta=rec.workoutMeta||{sessionLabel:session.label};
+  var current=rec.workoutMeta.durationMinutes||Math.round(workoutElapsed(rec.workoutMeta)/60)||'';
+  var value=prompt('Total session time in minutes', String(current));
+  if(value===null) return;
+  var minutes=Number(value);
+  if(!Number.isFinite(minutes)||minutes<1||minutes>1440) {
+    showToast('Enter a duration from 1 to 1440 minutes','warn');
+    return;
+  }
+  rec.workoutMeta.durationMinutes=Math.round(minutes);
+  rec.workoutMeta.sessionLabel=session.label;
+  if(!rec.workoutMeta.startedAt) rec.workoutMeta.completedAt=rec.workoutMeta.completedAt||new Date().toISOString();
+  rec.workoutMeta.updatedAt=new Date().toISOString();
+  saveDayRecord(dayKey,rec);
+  showToast('Session time saved','ok');
   renderGym();
 }
 
@@ -3731,7 +3727,7 @@ function renderApp() {
   renderTab();
   document.querySelectorAll('.navitem').forEach(function(btn){
     btn.addEventListener('click',function(){
-      if(timer.interval){clearInterval(timer.interval);timer.active=false;}
+      if(workoutTimer.interval){clearInterval(workoutTimer.interval);workoutTimer.interval=null;}
       tab=btn.dataset.tab;
       document.querySelectorAll('.navitem').forEach(function(b){b.classList.toggle('active',b.dataset.tab===tab);});
       renderTab();
