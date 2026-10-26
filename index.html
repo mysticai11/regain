@@ -2337,6 +2337,18 @@ function getLastSessionWeightReps(exId, rec) {
     var lastSet = todaySets[todaySets.length - 1];
     return { weight: lastSet.weight, reps: lastSet.reps };
   }
+
+  function getLastSessionSets(exId, rec) {
+    var keys = allDayKeys().reverse();
+    var todayK = todayKey();
+    for (var i = 0; i < keys.length; i++) {
+      if (keys[i] === todayK) continue;
+      var r = dayRecord(keys[i]);
+      var prevSets = (r.workout || {})[exId] || [];
+      if (prevSets.length > 0) return prevSets;
+    }
+    return [];
+  }
   
   var keys = allDayKeys().reverse();
   var todayK = todayKey();
@@ -2415,14 +2427,20 @@ function renderGym() {
     var exId = (rec.swaps && rec.swaps[exOrig.id]) ? rec.swaps[exOrig.id] : exOrig.id;
     var ex = getExerciseData(exId) || exOrig;
     var sets = (rec.workout||{})[ex.id]||[];
-    var lastVal = getLastSessionWeightReps(ex.id, rec);
-    var preW = lastVal ? lastVal.weight : '';
-    var preR = lastVal ? lastVal.reps : '';
-    var plannedRows = Array.from({length: ex.sets || exOrig.sets}, function(_,i){
-      var logged=sets[i], loggedHtml=logged
-        ? '<span class="set-complete">✓</span>'
+    var drafts = (rec.workoutDraft||{})[ex.id]||[];
+    var lastSets = getLastSessionSets(ex.id, rec);
+    var plannedCount = ex.sets || exOrig.sets;
+    var visibleCount = Math.max(plannedCount, sets.length, drafts.length);
+    var plannedRows = Array.from({length: visibleCount}, function(_,i){
+      var logged=sets[i], draft=drafts[i], last=lastSets[i];
+      var valueW = logged ? logged.weight : (draft ? draft.weight : (last ? last.weight : ''));
+      var valueR = logged ? logged.reps : (draft ? draft.reps : (last ? last.reps : ''));
+      var valueRir = logged ? logged.rir : (draft ? draft.rir : null);
+      var lastHint = last ? '<span class="small dim" style="grid-column:2 / 4">Last: '+esc(last.weight)+'kg × '+esc(last.reps)+'</span>' : '';
+      var loggedHtml=logged
+        ? '<span class="set-complete">✓</span><button class="btn-ghost" data-delete-set="'+ex.id+'" data-set-index="'+i+'" aria-label="Remove set">×</button>'
         : '<button class="btn btn-primary btn-sm" data-logset="'+ex.id+'" data-set-index="'+i+'">Log</button>';
-      return '<div class="planned-set"><span class="set-number">'+(i+1)+'</span><input type="number" step="0.25" min="0" placeholder="kg" aria-label="Weight for set '+(i+1)+'" class="set-weight" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+(logged?logged.weight:preW)+'" inputmode="decimal"><input type="number" min="1" max="50" placeholder="reps" aria-label="Reps for set '+(i+1)+'" class="set-reps" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+(logged?logged.reps:preR)+'" inputmode="numeric"><select class="set-rir" data-ex="'+ex.id+'" data-set-index="'+i+'" aria-label="Effort for set '+(i+1)+'"><option value="">Effort</option><option value="0" '+(logged&&logged.rir===0?'selected':'')+'>Failure</option><option value="1" '+(logged&&logged.rir===1?'selected':'')+'>1 RIR</option><option value="2" '+(logged&&logged.rir===2?'selected':'')+'>2 RIR</option><option value="3" '+(logged&&logged.rir===3?'selected':'')+'>3+ RIR</option></select>'+loggedHtml+'</div>';
+      return '<div class="planned-set"><span class="set-number">'+(i+1)+'</span><input type="number" step="0.25" min="0" placeholder="kg" aria-label="Weight for set '+(i+1)+'" class="set-weight" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+valueW+'" inputmode="decimal"><input type="number" min="1" max="50" placeholder="reps" aria-label="Reps for set '+(i+1)+'" class="set-reps" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+valueR+'" inputmode="numeric"><select class="set-rir" data-ex="'+ex.id+'" data-set-index="'+i+'" aria-label="Effort for set '+(i+1)+'"><option value="">Effort</option><option value="0" '+(valueRir===0?'selected':'')+'>Failure</option><option value="1" '+(valueRir===1?'selected':'')+'>1 RIR</option><option value="2" '+(valueRir===2?'selected':'')+'>2 RIR</option><option value="3" '+(valueRir===3?'selected':'')+'>3+ RIR</option></select>'+loggedHtml+(logged?'':'<button class="btn-ghost" data-remove-draft="'+ex.id+'" data-set-index="'+i+'" aria-label="Remove set">×</button>')+lastHint+'</div>';
     }).join('');
     var best = getBestE1RM(ex.id);
     
@@ -2449,7 +2467,7 @@ function renderGym() {
     var detailsLink = '<button class="btn-ghost details-toggle" data-expand-ex="'+esc(ex.id)+'">Details</button>';
     var exerciseExtra = '<div class="exercise-extra">'
       +'<div class="exercise-cue">'+esc(ex.cue||exOrig.cue)+(best?' · best e1RM: '+best.toFixed(1)+'kg':'') + prStr + '</div>'
-      +'<div class="set-list"><div class="small dim">Planned '+(ex.sets||exOrig.sets)+' sets · '+esc(ex.reps||exOrig.reps)+' reps</div>'+plannedRows+'</div>'
+      +'<div class="set-list"><div class="small dim">Planned '+plannedCount+' sets · '+esc(ex.reps||exOrig.reps)+' reps</div>'+plannedRows+'<button class="btn btn-sm" data-add-set="'+ex.id+'" style="margin-top:8px">+ Add set</button></div>'
       +(sets.length ? '<div class="set-chips">'+sets.map(function(s,i){var effort=s.rir===0?'failure':(s.rir!=null?s.rir+' RIR':'');return '<span class="set-chip">'+s.weight+'kg × '+s.reps+(effort?' · '+effort:'')+' <button class="btn-ghost" data-edit-set="'+ex.id+'" data-set-index="'+i+'" aria-label="Edit set">edit</button><button class="btn-ghost" data-delete-set="'+ex.id+'" data-set-index="'+i+'" aria-label="Delete set">×</button></span>';}).join('')+'</div>' : '')
       +progressionPrompt
       +'<div style="display:flex;align-items:center;gap:8px;margin-top:10px">'+warmUpLink+routineRemoveLink+noteInputHTML+'</div>'
@@ -2570,7 +2588,6 @@ function attachGymEvents(key, rec, session) {
     btn.addEventListener('click', function(){
       triggerHaptic();
       var id = btn.dataset.logset;
-      var rest = parseInt(btn.dataset.rest,10)||90;
       var setIndex = parseInt(btn.dataset.setIndex,10);
       var wEl = document.querySelector('.set-weight[data-ex="'+id+'"][data-set-index="'+setIndex+'"]');
       var rEl = document.querySelector('.set-reps[data-ex="'+id+'"][data-set-index="'+setIndex+'"]');
@@ -2581,10 +2598,12 @@ function attachGymEvents(key, rec, session) {
       rec = dayRecord(key);
       rec.workout = rec.workout||{};
       rec.workout[id] = rec.workout[id]||[];
+      rec.workoutDraft = rec.workoutDraft||{};
       rec.workoutMeta=rec.workoutMeta||{};
       if(!rec.workoutMeta.startedAt) rec.workoutMeta.startedAt=new Date().toISOString();
       rec.workoutMeta.sessionLabel=session.label;
       rec.workout[id][setIndex] = {weight:w,reps:r,rir:rirValue};
+      if (rec.workoutDraft[id]) delete rec.workoutDraft[id][setIndex];
       rec.workoutMeta=rec.workoutMeta||{sessionLabel:session.label};
       rec.workoutMeta.sessionLabel=session.label;
       rec.workoutMeta.updatedAt=new Date().toISOString();
@@ -2598,6 +2617,44 @@ function attachGymEvents(key, rec, session) {
       }
       saveDayRecord(key,rec);
       renderGym();
+    });
+  });
+
+  document.querySelectorAll('.set-weight,.set-reps,.set-rir').forEach(function(input){
+    input.addEventListener('input', function(){
+      var draftRec=dayRecord(key), id=input.dataset.ex, index=parseInt(input.dataset.setIndex,10);
+      draftRec.workoutDraft=draftRec.workoutDraft||{};
+      draftRec.workoutDraft[id]=draftRec.workoutDraft[id]||[];
+      var row={
+        weight: parseFloat(document.querySelector('.set-weight[data-ex="'+id+'"][data-set-index="'+index+'"]').value)||'',
+        reps: parseInt(document.querySelector('.set-reps[data-ex="'+id+'"][data-set-index="'+index+'"]').value,10)||'',
+        rir: (document.querySelector('.set-rir[data-ex="'+id+'"][data-set-index="'+index+'"]').value || null)
+      };
+      draftRec.workoutDraft[id][index]=row;
+      saveDayRecord(key,draftRec);
+    });
+  });
+
+  document.querySelectorAll('[data-add-set]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var draftRec=dayRecord(key), id=btn.dataset.addSet;
+      draftRec.workoutDraft=draftRec.workoutDraft||{};
+      draftRec.workoutDraft[id]=draftRec.workoutDraft[id]||[];
+      var count=Math.max((draftRec.workout&&draftRec.workout[id]||[]).length,draftRec.workoutDraft[id].length);
+      draftRec.workoutDraft[id][count]={weight:'',reps:'',rir:null};
+      saveDayRecord(key,draftRec);
+      renderGym();
+    });
+  });
+
+  document.querySelectorAll('[data-remove-draft]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var draftRec=dayRecord(key), id=btn.dataset.removeDraft, index=parseInt(btn.dataset.setIndex,10);
+      if(draftRec.workoutDraft&&draftRec.workoutDraft[id]){
+        draftRec.workoutDraft[id].splice(index,1);
+        saveDayRecord(key,draftRec);
+        renderGym();
+      }
     });
   });
 
