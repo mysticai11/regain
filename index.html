@@ -922,6 +922,14 @@ function goalRateLabel() {
   return goalDirection() < 0 ? 'weekly loss rate' : 'weekly gain rate';
 }
 
+function profileName() {
+  return profile && profile.name ? String(profile.name).trim() : 'there';
+}
+
+function personalizedEyebrow(context) {
+  return 'Hi '+esc(profileName())+' · '+context;
+}
+
 function currentWeight() {
   var keys = allDayKeys().reverse();
   for (var i = 0; i < keys.length; i++) {
@@ -2386,7 +2394,7 @@ function renderGym() {
     var routineManagerHTML = (profile.programSplit === '5day' || profile.programSplit === '6day')
       ? '<button class="btn btn-primary" id="manageRoutineRestBtn" style="width:100%;margin-top:8px">Manage custom routines</button>' : '';
     document.getElementById('content').innerHTML =
-      '<div class="topbar"><div><span class="eyebrow">'+dayName+'</span><div class="title">Gym</div></div></div>'
+      '<div class="topbar"><div><span class="eyebrow">'+personalizedEyebrow(dayName)+'</span><div class="title">Gym</div></div></div>'
       +'<div class="rest-day">'+ic('moon','32')+'<div class="rest-label">Rest day</div><div class="small dim">next session: '+nextDay+'</div><button class="btn btn-primary" id="chooseRestWorkout">Choose a workout anyway</button></div>'
       +routineManagerHTML
       +'<div class="section"><span class="eyebrow">weekly volume targets</span>'+buildVolumeTable()+'</div>';
@@ -2457,7 +2465,7 @@ function renderGym() {
 
   document.getElementById('content').innerHTML =
     '<div class="topbar">'
-      +'<div><span class="eyebrow">'+dayName+' · '+session.label+'</span><div class="title">Gym</div></div>'
+      +'<div><span class="eyebrow">'+personalizedEyebrow(dayName+' · '+session.label)+'</span><div class="title">Gym</div></div>'
       +'<div style="display:flex;gap:8px"><button class="btn btn-sm" id="chooseWorkoutBtn">Change workout</button><button class="icon-btn" id="volBtn" title="Weekly volume">'+ic('chart')+'</button></div>'
     +'</div>'
     +'<div class="workout-picker">'+IRON_LOG_PROGRAM.map(function(s,i){return '<button class="chip '+(i===selected.index?'active':'')+'" data-pick-workout="'+i+'">'+esc(s.label.split('·')[0].trim())+'</button>';}).join('')+'</div>'
@@ -3647,7 +3655,7 @@ function renderProgressSimple() {
     document.getElementById('weightMeta').textContent=latest!=null?(latest+' kg 7-day avg · goal '+(profile.targetWeight||'—')+' kg · '+status):'No weight entries yet';
   };
   document.getElementById('content').innerHTML=
-    '<div class="topbar"><div><span class="eyebrow">your trends</span><div class="title">Progress</div></div><button class="icon-btn" id="settingsBtn" aria-label="Settings">'+ic('settings')+'</button></div>'
+    '<div class="topbar"><div><span class="eyebrow">'+personalizedEyebrow('your trends')+'</span><div class="title">Progress</div></div><button class="icon-btn" id="settingsBtn" aria-label="Settings">'+ic('settings')+'</button></div>'
     +'<div class="stat-strip"><span><b>'+(current!=null?current.toFixed(1)+' kg':'—')+'</b><small>current weight</small></span><span><b>'+records.filter(function(r){return dayRecord(r.key).workoutDone;}).length+'</b><small>workouts logged</small></span><span><b>'+exOptions.length+'</b><small>lifts tracked</small></span></div>'
     +'<section class="chart-section"><div class="section-head"><span class="eyebrow">'+esc(goalLabel())+' · bodyweight</span><span id="weightMeta" class="small dim"></span></div><div class="range-row"><button class="range active" data-range="1w">1 week</button><button class="range" data-range="1m">1 month</button><button class="range" data-range="3m">3 months</button></div><div id="weightPlot"></div><div class="chart-legend"><span><i></i>7-day average</span><span><i class="goal"></i>goal line</span></div><div class="progress-entry"><input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="Log bodyweight now" inputmode="decimal"><button class="btn btn-primary" id="saveProgressWeight">Save</button></div><div class="weight-entry-list">'+weightEntriesHTML(entries)+'</div></section>'
     +'<section class="chart-section"><div class="section-head"><span class="eyebrow">lift strength</span><select id="liftSelect" class="compact-select">'+exOptions.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join('')+'</select></div><div id="liftPlot"></div><div class="small dim">Estimated 1RM from your best logged set each workout.</div></section>'
@@ -3691,7 +3699,7 @@ function renderTodaySimple() {
   var recent=ls('rg_recent_foods',[]).slice(0,5);
   var recentHtml=recent.length?'<div class="chips-row">'+recent.map(function(r){return '<button class="chip quick-recent" data-food="'+encodeURIComponent(JSON.stringify(r))+'">'+esc(r.name)+'</button>';}).join('')+'</div>':'';
   document.getElementById('content').innerHTML=
-    '<div class="topbar"><div><span class="eyebrow">'+new Date().toLocaleDateString([], {weekday:'long',month:'short',day:'numeric'})+'</span><div class="title">Today</div></div><button class="icon-btn" id="settingsBtn" aria-label="Settings">'+ic('settings')+'</button></div>'
+    '<div class="topbar"><div><span class="eyebrow">'+personalizedEyebrow(new Date().toLocaleDateString([], {weekday:'long',month:'short',day:'numeric'}))+'</span><div class="title">Today</div></div><button class="icon-btn" id="settingsBtn" aria-label="Settings">'+ic('settings')+'</button></div>'
     +'<section class="focus-card"><button class="focus-number" id="calorieDetails" aria-label="Show macro details"><span class="eyebrow">'+(calorieDelta>=0?'calories remaining':'calories over target')+'</span><strong>'+Math.abs(calorieDelta).toLocaleString()+'</strong><span class="focus-target">of '+targets.kcal.toLocaleString()+' kcal</span></button><div class="progress-track"><span style="width:'+calPct+'%"></span></div><div class="macro-hidden" id="macroDetails"><span>Carbs <b>'+tot.carbs+'g</b></span><span>Fat <b>'+tot.fat+'g</b></span></div></section>'
     +'<section class="simple-section"><div class="section-head"><span class="eyebrow">protein</span><span class="mono">'+tot.protein+' / '+targets.protein+'g</span></div><div class="progress-track protein-track"><span style="width:'+proteinPct+'%"></span></div></section>'
     +'<section class="today-workout '+(!hasWorkout?'rest':'')+'"><div><span class="eyebrow">today\'s workout</span><strong>'+ (hasWorkout?esc(session.label):'Rest day')+'</strong><span class="small dim">'+(hasWorkout?done+' of '+session.exercises.length+' exercises logged':'You can train today if you need to move the plan')+'</span></div><button class="btn '+(hasWorkout?'btn-primary':'')+'" id="startWorkout">'+(hasWorkout?'Start':'Choose')+'</button></section>'
