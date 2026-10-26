@@ -1917,6 +1917,7 @@ function addFoodToDay(key, food, servings) {
 }
 
 function migrateFoodTotals() {
+  if(!profile || !profile.startDate) return;
   if (ls('rg_food_totals_v2', false)) return;
   allDayKeys().forEach(function(key) {
     var rec=dayRecord(key), changed=false;
