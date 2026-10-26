@@ -60,6 +60,16 @@ The app ships with one editable 5-day plan:
 
 The previous selectable workout programs are no longer used. Exercise alternatives remain available from the exercise swap control.
 
+## Simplified navigation
+
+The app is organized around three mobile-first screens:
+
+- **Today**: calories remaining, protein progress, today's workout, bodyweight, quick food logging, and an optional 1–5 readiness tap.
+- **Gym**: the active workout session and set logging.
+- **Progress**: four focused trend views plus a collapsible recent-history list.
+
+Carbs and fat are hidden behind the calorie summary, while backup, import, training schedule, equipment, custom foods, and reset controls live under the collapsed Advanced Settings section.
+
 ## Food Database
 
 Nutrition data is sourced from **USDA FoodData Central** (public domain — fdc.nal.usda.gov). The embedded database covers ~200 curated foods optimized for a high-protein bulking diet: meats, dairy, eggs, grains, legumes, supplements, common restaurant items.
