@@ -1,7 +1,7 @@
 {
-  "name": "Regain",
-  "short_name": "Regain",
-  "description": "Personal hardgainer bulk tracker — daily calorie, macro, weight and training log",
+  "name": "Iron Log",
+  "short_name": "Iron Log",
+  "description": "Private offline workout logger for the Iron Log 5-day split",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",

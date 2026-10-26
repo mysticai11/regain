@@ -1,5 +1,5 @@
-// sw.js — Regain v5 service worker
-const CACHE = 'regain-v8';
+// sw.js — Iron Log service worker
+const CACHE = 'iron-log-v1';
 const LOCAL_ASSETS = ['./', './index.html', './db.js', './manifest.json', './icon-192.svg', './icon-512.svg'];
 
 self.addEventListener('install', e => {

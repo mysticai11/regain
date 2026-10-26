@@ -1,6 +1,6 @@
-# Regain — Hardgainer Bulk Tracker PWA
+# Iron Log — Offline Workout Logger PWA
 
-A personal, offline-first Progressive Web App for tracking calories, macros, weight, and structured training during a long-term bulk.
+A private, offline-first Progressive Web App for logging the Iron Log 5-day beginner muscle-building split. The app also supports a loss goal, with editable calorie and protein targets.
 
 ---
 
@@ -46,6 +46,20 @@ After adding, the app runs in standalone mode (no browser chrome, full-screen).
 
 ---
 
+## Iron Log training plan
+
+The app ships with one editable 5-day plan:
+
+- Monday: Chest + Back
+- Tuesday: Shoulders + Arms
+- Wednesday: Legs A + Triceps
+- Thursday: Rest
+- Friday: Chest + Back
+- Saturday: Legs B + Arms
+- Sunday: Rest
+
+The previous selectable workout programs are no longer used. Exercise alternatives remain available from the exercise swap control.
+
 ## Food Database
 
 Nutrition data is sourced from **USDA FoodData Central** (public domain — fdc.nal.usda.gov). The embedded database covers ~200 curated foods optimized for a high-protein bulking diet: meats, dairy, eggs, grains, legumes, supplements, common restaurant items.
@@ -55,6 +69,12 @@ A credit note is shown in the Progress tab.
 Custom foods and recipes are stored in the same IndexedDB database and are included in JSON export/import.
 
 ---
+
+## Local profile and data backup
+
+There is no login or lock screen. The profile, progress, meals, workouts, and food data remain on the device until the user explicitly resets or deletes them. Use Settings → Export to download a complete JSON backup; it includes all discovered daily records, including workout history outside the current program date range. Import validates the profile and day records before restoring them.
+
+The onboarding goal supports muscle gain, fat loss, recomposition, or strength. Select fat loss to set a target below the starting weight; calorie targets remain editable in Settings.
 
 ## Data Backup
 

@@ -3,18 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Regain</title>
-<meta name="description" content="Personal hardgainer bulk tracker — daily calorie, macro, weight, and training log.">
+<title>Iron Log</title>
+<meta name="description" content="Private offline workout logger for the Iron Log 5-day muscle-building split.">
 <meta name="theme-color" content="#15130F">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Regain">
+<meta name="apple-mobile-web-app-title" content="Iron Log">
 <link rel="manifest" href="manifest.json">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="db.js"></script>
 <style>
 :root {
@@ -227,6 +223,113 @@ input::placeholder { color: var(--text-muted); }
 .meal-row { padding: 9px 0; }
 .section > .eyebrow { margin-bottom: 7px; }
 button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--amber-light); outline-offset: 2px; }
+
+/* ── Iron Log visual system ── */
+:root {
+  --bg: #0b1220;
+  --surface: #121d2d;
+  --surface-raised: #18263a;
+  --surface-hi: #21334b;
+  --border: #263b55;
+  --border-strong: #3a5573;
+  --text: #f5f8fc;
+  --text-secondary: #c5d2e2;
+  --text-muted: #8fa3ba;
+  --amber: #b8f34a;
+  --amber-light: #d3ff78;
+  --amber-dark: #83b52b;
+  --sage: #55d6be;
+  --sage-light: #8cebd9;
+  --sage-dark: #237b6c;
+  --rust: #ff7b83;
+  --rust-light: #ffadb1;
+  --rust-dark: #a63e4b;
+  --nav-h: 72px;
+}
+body {
+  background: radial-gradient(circle at 50% -10%, #1b3049 0, var(--bg) 42%);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.01em;
+}
+#app { max-width: 560px; }
+.content { padding: 22px 16px calc(var(--nav-h) + var(--safe-b) + 28px); }
+.topbar { align-items: center; margin-bottom: 20px; }
+.title { font-size: 25px; letter-spacing: -0.02em; }
+.eyebrow { color: #a8bbd0; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; }
+.section { margin-bottom: 26px; }
+.section-head { margin-bottom: 10px; }
+.section-head .eyebrow, .section > .eyebrow { color: #b7c8da; }
+.macro-grid, .stat-grid, .mc-grid { gap: 10px; }
+.macro-card, .stat-card, .mc-card, .exercise-card, .timer-bar, .regression-card {
+  background: linear-gradient(145deg, rgba(24,38,58,.98), rgba(15,27,43,.98));
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0,0,0,.14);
+}
+.macro-card, .stat-card { border-radius: 14px; padding: 13px 12px; }
+.mc-card { border-radius: 16px; padding: 15px; }
+.mc-card:active, .exercise-card:active { border-color: var(--border-strong); }
+.macro-label, .stat-sub, .mc-sub { color: #a9bbce; }
+.macro-val, .stat-val, .mc-val { color: var(--text); }
+.macro-bar-track { height: 5px; background: #24364e; }
+.macro-bar-fill { background: var(--amber); }
+input[type=number], input[type=text], input[type=password], select {
+  min-height: 48px;
+  background: #0f1a2a;
+  border: 1px solid #38516d;
+  color: var(--text);
+  border-radius: 12px;
+  font-size: 16px;
+}
+input:focus, select:focus { border-color: var(--amber); box-shadow: 0 0 0 4px rgba(184,243,74,.14); }
+input::placeholder { color: #7f95ad; }
+.btn {
+  min-height: 44px;
+  background: #1b2b42;
+  border-color: #47627f;
+  color: var(--text);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.btn-primary { background: var(--amber); color: #142000; border-color: var(--amber); box-shadow: 0 5px 16px rgba(184,243,74,.16); }
+.btn-primary:active { background: var(--amber-dark); }
+.btn-ghost { min-height: 36px; color: #b7c8da; }
+.exercise-card { border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+.exercise-name { font-size: 17px; line-height: 1.25; }
+.exercise-cue { color: #a9bbce; line-height: 1.45; }
+.logged-count { color: #9cb1c7; font-size: 11px; }
+.set-add-row { gap: 10px; margin-top: 12px !important; }
+.set-add-row input { min-width: 0; }
+.set-add-row .btn { flex: 0 0 72px; }
+.set-chip { background: #223751; border: 1px solid #35516e; color: #d7e4f2; padding: 7px 10px; }
+.advisory { background: #14253a; border-color: #38536f; border-radius: 14px; color: #d1deeb; }
+.advisory .advisory-icon { color: var(--amber); }
+.bottomnav {
+  max-width: 560px;
+  padding: 8px 8px calc(8px + var(--safe-b));
+  background: rgba(11,18,32,.94);
+  border-top: 1px solid #29415d;
+  box-shadow: 0 -8px 24px rgba(0,0,0,.2);
+  backdrop-filter: blur(16px);
+}
+.navitem { color: #91a6bd; border-radius: 12px; padding: 7px 14px; min-width: 68px; min-height: 52px; font-size: 11px; font-weight: 600; }
+.navitem.active { color: var(--amber); background: rgba(184,243,74,.1); }
+.navitem:active { background: rgba(255,255,255,.07); }
+.sheet { background: #0e1929; border-color: #314a66; padding: 22px 18px calc(22px + var(--safe-b)); }
+.day-toggle { min-height: 40px; padding: 8px 12px; background: #16263b; border-color: #3a5573; color: #b9c9da; }
+.day-toggle.active { background: var(--amber); color: #142000; border-color: var(--amber); }
+.onboard { min-height: 100dvh; justify-content: center; padding: 36px 22px 48px; }
+.onboard-title { color: var(--amber); font-size: 34px; letter-spacing: -0.04em; }
+.onboard-sub { color: #b4c5d7; }
+.onboard label { color: #c4d2e0; font-size: 13px; font-weight: 600; }
+.rest-day { padding: 64px 0 48px; }
+@media (min-width: 700px) {
+  .content { padding-left: 24px; padding-right: 24px; }
+  .bottomnav { border-radius: 18px 18px 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
 </style>
 </head>
 <body>
@@ -441,17 +544,48 @@ var PROGRAM_6DAY = [
 ];
 
 function getActiveProgram() {
-  if(!profile) return PROGRAM_3DAY;
-  if(profile.programSplit === '2day') return PROGRAM_2DAY;
-  if(profile.programSplit === '4day') return PROGRAM_4DAY;
-  if(profile.programSplit === '5day' || profile.programSplit === '6day') {
-    var customRoutines = profile.customRoutines || {};
-    return (profile.trainingDays || []).map(function(day){
-      return {label:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][day]+' custom routine', exercises:customRoutines[day]||[]};
-    });
-  }
-  return PROGRAM_3DAY;
+  return IRON_LOG_PROGRAM;
 }
+
+var IRON_LOG_PROGRAM = [
+  {label:'Monday · Chest + Back', exercises:[
+    {id:'incline_bench',name:'Incline bench press',muscle:'chest',sets:2,reps:'6–10',rir:'1–2',rest:150,cue:'Upper chest'},
+    {id:'machine_chest',name:'Seated chest press machine',muscle:'chest',sets:2,reps:'6–10',rir:'1–2',rest:150,cue:'Chest'},
+    {id:'pec_deck',name:'Pec deck',muscle:'chest',sets:2,reps:'8–10',rir:'0–1',rest:90,cue:'Chest'},
+    {id:'lat_pulldown',name:'Lat pulldown · neutral grip',muscle:'back',sets:2,reps:'6–10',rir:'1–2',rest:150,cue:'ALT: pull-up or chin-up'},
+    {id:'machine_row',name:'Machine row',muscle:'back',sets:2,reps:'6–10',rir:'1–2',rest:150,cue:'Mid back'}
+  ]},
+  {label:'Tuesday · Shoulders + Arms', exercises:[
+    {id:'shoulder_press',name:'Shoulder press machine',muscle:'shoulders',sets:2,reps:'6–10',rir:'1–2',rest:150,cue:'ALT: dumbbell shoulder press'},
+    {id:'lateral_raise',name:'Lateral raise · cable or dumbbell',muscle:'shoulders',sets:3,reps:'10–15',rir:'0–1',rest:90,cue:'ALT: machine lateral raise'},
+    {id:'rear_delt_fly',name:'Rear delt machine',muscle:'shoulders',sets:2,reps:'8–10',rir:'0–1',rest:90,cue:'Rear delts'},
+    {id:'incline_curl',name:'Incline dumbbell curl',muscle:'biceps',sets:2,reps:'6–10',rir:'0–1',rest:90,cue:'ALT: dumbbell hammer curl'},
+    {id:'overhead_extension',name:'Overhead extension',muscle:'triceps',sets:2,reps:'6–10',rir:'0–1',rest:90,cue:'Triceps'}
+  ]},
+  {label:'Wednesday · Legs A + Triceps', exercises:[
+    {id:'leg_extension',name:'Leg extension',muscle:'quads',sets:2,reps:'8–10',rir:'0–1',rest:90,cue:'Quads'},
+    {id:'leg_press',name:'Leg press · low + narrow',muscle:'quads',sets:2,reps:'6–10',rir:'1–2',rest:150,cue:'ALT: hack squat'},
+    {id:'db_rdl',name:'Dumbbell RDL',muscle:'hamstrings',sets:2,reps:'6–10',rir:'1–2',rest:150,cue:'Hamstrings'},
+    {id:'leg_curl',name:'Seated hamstring curl',muscle:'hamstrings',sets:2,reps:'8–10',rir:'0–1',rest:90,cue:'Hamstrings'},
+    {id:'close_grip_bench',name:'Close grip bench press',muscle:'triceps',sets:2,reps:'6–10',rir:'1–2',rest:150,cue:'ALT: dips'}
+  ]},
+  {label:'Friday · Chest + Back', exercises:[
+    {id:'bench',name:'Flat bench press',muscle:'chest',sets:2,reps:'6–10',rir:'1–2',rest:150,cue:'Chest'},
+    {id:'db_incline_press',name:'Incline dumbbell press',muscle:'chest',sets:2,reps:'6–10',rir:'1–2',rest:150,cue:'ALT: machine incline press'},
+    {id:'incline_fly',name:'Incline dumbbell fly',muscle:'chest',sets:2,reps:'8–10',rir:'0–1',rest:90,cue:'Low incline, light, stretch'},
+    {id:'lat_pulldown_wide',name:'Lat pulldown · wide or underhand',muscle:'back',sets:2,reps:'6–10',rir:'1–2',rest:150,cue:'ALT: pull-up or chin-up'},
+    {id:'machine_row_alt',name:'Machine row · different grip',muscle:'back',sets:2,reps:'6–10',rir:'1–2',rest:150,cue:'Mid back'},
+    {id:'lateral_raise_fri',name:'Lateral raise · cable or dumbbell',muscle:'shoulders',sets:3,reps:'12–15',rir:'0–1',rest:90,cue:'ALT: machine lateral raise'}
+  ]},
+  {label:'Saturday · Legs B + Arms', exercises:[
+    {id:'leg_press_wide',name:'Leg press · high + wide',muscle:'quads',sets:2,reps:'6–10',rir:'1–2',rest:150,cue:'ALT: hack squat'},
+    {id:'leg_curl_sat',name:'Seated hamstring curl',muscle:'hamstrings',sets:2,reps:'8–10',rir:'0–1',rest:90,cue:'Hamstrings'},
+    {id:'leg_extension_sat',name:'Leg extension',muscle:'quads',sets:2,reps:'8–10',rir:'0–1',rest:90,cue:'Quads'},
+    {id:'hammer_curl',name:'Hammer curl',muscle:'biceps',sets:2,reps:'6–10',rir:'0–1',rest:90,cue:'Biceps'},
+    {id:'cable_pushdown',name:'Cable pushdown',muscle:'triceps',sets:2,reps:'6–10',rir:'0–1',rest:90,cue:'Triceps'},
+    {id:'face_pull',name:'Rear delt fly or face pull',muscle:'shoulders',sets:2,reps:'8–10',rir:'0–1',rest:90,cue:'Rear delts'}
+  ]}
+];
 
 var ALTERNATES = [
   {id:'hack_squat', name:'Hack squat', muscle:'quads,glutes', sets:4, reps:'10–12', rir:'1–2', rest:150, cue:'2.5 min rest'},
@@ -466,14 +600,14 @@ var ALTERNATES = [
 ];
 
 function getExerciseData(id) {
-  var allProg = PROGRAM_2DAY.concat(PROGRAM_3DAY, PROGRAM_4DAY, PROGRAM_5DAY, PROGRAM_6DAY);
+  var allProg = IRON_LOG_PROGRAM.concat(PROGRAM_2DAY, PROGRAM_3DAY, PROGRAM_4DAY, PROGRAM_5DAY, PROGRAM_6DAY);
   var allEx = ALTERNATES.slice();
   allProg.forEach(function(s){ allEx = allEx.concat(s.exercises); });
   return allEx.find(function(e){ return e.id === id; });
 }
 
 function getAllExercisesForMuscle(muscleStr) {
-  var allProg = PROGRAM_2DAY.concat(PROGRAM_3DAY, PROGRAM_4DAY, PROGRAM_5DAY, PROGRAM_6DAY);
+  var allProg = IRON_LOG_PROGRAM.concat(PROGRAM_2DAY, PROGRAM_3DAY, PROGRAM_4DAY, PROGRAM_5DAY, PROGRAM_6DAY);
   var allEx = ALTERNATES.slice();
   allProg.forEach(function(s){ allEx = allEx.concat(s.exercises); });
   var seen = {}; var out = [];
@@ -657,6 +791,19 @@ var timer = {active:false, remaining:0, total:0, interval:null};
 var foodPanel = null; // {mode:'add'|'search', cb}
 var confirmLoggingAccurate = false; // tracks if user confirmed logging in discovery
 
+function hashPin(pin, salt) {
+  var bytes = new TextEncoder().encode(pin);
+  return crypto.subtle.importKey('raw', bytes, 'PBKDF2', false, ['deriveBits']).then(function(key) {
+    return crypto.subtle.deriveBits({name:'PBKDF2', salt:new TextEncoder().encode(salt), iterations:310000, hash:'SHA-256'}, key, 256);
+  }).then(function(bits) {
+    return btoa(String.fromCharCode.apply(null, new Uint8Array(bits)));
+  });
+}
+
+function verifyPin(pin, stored) {
+  return hashPin(pin, stored.salt).then(function(hash) { return hash === stored.hash; });
+}
+
 // ── Profile / Day helpers ──────────────────────────────────────────────────────
 function dayRecord(key) { return ls('rg_day_'+key, {weight:null,sleep:null,readiness:null,meals:{},extra:[],workout:{},workoutDone:false,shielded:false}); }
 function saveDayRecord(key,rec){ sv('rg_day_'+key, rec); }
@@ -676,7 +823,7 @@ function getTargetsForDate(dateStr) {
   var tdays = profile.trainingDays || [1,3,5];
   var isTrain = tdays.includes(d.getDay());
   return {
-    kcal: isTrain ? (profile.calTargetGym || CAL_TARGET_GYM) : (profile.calTargetRest || CAL_TARGET_REST),
+    kcal: isTrain ? (profile.calTargetGym || (profile.goal === 'loss' ? 2700 : CAL_TARGET_GYM)) : (profile.calTargetRest || (profile.goal === 'loss' ? 2500 : CAL_TARGET_REST)),
     protein: isTrain ? (profile.protTargetGym || PROT_TARGET_GYM) : (profile.protTargetRest || PROT_TARGET_REST),
     carbs: isTrain ? 475 : 415,
     fat: isTrain ? 110 : 100
@@ -768,10 +915,6 @@ function yesterdayMissed() {
 function getSessionType() {
   var tdays = profile ? (profile.trainingDays||[1,3,5]) : [1,3,5];
   var todayDay = new Date().getDay();
-  if(profile && (profile.programSplit === '5day' || profile.programSplit === '6day')) {
-    var custom = (profile.customRoutines && profile.customRoutines[todayDay]) || [];
-    return { label: 'Custom routine', exercises: custom };
-  }
   var start = new Date(profile.startDate); start.setHours(0,0,0,0);
   var today = new Date(); today.setHours(0,0,0,0);
   var count = 0;
@@ -2714,6 +2857,7 @@ function openSettings() {
   var splitVal = profile.programSplit || '3day';
   var equipVal = profile.equipment || 'full';
   var dietVal = profile.dietaryPattern || 'nonveg';
+  var goalVal = profile.goal || 'gain';
   
   overlay.innerHTML='<div class="sheet" style="position:relative">'
     +'<div class="sheet-handle"></div>'
@@ -2742,14 +2886,7 @@ function openSettings() {
     +'<div class="day-toggles">'+dayNames.map(function(d,i){return '<button class="day-toggle'+(tdays.includes(i)?' active':'')+'" data-day="'+i+'">'+d+'</button>';}).join('')+'</div>'
     +'<label class="eyebrow" style="margin-top:12px">Workout Split</label>'
     +'<div style="display:flex;gap:8px">'
-      +'<select id="setSplit" style="flex:1">'
-        +'<option value="2day"'+(splitVal==='2day'?' selected':'')+'>2 Days/Wk (Full Body)</option>'
-        +'<option value="3day"'+(splitVal==='3day'?' selected':'')+'>3 Days/Wk (Full Body)</option>'
-        +'<option value="4day"'+(splitVal==='4day'?' selected':'')+'>4 Days/Wk (Upper/Lower)</option>'
-        +'<option value="5day"'+(splitVal==='5day'?' selected':'')+'>5 Days/Wk (Wednesday Rest)</option>'
-        +'<option value="6day"'+(splitVal==='6day'?' selected':'')+'>6 Days/Wk (Sunday Rest)</option>'
-      +'</select>'
-      +'<button class="btn" id="previewSplitBtn">Preview</button>'
+      +'<select id="setSplit" style="flex:1"><option value="iron5day" selected>Iron Log · 5-day split</option></select>'
     +'</div>'
     +'<label class="eyebrow" style="margin-top:12px">Equipment Access</label>'
     +'<select id="setEquip">'
@@ -2769,6 +2906,8 @@ function openSettings() {
     +'<select id="setExp"><option value="novice"'+(profile.experience==='novice'?' selected':'')+'>Novice / Intermediate</option><option value="advanced"'+(profile.experience==='advanced'?' selected':'')+'>Advanced</option></select>'
     +'<label class="eyebrow" style="margin-top:12px">Goal Weight (kg)</label>'
     +'<input type="number" step="0.1" id="setTargetWeight" value="'+(profile.targetWeight||60.0)+'" inputmode="decimal">'
+    +'<label class="eyebrow" style="margin-top:12px">Primary goal</label>'
+    +'<select id="setGoal"><option value="gain"'+(goalVal==='gain'?' selected':'')+'>Build muscle / gain weight</option><option value="loss"'+(goalVal==='loss'?' selected':'')+'>Lose fat / lose weight</option><option value="recomp"'+(goalVal==='recomp'?' selected':'')+'>Recomposition</option><option value="strength"'+(goalVal==='strength'?' selected':'')+'>Strength</option></select>'
     +'<label class="eyebrow" style="margin-top:12px">Streak shields</label>'
     +'<div style="display:flex;gap:10px;align-items:center;margin-top:6px"><span class="mono" style="font-size:18px;color:var(--amber)">'+(profile.shields||0)+'</span><button class="btn btn-sm" id="buyShieldBtn"'+(((profile.xp||0)<100)?' disabled':'')+'>Buy shield (100 XP)</button></div>'
     +'<div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">'
@@ -2800,13 +2939,12 @@ function openSettings() {
     profile.calTargetGym=parseInt(document.getElementById('setTargetGym').value,10)||CAL_TARGET_GYM;
     profile.protTargetRest=parseInt(document.getElementById('setProtRest').value,10)||PROT_TARGET_REST;
     profile.protTargetGym=parseInt(document.getElementById('setProtGym').value,10)||PROT_TARGET_GYM;
-    profile.programSplit=document.getElementById('setSplit').value;
-    if(profile.programSplit === '6day') profile.trainingDays=[1,2,3,4,5,6];
-    else if(profile.programSplit === '5day') profile.trainingDays=[0,1,2,4,5,6];
-    else profile.trainingDays=tdays;
+    profile.programSplit='iron5day';
+    profile.trainingDays=[1,2,3,5,6];
     profile.equipment=document.getElementById('setEquip').value;
     profile.dietaryPattern=document.getElementById('setDiet').value;
     profile.experience=document.getElementById('setExp').value;
+    profile.goal=document.getElementById('setGoal').value;
     profile.targetWeight=parseFloat(document.getElementById('setTargetWeight').value)||60.0;
     sv('rg_profile',profile);
     overlay.remove(); renderTab();
@@ -2837,9 +2975,6 @@ function openSettings() {
   if(expBtn) expBtn.addEventListener('click', exportData);
   var impBtn = overlay.querySelector('#importBtn');
   if(impBtn) impBtn.addEventListener('click', importData);
-  overlay.querySelector('#previewSplitBtn').addEventListener('click', function(){
-    openSplitPreview();
-  });
 }
 
 function openSplitPreview() {
@@ -2997,14 +3132,34 @@ function handlePhotoUpload(file) {
 
 function exportData() {
   FoodDB.exportAll().then(function(dbData){
-    var data = {version:2, exported: new Date().toISOString(), profile:ls('rg_profile',null), meals:ls('rg_meals',DEFAULT_MEALS), recentFoods:ls('rg_recent_foods',[]), dayKeys:allDayKeys(), days:{}, idb:dbData};
-    allDayKeys().forEach(function(k){ data.days[k]=dayRecord(k); });
+    var keys = allDayKeys();
+    var keySet = {};
+    keys.forEach(function(k){ keySet[k] = true; });
+    Object.keys(localStorage).forEach(function(k){ if(k.indexOf('rg_day_') === 0) keySet[k.slice(7)] = true; });
+    Object.keys(SQLiteStorage.cache || {}).forEach(function(k){ if(k.indexOf('rg_day_') === 0) keySet[k.slice(7)] = true; });
+    keys = Object.keys(keySet).sort();
+    var data = {
+      app:'Iron Log',
+      version:3,
+      exported: new Date().toISOString(),
+      profile:ls('rg_profile',null),
+      meals:ls('rg_meals',DEFAULT_MEALS),
+      recentFoods:ls('rg_recent_foods',[]),
+      lastBackup:ls('rg_last_backup',null),
+      dayKeys:keys,
+      days:{},
+      idb:dbData
+    };
+    keys.forEach(function(k){ data.days[k]=dayRecord(k); });
     var blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     var url = URL.createObjectURL(blob);
-    var a = document.createElement('a'); a.href=url; a.download='regain-backup-'+todayKey()+'.json'; a.click();
-    URL.revokeObjectURL(url);
-    showToast('Backup exported','ok');
+    var a = document.createElement('a'); a.href=url; a.download='iron-log-backup-'+todayKey()+'.json'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
     sv('rg_last_backup', Date.now());
+    showToast('Profile, progress, meals, and workouts exported','ok');
+  }).catch(function(err) {
+    console.error('Export failed:', err);
+    showToast('Export failed. Try again after freeing device storage.','warn');
   });
 }
 
@@ -3016,14 +3171,14 @@ function importData() {
     reader.onload=function(e){
       try {
         var data=JSON.parse(e.target.result);
-        if(!data.profile) throw new Error('Invalid backup file');
+        if(!data.profile || !data.days || typeof data.days !== 'object') throw new Error('Invalid backup file');
         if(!confirm('This will overwrite all current data. Continue?')) return;
         sv('rg_profile',data.profile);
         sv('rg_meals',data.meals||DEFAULT_MEALS);
         sv('rg_recent_foods',data.recentFoods||[]);
         Object.keys(data.days||{}).forEach(function(k){sv('rg_day_'+k,data.days[k]);});
-        FoodDB.importAll(data.idb||{}).then(function(){ profile=data.profile; showToast('Data restored','ok'); setTimeout(function(){location.reload();},800); });
-      } catch(err) { showToast('Invalid backup file','warn'); }
+        FoodDB.importAll(data.idb||{}).then(function(){ profile=data.profile; sv('rg_last_backup', Date.now()); showToast('Profile, progress, meals, and workouts restored','ok'); setTimeout(function(){location.reload();},800); }).catch(function(){ showToast('Food database restore failed','warn'); });
+      } catch(err) { console.error('Import failed:', err); showToast('Invalid or corrupted backup file','warn'); }
     };
     reader.readAsText(file);
   });
@@ -3036,7 +3191,7 @@ function importData() {
 function renderOnboarding() {
   document.getElementById('app').innerHTML =
     '<div class="onboard">'
-    +'<div class="onboard-title">Regain</div>'
+    +'<div class="onboard-title">Iron Log</div>'
     +'<div class="onboard-sub">One-time configuration. All data remains locally on this device.</div>'
     
     +'<label style="margin-top:16px">Your Name (optional)</label>'
@@ -3045,6 +3200,8 @@ function renderOnboarding() {
     +'<label style="margin-top:16px">Starting Weight (kg)</label>'
     +'<input type="number" step="0.1" id="obWeight" value="54.0" placeholder="e.g. 54.0" inputmode="decimal">'
     
+    +'<label style="margin-top:16px">Primary Goal</label>'
+    +'<select id="obGoal"><option value="gain">Build muscle / gain weight</option><option value="loss">Lose fat / lose weight</option><option value="recomp">Recomposition</option><option value="strength">Strength</option></select>'
     +'<label style="margin-top:16px">Goal Weight (kg)</label>'
     +'<input type="number" step="0.1" id="obTargetWeight" value="60.0" placeholder="e.g. 60.0" inputmode="decimal">'
     
@@ -3064,14 +3221,7 @@ function renderOnboarding() {
       +'<option value="vegan">Vegan</option>'
     +'</select>'
     
-    +'<label style="margin-top:16px">Default Workout Split</label>'
-    +'<select id="obSplit">'
-      +'<option value="3day" selected>3 Days/Week (Full Body)</option>'
-      +'<option value="2day">2 Days/Week (Full Body)</option>'
-      +'<option value="4day">4 Days/Week (Upper/Lower Split)</option>'
-      +'<option value="5day">5 Days/Week (Wednesday Rest)</option>'
-      +'<option value="6day">6 Days/Week (Sunday Rest)</option>'
-    +'</select>'
+    +'<div class="small dim" style="margin-top:14px">Iron Log uses the preloaded 5-day split: Monday, Tuesday, Wednesday, Friday and Saturday.</div>'
     
     +'<button class="btn btn-primary" style="margin-top:28px" id="obStartBtn">Start tracking</button>'
     +'</div>';
@@ -3081,23 +3231,23 @@ function renderOnboarding() {
     var w=parseFloat(document.getElementById('obWeight').value);
     if(!w||w<30||w>250){showToast('Enter a valid starting weight','warn');return;}
     var targetW=parseFloat(document.getElementById('obTargetWeight').value);
-    if(!targetW||targetW<=w||targetW>250){showToast('Goal weight must be greater than starting weight','warn');return;}
+    var goal=document.getElementById('obGoal').value;
+    if(!targetW||targetW<30||targetW>250||(goal==='loss'&&targetW>=w)||(goal!=='loss'&&targetW<=w)){showToast(goal==='loss'?'Loss goal must be below starting weight':'Goal weight must be above starting weight','warn');return;}
     
     var equip = document.getElementById('obEquipment').value;
     var diet = document.getElementById('obDiet').value;
-    var split = document.getElementById('obSplit').value;
-    
     profile = {
       name: name,
       startDate: todayKey(),
       startWeight: w,
       targetWeight: targetW,
-      calTargetRest: CAL_TARGET_REST,
-      calTargetGym: CAL_TARGET_GYM,
+      goal: goal,
+      calTargetRest: goal === 'loss' ? 2500 : CAL_TARGET_REST,
+      calTargetGym: goal === 'loss' ? 2700 : CAL_TARGET_GYM,
       protTargetRest: PROT_TARGET_REST,
       protTargetGym: PROT_TARGET_GYM,
-      trainingDays: split === '6day' ? [1,2,3,4,5,6] : split === '5day' ? [0,1,2,4,5] : split === '4day' ? [1,2,4,5] : split === '2day' ? [1,4] : [1,3,5],
-      programSplit: split,
+      trainingDays: [1,2,3,5,6],
+      programSplit: 'iron5day',
       equipment: equip,
       dietaryPattern: diet,
       experience: 'novice',
@@ -3201,6 +3351,10 @@ SQLiteStorage.init(function(){
     if(!profile) {
       renderOnboarding();
     } else {
+      if(profile.pin) {
+        delete profile.pin;
+        sv('rg_profile', profile);
+      }
       renderApp();
       if (location.hash === '#checkin' || location.search.indexOf('checkin') > -1) {
         openCheckinSheet(todayKey());
