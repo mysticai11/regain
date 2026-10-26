@@ -747,7 +747,7 @@ function weeklyVolumeChart() {
   return '<div class="volume-bars">'+data.map(function(v) {
     var pct = Math.round(v.sets / max * 100);
     return '<div class="volume-bar-row"><span>'+esc(v.muscle)+'</span><div class="volume-bar-track"><i style="width:'+pct+'%"></i></div><b>'+v.sets+'</b></div>';
-  }).join('')+'</div><div class="small dim" style="margin-top:8px">Completed working sets in the last 7 days.</div>';
+  }).join('')+'</div><div class="small dim" style="margin-top:8px">Completed working sets in the last 7 days · general target 10–20. Chest and quads are easy to compare against your 12 and 10 set goals.</div>';
 }
 
 
@@ -2492,7 +2492,8 @@ function renderGym() {
     var targetSets = ex.sets||exOrig.sets;
     var repsStr = ex.reps||exOrig.reps;
     var topRep = getTopRepRange(repsStr);
-    var hitTop = sets.length >= targetSets && sets.every(function(s){ return s.reps >= topRep; });
+    var completedSets = sets.filter(Boolean);
+    var hitTop = completedSets.length >= targetSets && completedSets.slice(0, targetSets).every(function(s){ return Number(s.reps) >= topRep; });
     var progressionPrompt = hitTop ? '<div class="progression-tip" style="color:var(--sage-light);font-size:12px;margin-top:6px;font-family:\'Space Mono\',monospace">🎉 Top range hit! Add load & reset reps.</div>' : '';
     
     var isCompound = ex.type === 'compound' || exOrig.type === 'compound';
@@ -3531,6 +3532,15 @@ function importData() {
   input.click();
 }
 
+function requestPersistentStorage() {
+  if (!navigator.storage || !navigator.storage.persist) return;
+  navigator.storage.persist().then(function(granted) {
+    if (!granted) console.info('Persistent storage was not granted by the browser');
+  }).catch(function(err) {
+    console.warn('Persistent storage request failed:', err);
+  });
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ONBOARDING
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -3855,6 +3865,7 @@ function renderTab() {
 
 // ── Boot ────────────────────────────────────────────────────────────────────────
 SQLiteStorage.init(function(){
+  requestPersistentStorage();
   profile = ls('rg_profile', null);
   FoodDB.open().then(function(){
     if(profile) {
