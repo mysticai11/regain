@@ -403,6 +403,15 @@ input::placeholder { color: #7f95ad; }
 .stat-strip b, .stat-strip small { display:block; }
 .stat-strip b { font-size:19px; }
 .stat-strip small { color:var(--text-muted); font-size:11px; margin-top:3px; }
+.progress-intro { color:var(--text-secondary); font-size:13px; line-height:1.45; margin:-8px 0 14px; }
+.progress-card { background:linear-gradient(145deg,rgba(24,38,58,.98),rgba(15,27,43,.98)); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px; }
+.progress-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:8px; }
+.progress-card h2 { font-size:18px; margin:3px 0 0; }
+.progress-card-head > strong { color:var(--text); font:20px 'Space Mono',monospace; }
+.progress-summary { color:var(--text-muted); font-size:11px; line-height:1.4; }
+.progress-card .range-row { margin:10px 0 6px; }
+.progress-more { margin-top:10px; color:var(--text-secondary); font-size:12px; }
+.progress-more summary { cursor:pointer; color:var(--text-muted); }
 .range-row { display:flex; gap:6px; margin-bottom:18px; }
 .range { border:0; background:var(--surface); color:var(--text-muted); border-radius:9px; padding:8px 13px; font-weight:700; cursor:pointer; }
 .range.active { background:var(--amber); color:#142000; }
@@ -426,8 +435,11 @@ input::placeholder { color: #7f95ad; }
 .chart-legend i.goal { background:var(--sage); }
 .chart-section { padding:16px 0; border-bottom:1px solid rgba(58,85,115,.45); }
 .line-chart, .sparkline { position:relative; height:112px; margin-top:16px; background:linear-gradient(to bottom,transparent 49%,rgba(143,163,186,.14) 50%,transparent 51%); }
-.line-chart:after, .sparkline:after { content:""; position:absolute; left:0; right:0; top:50%; border-top:2px solid rgba(184,243,74,.35); transform:skewY(-7deg); }
-.line-chart span, .sparkline span { position:absolute; width:9px; height:9px; border-radius:50%; background:var(--amber); z-index:1; box-shadow:0 0 0 3px rgba(184,243,74,.12); }
+.line-chart svg { position:absolute; inset:0 22px 0 28px; width:calc(100% - 50px); height:100%; overflow:visible; }
+.line-chart .chart-max, .line-chart .chart-min { position:absolute; left:0; font:10px 'Space Mono',monospace; color:var(--text-muted); }
+.line-chart .chart-max { top:0; }
+.line-chart .chart-min { bottom:0; }
+.chart-goal { position:absolute; left:28px; right:0; border-top:1px dashed var(--sage); color:var(--sage-light); font-size:9px; transform:translateY(-8px); }
 .bar-row { display:grid; grid-template-columns:80px 1fr 24px; gap:8px; align-items:center; margin:10px 0; font-size:12px; color:var(--text-secondary); }
 .bar-row b { color:var(--text); text-align:right; }
 .bar-track { height:9px; background:linear-gradient(to right,transparent 50%,rgba(184,243,74,.16) 50%,rgba(184,243,74,.16) 100%); border-radius:99px; overflow:hidden; }
@@ -3748,8 +3760,10 @@ function progressPlot(values, goal) {
   if(!values.length) return '<div class="empty-note">Log data to see this trend.</div>';
   var nums=values.map(function(v){return v.value;}).concat(goal!=null?[goal]:[]);
   var min=Math.min.apply(null,nums), max=Math.max.apply(null,nums), span=max-min||1;
-  var goalLine=goal!=null?'<i style="position:absolute;left:0;right:0;bottom:'+(8+((max-goal)/span)*82)+'%;border-top:1px dashed var(--sage);z-index:0"></i>':'';
-  return '<div class="line-chart">'+goalLine+values.map(function(v,i){var x=i/Math.max(1,values.length-1)*100,y=8+((max-v.value)/span)*82;return '<span style="left:'+x+'%;bottom:'+y+'%" title="'+esc(v.label||v.value)+'"></span>';}).join('')+'</div>';
+  var points=values.map(function(v,i){var x=i/Math.max(1,values.length-1)*100,y=8+((max-v.value)/span)*82;return {x:x,y:y,v:v};});
+  var poly=points.map(function(p){return p.x.toFixed(1)+','+p.y.toFixed(1);}).join(' ');
+  var goalLine=goal!=null?'<div class="chart-goal" style="bottom:'+(8+((max-goal)/span)*82)+'%">goal '+goal+'</div>':'';
+  return '<div class="line-chart"><span class="chart-max">'+max.toFixed(1)+'</span><span class="chart-min">'+min.toFixed(1)+'</span>'+goalLine+'<svg viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="'+poly+'" fill="none" stroke="var(--amber)" stroke-width="2" vector-effect="non-scaling-stroke"/>'+points.map(function(p){return '<circle cx="'+p.x+'" cy="'+p.y+'" r="2" fill="var(--amber)"><title>'+esc(p.v.label||p.v.value)+'</title></circle>';}).join('')+'</svg></div>';
 }
 
 function workoutHistoryHTML(records) {
@@ -3806,7 +3820,7 @@ function deleteWeightEntry(id) {
 
 function renderProgressSimple() {
   var entries=getWeightHistory(), records=allDayKeys().map(function(k){var r=dayRecord(k),t=getDayTotals(k);return {key:k,weight:r.weight,kcal:t.kcal,protein:t.protein};});
-  var current=entries.length?entries[entries.length-1].weight:null, range='1m';
+  var current=entries.length?entries[entries.length-1].weight:null, range='1w';
   var exOptions=[]; getActiveProgram().forEach(function(s){s.exercises.forEach(function(e){if(!exOptions.some(function(x){return x.id===e.id;}))exOptions.push(e);});});
   allDayKeys().forEach(function(key){Object.keys(dayRecord(key).workout||{}).forEach(function(id){var e=getExerciseData(id);if(e&&!exOptions.some(function(x){return x.id===id;}))exOptions.push(e);});});
   var render=function(){
@@ -3820,20 +3834,23 @@ function renderProgressSimple() {
     var first=allLiftValues.length?allLiftValues[0].value:1;
     document.getElementById('weightPlot').innerHTML=progressPlot(weightValues,profile.targetWeight);
     document.getElementById('liftPlot').innerHTML=progressPlot(liftValues);
-    document.getElementById('overallPlot').innerHTML=progressPlot(allLiftValues.map(function(v){return {value:Math.round(v.value/first*100),label:v.label+' · '+Math.round(v.value/first*100)+' index'};}));
     var direction=goalDirection(), latest=weightValues.length?weightValues[weightValues.length-1].value:null;
     var trend=weightValues.length>1?latest-weightValues[0].value:0;
     var status=weightValues.length>1?(direction*trend>0?'moving toward goal':direction*trend<0?'moving away from goal':'flat'):'need more entries';
     document.getElementById('weightMeta').textContent=latest!=null?(latest+' kg 7-day avg · goal '+(profile.targetWeight||'—')+' kg · '+status):'No weight entries yet';
+    var liftMeta=document.getElementById('liftMeta');
+    if(liftMeta) {
+      var firstLift=liftValues.length?liftValues[0].value:null, latestLift=liftValues.length?liftValues[liftValues.length-1].value:null;
+      liftMeta.textContent=latestLift!=null?(latestLift.toFixed(1)+' kg e1RM'+(firstLift!=null&&liftValues.length>1?' · '+(latestLift-firstLift>=0?'+':'')+(latestLift-firstLift).toFixed(1)+' since start':'')):'No lift entries yet';
+    }
   };
   document.getElementById('content').innerHTML=
-    '<div class="topbar"><div><span class="eyebrow">'+personalizedEyebrow('your trends')+'</span><div class="title">Progress</div></div><button class="icon-btn" id="settingsBtn" aria-label="Settings">'+ic('settings')+'</button></div>'
-    +'<div class="stat-strip"><span><b>'+(current!=null?current.toFixed(1)+' kg':'—')+'</b><small>current weight</small></span><span><b>'+records.filter(function(r){return r.workoutDone || Object.keys(dayRecord(r.key).workout||{}).some(function(id){return (dayRecord(r.key).workout[id]||[]).some(Boolean);});}).length+'</b><small>workouts logged</small></span><span><b>'+exOptions.length+'</b><small>lifts tracked</small></span></div>'
-    +'<section class="chart-section"><div class="section-head"><span class="eyebrow">'+esc(goalLabel())+' · bodyweight</span><span id="weightMeta" class="small dim"></span></div><div class="range-row"><button class="range active" data-range="1w">1 week</button><button class="range" data-range="1m">1 month</button><button class="range" data-range="3m">3 months</button></div><div id="weightPlot"></div><div class="chart-legend"><span><i></i>7-day average</span><span><i class="goal"></i>goal line</span></div><div class="progress-entry"><input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="Log bodyweight now" inputmode="decimal"><button class="btn btn-primary" id="saveProgressWeight">Save</button></div><div class="weight-entry-list">'+weightEntriesHTML(entries)+'</div></section>'
-    +'<section class="chart-section"><div class="section-head"><span class="eyebrow">lift strength</span><select id="liftSelect" class="compact-select">'+exOptions.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join('')+'</select></div><div id="liftPlot"></div><div class="small dim">Estimated 1RM from your best logged set each workout.</div></section>'
-    +'<section class="chart-section"><div class="section-head"><span class="eyebrow">overall strength</span><span class="small dim">baseline = 100</span></div><div id="overallPlot"></div><div class="small dim">Average normalized estimated 1RM across lifts logged in each workout.</div></section>'
-    +'<section class="chart-section"><div class="section-head"><span class="eyebrow">weekly sets per muscle</span><span class="small dim">last 7 days</span></div>'+weeklyVolumeChart()+'</section>'
-    +'<details class="history-details" open><summary>Workout history</summary>'+workoutHistoryHTML(records)+'</details>';
+    '<div class="topbar"><div><span class="eyebrow">'+personalizedEyebrow('simple progress')+'</span><div class="title">Progress</div></div><button class="icon-btn" id="settingsBtn" aria-label="Settings">'+ic('settings')+'</button></div>'
+    +'<div class="progress-intro">Two things matter here: move toward your weight goal and get stronger. Tap a card to see the detail.</div>'
+    +'<section class="progress-card"><div class="progress-card-head"><div><span class="eyebrow">'+esc(goalLabel())+'</span><h2>Bodyweight</h2></div><strong>'+(current!=null?current.toFixed(1)+' kg':'—')+'</strong></div><div id="weightMeta" class="progress-summary"></div><div class="range-row"><button class="range active" data-range="1w">7d</button><button class="range" data-range="1m">30d</button><button class="range" data-range="3m">90d</button></div><div id="weightPlot"></div><div class="progress-entry"><input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="Log weight" inputmode="decimal"><button class="btn btn-primary" id="saveProgressWeight">Save</button></div><details class="progress-more"><summary>Recent weigh-ins</summary><div class="weight-entry-list">'+weightEntriesHTML(entries)+'</div></details></section>'
+    +'<section class="progress-card"><div class="progress-card-head"><div><span class="eyebrow">Strength</span><h2>Lift progress</h2></div><span id="liftMeta" class="progress-summary"></span></div><select id="liftSelect" class="compact-select">'+exOptions.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join('')+'</select><div id="liftPlot"></div><div class="progress-summary">Estimated 1RM from your best set. Choose a lift above.</div></section>'
+    +'<section class="progress-card"><div class="progress-card-head"><div><span class="eyebrow">Training</span><h2>Weekly work</h2></div><span class="progress-summary">last 7 days</span></div>'+weeklyVolumeChart()+'</section>'
+    +'<details class="history-details"><summary>Workout history · '+records.filter(function(r){return r.workoutDone || Object.keys(dayRecord(r.key).workout||{}).some(function(id){return (dayRecord(r.key).workout[id]||[]).some(Boolean);});}).length+' sessions</summary>'+workoutHistoryHTML(records)+'</details>';
   document.getElementById('settingsBtn').onclick=openSettings;
   document.querySelectorAll('[data-range]').forEach(function(btn){btn.onclick=function(){range=btn.dataset.range;document.querySelectorAll('[data-range]').forEach(function(b){b.classList.toggle('active',b===btn);});render();};});
   document.getElementById('liftSelect').onchange=render;
