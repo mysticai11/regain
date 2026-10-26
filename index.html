@@ -301,14 +301,14 @@ input::placeholder { color: #7f95ad; }
 .btn-primary { background: var(--amber); color: #142000; border-color: var(--amber); box-shadow: 0 5px 16px rgba(184,243,74,.16); }
 .btn-primary:active { background: var(--amber-dark); }
 .btn-ghost { min-height: 36px; color: #b7c8da; }
-.exercise-card { border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+.exercise-card { border-radius: 12px; padding: 11px 12px; margin-bottom: 8px; }
 .exercise-card.completed-card { background:rgba(18,29,45,.7); }
 .exercise-card.completed-card .exercise-extra { display:none; }
 .exercise-card.completed-card .exercise-name { color:var(--text-secondary); }
 .exercise-card.completed-card .logged-count { color:var(--amber-light); }
 .exercise-card.active-card .exercise-extra { display:block; }
 .exercise-card.active-card { border-color:var(--border-strong); }
-.exercise-name { font-size: 17px; line-height: 1.25; }
+.exercise-name { font-size: 15px; line-height: 1.2; }
 .exercise-cue { color: #a9bbce; line-height: 1.45; }
 .logged-count { color: #9cb1c7; font-size: 11px; }
 .set-add-row { gap: 10px; margin-top: 12px !important; }
@@ -328,7 +328,7 @@ input::placeholder { color: #7f95ad; }
 .navitem { color: #91a6bd; border-radius: 12px; padding: 7px 14px; min-width: 68px; min-height: 52px; font-size: 11px; font-weight: 600; }
 .navitem.active { color: var(--amber); background: rgba(184,243,74,.1); }
 .navitem:active { background: rgba(255,255,255,.07); }
-.gym-session-header { position:sticky; top:-8px; z-index:5; margin:0 -16px 14px; padding:10px 16px 12px; background:rgba(11,18,32,.96); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
+.gym-session-header { position:sticky; top:-8px; z-index:5; margin:0 -16px 10px; padding:8px 16px 10px; background:rgba(11,18,32,.96); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
 .gym-session-top { display:flex; align-items:center; justify-content:space-between; gap:10px; }
 .gym-session-top .title { font-size:18px; }
 .gym-session-meta { display:flex; align-items:center; gap:10px; color:var(--text-muted); font-size:11px; }
@@ -384,15 +384,22 @@ input::placeholder { color: #7f95ad; }
 .readiness-help { color:var(--text-muted); font-size:12px; margin-top:3px; }
 .workout-picker { display:flex; gap:8px; overflow-x:auto; padding:4px 0 12px; }
 .workout-picker .chip.active { background:var(--amber); color:#142000; border-color:var(--amber); font-weight:700; }
-.planned-set { display:grid; grid-template-columns:22px minmax(0,1fr) minmax(0,1fr) 76px; gap:6px; align-items:center; margin-top:7px; transition:transform .15s ease; }
+.planned-set { display:grid; grid-template-columns:20px minmax(0,1fr) minmax(0,1fr) 42px; gap:5px; align-items:center; margin-top:5px; transition:transform .15s ease; }
 .planned-set .set-number { color:var(--text-muted); font-size:12px; text-align:center; }
-.planned-set input { min-height:42px; font-size:19px; font-family:'Space Mono',monospace; text-align:center; padding:8px 6px; }
-.planned-set select { min-height:42px; font-size:12px; padding:0 6px; }
-.planned-set .btn { min-width:44px; padding:6px; grid-column:4; }
+.planned-set input { min-height:38px; font-size:18px; font-family:'Space Mono',monospace; text-align:center; padding:5px 3px; }
+.planned-set select { display:none; }
+.planned-set .btn { min-width:38px; width:38px; height:38px; min-height:38px; padding:0; grid-column:4; border-radius:50%; font-size:0; }
+.planned-set .btn-primary::after { content:'✓'; font-size:20px; line-height:1; }
 .planned-set .set-complete { color:var(--amber-light); font-size:23px; text-align:center; grid-column:4; animation:tick-pop .12s ease-out; }
 .planned-set .btn-ghost[data-delete-set], .planned-set .btn-ghost[data-remove-draft] { grid-column:4; justify-self:end; }
 .set-last { grid-column:2 / 4; color:var(--text-muted); font-size:10px; }
 @keyframes tick-pop { 0% { transform:scale(.7); opacity:.5; } 100% { transform:scale(1); opacity:1; } }
+@media (max-width:380px) {
+  .content { padding-left:10px; padding-right:10px; }
+  .gym-session-header { margin-left:-10px; margin-right:-10px; padding-left:10px; padding-right:10px; }
+  .planned-set { grid-template-columns:18px minmax(0,1fr) minmax(0,1fr) 38px; gap:4px; }
+  .planned-set input { font-size:16px; }
+}
 .stat-strip { display:flex; justify-content:space-between; gap:8px; padding:12px 0 18px; }
 .stat-strip span { flex:1; min-width:0; }
 .stat-strip b, .stat-strip small { display:block; }
@@ -2511,11 +2518,10 @@ function renderGym() {
       var valueW = logged ? logged.weight : (draft ? draft.weight : (last ? last.weight : ''));
       var valueR = logged ? logged.reps : (draft ? draft.reps : (last ? last.reps : ''));
       var valueRir = logged ? logged.rir : (draft ? draft.rir : null);
-      var lastHint = last ? '<span class="small dim" style="grid-column:2 / 4">Last: '+esc(last.weight)+'kg × '+esc(last.reps)+'</span>' : '';
       var loggedHtml=logged
         ? '<span class="set-complete">✓</span><button class="btn-ghost" data-delete-set="'+ex.id+'" data-set-index="'+i+'" aria-label="Remove set">×</button>'
         : '<button class="btn btn-primary btn-sm" data-logset="'+ex.id+'" data-set-index="'+i+'">Log</button>';
-      return '<div class="planned-set"><span class="set-number">'+(i+1)+'</span><input type="number" step="0.25" min="0" placeholder="kg" aria-label="Weight for set '+(i+1)+'" class="set-weight" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+valueW+'" inputmode="decimal"><input type="number" min="1" max="50" placeholder="reps" aria-label="Reps for set '+(i+1)+'" class="set-reps" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+valueR+'" inputmode="numeric"><select class="set-rir" data-ex="'+ex.id+'" data-set-index="'+i+'" aria-label="Effort for set '+(i+1)+'"><option value="">Effort</option><option value="0" '+(valueRir===0?'selected':'')+'>Failure</option><option value="1" '+(valueRir===1?'selected':'')+'>1 RIR</option><option value="2" '+(valueRir===2?'selected':'')+'>2 RIR</option><option value="3" '+(valueRir===3?'selected':'')+'>3+ RIR</option></select>'+loggedHtml+(logged?'':'<button class="btn-ghost" data-remove-draft="'+ex.id+'" data-set-index="'+i+'" aria-label="Remove set">×</button>')+lastHint+'</div>';
+      return '<div class="planned-set"><span class="set-number">'+(i+1)+'</span><input type="number" step="0.25" min="0" placeholder="kg" aria-label="Weight for set '+(i+1)+'" class="set-weight" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+valueW+'" inputmode="decimal"><input type="number" min="1" max="50" placeholder="reps" aria-label="Reps for set '+(i+1)+'" class="set-reps" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+valueR+'" inputmode="numeric">'+loggedHtml+(logged?'':'<button class="btn-ghost" data-remove-draft="'+ex.id+'" data-set-index="'+i+'" aria-label="Remove set">×</button>')+'</div>';
     }).join('');
     var best = getBestE1RM(ex.id);
     
@@ -2541,7 +2547,7 @@ function renderGym() {
 
     var routineRemoveLink = customMode ? '<button class="btn-ghost remove-routine-btn" data-exid="'+ex.id+'" style="font-size:10px;padding:2px 6px;color:var(--rust-light);margin-left:6px">Remove</button>' : '';
     var swapLink = customMode ? '' : '<button class="alt-chip swap-btn" data-swap-orig="'+exOrig.id+'" data-swap-curr="'+ex.id+'" data-muscle="'+exOrig.muscle+'" title="Swap exercise">Alt</button>';
-    var detailsLink = '<button class="btn-ghost details-toggle" data-expand-ex="'+esc(ex.id)+'">Details</button>';
+    var detailsLink = '';
     var exerciseExtra = '<div class="exercise-extra">'
       +'<div class="exercise-cue">'+esc(ex.cue||exOrig.cue)+(best?' · best e1RM: '+best.toFixed(1)+'kg':'') + prStr + '</div>'
       +'<div class="set-list"><div class="small dim">Planned '+plannedCount+' sets · '+esc(ex.reps||exOrig.reps)+' reps</div>'+plannedRows+'<button class="btn btn-sm" data-add-set="'+ex.id+'" style="margin-top:8px">+ Add set</button></div>'
