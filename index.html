@@ -124,8 +124,8 @@ input::placeholder { color: var(--text-muted); }
 .volume-bars { display:flex; flex-direction:column; gap:8px; margin-top:12px; }
 .volume-bar-row { display:grid; grid-template-columns:104px 1fr 24px; gap:8px; align-items:center; font-size:11px; color:var(--text-secondary); }
 .volume-bar-row b { color:var(--text); font-family:'Space Mono',monospace; text-align:right; font-size:11px; }
-.volume-bar-track { height:8px; border-radius:5px; background:var(--surface-raised); overflow:hidden; }
-.volume-bar-track i { display:block; height:100%; border-radius:5px; background:var(--amber); }
+.volume-bar-track { height:10px; border-radius:99px; background:linear-gradient(90deg,rgba(143,163,186,.14),rgba(143,163,186,.08)); overflow:hidden; box-shadow:inset 0 1px 2px rgba(0,0,0,.2); }
+.volume-bar-track i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--amber),var(--amber-light)); box-shadow:0 0 10px rgba(184,243,74,.22); transition:width .25s ease; }
 /* ── Ledger ── */
 .ledger-grid { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
 .ledger-cell { width: 13px; height: 13px; border-radius: 2px; cursor: default; }
@@ -455,15 +455,17 @@ input::placeholder { color: #7f95ad; }
 .chart-legend i.goal { background:var(--sage); }
 .chart-section { padding:16px 0; border-bottom:1px solid rgba(58,85,115,.45); }
 .plot-caption { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:12px; color:var(--text-muted); font-size:10px; }
-.plot-change { color:var(--amber-light); font:11px 'Space Mono',monospace; }
-.plot-shell { position:relative; margin-top:8px; padding-left:30px; }
-.line-chart, .sparkline { position:relative; height:124px; background:repeating-linear-gradient(to bottom,rgba(143,163,186,.12) 0,rgba(143,163,186,.12) 1px,transparent 1px,transparent 25%); }
+.plot-change { color:var(--amber-light); font:11px 'Space Mono',monospace; background:rgba(184,243,74,.08); border:1px solid rgba(184,243,74,.18); border-radius:999px; padding:4px 7px; }
+.plot-shell { position:relative; margin-top:8px; padding:12px 0 0 34px; }
+.line-chart, .sparkline { position:relative; height:124px; border:1px solid rgba(143,163,186,.12); border-radius:10px; background:linear-gradient(135deg,rgba(184,243,74,.045),rgba(15,27,43,.12) 46%),repeating-linear-gradient(to bottom,rgba(143,163,186,.12) 0,rgba(143,163,186,.12) 1px,transparent 1px,transparent 25%); overflow:visible; }
 .line-chart svg { position:absolute; inset:0 22px 0 28px; width:calc(100% - 50px); height:100%; overflow:visible; }
-.line-chart .chart-max, .line-chart .chart-min { position:absolute; left:0; font:10px 'Space Mono',monospace; color:var(--text-muted); }
-.line-chart .chart-max { top:0; }
-.line-chart .chart-min { bottom:0; }
+.line-chart .chart-max, .line-chart .chart-min { position:absolute; left:-34px; font:10px 'Space Mono',monospace; color:var(--text-muted); }
+.line-chart .chart-max { top:-1px; }
+.line-chart .chart-min { bottom:-1px; }
 .plot-axis { display:flex; justify-content:space-between; padding:6px 22px 0 28px; color:var(--text-muted); font-size:10px; }
 .chart-goal { position:absolute; left:28px; right:0; border-top:1px dashed var(--sage-light); color:var(--sage-light); font-size:9px; line-height:1; padding-top:3px; z-index:2; pointer-events:none; text-shadow:0 1px 3px var(--surface); }
+.chart-goal span { float:right; background:var(--surface); padding-left:4px; }
+.plot-current { position:absolute; right:22px; top:-2px; color:var(--amber-light); font:10px 'Space Mono',monospace; background:var(--surface-raised); border:1px solid rgba(184,243,74,.25); border-radius:5px; padding:3px 5px; z-index:3; }
 .bar-row { display:grid; grid-template-columns:80px 1fr 24px; gap:8px; align-items:center; margin:10px 0; font-size:12px; color:var(--text-secondary); }
 .bar-row b { color:var(--text); text-align:right; }
 .bar-track { height:9px; background:linear-gradient(to right,transparent 50%,rgba(184,243,74,.16) 50%,rgba(184,243,74,.16) 100%); border-radius:99px; overflow:hidden; }
@@ -3841,10 +3843,10 @@ function progressPlot(values, goal) {
   var deltaText=values.length>1?(delta===0?'No change':(delta>0?'+':'')+delta.toFixed(1)+' kg'):'First entry';
   var labels=[values[0],values[Math.floor((values.length-1)/2)],values[values.length-1]].map(function(v){var raw=String(v.label||'').slice(0,10);return raw.replace(/^\\d{4}-/,'').replace('-','/');});
   var goalY=goal!=null?8+((max-goal)/span)*84:null;
-  var goalLine=goalY!=null&&goalY>=0&&goalY<=100?'<div class="chart-goal" style="top:'+goalY+'%">goal '+Number(goal).toFixed(1)+'</div>':'';
+  var goalLine=goalY!=null&&goalY>=0&&goalY<=100?'<div class="chart-goal" style="top:'+goalY+'%"><span>goal '+Number(goal).toFixed(1)+'</span></div>':'';
   var area=points.length>1?poly+' 100,100 0,100':'';
   return '<div class="plot-caption"><span>'+values.length+' point'+(values.length===1?'':'s')+'</span><b class="plot-change">'+deltaText+'</b></div>'
-    +'<div class="plot-shell"><div class="line-chart" aria-label="Trend from '+first+' to '+last+'"><span class="chart-max">'+max.toFixed(1)+'</span><span class="chart-min">'+min.toFixed(1)+'</span>'+goalLine
+    +'<div class="plot-shell"><div class="plot-current">'+Number(last).toFixed(1)+'</div><div class="line-chart" aria-label="Trend from '+first+' to '+last+'"><span class="chart-max">'+max.toFixed(1)+'</span><span class="chart-min">'+min.toFixed(1)+'</span>'+goalLine
     +'<svg viewBox="0 0 100 100" preserveAspectRatio="none"><defs><linearGradient id="plotFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--amber)" stop-opacity=".28"/><stop offset="1" stop-color="var(--amber)" stop-opacity="0"/></linearGradient></defs>'
     +(area?'<polygon points="'+area+'" fill="url(#plotFill)"/>':'')
     +'<polyline points="'+poly+'" fill="none" stroke="var(--amber)" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/>'
