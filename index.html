@@ -143,9 +143,7 @@ input::placeholder { color: var(--text-muted); }
 .exercise-cue { font-size: 12px; color: var(--text-muted); margin-top: 2px; margin-bottom: 10px; }
 .set-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; min-height: 28px; }
 .set-chip { background: var(--surface-raised); border-radius: 8px; padding: 4px 10px; font-size: 12px; font-family: 'Space Mono', monospace; }
-.exercise-extra { display: none; }
-.exercise-card.expanded .exercise-extra { display: block; }
-.exercise-card .details-toggle { color: var(--text-muted); font-size: 11px; padding: 5px 7px; margin-left: 4px; }
+.exercise-extra { display: block; }
 .logged-count { font-size: 10px; color: var(--text-muted); font-family: 'Space Mono', monospace; margin: 2px 0 0; }
 .set-add-row { display: flex; gap: 8px; }
 .set-add-row input { flex: 1; min-width: 0; }
@@ -303,7 +301,7 @@ input::placeholder { color: #7f95ad; }
 .btn-ghost { min-height: 36px; color: #b7c8da; }
 .exercise-card { border-radius: 12px; padding: 11px 12px; margin-bottom: 8px; }
 .exercise-card.completed-card { background:rgba(18,29,45,.7); }
-.exercise-card.completed-card .exercise-extra { display:none; }
+.exercise-card.completed-card .exercise-extra { display:block; }
 .exercise-card.completed-card .exercise-name { color:var(--text-secondary); }
 .exercise-card.completed-card .logged-count { color:var(--amber-light); }
 .exercise-card.active-card .exercise-extra { display:block; }
@@ -2651,15 +2649,6 @@ function attachGymEvents(key, rec, session) {
   var volBtn = document.getElementById('volBtn');
   if(volBtn) volBtn.addEventListener('click', function(){
     openSheet('<div class="sheet-title">Weekly Volume Summary</div>'+buildVolumeTable()+'<div style="font-size:11px;color:var(--text-muted);margin-top:12px">Target range: 10–18 sets/muscle/week (Pelland et al. 2024 meta-regression)</div>');
-  });
-
-  document.querySelectorAll('[data-expand-ex]').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var card = document.getElementById('excard-'+btn.dataset.expandEx);
-      if(!card) return;
-      var expanded = card.classList.toggle('expanded');
-      btn.textContent = expanded ? 'Hide details' : 'Details';
-    });
   });
 
   var addRoutineBtn = document.getElementById('addRoutineExerciseBtn');
