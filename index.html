@@ -353,8 +353,17 @@ input::placeholder { color: #7f95ad; }
 .food-actions { display:flex; gap:10px; margin-top:12px; }
 .food-actions .btn { flex:1; }
 .readiness-row { display:flex; gap:10px; }
-.ready-dot { width:42px; height:42px; border-radius:50%; border:1px solid var(--border-strong); background:var(--surface); color:var(--text-secondary); font-weight:700; cursor:pointer; }
+.ready-dot { flex:1; min-width:0; height:42px; padding:0 4px; border-radius:10px; border:1px solid var(--border-strong); background:var(--surface); color:var(--text-secondary); font-size:11px; font-weight:700; cursor:pointer; }
 .ready-dot.active { background:var(--amber); border-color:var(--amber); color:#142000; }
+.readiness-label { color:var(--text); font-size:14px; font-weight:700; }
+.readiness-help { color:var(--text-muted); font-size:12px; margin-top:3px; }
+.workout-picker { display:flex; gap:8px; overflow-x:auto; padding:4px 0 12px; }
+.workout-picker .chip.active { background:var(--amber); color:#142000; border-color:var(--amber); font-weight:700; }
+.planned-set { display:grid; grid-template-columns:28px 1fr 1fr 48px; gap:7px; align-items:center; margin-top:7px; }
+.planned-set .set-number { color:var(--text-muted); font-size:12px; text-align:center; }
+.planned-set input { min-height:42px; }
+.planned-set .btn { min-width:44px; padding:6px; }
+.set-complete { color:var(--sage-light); font-size:18px; text-align:center; }
 .stat-strip { display:flex; justify-content:space-between; gap:8px; padding:12px 0 18px; }
 .stat-strip span { flex:1; min-width:0; }
 .stat-strip b, .stat-strip small { display:block; }
@@ -1213,7 +1222,7 @@ function openEditItemSheet(itemId, groupKey) {
     profile.mealPlan = plan;
     sv('rg_profile', profile);
     overlay.remove();
-    renderToday();
+    renderTodaySimple();
   });
 }
 
@@ -1387,6 +1396,8 @@ function renderToday() {
   var tdays = profile.trainingDays||[1,3,5];
   var today = new Date();
   var isTrainingDay = tdays.includes(today.getDay());
+  var key = todayKey();
+  var rec = dayRecord(key);
   
   var planHTML = renderChecklistHTML(rec, isTrainingDay);
 
@@ -1600,7 +1611,7 @@ function openCheckinSheet(dayKey) {
     rec.note = n;
     saveDayRecord(dayKey, rec);
     overlay.remove();
-    renderToday();
+    renderTodaySimple();
   });
 }
 
@@ -1719,7 +1730,7 @@ function addFoodToDay(key, food, servings) {
   saveDayRecord(key, rec);
   addRecent(food.name, m.kcal, m.protein, m.carbs, m.fat);
   profile.xp=(profile.xp||0)+5; sv('rg_profile',profile);
-  renderToday();
+  renderTodaySimple();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -2282,6 +2293,28 @@ function getLastSessionWeightReps(exId, rec) {
   return null;
 }
 
+function getWorkoutForDate(dayKey, rec) {
+  var d = new Date(dayKey+'T00:00:00').getDay();
+  var defaultIndex = null;
+  var prior = allDayKeys().filter(function(k){return k < dayKey;});
+  var completed = 0;
+  prior.forEach(function(k){if(dayRecord(k).workoutDone) completed++;});
+  if(completed > 0) defaultIndex = completed % IRON_LOG_PROGRAM.length;
+  else defaultIndex = ({1:0,2:1,3:2,5:3,6:4})[d];
+  var index = rec && rec.selectedWorkout != null ? rec.selectedWorkout : defaultIndex;
+  return {index:index == null ? 0 : index, session:IRON_LOG_PROGRAM[index == null ? 0 : index] || IRON_LOG_PROGRAM[0]};
+}
+
+function chooseWorkoutForDate(dayKey) {
+  var rec=dayRecord(dayKey), overlay=document.createElement('div'); overlay.className='overlay';
+  overlay.innerHTML='<div class="sheet"><div class="sheet-handle"></div><div class="sheet-title">Choose workout</div><div class="small dim">Pick the session you want to do today. This does not change the weekly plan.</div>'
+    +IRON_LOG_PROGRAM.map(function(s,i){return '<button class="btn workout-choice" data-workout="'+i+'" style="text-align:left;margin-top:8px">'+esc(s.label)+'</button>';}).join('')
+    +'<button class="btn" id="cancelWorkoutChoice" style="margin-top:12px">Cancel</button></div>';
+  document.body.appendChild(overlay);
+  overlay.querySelector('#cancelWorkoutChoice').onclick=function(){overlay.remove();};
+  overlay.querySelectorAll('.workout-choice').forEach(function(btn){btn.onclick=function(){rec.selectedWorkout=parseInt(btn.dataset.workout,10);saveDayRecord(dayKey,rec);overlay.remove();renderGym();};});
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // GYM TAB
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -2292,7 +2325,7 @@ function renderGym() {
   var dayNames = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
   var dayName = dayNames[today.getDay()];
 
-  if(!isTrainingDay) {
+  if(!isTrainingDay && rec.selectedWorkout == null) {
     var nextNames = ['sun','mon','tue','wed','thu','fri','sat'];
     var nextDay = '—';
     for(var i=1;i<=7;i++){
@@ -2303,17 +2336,17 @@ function renderGym() {
       ? '<button class="btn btn-primary" id="manageRoutineRestBtn" style="width:100%;margin-top:8px">Manage custom routines</button>' : '';
     document.getElementById('content').innerHTML =
       '<div class="topbar"><div><span class="eyebrow">'+dayName+'</span><div class="title">Gym</div></div></div>'
-      +'<div class="rest-day">'+ic('moon','32')+'<div class="rest-label">Rest day</div><div class="small dim">next session: '+nextDay+'</div></div>'
+      +'<div class="rest-day">'+ic('moon','32')+'<div class="rest-label">Rest day</div><div class="small dim">next session: '+nextDay+'</div><button class="btn btn-primary" id="chooseRestWorkout">Choose a workout anyway</button></div>'
       +routineManagerHTML
       +'<div class="section"><span class="eyebrow">weekly volume targets</span>'+buildVolumeTable()+'</div>';
     var manageRoutineRestBtn = document.getElementById('manageRoutineRestBtn');
     if(manageRoutineRestBtn) manageRoutineRestBtn.addEventListener('click', openCustomRoutineManager);
+    document.getElementById('chooseRestWorkout').addEventListener('click',function(){chooseWorkoutForDate(key);});
     return;
   }
 
-  var session = getSessionType();
-  var key = todayKey();
-  var rec = dayRecord(key);
+  var selected = getWorkoutForDate(key, rec);
+  var session = selected.session;
   var customMode = profile.programSplit === '5day' || profile.programSplit === '6day';
   var addExerciseHTML = customMode ? '<button class="btn btn-primary" id="addRoutineExerciseBtn" style="width:100%;margin-bottom:12px">'+ic('plus')+' Add exercise to today</button>' : '';
   var emptyRoutineHTML = customMode && !session.exercises.length
@@ -2323,8 +2356,14 @@ function renderGym() {
     var exId = (rec.swaps && rec.swaps[exOrig.id]) ? rec.swaps[exOrig.id] : exOrig.id;
     var ex = getExerciseData(exId) || exOrig;
     var sets = (rec.workout||{})[ex.id]||[];
-    var chips = sets.map(function(s){
-      return '<span class="set-chip">'+s.weight+'kg × '+s.reps+'<span style="font-size:10px;color:var(--text-muted)"> (e1RM '+calcE1RM(s.weight,s.reps).toFixed(0)+')</span></span>';
+    var lastVal = getLastSessionWeightReps(ex.id, rec);
+    var preW = lastVal ? lastVal.weight : '';
+    var preR = lastVal ? lastVal.reps : '';
+    var plannedRows = Array.from({length: ex.sets || exOrig.sets}, function(_,i){
+      var logged=sets[i], loggedHtml=logged
+        ? '<span class="set-complete">✓</span>'
+        : '<button class="btn btn-primary btn-sm" data-logset="'+ex.id+'" data-set-index="'+i+'" data-rest="'+(ex.rest||exOrig.rest)+'">Log</button>';
+      return '<div class="planned-set"><span class="set-number">'+(i+1)+'</span><input type="number" step="0.25" min="0" placeholder="kg" class="set-weight" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+(logged?logged.weight:preW)+'" inputmode="decimal"><input type="number" min="1" max="50" placeholder="reps" class="set-reps" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+(logged?logged.reps:preR)+'" inputmode="numeric">'+loggedHtml+'</div>';
     }).join('');
     var best = getBestE1RM(ex.id);
     
@@ -2340,10 +2379,6 @@ function renderGym() {
     var pr = getExercisePR(ex.id);
     var prStr = pr ? ' · ' + ic('trophy', 11) + ' PR: ' + pr.weight + 'kg × ' + pr.reps : '';
 
-    var lastVal = getLastSessionWeightReps(ex.id, rec);
-    var preW = lastVal ? lastVal.weight : '';
-    var preR = lastVal ? lastVal.reps : '';
-
     var noteVal = esc((profile.exerciseNotes && profile.exerciseNotes[ex.id]) || '');
     var noteInputHTML = '<div class="ex-note-row" style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.05); padding-top:8px; display:flex; align-items:center; gap:6px">'
       + ic('note', 12)
@@ -2355,7 +2390,8 @@ function renderGym() {
     var detailsLink = '<button class="btn-ghost details-toggle" data-expand-ex="'+esc(ex.id)+'">Details</button>';
     var exerciseExtra = '<div class="exercise-extra">'
       +'<div class="exercise-cue">'+esc(ex.cue||exOrig.cue)+(best?' · best e1RM: '+best.toFixed(1)+'kg':'') + prStr + '</div>'
-      +(sets.length ? '<div class="set-chips">'+chips+'</div>' : '')
+      +'<div class="set-list"><div class="small dim">Planned '+(ex.sets||exOrig.sets)+' sets · '+esc(ex.reps||exOrig.reps)+' reps</div>'+plannedRows+'</div>'
+      +(sets.length ? '<div class="set-chips">'+sets.map(function(s,i){return '<span class="set-chip">'+s.weight+'kg × '+s.reps+' <button class="btn-ghost" data-delete-set="'+ex.id+'" data-set-index="'+i+'" aria-label="Delete set">×</button></span>';}).join('')+'</div>' : '')
       +progressionPrompt
       +'<div style="display:flex;align-items:center;gap:8px;margin-top:10px">'+warmUpLink+routineRemoveLink+noteInputHTML+'</div>'
       +'</div>';
@@ -2364,11 +2400,6 @@ function renderGym() {
         +'<div style="min-width:0"><div class="exercise-name" style="display:flex;align-items:center;flex-wrap:wrap">'+esc(ex.name)+'<span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">'+(ex.sets||exOrig.sets)+'×'+esc(ex.reps||exOrig.reps)+(customMode?'':' · '+esc(ex.rir||exOrig.rir)+' RIR')+'</span></div><div class="logged-count">'+sets.length+' set'+(sets.length===1?'':'s')+' logged '+detailsLink+'</div></div>'
         +swapLink
       +'</div>'
-      +'<div class="set-add-row" style="margin-top:8px">'
-        +'<input type="number" step="0.25" min="0" placeholder="kg" class="set-weight" data-ex="'+ex.id+'" value="'+preW+'" inputmode="decimal">'
-        +'<input type="number" min="1" max="50" placeholder="reps" class="set-reps" data-ex="'+ex.id+'" value="'+preR+'" inputmode="numeric">'
-        +'<button class="btn btn-sm" data-logset="'+ex.id+'" data-rest="'+(ex.rest||exOrig.rest)+'">Log</button>'
-      +'</div>'
       +exerciseExtra
     +'</div>';
   }).join('');
@@ -2376,8 +2407,9 @@ function renderGym() {
   document.getElementById('content').innerHTML =
     '<div class="topbar">'
       +'<div><span class="eyebrow">'+dayName+' · '+session.label+'</span><div class="title">Gym</div></div>'
-      +'<div style="display:flex;gap:8px"><button class="icon-btn" id="volBtn" title="Weekly volume">'+ic('chart')+'</button>'+(customMode?'<button class="icon-btn" id="editRoutineBtn" title="Manage custom routines">'+ic('settings')+'</button>':'')+'</div>'
+      +'<div style="display:flex;gap:8px"><button class="btn btn-sm" id="chooseWorkoutBtn">Change workout</button><button class="icon-btn" id="volBtn" title="Weekly volume">'+ic('chart')+'</button></div>'
     +'</div>'
+    +'<div class="workout-picker">'+IRON_LOG_PROGRAM.map(function(s,i){return '<button class="chip '+(i===selected.index?'active':'')+'" data-pick-workout="'+i+'">'+esc(s.label.split('·')[0].trim())+'</button>';}).join('')+'</div>'
     +'<div id="restTimerWrap"></div>'
     +addExerciseHTML
     +emptyRoutineHTML
@@ -2398,6 +2430,11 @@ function buildVolumeTable() {
 }
 
 function attachGymEvents(key, rec, session) {
+  var chooseWorkoutBtn=document.getElementById('chooseWorkoutBtn');
+  if(chooseWorkoutBtn) chooseWorkoutBtn.addEventListener('click',function(){chooseWorkoutForDate(key);});
+  document.querySelectorAll('[data-pick-workout]').forEach(function(btn){
+    btn.addEventListener('click',function(){var next=dayRecord(key);next.selectedWorkout=parseInt(btn.dataset.pickWorkout,10);saveDayRecord(key,next);renderGym();});
+  });
   var volBtn = document.getElementById('volBtn');
   if(volBtn) volBtn.addEventListener('click', function(){
     openSheet('<div class="sheet-title">Weekly Volume Summary</div>'+buildVolumeTable()+'<div style="font-size:11px;color:var(--text-muted);margin-top:12px">Target range: 10–18 sets/muscle/week (Pelland et al. 2024 meta-regression)</div>');
@@ -2448,16 +2485,17 @@ function attachGymEvents(key, rec, session) {
       triggerHaptic();
       var id = btn.dataset.logset;
       var rest = parseInt(btn.dataset.rest,10)||90;
-      var wEl = document.querySelector('.set-weight[data-ex="'+id+'"]');
-      var rEl = document.querySelector('.set-reps[data-ex="'+id+'"]');
+      var setIndex = parseInt(btn.dataset.setIndex,10);
+      var wEl = document.querySelector('.set-weight[data-ex="'+id+'"][data-set-index="'+setIndex+'"]');
+      var rEl = document.querySelector('.set-reps[data-ex="'+id+'"][data-set-index="'+setIndex+'"]');
       var w = parseFloat(wEl.value), r = parseInt(rEl.value,10);
       if(!w||!r||w<=0||r<=0){showToast('Enter weight and reps','warn');return;}
       rec = dayRecord(key);
       rec.workout = rec.workout||{};
       rec.workout[id] = rec.workout[id]||[];
-      rec.workout[id].push({weight:w,reps:r});
+      rec.workout[id][setIndex] = {weight:w,reps:r};
       // Check if all exercises done (2+ sets each)
-      var allDone = session.exercises.every(function(ex){return (rec.workout[ex.id]||[]).length>=2;});
+      var allDone = session.exercises.every(function(ex){return (rec.workout[ex.id]||[]).filter(Boolean).length>=(ex.sets||2);});
       if(allDone && !rec.workoutDone){
         rec.workoutDone=true; profile.xp=(profile.xp||0)+30; sv('rg_profile',profile);
         showToast('Session complete! +30 XP 🎉','ok');
@@ -2465,7 +2503,6 @@ function attachGymEvents(key, rec, session) {
         profile.xp=(profile.xp||0)+3; sv('rg_profile',profile);
       }
       saveDayRecord(key,rec);
-      wEl.value=''; rEl.value='';
       renderGym();
       startRestTimer(rest);
     });
@@ -2474,6 +2511,13 @@ function attachGymEvents(key, rec, session) {
   document.querySelectorAll('.swap-btn').forEach(function(btn){
     btn.addEventListener('click', function(){
       openSwapSheet(btn.dataset.swapOrig, btn.dataset.swapCurr, btn.dataset.muscle, key);
+    });
+  });
+
+  document.querySelectorAll('[data-delete-set]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var current=dayRecord(key), id=btn.dataset.deleteSet, index=parseInt(btn.dataset.setIndex,10);
+      if(current.workout && current.workout[id]) { current.workout[id].splice(index,1); saveDayRecord(key,current); renderGym(); }
     });
   });
 }
@@ -3400,7 +3444,7 @@ function addQuickFood(key) {
     var protein=parseFloat(document.getElementById('quickProtein').value)||0;
     if(!kcal || kcal<1 || protein<0){showToast('Enter calories and protein','warn');return;}
     var rec=dayRecord(key); rec.extra.push({name:'Quick add',kcal:kcal,protein:protein,carbs:0,fat:0,servings:1});
-    saveDayRecord(key,rec); addRecent('Quick add',kcal,protein,0,0); overlay.remove(); renderToday();
+    saveDayRecord(key,rec); addRecent('Quick add',kcal,protein,0,0); overlay.remove(); renderTodaySimple();
   };
 }
 
@@ -3410,26 +3454,27 @@ function renderTodaySimple() {
   var calPct=Math.min(100,Math.round((tot.kcal/targets.kcal)*100));
   var proteinPct=Math.min(100,Math.round((tot.protein/targets.protein)*100));
   var tdays=profile.trainingDays||[1,2,3,5,6], isTraining=tdays.includes(new Date().getDay());
-  var session=getSessionType(), done=session.exercises.filter(function(ex){return (rec.workout||{})[ex.id]&&rec.workout[ex.id].length;}).length;
+  var chosen=getWorkoutForDate(key,rec), session=chosen.session, hasWorkout=isTraining||rec.selectedWorkout!=null;
+  var done=session.exercises.filter(function(ex){return (rec.workout||{})[ex.id]&&rec.workout[ex.id].length;}).length;
   var recent=ls('rg_recent_foods',[]).slice(0,5);
   var recentHtml=recent.length?'<div class="chips-row">'+recent.map(function(r){return '<button class="chip quick-recent" data-food="'+encodeURIComponent(JSON.stringify(r))+'">'+esc(r.name)+'</button>';}).join('')+'</div>':'';
   document.getElementById('content').innerHTML=
     '<div class="topbar"><div><span class="eyebrow">'+new Date().toLocaleDateString([], {weekday:'long',month:'short',day:'numeric'})+'</span><div class="title">Today</div></div><button class="icon-btn" id="settingsBtn" aria-label="Settings">'+ic('settings')+'</button></div>'
     +'<section class="focus-card"><button class="focus-number" id="calorieDetails" aria-label="Show macro details"><span class="eyebrow">calories remaining</span><strong>'+calorieRemaining.toLocaleString()+'</strong><span class="focus-target">of '+targets.kcal.toLocaleString()+' kcal</span></button><div class="progress-track"><span style="width:'+calPct+'%"></span></div><div class="macro-hidden" id="macroDetails"><span>Carbs <b>'+tot.carbs+'g</b></span><span>Fat <b>'+tot.fat+'g</b></span></div></section>'
     +'<section class="simple-section"><div class="section-head"><span class="eyebrow">protein</span><span class="mono">'+tot.protein+' / '+targets.protein+'g</span></div><div class="progress-track protein-track"><span style="width:'+proteinPct+'%"></span></div></section>'
-    +'<section class="today-workout '+(!isTraining?'rest':'')+'"><div><span class="eyebrow">today\'s workout</span><strong>'+ (isTraining?esc(session.label):'Rest day')+'</strong><span class="small dim">'+(isTraining?done+' of '+session.exercises.length+' exercises logged':'Recovery is part of the plan')+'</span></div>'+(isTraining?'<button class="btn btn-primary" id="startWorkout">Start</button>':'<span class="rest-mark">REST</span>')+'</section>'
+    +'<section class="today-workout '+(!hasWorkout?'rest':'')+'"><div><span class="eyebrow">today\'s workout</span><strong>'+ (hasWorkout?esc(session.label):'Rest day')+'</strong><span class="small dim">'+(hasWorkout?done+' of '+session.exercises.length+' exercises logged':'You can train today if you need to move the plan')+'</span></div><button class="btn '+(hasWorkout?'btn-primary':'')+'" id="startWorkout">'+(hasWorkout?'Start':'Choose')+'</button></section>'
     +'<section class="simple-section"><div class="section-head"><span class="eyebrow">bodyweight</span><span class="small dim">once daily</span></div><div class="inline-entry"><input type="number" id="todayWeight" step="0.1" inputmode="decimal" placeholder="kg" value="'+(rec.weight||'')+'"><button class="btn" id="saveTodayWeight">Save</button></div></section>'
     +'<section class="simple-section"><div class="section-head"><span class="eyebrow">add food</span><button class="btn-ghost" id="foodSearchBtn">Search all foods</button></div>'+recentHtml+'<div class="food-actions"><button class="btn" id="quickFoodBtn">Quick add</button><button class="btn btn-primary" id="addFoodBtn">Search food</button></div></section>'
-    +'<section class="simple-section"><div class="section-head"><span class="eyebrow">optional check-in</span><span class="small dim">how do you feel?</span></div><div class="readiness-row">'+[1,2,3,4,5].map(function(n){return '<button class="ready-dot '+(rec.readiness===n?'active':'')+'" data-ready="'+n+'">'+n+'</button>';}).join('')+'</div></section>';
+    +'<section class="simple-section"><div class="section-head"><div><span class="readiness-label">How ready are you?</span><div class="readiness-help">Optional · tap one</div></div><span class="small dim">'+(rec.readiness?'Saved':'Not logged')+'</span></div><div class="readiness-row">'+[{n:1,l:'Low'},{n:2,l:'Below'},{n:3,l:'Okay'},{n:4,l:'Good'},{n:5,l:'Great'}].map(function(x){return '<button class="ready-dot '+(rec.readiness===x.n?'active':'')+'" data-ready="'+x.n+'">'+x.l+'</button>';}).join('')+'</div></section>';
   document.getElementById('settingsBtn').onclick=openSettings;
   document.getElementById('calorieDetails').onclick=function(){document.getElementById('macroDetails').classList.toggle('open');};
-  document.getElementById('startWorkout').onclick=function(){tab='gym';renderApp();};
-  document.getElementById('saveTodayWeight').onclick=function(){var w=parseFloat(document.getElementById('todayWeight').value);if(!w||w<20||w>300){showToast('Enter a valid weight','warn');return;}rec.weight=w;saveDayRecord(key,rec);showToast('Bodyweight saved','ok');renderToday();};
+  document.getElementById('startWorkout').onclick=function(){if(!hasWorkout) chooseWorkoutForDate(key); else {tab='gym';renderApp();}};
+  document.getElementById('saveTodayWeight').onclick=function(){var w=parseFloat(document.getElementById('todayWeight').value);if(!w||w<20||w>300){showToast('Enter a valid weight','warn');return;}rec.weight=w;saveDayRecord(key,rec);showToast('Bodyweight saved','ok');renderTodaySimple();};
   document.getElementById('addFoodBtn').onclick=function(){openFoodSearch(function(food,s){addFoodToDay(key,food,s);});};
   document.getElementById('foodSearchBtn').onclick=document.getElementById('addFoodBtn').onclick;
   document.getElementById('quickFoodBtn').onclick=function(){addQuickFood(key);};
-  document.querySelectorAll('.quick-recent').forEach(function(btn){btn.onclick=function(){var r=JSON.parse(decodeURIComponent(btn.dataset.food));rec.extra.push({name:r.name,kcal:r.kcal,protein:r.protein||0,carbs:r.carbs||0,fat:r.fat||0,servings:1});saveDayRecord(key,rec);renderToday();};});
-  document.querySelectorAll('.ready-dot').forEach(function(btn){btn.onclick=function(){rec.readiness=parseInt(btn.dataset.ready,10);saveDayRecord(key,rec);renderToday();};});
+  document.querySelectorAll('.quick-recent').forEach(function(btn){btn.onclick=function(){var r=JSON.parse(decodeURIComponent(btn.dataset.food));rec.extra.push({name:r.name,kcal:r.kcal,protein:r.protein||0,carbs:r.carbs||0,fat:r.fat||0,servings:1});saveDayRecord(key,rec);renderTodaySimple();};});
+  document.querySelectorAll('.ready-dot').forEach(function(btn){btn.onclick=function(){rec.readiness=parseInt(btn.dataset.ready,10);saveDayRecord(key,rec);renderTodaySimple();};});
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
