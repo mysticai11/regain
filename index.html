@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Iron Log</title>
 <meta name="description" content="Private offline workout logger for the Iron Log 5-day muscle-building split.">
 <meta name="theme-color" content="#15130F">
@@ -837,6 +837,19 @@ var SQLiteStorage = {
         console.error('SQLite delete error:', e);
       });
     }
+  },
+
+  clear: function() {
+    var self=this;
+    Object.keys(this.cache).forEach(function(key){delete self.cache[key];});
+    localStorage.clear();
+    if(this.active && window.Capacitor) {
+      return window.Capacitor.Plugins.CapacitorSQLite.executeJSPS({
+        database:'regain_storage',
+        statements:'DELETE FROM rg_storage;'
+      }).catch(function(e){console.error('SQLite clear error:',e);throw e;});
+    }
+    return Promise.resolve();
   }
 };
 
@@ -854,7 +867,12 @@ function sv(k, v) {
     var valStr = JSON.stringify(v);
     localStorage.setItem(k, valStr);
     SQLiteStorage.set(k, valStr);
-  } catch(e) {}
+    return true;
+  } catch(e) {
+    console.error('Save failed for '+k, e);
+    if(typeof showToast === 'function') showToast('Could not save data. Export a backup and try again.','warn');
+    return false;
+  }
 }
 
 function pad(n)    { return String(n).padStart(2,'0'); }
@@ -890,6 +908,19 @@ function verifyPin(pin, stored) {
 // ── Profile / Day helpers ──────────────────────────────────────────────────────
 function dayRecord(key) { return ls('rg_day_'+key, {weight:null,sleep:null,readiness:null,meals:{},extra:[],workout:{},workoutDone:false,shielded:false}); }
 function saveDayRecord(key,rec){ sv('rg_day_'+key, rec); }
+
+function goalDirection() {
+  return profile && profile.goal === 'loss' ? -1 : 1;
+}
+
+function goalLabel() {
+  if(!profile) return 'progress';
+  return profile.goal === 'loss' ? 'weight loss' : profile.goal === 'recomp' ? 'recomposition' : profile.goal === 'strength' ? 'strength' : 'weight gain';
+}
+
+function goalRateLabel() {
+  return goalDirection() < 0 ? 'weekly loss rate' : 'weekly gain rate';
+}
 
 function currentWeight() {
   var keys = allDayKeys().reverse();
@@ -1870,14 +1901,14 @@ function renderProgress() {
         goalText = 'Goal reached! 🎉';
       }
     } else {
-      goalText = 'Slope flat/negative: Gaining too slow to estimate timeline';
+      goalText = goalDirection()<0 ? 'Trend is not moving toward your loss goal' : 'Trend is not moving toward your gain goal';
     }
   } else if (curW) {
     goalText = 'Goal: ' + targetW + 'kg (need 2+ weeks of weight logs for estimate)';
   }
 
   var bannerHTML = '<div style="background:var(--surface-raised);border:1px solid var(--border-strong);border-radius:10px;padding:12px 14px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center">'
-    +'<div><span class="eyebrow" style="margin:0">Bulk Target Goal</span><div style="font-weight:600;font-size:15px;color:var(--text)">🎯 ' + targetW + ' kg</div></div>'
+    +'<div><span class="eyebrow" style="margin:0">'+esc(goalLabel())+' goal</span><div style="font-weight:600;font-size:15px;color:var(--text)">🎯 ' + targetW + ' kg</div></div>'
     +'<div class="mono" style="font-size:12px;color:var(--amber-light);text-align:right">' + goalText + '</div>'
     +'</div>';
 
@@ -1886,7 +1917,7 @@ function renderProgress() {
     +bannerHTML
     +'<div class="stat-grid">'
       +'<div class="stat-card"><span class="eyebrow">current weight</span><div class="stat-val">'+(curW!=null?curW.toFixed(1)+'kg':'–')+'</div><div class="stat-sub">'+(delta!=null?(delta>=0?'+':'')+delta.toFixed(1)+' kg since day 1':'log weight to track')+'</div></div>'
-      +'<div class="stat-card"><span class="eyebrow">weekly gain rate</span><div class="stat-val '+(weeklyGainPct!=null?(inRange?'sage':'rust'):'')+'">'+( weeklyGainPct!=null?weeklyGainPct.toFixed(2)+'%':'–')+'</div><div class="stat-sub">target '+((GAIN_LOW/startW)*100).toFixed(2)+'–'+((GAIN_HIGH/startW)*100).toFixed(2)+'%/wk</div></div>'
+      +'<div class="stat-card"><span class="eyebrow">'+goalRateLabel()+'</span><div class="stat-val '+(weeklyGainPct!=null?(inRange?'sage':'rust'):'')+'">'+( weeklyGainPct!=null?weeklyGainPct.toFixed(2)+'%':'–')+'</div><div class="stat-sub">goal-aware trend</div></div>'
       +'<div class="stat-card"><span class="eyebrow">current streak</span><div class="stat-val amber">'+streak+'</div><div class="stat-sub">days</div></div>'
       +'<div class="stat-card"><span class="eyebrow">avg kcal (7d)</span><div class="stat-val">'+avgKcal7+'</div><div class="stat-sub">target '+ct+'</div></div>'
     +'</div>'
@@ -2411,7 +2442,7 @@ function renderGym() {
     var exerciseExtra = '<div class="exercise-extra">'
       +'<div class="exercise-cue">'+esc(ex.cue||exOrig.cue)+(best?' · best e1RM: '+best.toFixed(1)+'kg':'') + prStr + '</div>'
       +'<div class="set-list"><div class="small dim">Planned '+(ex.sets||exOrig.sets)+' sets · '+esc(ex.reps||exOrig.reps)+' reps</div>'+plannedRows+'</div>'
-      +(sets.length ? '<div class="set-chips">'+sets.map(function(s,i){var effort=s.rir===0?'failure':(s.rir!=null?s.rir+' RIR':'');return '<span class="set-chip">'+s.weight+'kg × '+s.reps+(effort?' · '+effort:'')+' <button class="btn-ghost" data-delete-set="'+ex.id+'" data-set-index="'+i+'" aria-label="Delete set">×</button></span>';}).join('')+'</div>' : '')
+      +(sets.length ? '<div class="set-chips">'+sets.map(function(s,i){var effort=s.rir===0?'failure':(s.rir!=null?s.rir+' RIR':'');return '<span class="set-chip">'+s.weight+'kg × '+s.reps+(effort?' · '+effort:'')+' <button class="btn-ghost" data-edit-set="'+ex.id+'" data-set-index="'+i+'" aria-label="Edit set">edit</button><button class="btn-ghost" data-delete-set="'+ex.id+'" data-set-index="'+i+'" aria-label="Delete set">×</button></span>';}).join('')+'</div>' : '')
       +progressionPrompt
       +'<div style="display:flex;align-items:center;gap:8px;margin-top:10px">'+warmUpLink+routineRemoveLink+noteInputHTML+'</div>'
       +'</div>';
@@ -2453,7 +2484,11 @@ function renderWorkoutTimer(dayKey, rec, session) {
     return;
   }
   wrap.innerHTML='<span><strong id="workoutElapsed">'+Math.floor(workoutElapsed(meta)/60)+':'+pad(workoutElapsed(meta)%60)+'</strong><span class="small dim"> session</span></span><button class="btn btn-primary btn-sm" id="endWorkoutBtn">End session</button>';
-  document.getElementById('endWorkoutBtn').onclick=function(){endWorkoutSession(dayKey);};
+  document.getElementById('endWorkoutBtn').onclick=function(){
+    var hasSets=Object.keys(rec.workout||{}).some(function(id){return (rec.workout[id]||[]).some(Boolean);});
+    if(!hasSets&&!confirm('No sets are logged. End this session anyway?')) return;
+    endWorkoutSession(dayKey);
+  };
   if(!meta.completedAt) {
     if(workoutTimer.interval) clearInterval(workoutTimer.interval);
     workoutTimer.interval=setInterval(function(){var el=document.getElementById('workoutElapsed');if(el){var seconds=workoutElapsed(rec.workoutMeta);el.textContent=Math.floor(seconds/60)+':'+pad(seconds%60);}},1000);
@@ -2545,7 +2580,7 @@ function attachGymEvents(key, rec, session) {
       rec.workoutMeta.sessionLabel=session.label;
       rec.workoutMeta.updatedAt=new Date().toISOString();
       // Check if all exercises done (2+ sets each)
-      var allDone = session.exercises.every(function(ex){return (rec.workout[ex.id]||[]).filter(Boolean).length>=(ex.sets||2);});
+      var allDone = session.exercises.every(function(ex){var actualId=(rec.swaps&&rec.swaps[ex.id])||ex.id;return (rec.workout[actualId]||[]).filter(Boolean).length>=(ex.sets||2);});
       if(allDone && !rec.workoutDone){
         rec.workoutDone=true; profile.xp=(profile.xp||0)+30; sv('rg_profile',profile);
         showToast('Session complete! +30 XP 🎉','ok');
@@ -2567,7 +2602,20 @@ function attachGymEvents(key, rec, session) {
   document.querySelectorAll('[data-delete-set]').forEach(function(btn){
     btn.addEventListener('click',function(){
       var current=dayRecord(key), id=btn.dataset.deleteSet, index=parseInt(btn.dataset.setIndex,10);
-      if(current.workout && current.workout[id]) { current.workout[id].splice(index,1); saveDayRecord(key,current); renderGym(); }
+      if(current.workout && current.workout[id]) { current.workout[id].splice(index,1); current.workoutDone=false; saveDayRecord(key,current); renderGym(); }
+    });
+  });
+  document.querySelectorAll('[data-edit-set]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var current=dayRecord(key), id=btn.dataset.editSet, index=parseInt(btn.dataset.setIndex,10), set=current.workout&&current.workout[id]&&current.workout[id][index];
+      if(!set) return;
+      var weight=prompt('Weight (kg)',set.weight), reps=prompt('Reps',set.reps), effort=prompt('RIR (0 = failure, blank = not logged)',set.rir===0?'0':(set.rir==null?'':set.rir));
+      if(weight===null||reps===null||effort===null) return;
+      var w=parseFloat(weight), r=parseInt(reps,10);
+      if(!w||!r||w<=0||r<=0){showToast('Enter valid weight and reps','warn');return;}
+      var rir=effort.trim()===''?null:parseInt(effort,10);
+      if(rir!==null&&(isNaN(rir)||rir<0||rir>3)){showToast('RIR must be blank or 0 to 3','warn');return;}
+      current.workout[id][index]={weight:w,reps:r,rir:rir}; saveDayRecord(key,current); renderGym();
     });
   });
 }
@@ -2728,6 +2776,7 @@ function endWorkoutSession(dayKey) {
   var rec=dayRecord(dayKey);
   if(!rec.workoutMeta || !rec.workoutMeta.startedAt) return;
   rec.workoutMeta.completedAt=new Date().toISOString();
+  rec.workoutDone=rec.workoutDone||false;
   rec.workoutMeta.durationMinutes=Math.max(1,Math.round(workoutElapsed(rec.workoutMeta)/60));
   saveDayRecord(dayKey,rec);
   if(workoutTimer.interval) clearInterval(workoutTimer.interval);
@@ -3113,6 +3162,13 @@ function openSettings() {
   });
   overlay.querySelector('#closeSettingsBtn').addEventListener('click',function(){overlay.remove();});
   overlay.querySelector('#saveSettingsBtn').addEventListener('click',function(){
+    var nextGoal=document.getElementById('setGoal').value;
+    var nextTarget=parseFloat(document.getElementById('setTargetWeight').value);
+    var current=parseFloat(profile.startWeight)||parseFloat(currentWeight());
+    if(!nextTarget||((nextGoal==='loss')&&current&&nextTarget>=current)||((nextGoal!=='loss')&&current&&nextTarget<=current)){
+      showToast(nextGoal==='loss'?'Loss goal must be below current weight':'Gain/strength goal must be above current weight','warn');
+      return;
+    }
     profile.calTargetRest=parseInt(document.getElementById('setTargetRest').value,10)||CAL_TARGET_REST;
     profile.calTargetGym=parseInt(document.getElementById('setTargetGym').value,10)||CAL_TARGET_GYM;
     profile.protTargetRest=parseInt(document.getElementById('setProtRest').value,10)||PROT_TARGET_REST;
@@ -3122,8 +3178,8 @@ function openSettings() {
     profile.equipment=document.getElementById('setEquip').value;
     profile.dietaryPattern=document.getElementById('setDiet').value;
     profile.experience=document.getElementById('setExp').value;
-    profile.goal=document.getElementById('setGoal').value;
-    profile.targetWeight=parseFloat(document.getElementById('setTargetWeight').value)||60.0;
+    profile.goal=nextGoal;
+    profile.targetWeight=nextTarget||60.0;
     sv('rg_profile',profile);
     overlay.remove(); renderTab();
   });
@@ -3136,7 +3192,7 @@ function openSettings() {
   });
   overlay.querySelector('#resetBtn').addEventListener('click',function(){
     if(confirm('This will delete all Regain data on this device. Are you sure?')){
-      localStorage.clear(); indexedDB.deleteDatabase('rg_food_db'); location.reload();
+      SQLiteStorage.clear().then(function(){return new Promise(function(resolve){var request=indexedDB.deleteDatabase('rg_food_db');request.onsuccess=request.onerror=request.onblocked=resolve;});}).then(function(){location.reload();}).catch(function(){showToast('Reset failed. Export a backup and try again.','warn');});
     }
   });
   overlay.querySelector('#editCustomFoodsBtn').addEventListener('click',function(){
@@ -3345,6 +3401,10 @@ function importData() {
         var data=JSON.parse(e.target.result);
         if(!data.profile || !data.days || typeof data.days !== 'object') throw new Error('Invalid backup file');
         if(!confirm('This will overwrite all current data. Continue?')) return;
+        var importedKeys=Object.keys(data.days), existingKeys=[];
+        Object.keys(localStorage).forEach(function(k){if(k.indexOf('rg_day_')===0) existingKeys.push(k.slice(7));});
+        Object.keys(SQLiteStorage.cache||{}).forEach(function(k){if(k.indexOf('rg_day_')===0&&existingKeys.indexOf(k.slice(7))<0) existingKeys.push(k.slice(7));});
+        existingKeys.forEach(function(k){if(importedKeys.indexOf(k)<0) SQLiteStorage.delete('rg_day_'+k);});
         sv('rg_profile',data.profile);
         sv('rg_meals',data.meals||DEFAULT_MEALS);
         sv('rg_recent_foods',data.recentFoods||[]);
@@ -3494,6 +3554,17 @@ function getProgressRows(range, entries) {
   return entries.filter(function(e){return new Date(e.createdAt||e.dayKey+'T12:00:00').getTime() >= cutoff;});
 }
 
+function getRollingWeightValues(entries, source) {
+  source=source||entries;
+  return entries.map(function(entry, i) {
+    var day=new Date((entry.dayKey||entry.createdAt).slice(0,10)+'T12:00:00');
+    var start=addDays(day,-6).getTime(), end=day.getTime();
+    var window=source.filter(function(e){var t=new Date((e.dayKey||e.createdAt).slice(0,10)+'T12:00:00').getTime();return t>=start&&t<=end;});
+    var avg=window.reduce(function(sum,e){return sum+Number(e.weight);},0)/window.length;
+    return {value:+avg.toFixed(2),label:entry.dayKey+' · 7-day avg '+avg.toFixed(2)+' kg'};
+  });
+}
+
 function progressPlot(values, goal) {
   if(!values.length) return '<div class="empty-note">Log data to see this trend.</div>';
   var nums=values.map(function(v){return v.value;}).concat(goal!=null?[goal]:[]);
@@ -3559,21 +3630,26 @@ function renderProgressSimple() {
   var current=entries.length?entries[entries.length-1].weight:null, range='1m';
   var exOptions=[]; getActiveProgram().forEach(function(s){s.exercises.forEach(function(e){if(!exOptions.some(function(x){return x.id===e.id;}))exOptions.push(e);});});
   var render=function(){
-    var rangeEntries=getProgressRows(range,entries), weightValues=rangeEntries.map(function(e){return {value:e.weight,label:e.dayKey+' · '+e.weight+' kg'};});
+    var rangeEntries=getProgressRows(range,entries), weightValues=getRollingWeightValues(rangeEntries,entries);
+    var cutoff = range === 'all' ? 0 : Date.now() - ({'1w':7,'1m':30,'3m':90}[range]||30)*86400000;
+    var rangeRecords=records.filter(function(r){return new Date(r.key+'T23:59:59').getTime()>=cutoff;});
     var selected=document.getElementById('liftSelect').value, liftValues=[];
-    records.forEach(function(r){var best=0;(dayRecord(r.key).workout||{})[selected]&&dayRecord(r.key).workout[selected].forEach(function(s){if(s)best=Math.max(best,calcE1RM(s.weight,s.reps));});if(best)liftValues.push({value:best,label:r.key+' · '+best.toFixed(1)+' kg'});});
+    rangeRecords.forEach(function(r){var best=0;(dayRecord(r.key).workout||{})[selected]&&dayRecord(r.key).workout[selected].forEach(function(s){if(s)best=Math.max(best,calcE1RM(s.weight,s.reps));});if(best)liftValues.push({value:best,label:r.key+' · '+best.toFixed(1)+' kg'});});
     var allLiftValues=[];
-    records.forEach(function(r){var total=0,count=0;Object.keys(dayRecord(r.key).workout||{}).forEach(function(id){var best=0;(dayRecord(r.key).workout[id]||[]).forEach(function(s){if(s){best=Math.max(best,calcE1RM(s.weight,s.reps));}});if(best){total+=best;count++;}});if(count)allLiftValues.push({value:total/count,label:r.key});});
+    rangeRecords.forEach(function(r){var total=0,count=0;Object.keys(dayRecord(r.key).workout||{}).forEach(function(id){var best=0;(dayRecord(r.key).workout[id]||[]).forEach(function(s){if(s){best=Math.max(best,calcE1RM(s.weight,s.reps));}});if(best){total+=best;count++;}});if(count)allLiftValues.push({value:total/count,label:r.key});});
     var first=allLiftValues.length?allLiftValues[0].value:1;
     document.getElementById('weightPlot').innerHTML=progressPlot(weightValues,profile.targetWeight);
     document.getElementById('liftPlot').innerHTML=progressPlot(liftValues);
     document.getElementById('overallPlot').innerHTML=progressPlot(allLiftValues.map(function(v){return {value:Math.round(v.value/first*100),label:v.label+' · '+Math.round(v.value/first*100)+' index'};}));
-    document.getElementById('weightMeta').textContent=weightValues.length?(weightValues[weightValues.length-1].value+' kg latest · goal '+(profile.targetWeight||'—')+' kg'):'No weight entries yet';
+    var direction=goalDirection(), latest=weightValues.length?weightValues[weightValues.length-1].value:null;
+    var trend=weightValues.length>1?latest-weightValues[0].value:0;
+    var status=weightValues.length>1?(direction*trend>0?'moving toward goal':direction*trend<0?'moving away from goal':'flat'):'need more entries';
+    document.getElementById('weightMeta').textContent=latest!=null?(latest+' kg 7-day avg · goal '+(profile.targetWeight||'—')+' kg · '+status):'No weight entries yet';
   };
   document.getElementById('content').innerHTML=
     '<div class="topbar"><div><span class="eyebrow">your trends</span><div class="title">Progress</div></div><button class="icon-btn" id="settingsBtn" aria-label="Settings">'+ic('settings')+'</button></div>'
     +'<div class="stat-strip"><span><b>'+(current!=null?current.toFixed(1)+' kg':'—')+'</b><small>current weight</small></span><span><b>'+records.filter(function(r){return dayRecord(r.key).workoutDone;}).length+'</b><small>workouts logged</small></span><span><b>'+exOptions.length+'</b><small>lifts tracked</small></span></div>'
-    +'<section class="chart-section"><div class="section-head"><span class="eyebrow">bodyweight trajectory</span><span id="weightMeta" class="small dim"></span></div><div class="range-row"><button class="range active" data-range="1w">1 week</button><button class="range" data-range="1m">1 month</button><button class="range" data-range="3m">3 months</button></div><div id="weightPlot"></div><div class="chart-legend"><span><i></i>weight</span><span><i class="goal"></i>goal line</span></div><div class="progress-entry"><input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="Log bodyweight now" inputmode="decimal"><button class="btn btn-primary" id="saveProgressWeight">Save</button></div><div class="weight-entry-list">'+weightEntriesHTML(entries)+'</div></section>'
+    +'<section class="chart-section"><div class="section-head"><span class="eyebrow">'+esc(goalLabel())+' · bodyweight</span><span id="weightMeta" class="small dim"></span></div><div class="range-row"><button class="range active" data-range="1w">1 week</button><button class="range" data-range="1m">1 month</button><button class="range" data-range="3m">3 months</button></div><div id="weightPlot"></div><div class="chart-legend"><span><i></i>7-day average</span><span><i class="goal"></i>goal line</span></div><div class="progress-entry"><input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="Log bodyweight now" inputmode="decimal"><button class="btn btn-primary" id="saveProgressWeight">Save</button></div><div class="weight-entry-list">'+weightEntriesHTML(entries)+'</div></section>'
     +'<section class="chart-section"><div class="section-head"><span class="eyebrow">lift strength</span><select id="liftSelect" class="compact-select">'+exOptions.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join('')+'</select></div><div id="liftPlot"></div><div class="small dim">Estimated 1RM from your best logged set each workout.</div></section>'
     +'<section class="chart-section"><div class="section-head"><span class="eyebrow">overall strength</span><span class="small dim">baseline = 100</span></div><div id="overallPlot"></div><div class="small dim">Average normalized estimated 1RM across lifts logged in each workout.</div></section>'
     +'<details class="history-details" open><summary>Workout history</summary>'+workoutHistoryHTML(records)+'</details>';
@@ -3605,7 +3681,8 @@ function addQuickFood(key) {
 
 function renderTodaySimple() {
   var key=todayKey(), rec=dayRecord(key), tot=getDayTotals(key), targets=getTargetsForDate(key);
-  var calorieRemaining=Math.max(0,targets.kcal-tot.kcal);
+  var calorieDelta=targets.kcal-tot.kcal;
+  var calorieRemaining=Math.max(0,calorieDelta);
   var calPct=Math.min(100,Math.round((tot.kcal/targets.kcal)*100));
   var proteinPct=Math.min(100,Math.round((tot.protein/targets.protein)*100));
   var tdays=profile.trainingDays||[1,2,3,5,6], isTraining=tdays.includes(new Date().getDay());
@@ -3615,7 +3692,7 @@ function renderTodaySimple() {
   var recentHtml=recent.length?'<div class="chips-row">'+recent.map(function(r){return '<button class="chip quick-recent" data-food="'+encodeURIComponent(JSON.stringify(r))+'">'+esc(r.name)+'</button>';}).join('')+'</div>':'';
   document.getElementById('content').innerHTML=
     '<div class="topbar"><div><span class="eyebrow">'+new Date().toLocaleDateString([], {weekday:'long',month:'short',day:'numeric'})+'</span><div class="title">Today</div></div><button class="icon-btn" id="settingsBtn" aria-label="Settings">'+ic('settings')+'</button></div>'
-    +'<section class="focus-card"><button class="focus-number" id="calorieDetails" aria-label="Show macro details"><span class="eyebrow">calories remaining</span><strong>'+calorieRemaining.toLocaleString()+'</strong><span class="focus-target">of '+targets.kcal.toLocaleString()+' kcal</span></button><div class="progress-track"><span style="width:'+calPct+'%"></span></div><div class="macro-hidden" id="macroDetails"><span>Carbs <b>'+tot.carbs+'g</b></span><span>Fat <b>'+tot.fat+'g</b></span></div></section>'
+    +'<section class="focus-card"><button class="focus-number" id="calorieDetails" aria-label="Show macro details"><span class="eyebrow">'+(calorieDelta>=0?'calories remaining':'calories over target')+'</span><strong>'+Math.abs(calorieDelta).toLocaleString()+'</strong><span class="focus-target">of '+targets.kcal.toLocaleString()+' kcal</span></button><div class="progress-track"><span style="width:'+calPct+'%"></span></div><div class="macro-hidden" id="macroDetails"><span>Carbs <b>'+tot.carbs+'g</b></span><span>Fat <b>'+tot.fat+'g</b></span></div></section>'
     +'<section class="simple-section"><div class="section-head"><span class="eyebrow">protein</span><span class="mono">'+tot.protein+' / '+targets.protein+'g</span></div><div class="progress-track protein-track"><span style="width:'+proteinPct+'%"></span></div></section>'
     +'<section class="today-workout '+(!hasWorkout?'rest':'')+'"><div><span class="eyebrow">today\'s workout</span><strong>'+ (hasWorkout?esc(session.label):'Rest day')+'</strong><span class="small dim">'+(hasWorkout?done+' of '+session.exercises.length+' exercises logged':'You can train today if you need to move the plan')+'</span></div><button class="btn '+(hasWorkout?'btn-primary':'')+'" id="startWorkout">'+(hasWorkout?'Start':'Choose')+'</button></section>'
     +'<section class="simple-section"><div class="section-head"><span class="eyebrow">bodyweight</span><span class="small dim">once daily</span></div><div class="inline-entry"><input type="number" id="todayWeight" step="0.1" inputmode="decimal" placeholder="kg" value="'+(rec.weight||'')+'"><button class="btn" id="saveTodayWeight">Save</button></div></section>'

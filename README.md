@@ -90,6 +90,8 @@ Workout logs preserve the planned session, every set's weight and reps, optional
 
 Progress entries can be edited or deleted. Gym sessions include a persistent elapsed timer with explicit Start session and End session actions; the total elapsed time is saved in workout history. Personal-best markers appear in workout history.
 
+The app is designed for separate private profiles on separate phones. Gain and loss goals use goal-aware labels and trend direction, while workout history and the training plan remain independent on each device.
+
 ## Data Backup
 
 All data lives on-device only. To back up:
