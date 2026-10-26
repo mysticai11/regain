@@ -4035,8 +4035,8 @@ SQLiteStorage.init(function(){
   requestPersistentStorage();
   profile = ls('rg_profile', null);
   FoodDB.open().then(function(){
-    migrateFoodTotals();
     if(profile) {
+      migrateFoodTotals();
       if(!profile.mealPlan) {
         profile.mealPlan = JSON.parse(JSON.stringify(DEFAULT_MEAL_PLAN));
         sv('rg_profile', profile);
