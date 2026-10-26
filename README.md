@@ -66,7 +66,7 @@ The app is organized around three mobile-first screens:
 
 - **Today**: calories remaining, protein progress, today's workout, bodyweight, quick food logging, and an optional 1–5 readiness tap.
 - **Gym**: the active workout session and set logging.
-- **Progress**: four focused trend views plus a collapsible recent-history list.
+- **Progress**: bodyweight trajectory, per-lift estimated 1RM, overall normalized strength, and expandable workout history.
 
 Carbs and fat are hidden behind the calorie summary, while backup, import, training schedule, equipment, custom foods, and reset controls live under the collapsed Advanced Settings section.
 
@@ -85,6 +85,8 @@ Custom foods and recipes are stored in the same IndexedDB database and are inclu
 There is no login or lock screen. The profile, progress, meals, workouts, and food data remain on the device until the user explicitly resets or deletes them. Use Settings → Export to download a complete JSON backup; it includes all discovered daily records, including workout history outside the current program date range. Import validates the profile and day records before restoring them.
 
 The onboarding goal supports muscle gain, fat loss, recomposition, or strength. Select fat loss to set a target below the starting weight; calorie targets remain editable in Settings.
+
+Workout logs preserve the planned session, every set's weight and reps, optional RIR/failure effort, and session duration. Progress supports bodyweight entries whenever needed, with 1-week, 1-month, and 3-month ranges. Strength charts use estimated 1RM from each lift and an overall index normalized to the first logged workout.
 
 ## Data Backup
 

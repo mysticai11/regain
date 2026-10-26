@@ -359,9 +359,10 @@ input::placeholder { color: #7f95ad; }
 .readiness-help { color:var(--text-muted); font-size:12px; margin-top:3px; }
 .workout-picker { display:flex; gap:8px; overflow-x:auto; padding:4px 0 12px; }
 .workout-picker .chip.active { background:var(--amber); color:#142000; border-color:var(--amber); font-weight:700; }
-.planned-set { display:grid; grid-template-columns:28px 1fr 1fr 48px; gap:7px; align-items:center; margin-top:7px; }
+.planned-set { display:grid; grid-template-columns:28px 1fr 1fr 1fr 48px; gap:7px; align-items:center; margin-top:7px; }
 .planned-set .set-number { color:var(--text-muted); font-size:12px; text-align:center; }
 .planned-set input { min-height:42px; }
+.planned-set select { min-height:42px; font-size:12px; padding:0 6px; }
 .planned-set .btn { min-width:44px; padding:6px; }
 .set-complete { color:var(--sage-light); font-size:18px; text-align:center; }
 .stat-strip { display:flex; justify-content:space-between; gap:8px; padding:12px 0 18px; }
@@ -372,6 +373,18 @@ input::placeholder { color: #7f95ad; }
 .range-row { display:flex; gap:6px; margin-bottom:18px; }
 .range { border:0; background:var(--surface); color:var(--text-muted); border-radius:9px; padding:8px 13px; font-weight:700; cursor:pointer; }
 .range.active { background:var(--amber); color:#142000; }
+.progress-entry { display:flex; gap:8px; align-items:center; margin-top:10px; }
+.progress-entry input { flex:1; min-width:0; }
+.progress-entry .btn { flex:0 0 auto; }
+.history-workout { padding:14px 0; border-bottom:1px solid rgba(58,85,115,.35); }
+.history-workout summary { cursor:pointer; list-style:none; }
+.history-workout summary::-webkit-details-marker { display:none; }
+.history-workout summary strong { display:block; font-size:14px; }
+.history-workout summary span { color:var(--text-muted); font-size:11px; }
+.history-set-row { display:flex; justify-content:space-between; gap:10px; padding:6px 0; font-size:12px; color:var(--text-secondary); }
+.chart-legend { display:flex; gap:14px; color:var(--text-muted); font-size:11px; margin-top:8px; }
+.chart-legend i { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--amber); margin-right:4px; }
+.chart-legend i.goal { background:var(--sage); }
 .chart-section { padding:16px 0; border-bottom:1px solid rgba(58,85,115,.45); }
 .line-chart, .sparkline { position:relative; height:112px; margin-top:16px; background:linear-gradient(to bottom,transparent 49%,rgba(143,163,186,.14) 50%,transparent 51%); }
 .line-chart:after, .sparkline:after { content:""; position:absolute; left:0; right:0; top:50%; border-top:2px solid rgba(184,243,74,.35); transform:skewY(-7deg); }
@@ -2319,6 +2332,7 @@ function chooseWorkoutForDate(dayKey) {
 // GYM TAB
 // ═══════════════════════════════════════════════════════════════════════════════
 function renderGym() {
+  var key=todayKey(), rec=dayRecord(key);
   var tdays = profile.trainingDays||[1,3,5];
   var today = new Date();
   var isTrainingDay = tdays.includes(today.getDay());
@@ -2363,7 +2377,7 @@ function renderGym() {
       var logged=sets[i], loggedHtml=logged
         ? '<span class="set-complete">✓</span>'
         : '<button class="btn btn-primary btn-sm" data-logset="'+ex.id+'" data-set-index="'+i+'" data-rest="'+(ex.rest||exOrig.rest)+'">Log</button>';
-      return '<div class="planned-set"><span class="set-number">'+(i+1)+'</span><input type="number" step="0.25" min="0" placeholder="kg" class="set-weight" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+(logged?logged.weight:preW)+'" inputmode="decimal"><input type="number" min="1" max="50" placeholder="reps" class="set-reps" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+(logged?logged.reps:preR)+'" inputmode="numeric">'+loggedHtml+'</div>';
+      return '<div class="planned-set"><span class="set-number">'+(i+1)+'</span><input type="number" step="0.25" min="0" placeholder="kg" class="set-weight" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+(logged?logged.weight:preW)+'" inputmode="decimal"><input type="number" min="1" max="50" placeholder="reps" class="set-reps" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+(logged?logged.reps:preR)+'" inputmode="numeric"><select class="set-rir" data-ex="'+ex.id+'" data-set-index="'+i+'" aria-label="RIR"><option value="">RIR</option><option value="0" '+(logged&&logged.rir===0?'selected':'')+'>Failure</option><option value="1" '+(logged&&logged.rir===1?'selected':'')+'>1 RIR</option><option value="2" '+(logged&&logged.rir===2?'selected':'')+'>2 RIR</option><option value="3" '+(logged&&logged.rir===3?'selected':'')+'>3+ RIR</option></select>'+loggedHtml+'</div>';
     }).join('');
     var best = getBestE1RM(ex.id);
     
@@ -2391,7 +2405,7 @@ function renderGym() {
     var exerciseExtra = '<div class="exercise-extra">'
       +'<div class="exercise-cue">'+esc(ex.cue||exOrig.cue)+(best?' · best e1RM: '+best.toFixed(1)+'kg':'') + prStr + '</div>'
       +'<div class="set-list"><div class="small dim">Planned '+(ex.sets||exOrig.sets)+' sets · '+esc(ex.reps||exOrig.reps)+' reps</div>'+plannedRows+'</div>'
-      +(sets.length ? '<div class="set-chips">'+sets.map(function(s,i){return '<span class="set-chip">'+s.weight+'kg × '+s.reps+' <button class="btn-ghost" data-delete-set="'+ex.id+'" data-set-index="'+i+'" aria-label="Delete set">×</button></span>';}).join('')+'</div>' : '')
+      +(sets.length ? '<div class="set-chips">'+sets.map(function(s,i){var effort=s.rir===0?'failure':(s.rir!=null?s.rir+' RIR':'');return '<span class="set-chip">'+s.weight+'kg × '+s.reps+(effort?' · '+effort:'')+' <button class="btn-ghost" data-delete-set="'+ex.id+'" data-set-index="'+i+'" aria-label="Delete set">×</button></span>';}).join('')+'</div>' : '')
       +progressionPrompt
       +'<div style="display:flex;align-items:center;gap:8px;margin-top:10px">'+warmUpLink+routineRemoveLink+noteInputHTML+'</div>'
       +'</div>';
@@ -2410,6 +2424,7 @@ function renderGym() {
       +'<div style="display:flex;gap:8px"><button class="btn btn-sm" id="chooseWorkoutBtn">Change workout</button><button class="icon-btn" id="volBtn" title="Weekly volume">'+ic('chart')+'</button></div>'
     +'</div>'
     +'<div class="workout-picker">'+IRON_LOG_PROGRAM.map(function(s,i){return '<button class="chip '+(i===selected.index?'active':'')+'" data-pick-workout="'+i+'">'+esc(s.label.split('·')[0].trim())+'</button>';}).join('')+'</div>'
+    +'<div class="progress-entry"><label class="small dim" for="workoutDuration">Duration</label><input id="workoutDuration" type="number" min="1" max="360" placeholder="minutes" value="'+(rec.workoutMeta&&rec.workoutMeta.durationMinutes||'')+'" inputmode="numeric"><span class="small dim">min</span></div>'
     +'<div id="restTimerWrap"></div>'
     +addExerciseHTML
     +emptyRoutineHTML
@@ -2490,14 +2505,21 @@ function attachGymEvents(key, rec, session) {
       var rEl = document.querySelector('.set-reps[data-ex="'+id+'"][data-set-index="'+setIndex+'"]');
       var w = parseFloat(wEl.value), r = parseInt(rEl.value,10);
       if(!w||!r||w<=0||r<=0){showToast('Enter weight and reps','warn');return;}
+      var rirEl = document.querySelector('.set-rir[data-ex="'+id+'"][data-set-index="'+setIndex+'"]');
+      var rirValue = rirEl && rirEl.value !== '' ? parseInt(rirEl.value,10) : null;
       rec = dayRecord(key);
       rec.workout = rec.workout||{};
       rec.workout[id] = rec.workout[id]||[];
-      rec.workout[id][setIndex] = {weight:w,reps:r};
+      rec.workout[id][setIndex] = {weight:w,reps:r,rir:rirValue};
+      var durationEl=document.getElementById('workoutDuration'), duration=parseInt(durationEl&&durationEl.value,10);
+      rec.workoutMeta=rec.workoutMeta||{sessionLabel:session.label};
+      rec.workoutMeta.sessionLabel=session.label;
+      if(duration>0) rec.workoutMeta.durationMinutes=duration;
+      rec.workoutMeta.updatedAt=new Date().toISOString();
       // Check if all exercises done (2+ sets each)
       var allDone = session.exercises.every(function(ex){return (rec.workout[ex.id]||[]).filter(Boolean).length>=(ex.sets||2);});
       if(allDone && !rec.workoutDone){
-        rec.workoutDone=true; profile.xp=(profile.xp||0)+30; sv('rg_profile',profile);
+        rec.workoutDone=true; rec.workoutMeta.completedAt=new Date().toISOString(); profile.xp=(profile.xp||0)+30; sv('rg_profile',profile);
         showToast('Session complete! +30 XP 🎉','ok');
       } else {
         profile.xp=(profile.xp||0)+3; sv('rg_profile',profile);
@@ -3402,33 +3424,72 @@ function renderHistory() {
     + '<div style="margin-bottom:20px">' + listHTML + '</div>';
 }
 
-function renderProgressSimple() {
-  var records=allDayKeys().map(function(k){var r=dayRecord(k),t=getDayTotals(k);return {key:k,weight:r.weight,kcal:t.kcal,protein:t.protein};});
-  var recent=records.slice(-7), weights=records.filter(function(r){return r.weight!=null;});
-  var current=weights.length?weights[weights.length-1].weight:null;
-  var streak=computeStreak(), prs=0;
-  records.forEach(function(r){var w=dayRecord(r.key);Object.keys(w.workout||{}).forEach(function(id){var sets=w.workout[id]||[];sets.forEach(function(s){if(s.weight&&s.reps&&s.reps>=10)prs++;});});
+function getWeightHistory() {
+  var entries = Array.isArray(profile.weightEntries) ? profile.weightEntries.slice() : [];
+  allDayKeys().forEach(function(k) {
+    var r=dayRecord(k);
+    if(r.weight!=null && !entries.some(function(e){return e.dayKey===k;})) entries.push({id:'legacy_'+k,dayKey:k,weight:r.weight,createdAt:k+'T12:00:00'});
   });
+  return entries.filter(function(e){return e.weight!=null;}).sort(function(a,b){return String(a.createdAt||a.dayKey).localeCompare(String(b.createdAt||b.dayKey));});
+}
+
+function getProgressRows(range, entries) {
+  var cutoff = range === 'all' ? 0 : Date.now() - ({'1w':7,'1m':30,'3m':90}[range]||30)*86400000;
+  return entries.filter(function(e){return new Date(e.createdAt||e.dayKey+'T12:00:00').getTime() >= cutoff;});
+}
+
+function progressPlot(values, goal) {
+  if(!values.length) return '<div class="empty-note">Log data to see this trend.</div>';
+  var nums=values.map(function(v){return v.value;}).concat(goal!=null?[goal]:[]);
+  var min=Math.min.apply(null,nums), max=Math.max.apply(null,nums), span=max-min||1;
+  var goalLine=goal!=null?'<i style="position:absolute;left:0;right:0;bottom:'+(8+((max-goal)/span)*82)+'%;border-top:1px dashed var(--sage);z-index:0"></i>':'';
+  return '<div class="line-chart">'+goalLine+values.map(function(v,i){var x=i/Math.max(1,values.length-1)*100,y=8+((max-v.value)/span)*82;return '<span style="left:'+x+'%;bottom:'+y+'%" title="'+esc(v.label||v.value)+'"></span>';}).join('')+'</div>';
+}
+
+function workoutHistoryHTML(records) {
+  var rows=[];
+  records.slice().reverse().forEach(function(item){
+    var rec=dayRecord(item.key), ids=Object.keys(rec.workout||{}).filter(function(id){return (rec.workout[id]||[]).some(Boolean);});
+    if(!ids.length) return;
+    var meta=rec.workoutMeta||{}, total=ids.reduce(function(n,id){return n+(rec.workout[id]||[]).filter(Boolean).length;},0);
+    var date=new Date(item.key+'T00:00:00').toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'});
+    var details=ids.map(function(id){
+      var ex=getExerciseData(id)||{name:id}, sets=(rec.workout[id]||[]).filter(Boolean);
+      return '<div><strong>'+esc(ex.name)+'</strong>'+sets.map(function(s,i){return '<div class="history-set-row"><span>Set '+(i+1)+'</span><span>'+s.weight+' kg × '+s.reps+(s.rir===0?' · failure':(s.rir!=null?' · '+s.rir+' RIR':''))+'</span></div>';}).join('')+'</div>';
+    }).join('');
+    rows.push('<details class="history-workout"><summary><strong>'+esc(meta.sessionLabel||'Workout')+'</strong><span>'+date+' · '+total+' sets'+(meta.durationMinutes?' · '+meta.durationMinutes+' min':'')+'</span></summary><div style="padding-top:12px">'+details+'</div></details>');
+  });
+  return rows.length?rows.join(''):'<div class="empty-note">Completed workouts will appear here.</div>';
+}
+
+function renderProgressSimple() {
+  var entries=getWeightHistory(), records=allDayKeys().map(function(k){var r=dayRecord(k),t=getDayTotals(k);return {key:k,weight:r.weight,kcal:t.kcal,protein:t.protein};});
+  var current=entries.length?entries[entries.length-1].weight:null, range='1m';
   var exOptions=[]; getActiveProgram().forEach(function(s){s.exercises.forEach(function(e){if(!exOptions.some(function(x){return x.id===e.id;}))exOptions.push(e);});});
-  var muscleSets={}; getActiveProgram().forEach(function(s){s.exercises.forEach(function(e){var m=(e.muscle||'other').split(',')[0];muscleSets[m]=(muscleSets[m]||0)+e.sets;});});
-  var maxSets=Math.max.apply(null,Object.keys(muscleSets).map(function(k){return muscleSets[k];}).concat([20]));
-  var weightValues=recent.map(function(r){return r.weight;}).filter(function(v){return v!=null;});
-  var minW=weightValues.length?Math.min.apply(null,weightValues):0,maxW=weightValues.length?Math.max.apply(null,weightValues):1;
-  var weightChart=weightValues.length?'<div class="mini-chart line-chart">'+weightValues.map(function(v){var y=maxW===minW?50:90-((v-minW)/(maxW-minW))*70;return '<span style="left:'+(weightValues.indexOf(v)/(Math.max(1,weightValues.length-1))*100)+'%;bottom:'+y+'%" title="'+v+' kg"></span>';}).join('')+'</div>':'<div class="empty-note">Log bodyweight to see your trend.</div>';
-  var bars=Object.keys(muscleSets).map(function(m){return '<div class="bar-row"><span>'+esc(m)+'</span><div class="bar-track"><i style="width:'+Math.min(100,muscleSets[m]/maxSets*100)+'%"></i></div><b>'+muscleSets[m]+'</b></div>';}).join('');
-  var history=records.slice().reverse().filter(function(r){return r.weight!=null||r.kcal>0||dayRecord(r.key).workoutDone;}).slice(0,10).map(function(r){return '<div class="history-row"><span>'+new Date(r.key+'T00:00:00').toLocaleDateString([],{month:'short',day:'numeric'})+'</span><span>'+(r.weight!=null?r.weight+' kg':'—')+'</span><span>'+r.kcal+' kcal</span></div>';}).join('');
+  var render=function(){
+    var rangeEntries=getProgressRows(range,entries), weightValues=rangeEntries.map(function(e){return {value:e.weight,label:e.dayKey+' · '+e.weight+' kg'};});
+    var selected=document.getElementById('liftSelect').value, liftValues=[];
+    records.forEach(function(r){var best=0;(dayRecord(r.key).workout||{})[selected]&&dayRecord(r.key).workout[selected].forEach(function(s){if(s)best=Math.max(best,calcE1RM(s.weight,s.reps));});if(best)liftValues.push({value:best,label:r.key+' · '+best.toFixed(1)+' kg'});});
+    var allLiftValues=[];
+    records.forEach(function(r){var total=0,count=0;Object.keys(dayRecord(r.key).workout||{}).forEach(function(id){var best=0;(dayRecord(r.key).workout[id]||[]).forEach(function(s){if(s){best=Math.max(best,calcE1RM(s.weight,s.reps));}});if(best){total+=best;count++;}});if(count)allLiftValues.push({value:total/count,label:r.key});});
+    var first=allLiftValues.length?allLiftValues[0].value:1;
+    document.getElementById('weightPlot').innerHTML=progressPlot(weightValues,profile.targetWeight);
+    document.getElementById('liftPlot').innerHTML=progressPlot(liftValues);
+    document.getElementById('overallPlot').innerHTML=progressPlot(allLiftValues.map(function(v){return {value:Math.round(v.value/first*100),label:v.label+' · '+Math.round(v.value/first*100)+' index'};}));
+    document.getElementById('weightMeta').textContent=weightValues.length?(weightValues[weightValues.length-1].value+' kg latest · goal '+(profile.targetWeight||'—')+' kg'):'No weight entries yet';
+  };
   document.getElementById('content').innerHTML=
     '<div class="topbar"><div><span class="eyebrow">your trends</span><div class="title">Progress</div></div><button class="icon-btn" id="settingsBtn" aria-label="Settings">'+ic('settings')+'</button></div>'
-    +'<div class="stat-strip"><span><b>'+streak+'</b><small>streak</small></span><span><b>'+ (current!=null?current.toFixed(1)+'kg':'—')+'</b><small>current weight</small></span><span><b>'+prs+'</b><small>logged milestones</small></span></div>'
-    +'<div class="range-row"><button class="range active">4w</button><button class="range">12w</button><button class="range">all</button></div>'
-    +'<section class="chart-section"><div class="section-head"><span class="eyebrow">bodyweight</span><span class="small dim">7-day view · goal '+(profile.targetWeight||'—')+' kg</span></div>'+weightChart+'</section>'
-    +'<section class="chart-section"><div class="section-head"><span class="eyebrow">lift progress</span><select id="liftSelect" class="compact-select">'+exOptions.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join('')+'</select></div><div id="liftProgress" class="empty-note">Select an exercise to see estimated 1RM.</div></section>'
-    +'<section class="chart-section"><div class="section-head"><span class="eyebrow">weekly sets per muscle</span><span class="small dim">target 10–20</span></div>'+bars+'</section>'
-    +'<section class="chart-section"><div class="section-head"><span class="eyebrow">calories vs target</span><span class="small dim">last 7 days</span></div><div class="cal-week">'+recent.map(function(r){var target=getTargetsForDate(r.key).kcal,p=Math.min(100,Math.round(r.kcal/target*100));return '<div class="cal-day"><i style="height:'+Math.max(4,p)+'%"></i><small>'+r.key.slice(8)+'</small><em class="'+(r.protein>=getTargetsForDate(r.key).protein?'hit':'')+'"></em></div>';}).join('')+'</div></section>'
-    +'<details class="history-details"><summary>Recent history</summary>'+(history||'<div class="empty-note">No logged days yet.</div>')+'</details>';
+    +'<div class="stat-strip"><span><b>'+(current!=null?current.toFixed(1)+' kg':'—')+'</b><small>current weight</small></span><span><b>'+records.filter(function(r){return dayRecord(r.key).workoutDone;}).length+'</b><small>workouts logged</small></span><span><b>'+exOptions.length+'</b><small>lifts tracked</small></span></div>'
+    +'<section class="chart-section"><div class="section-head"><span class="eyebrow">bodyweight trajectory</span><span id="weightMeta" class="small dim"></span></div><div class="range-row"><button class="range active" data-range="1w">1 week</button><button class="range" data-range="1m">1 month</button><button class="range" data-range="3m">3 months</button></div><div id="weightPlot"></div><div class="chart-legend"><span><i></i>weight</span><span><i class="goal"></i>goal line</span></div><div class="progress-entry"><input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="Log bodyweight now" inputmode="decimal"><button class="btn btn-primary" id="saveProgressWeight">Save</button></div></section>'
+    +'<section class="chart-section"><div class="section-head"><span class="eyebrow">lift strength</span><select id="liftSelect" class="compact-select">'+exOptions.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join('')+'</select></div><div id="liftPlot"></div><div class="small dim">Estimated 1RM from your best logged set each workout.</div></section>'
+    +'<section class="chart-section"><div class="section-head"><span class="eyebrow">overall strength</span><span class="small dim">baseline = 100</span></div><div id="overallPlot"></div><div class="small dim">Average normalized estimated 1RM across lifts logged in each workout.</div></section>'
+    +'<details class="history-details" open><summary>Workout history</summary>'+workoutHistoryHTML(records)+'</details>';
   document.getElementById('settingsBtn').onclick=openSettings;
-  document.querySelectorAll('.range').forEach(function(btn){btn.onclick=function(){document.querySelectorAll('.range').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');};});
-  var select=document.getElementById('liftSelect'), draw=function(){var id=select.value, points=[];records.forEach(function(r){var best=0,sets=(dayRecord(r.key).workout||{})[id]||[];sets.forEach(function(s){best=Math.max(best,calcE1RM(s.weight,s.reps));});if(best)points.push(best.toFixed(1));});document.getElementById('liftProgress').innerHTML=points.length?'<div class="lift-value">'+points[points.length-1]+' kg e1RM</div><div class="sparkline">'+points.map(function(v,i){return '<span style="height:'+Math.max(12,Math.min(100,parseFloat(v)))+'%;left:'+(i/Math.max(1,points.length-1)*100)+'%"></span>';}).join('')+'</div>':'<div class="empty-note">Log this lift to see estimated 1RM.</div>';};select.onchange=draw;draw();
+  document.querySelectorAll('[data-range]').forEach(function(btn){btn.onclick=function(){range=btn.dataset.range;document.querySelectorAll('[data-range]').forEach(function(b){b.classList.toggle('active',b===btn);});render();};});
+  document.getElementById('liftSelect').onchange=render;
+  document.getElementById('saveProgressWeight').onclick=function(){var value=parseFloat(document.getElementById('progressWeight').value);if(!value||value<20||value>300){showToast('Enter a valid weight','warn');return;}profile.weightEntries=profile.weightEntries||[];profile.weightEntries.push({id:'weight_'+Date.now(),dayKey:todayKey(),weight:value,createdAt:new Date().toISOString()});sv('rg_profile',profile);var r=dayRecord(todayKey());r.weight=value;saveDayRecord(todayKey(),r);showToast('Weight saved','ok');renderProgressSimple();};
+  render();
 }
 
 function addQuickFood(key) {
@@ -3469,7 +3530,7 @@ function renderTodaySimple() {
   document.getElementById('settingsBtn').onclick=openSettings;
   document.getElementById('calorieDetails').onclick=function(){document.getElementById('macroDetails').classList.toggle('open');};
   document.getElementById('startWorkout').onclick=function(){if(!hasWorkout) chooseWorkoutForDate(key); else {tab='gym';renderApp();}};
-  document.getElementById('saveTodayWeight').onclick=function(){var w=parseFloat(document.getElementById('todayWeight').value);if(!w||w<20||w>300){showToast('Enter a valid weight','warn');return;}rec.weight=w;saveDayRecord(key,rec);showToast('Bodyweight saved','ok');renderTodaySimple();};
+  document.getElementById('saveTodayWeight').onclick=function(){var w=parseFloat(document.getElementById('todayWeight').value);if(!w||w<20||w>300){showToast('Enter a valid weight','warn');return;}profile.weightEntries=profile.weightEntries||[];profile.weightEntries.push({id:'weight_'+Date.now(),dayKey:key,weight:w,createdAt:new Date().toISOString()});sv('rg_profile',profile);rec.weight=w;saveDayRecord(key,rec);showToast('Bodyweight saved','ok');renderTodaySimple();};
   document.getElementById('addFoodBtn').onclick=function(){openFoodSearch(function(food,s){addFoodToDay(key,food,s);});};
   document.getElementById('foodSearchBtn').onclick=document.getElementById('addFoodBtn').onclick;
   document.getElementById('quickFoodBtn').onclick=function(){addQuickFood(key);};
