@@ -500,12 +500,16 @@ input::placeholder { color: #7f95ad; }
 .history-stat + .history-stat::before { content:'·'; margin-right:8px; color:#8eabc2; }
 .history-exercise { padding:11px 10px 12px; margin:8px 0; border:1px solid #5d82a2; border-radius:11px; background:#203b56; color:#e4eef7; font-size:13px; box-shadow:none; }
 .history-exercise:first-child { border-top:1px solid #39617f; }
-.history-exercise strong { display:block; color:#ffffff; font-size:13px; margin-bottom:8px; }
+.history-exercise strong { display:block; color:#ffffff; font-size:13px; }
 .history-sets { display:flex; flex-wrap:wrap; gap:6px; }
-.history-set { display:inline-flex; align-items:center; gap:4px; background:#0b1b2d; border:1px solid #7899b3; color:#e3eff8; border-radius:8px; padding:6px 8px; font:11px 'Space Mono',monospace; box-shadow:none; }
-.history-set.has-pr { border-color:#c49b3f; background:#352b1b; color:#f6e8b8; }
+.history-set { display:inline-flex; align-items:center; gap:5px; background:#0b1b2d; border:1px solid #7899b3; color:#e3eff8; border-radius:8px; padding:6px 8px; font:11px 'Space Mono',monospace; box-shadow:none; }
+.history-set.has-pr { border-color:#7899b3; background:#0b1b2d; color:#e3eff8; }
+.history-set-number { color:#91abc0; font:10px inherit; }
+.history-set-value { color:#f4f8fc; }
+.history-exercise-target { display:block; color:#9fb8cc; font-size:10px; margin:3px 0 8px; }
 .history-rir { color:#a9c1d5; font-family:inherit; }
-.history-pr { display:inline-block; color:#f4c95d; font:700 9px inherit; letter-spacing:.06em; text-transform:uppercase; }
+.history-exercise-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:8px; }
+.history-exercise-best { flex-shrink:0; color:#a9c1d5; font:10px 'Space Mono',monospace; white-space:nowrap; }
 .history-card-stats { display:inline-flex; gap:7px; flex-wrap:wrap; justify-content:flex-end; }
 .history-stat { white-space:nowrap; }
 .history-details > summary { min-height:44px; display:flex; align-items:center; }
@@ -4287,13 +4291,13 @@ function workoutHistoryHTML() {
       var label=session.programLabel||session.sessionLabel||'Workout';
       var dayLabel=session.day ? 'Day '+session.day+' · ' : '';
       var details=exercises.map(function(exercise) {
-        var ex=getExerciseData(exercise.id)||{name:exercise.id}, sets=(exercise.sets||[]).filter(Boolean), pr=getExercisePR(exercise.id);
-        var summary=sets.map(function(s){
-          var isPR=pr&&s.weight===pr.weight&&s.reps===pr.reps;
+        var ex=getExerciseData(exercise.id)||{name:exercise.id}, sets=(exercise.sets||[]).filter(Boolean);
+        var highestWeight=sets.reduce(function(max,set){return Math.max(max,Number(set.weight)||0);},0);
+        var summary=sets.map(function(s,index){
           var effort=s.rir===0?'F':(s.rir!=null?'RIR '+s.rir:'');
-          return '<span class="history-set '+(isPR?'has-pr':'')+'">'+s.weight+'×'+s.reps+(effort?' <small class="history-rir">'+effort+'</small>':'')+(isPR?' <b class="history-pr">PR</b>':'')+'</span>';
+          return '<span class="history-set"><small class="history-set-number">Set '+(index+1)+'</small><span class="history-set-value">'+s.weight+'×'+s.reps+'</span>'+(effort?' <small class="history-rir">'+effort+'</small>':'')+'</span>';
         }).join('');
-        return '<div class="history-exercise"><strong>'+esc(ex.name)+'</strong><div class="history-sets">'+summary+'</div></div>';
+        return '<div class="history-exercise"><div class="history-exercise-head"><strong>'+esc(ex.name)+'</strong>'+(highestWeight?' <span class="history-exercise-best">Best '+highestWeight+' kg</span>':'')+'</div><span class="history-exercise-target">'+sets.length+' logged '+(sets.length===1?'set':'sets')+'</span><div class="history-sets">'+summary+'</div></div>';
       }).join('');
       return '<details class="history-workout"><summary><strong>'+esc(dayLabel+label)+'</strong><span class="history-meta"><span class="history-date">'+esc(date)+'</span><span class="history-card-stats"><span class="history-stat">'+duration+'</span><span class="history-stat">'+total+' '+(total===1?'set':'sets')+'</span></span></span></summary><div>'+details+'</div></details>';
     }).join('');
