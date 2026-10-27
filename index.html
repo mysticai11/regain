@@ -358,6 +358,7 @@ input::placeholder { color: #7f95ad; }
 .rest-bar { position:fixed; left:50%; bottom:calc(var(--nav-h) + var(--safe-b) + 8px); transform:translateX(-50%); width:min(528px,calc(100% - 28px)); z-index:15; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 10px 9px 14px; background:var(--surface-hi); border:1px solid var(--border-strong); border-radius:14px; box-shadow:0 6px 24px rgba(0,0,0,.35); }
 .rest-bar strong { color:var(--amber); font:18px 'Space Mono',monospace; }
 .rest-bar .btn { min-height:36px; padding:5px 10px; }
+.rest-actions { display:flex; gap:6px; }
 .sheet { background: #0e1929; border-color: #314a66; padding: 22px 18px calc(22px + var(--safe-b)); }
 .day-toggle { min-height: 40px; padding: 8px 12px; background: #16263b; border-color: #3a5573; color: #b9c9da; }
 .day-toggle.active { background: var(--amber); color: #142000; border-color: var(--amber); }
@@ -406,6 +407,7 @@ input::placeholder { color: #7f95ad; }
 .planned-set.is-complete { background:rgba(184,243,74,.18); border-color:rgba(184,243,74,.38); }
 .planned-set .set-number { color:var(--text-muted); font-size:12px; text-align:center; }
 .planned-set input { min-height:38px; font-size:18px; font-family:'Space Mono',monospace; text-align:center; padding:5px 3px; }
+.planned-set input.prefill { border-style:dashed; color:#a9c1d5; }
 .planned-set select { min-height:38px; font-size:12px; padding:4px 5px; }
 .planned-set .btn { min-width:38px; width:38px; height:38px; min-height:38px; padding:0; grid-column:5; border-radius:50%; font-size:0; }
 .planned-set .btn-primary::after { content:'✓'; font-size:20px; line-height:1; }
@@ -1091,7 +1093,7 @@ if (profile && !profile.nutritionDefaultsVersion) {
 var tab = 'today';
 var charts = {};
 var workoutTimer = {interval:null};
-var restTimer = {interval:null, remaining:0};
+var restTimer = {interval:null, endAt:0, remaining:0};
 var foodPanel = null; // {mode:'add'|'search', cb}
 var confirmLoggingAccurate = false; // tracks if user confirmed logging in discovery
 
@@ -2921,12 +2923,14 @@ function renderGym() {
       var valueR = logged ? logged.reps : (draft ? draft.reps : (last ? last.reps : ''));
       var valueRir = logged ? logged.rir : (draft ? draft.rir : null);
       var hasValues=Number(valueW)>0&&Number(valueR)>0;
+      var usePrefill=!logged&&!draft&&!!last;
+      var inputW=usePrefill?'':valueW, inputR=usePrefill?'':valueR;
       var loggedHtml=logged
         ? '<span class="set-complete">✓</span>'
         : '<button class="btn btn-primary btn-sm" data-logset="'+ex.id+'" data-set-index="'+i+'" '+(hasValues?'':'disabled')+' aria-label="Log set">Log</button>';
       var rirOptions='<option value="">Effort</option><option value="3" '+(valueRir===3?'selected':'')+'>3+ RIR</option><option value="2" '+(valueRir===2?'selected':'')+'>2 RIR</option><option value="1" '+(valueRir===1?'selected':'')+'>1 RIR</option><option value="0" '+(valueRir===0?'selected':'')+'>Failure</option>';
       var effortLabel=valueRir===0?'Failure':(valueRir!=null?valueRir+' RIR':'Effort');
-      return '<div class="planned-set '+(logged?'is-complete':'')+'"><span class="set-number">'+(i+1)+'</span><input type="number" step="0.25" min="0" placeholder="kg" aria-label="Weight for set '+(i+1)+'" class="set-weight" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+valueW+'" inputmode="decimal"><input type="number" min="1" max="50" placeholder="reps" aria-label="Reps for set '+(i+1)+'" class="set-reps" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+valueR+'" inputmode="numeric"><button type="button" class="effort-btn '+(valueRir!=null?'has-value':'')+'" data-effort-ex="'+ex.id+'" data-set-index="'+i+'" aria-label="Set effort for set '+(i+1)+'">'+effortLabel+'</button><select class="set-rir" data-ex="'+ex.id+'" data-set-index="'+i+'" aria-label="Effort for set '+(i+1)+'">'+rirOptions+'</select>'+loggedHtml+(logged?'':'<button class="btn-ghost" data-remove-draft="'+ex.id+'" data-set-index="'+i+'" aria-label="Remove set">×</button>')+'</div>';
+      return '<div class="planned-set '+(logged?'is-complete':'')+'"><span class="set-number">'+(i+1)+'</span><input type="number" step="0.25" min="0" placeholder="'+(usePrefill?valueW:'kg')+'" aria-label="Weight for set '+(i+1)+'" class="set-weight '+(usePrefill?'prefill':'')+'" data-prefill="'+(usePrefill?valueW:'')+'" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+inputW+'" inputmode="decimal"><input type="number" min="1" max="50" placeholder="'+(usePrefill?valueR:'reps')+'" aria-label="Reps for set '+(i+1)+'" class="set-reps '+(usePrefill?'prefill':'')+'" data-prefill="'+(usePrefill?valueR:'')+'" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+inputR+'" inputmode="numeric"><button type="button" class="effort-btn '+(valueRir!=null?'has-value':'')+'" data-effort-ex="'+ex.id+'" data-set-index="'+i+'" aria-label="Set effort for set '+(i+1)+'">'+effortLabel+'</button><select class="set-rir" data-ex="'+ex.id+'" data-set-index="'+i+'" aria-label="Effort for set '+(i+1)+'">'+rirOptions+'</select>'+loggedHtml+(logged?'':'<button class="btn-ghost" data-remove-draft="'+ex.id+'" data-set-index="'+i+'" aria-label="Remove set">×</button>')+'</div>';
     }).join('');
     var best = getBestE1RM(ex.id);
     
@@ -2936,7 +2940,7 @@ function renderGym() {
     var completedSets = sets.filter(Boolean);
     var hitTop = completedSets.length >= targetSets && completedSets.slice(0, targetSets).every(function(s){ return Number(s.reps) >= topRep; });
     var progressionPrompt = hitTop ? '<div class="progression-tip" style="color:var(--sage-light);font-size:12px;margin-top:6px;font-family:\'Space Mono\',monospace">🎉 Top range hit! Add load & reset reps.</div>' : '';
-    var lastSummary = lastSets.length ? 'Last: <strong>'+lastSets.map(function(s){return s.weight+' × '+s.reps;}).join(', ')+'</strong> · target '+(lastSets[lastSets.length-1].weight||'—')+' × '+topRep : 'No previous session yet';
+    var lastSummary = lastSets.length ? 'Last: <strong>'+lastSets.map(function(s){return s.weight+'×'+s.reps+(s.rir===0?' @ failure':(s.rir!=null?' @'+s.rir+' RIR':''));}).join(', ')+'</strong>' : 'No previous session yet';
     var progressionGuideHTML = '<div class="progression-guide"><span class="progression-guide-label">Next time</span>'+esc(progressionGuide(lastSets,repsStr))+'</div>';
     
     var isCompound = ex.type === 'compound' || exOrig.type === 'compound';
@@ -3019,18 +3023,21 @@ function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
   function renderRestTimer() {
     var wrap=document.getElementById('restTimerWrap');
     if(!wrap) return;
+    if(restTimer.endAt) restTimer.remaining=Math.max(0,Math.ceil((restTimer.endAt-Date.now())/1000));
     if(!restTimer.remaining){wrap.innerHTML='';return;}
-    wrap.innerHTML='<div class="rest-bar"><span><span class="small dim">Rest</span><br><strong>'+formatDuration(Math.ceil(restTimer.remaining/60))+'</strong></span><button class="btn btn-primary" id="skipRestBtn">Skip</button></div>';
-    document.getElementById('skipRestBtn').onclick=function(){clearInterval(restTimer.interval);restTimer.remaining=0;renderRestTimer();};
+    wrap.innerHTML='<div class="rest-bar"><span><span class="small dim">Rest</span><br><strong>'+formatDuration(Math.ceil(restTimer.remaining/60))+'</strong></span><span class="rest-actions"><button class="btn btn-sm" id="addRestBtn">+15s</button><button class="btn btn-primary btn-sm" id="skipRestBtn">Skip</button></span></div>';
+    document.getElementById('addRestBtn').onclick=function(){restTimer.endAt+=15000;renderRestTimer();};
+    document.getElementById('skipRestBtn').onclick=function(){clearInterval(restTimer.interval);restTimer.endAt=0;restTimer.remaining=0;renderRestTimer();};
   }
 
   function startRestTimer(seconds) {
     clearInterval(restTimer.interval);
+    restTimer.endAt=Date.now()+(seconds||90)*1000;
     restTimer.remaining=seconds||90;
     renderRestTimer();
     restTimer.interval=setInterval(function(){
-      restTimer.remaining--;
-      if(restTimer.remaining<=0){clearInterval(restTimer.interval);restTimer.remaining=0;}
+      restTimer.remaining=Math.max(0,Math.ceil((restTimer.endAt-Date.now())/1000));
+      if(restTimer.remaining<=0){clearInterval(restTimer.interval);restTimer.endAt=0;}
       renderRestTimer();
     },1000);
   }
@@ -3092,6 +3099,15 @@ function attachGymEvents(key, rec, session, programDayIndex) {
     btn.addEventListener('click', function(){
       var row=btn.closest('.ex-note-row'), open=row.classList.toggle('open');
       btn.setAttribute('aria-expanded', String(open));
+    });
+    document.querySelectorAll('.planned-set input.prefill').forEach(function(input){
+      input.addEventListener('focus',function(){
+        if(input.value==='' && input.dataset.prefill) {
+          input.value=input.dataset.prefill;
+          input.classList.remove('prefill');
+          input.dispatchEvent(new Event('input',{bubbles:true}));
+        }
+      });
     });
   });
 
@@ -4474,7 +4490,7 @@ function renderApp() {
   document.querySelectorAll('.navitem').forEach(function(btn){
     btn.addEventListener('click',function(){
       if(workoutTimer.interval){clearInterval(workoutTimer.interval);workoutTimer.interval=null;}
-      if(restTimer.interval){clearInterval(restTimer.interval);restTimer.interval=null;restTimer.remaining=0;}
+      if(restTimer.interval){clearInterval(restTimer.interval);restTimer.interval=null;restTimer.endAt=0;restTimer.remaining=0;}
       tab=btn.dataset.tab;
       document.querySelectorAll('.navitem').forEach(function(b){b.classList.toggle('active',b.dataset.tab===tab);});
       renderTab();
