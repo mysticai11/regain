@@ -382,22 +382,28 @@ input::placeholder { color: #7f95ad; }
 .readiness-help { color:var(--text-muted); font-size:12px; margin-top:3px; }
 .workout-picker { display:flex; gap:8px; overflow-x:auto; padding:4px 0 12px; }
 .workout-picker .chip.active { background:var(--amber); color:#142000; border-color:var(--amber); font-weight:700; }
-.planned-set { display:grid; grid-template-columns:20px minmax(0,1fr) minmax(0,1fr) 42px; gap:5px; align-items:center; margin-top:5px; transition:transform .15s ease; }
+.planned-set { display:grid; grid-template-columns:20px minmax(0,1fr) minmax(0,1fr) auto 40px; gap:5px; align-items:center; margin-top:5px; padding:4px; border:1px solid transparent; border-radius:10px; transition:transform .15s ease,background .15s ease,border-color .15s ease; }
+.planned-set.is-complete { background:rgba(184,243,74,.07); border-color:rgba(184,243,74,.16); }
 .planned-set .set-number { color:var(--text-muted); font-size:12px; text-align:center; }
 .planned-set input { min-height:38px; font-size:18px; font-family:'Space Mono',monospace; text-align:center; padding:5px 3px; }
 .planned-set select { min-height:38px; font-size:12px; padding:4px 5px; }
-.planned-set .btn { min-width:38px; width:38px; height:38px; min-height:38px; padding:0; grid-column:4; border-radius:50%; font-size:0; }
+.planned-set .btn { min-width:38px; width:38px; height:38px; min-height:38px; padding:0; grid-column:5; border-radius:50%; font-size:0; }
 .planned-set .btn-primary::after { content:'✓'; font-size:20px; line-height:1; }
-.planned-set .set-complete { color:var(--amber-light); font-size:23px; text-align:center; grid-column:4; animation:tick-pop .12s ease-out; }
-.planned-set .set-rir { grid-column:2 / 4; width:100%; color:var(--text-secondary); }
-.planned-set .btn-ghost[data-delete-set], .planned-set .btn-ghost[data-remove-draft] { grid-column:4; justify-self:end; }
+.planned-set .btn[disabled] { opacity:.35; cursor:not-allowed; }
+.planned-set .set-complete { color:var(--amber-light); font-size:23px; text-align:center; grid-column:5; animation:tick-pop .12s ease-out; }
+.planned-set .rir-chips { display:flex; gap:3px; align-items:center; }
+.planned-set .rir-chip { min-width:27px; height:28px; padding:0 5px; border:1px solid var(--border-strong); border-radius:7px; background:var(--surface); color:var(--text-muted); font:11px 'Space Mono',monospace; cursor:pointer; }
+.planned-set .rir-chip.active { background:var(--amber); border-color:var(--amber); color:#142000; font-weight:700; }
+.planned-set .set-rir { display:none; }
+.planned-set .btn-ghost[data-delete-set], .planned-set .btn-ghost[data-remove-draft] { grid-column:5; justify-self:end; }
 .set-last { grid-column:2 / 4; color:var(--text-muted); font-size:10px; }
 @keyframes tick-pop { 0% { transform:scale(.7); opacity:.5; } 100% { transform:scale(1); opacity:1; } }
 @media (max-width:380px) {
   .content { padding-left:10px; padding-right:10px; }
   .gym-session-header { margin-left:-10px; margin-right:-10px; padding-left:10px; padding-right:10px; }
-  .planned-set { grid-template-columns:18px minmax(0,1fr) minmax(0,1fr) 38px; gap:4px; }
+  .planned-set { grid-template-columns:18px minmax(0,1fr) minmax(0,1fr) auto 38px; gap:3px; }
   .planned-set input { font-size:16px; }
+  .planned-set .rir-chip { min-width:24px; padding:0 3px; font-size:10px; }
 }
 .stat-strip { display:flex; justify-content:space-between; gap:8px; padding:12px 0 18px; }
 .stat-strip span { flex:1; min-width:0; }
@@ -1040,7 +1046,7 @@ function verifyPin(pin, stored) {
 // ── Profile / Day helpers ──────────────────────────────────────────────────────
 function dayRecord(key) { return ls('rg_day_'+key, {weight:null,sleep:null,readiness:null,meals:{},extra:[],workout:{},workoutDone:false,shielded:false}); }
 var WORKOUT_SESSIONS_KEY = 'rg_workout_sessions';
-var WORKOUT_SESSIONS_VERSION = 2;
+var WORKOUT_SESSIONS_VERSION = 3;
 
 function workoutSessionId(dayKey, programDayIndex) {
   var suffix = programDayIndex == null ? 'all' : String(programDayIndex);
@@ -1162,7 +1168,7 @@ function saveWorkoutSessionFromDay(dayKey, rec, sequence) {
       completed: !!(groupMeta.completedAt || rec.workoutDone),
       completedAt: groupMeta.completedAt || null,
       startedAt: groupMeta.startedAt || null,
-      durationMinutes: groupMeta.durationMinutes || null,
+      durationMinutes: null,
       updatedAt: new Date().toISOString()
     };
     saveWorkoutSession(session);
@@ -2770,11 +2776,13 @@ function renderGym() {
       var valueW = logged ? logged.weight : (draft ? draft.weight : (last ? last.weight : ''));
       var valueR = logged ? logged.reps : (draft ? draft.reps : (last ? last.reps : ''));
       var valueRir = logged ? logged.rir : (draft ? draft.rir : null);
+      var hasValues=Number(valueW)>0&&Number(valueR)>0;
       var loggedHtml=logged
         ? '<span class="set-complete">✓</span><button class="btn-ghost" data-delete-set="'+ex.id+'" data-set-index="'+i+'" aria-label="Remove set">×</button>'
-        : '<button class="btn btn-primary btn-sm" data-logset="'+ex.id+'" data-set-index="'+i+'">Log</button>';
-      var rirOptions='<option value="">RIR / effort</option><option value="3" '+(valueRir===3?'selected':'')+'>3 RIR</option><option value="2" '+(valueRir===2?'selected':'')+'>2 RIR</option><option value="1" '+(valueRir===1?'selected':'')+'>1 RIR</option><option value="0" '+(valueRir===0?'selected':'')+'>Failure</option>';
-      return '<div class="planned-set"><span class="set-number">'+(i+1)+'</span><input type="number" step="0.25" min="0" placeholder="kg" aria-label="Weight for set '+(i+1)+'" class="set-weight" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+valueW+'" inputmode="decimal"><input type="number" min="1" max="50" placeholder="reps" aria-label="Reps for set '+(i+1)+'" class="set-reps" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+valueR+'" inputmode="numeric"><select class="set-rir" data-ex="'+ex.id+'" data-set-index="'+i+'" aria-label="Effort for set '+(i+1)+'">'+rirOptions+'</select>'+loggedHtml+(logged?'':'<button class="btn-ghost" data-remove-draft="'+ex.id+'" data-set-index="'+i+'" aria-label="Remove set">×</button>')+'</div>';
+        : '<button class="btn btn-primary btn-sm" data-logset="'+ex.id+'" data-set-index="'+i+'" '+(hasValues?'':'disabled')+' aria-label="Log set">Log</button>';
+      var rirOptions='<option value="">RIR</option><option value="3" '+(valueRir===3?'selected':'')+'>3+</option><option value="2" '+(valueRir===2?'selected':'')+'>2</option><option value="1" '+(valueRir===1?'selected':'')+'>1</option><option value="0" '+(valueRir===0?'selected':'')+'>F</option>';
+      var rirChips=['3+','2','1','F'].map(function(label){var val=label==='F'?0:parseInt(label,10);return '<button type="button" class="rir-chip '+(valueRir===val?'active':'')+'" data-rir-value="'+val+'" data-ex="'+ex.id+'" data-set-index="'+i+'">'+label+'</button>';}).join('');
+      return '<div class="planned-set '+(logged?'is-complete':'')+'"><span class="set-number">'+(i+1)+'</span><input type="number" step="0.25" min="0" placeholder="kg" aria-label="Weight for set '+(i+1)+'" class="set-weight" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+valueW+'" inputmode="decimal"><input type="number" min="1" max="50" placeholder="reps" aria-label="Reps for set '+(i+1)+'" class="set-reps" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+valueR+'" inputmode="numeric"><span class="rir-chips">'+rirChips+'</span><select class="set-rir" data-ex="'+ex.id+'" data-set-index="'+i+'" aria-label="Effort for set '+(i+1)+'">'+rirOptions+'</select>'+loggedHtml+(logged?'':'<button class="btn-ghost" data-remove-draft="'+ex.id+'" data-set-index="'+i+'" aria-label="Remove set">×</button>')+'</div>';
     }).join('');
     var best = getBestE1RM(ex.id);
     
@@ -2835,14 +2843,14 @@ function renderGym() {
 function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
   var wrap=document.getElementById('sessionTimer'); if(!wrap) return;
   var meta=getSessionMeta(rec, programDayIndex);
-  if(!meta.startedAt) {
+  if(!meta.startedAt && !meta.durationMinutes) {
     wrap.innerHTML='<span class="small dim">No session time yet</span><span class="timer-actions"><button class="btn btn-primary btn-sm" id="startWorkoutBtn">Start</button><button class="btn btn-sm" id="manualDurationBtn">Enter time</button></span>';
     document.getElementById('startWorkoutBtn').onclick=function(){startWorkoutSession(dayKey,session,programDayIndex);};
     document.getElementById('manualDurationBtn').onclick=function(){setManualSessionDuration(dayKey,session,programDayIndex);};
     return;
   }
-  if(meta.completedAt) {
-    wrap.innerHTML='<span><strong>'+formatDuration(meta.durationMinutes||Math.round(workoutElapsed(meta)/60))+'</strong><span class="small dim"> total</span></span><span class="timer-actions"><span class="small dim">Saved</span><button class="btn btn-sm" id="editDurationBtn">Edit</button></span>';
+  if(meta.completedAt || meta.durationMinutes) {
+    wrap.innerHTML='<span><strong>'+formatDuration(meta.durationMinutes)+'</strong><span class="small dim"> total</span></span><span class="timer-actions"><span class="small dim">Saved</span><button class="btn btn-sm" id="editDurationBtn">Edit</button></span>';
     document.getElementById('editDurationBtn').onclick=function(){setManualSessionDuration(dayKey,session,programDayIndex);};
     return;
   }
@@ -2979,6 +2987,18 @@ function attachGymEvents(key, rec, session, programDayIndex) {
     });
   });
 
+  document.querySelectorAll('.rir-chip').forEach(function(chip){
+    chip.addEventListener('click',function(){
+      var id=chip.dataset.ex, index=chip.dataset.setIndex;
+      var select=document.querySelector('.set-rir[data-ex="'+id+'"][data-set-index="'+index+'"]');
+      if(select) {
+        select.value=chip.dataset.rirValue;
+        select.dispatchEvent(new Event('input',{bubbles:true}));
+      }
+      chip.parentElement.querySelectorAll('.rir-chip').forEach(function(other){other.classList.toggle('active',other===chip);});
+    });
+  });
+
   document.querySelectorAll('.set-weight,.set-reps,.set-rir').forEach(function(input){
     input.addEventListener('input', function(){
       var draftRec=dayRecord(key), id=input.dataset.ex, index=parseInt(input.dataset.setIndex,10);
@@ -2991,6 +3011,10 @@ function attachGymEvents(key, rec, session, programDayIndex) {
       };
       draftRec.workoutDraft[id][index]=row;
       saveDayRecord(key,draftRec);
+      var weight=document.querySelector('.set-weight[data-ex="'+id+'"][data-set-index="'+index+'"]');
+      var reps=document.querySelector('.set-reps[data-ex="'+id+'"][data-set-index="'+index+'"]');
+      var logButton=document.querySelector('[data-logset="'+id+'"][data-set-index="'+index+'"]');
+      if(logButton) logButton.disabled=!(parseFloat(weight.value)>0&&parseInt(reps.value,10)>0);
     });
   });
 
@@ -3152,8 +3176,8 @@ function openSwapSheet(origId, currId, muscleStr, dayKey) {
 
 function workoutElapsed(meta) {
   if(!meta || !meta.startedAt) return 0;
-  var start = meta.firstSetAt || meta.startedAt;
-  var end = meta.completedAt || meta.lastSetAt || new Date().toISOString();
+  var start = meta.startedAt;
+  var end = meta.completedAt || new Date().toISOString();
   return Math.max(0, Math.floor((new Date(end).getTime()-new Date(start).getTime())/1000));
 }
 
@@ -3179,9 +3203,7 @@ function endWorkoutSession(dayKey, programDayIndex, session) {
   if(!meta.startedAt || meta.completedAt) return;
   meta.completedAt=new Date().toISOString();
   rec.workoutDone=true;
-  var sessionEnd=meta.lastSetAt||meta.completedAt;
-  var sessionStart=meta.firstSetAt||meta.startedAt;
-  meta.durationMinutes=Math.max(1,Math.round((new Date(sessionEnd).getTime()-new Date(sessionStart).getTime())/60000));
+  meta.durationMinutes=Math.max(1,Math.round((new Date(meta.completedAt).getTime()-new Date(meta.startedAt).getTime())/60000));
   saveDayRecord(dayKey,rec);
   if(workoutTimer.interval) clearInterval(workoutTimer.interval);
   renderGym();
