@@ -494,17 +494,18 @@ input::placeholder { color: #7f95ad; }
 .history-workout[open] summary::after { content:'−'; }
 .history-workout summary strong { display:block; flex:1; color:#ffffff; font-size:15px; line-height:1.25; }
 .history-workout summary span { color:#e0edf7; text-align:right; font-size:11px; line-height:1.55; }
-.history-meta { display:block; }
-.history-meta > span { display:block; }
-.history-card-stats { margin-top:3px; }
+.history-meta { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+.history-date { display:block; white-space:nowrap; }
+.history-card-stats { display:flex; gap:8px; margin-top:0; }
+.history-stat + .history-stat::before { content:'·'; margin-right:8px; color:#8eabc2; }
 .history-exercise { padding:11px 10px 12px; margin:8px 0; border:1px solid #5d82a2; border-radius:11px; background:#203b56; color:#e4eef7; font-size:13px; box-shadow:none; }
 .history-exercise:first-child { border-top:1px solid #39617f; }
 .history-exercise strong { display:block; color:#ffffff; font-size:13px; margin-bottom:8px; }
 .history-sets { display:flex; flex-wrap:wrap; gap:6px; }
 .history-set { display:inline-flex; align-items:center; gap:4px; background:#0b1b2d; border:1px solid #7899b3; color:#e3eff8; border-radius:8px; padding:6px 8px; font:11px 'Space Mono',monospace; box-shadow:none; }
-.history-set.has-pr { border-color:#e0b84f; background:#55431f; color:#fff0bf; }
+.history-set.has-pr { border-color:#c49b3f; background:#352b1b; color:#f6e8b8; }
 .history-rir { color:#a9c1d5; font-family:inherit; }
-.history-pr { color:#f4c95d; font-weight:700; }
+.history-pr { display:inline-block; color:#f4c95d; font:700 9px inherit; letter-spacing:.06em; text-transform:uppercase; }
 .history-card-stats { display:inline-flex; gap:7px; flex-wrap:wrap; justify-content:flex-end; }
 .history-stat { white-space:nowrap; }
 .history-details > summary { min-height:44px; display:flex; align-items:center; }
@@ -4290,11 +4291,11 @@ function workoutHistoryHTML() {
         var summary=sets.map(function(s){
           var isPR=pr&&s.weight===pr.weight&&s.reps===pr.reps;
           var effort=s.rir===0?'F':(s.rir!=null?'RIR '+s.rir:'');
-          return '<span class="history-set '+(isPR?'has-pr':'')+'">'+s.weight+'×'+s.reps+(effort?' <small class="history-rir">'+effort+'</small>':'')+(isPR?' <b class="history-pr">🏆 PR</b>':'')+'</span>';
+          return '<span class="history-set '+(isPR?'has-pr':'')+'">'+s.weight+'×'+s.reps+(effort?' <small class="history-rir">'+effort+'</small>':'')+(isPR?' <b class="history-pr">PR</b>':'')+'</span>';
         }).join('');
         return '<div class="history-exercise"><strong>'+esc(ex.name)+'</strong><div class="history-sets">'+summary+'</div></div>';
       }).join('');
-      return '<details class="history-workout"><summary><strong>'+esc(dayLabel+label)+'</strong><span class="history-meta"><span>'+date+'</span><span class="history-card-stats"><span class="history-stat">'+duration+'</span><span class="history-stat">'+total+' '+(total===1?'set':'sets')+'</span></span></span></summary><div>'+details+'</div></details>';
+      return '<details class="history-workout"><summary><strong>'+esc(dayLabel+label)+'</strong><span class="history-meta"><span class="history-date">'+esc(date)+'</span><span class="history-card-stats"><span class="history-stat">'+duration+'</span><span class="history-stat">'+total+' '+(total===1?'set':'sets')+'</span></span></span></summary><div>'+details+'</div></details>';
     }).join('');
     var cardCount=cards.split('<details').length-1;
     return '<div class="history-week-label"><span>Week '+esc(week)+'</span><span>'+cardCount+' workout'+(cardCount===1?'':'s')+'</span></div>'+cards;
