@@ -444,6 +444,13 @@ input::placeholder { color: #7f95ad; }
 .session-timer { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px; margin:8px 0 12px; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
 .session-timer strong { font-family:'Space Mono',monospace; color:var(--amber); }
 .session-timer .timer-actions { display:flex; gap:6px; }
+.completion-sheet { text-align:center; }
+.completion-mark { width:52px; height:52px; margin:4px auto 12px; display:grid; place-items:center; border-radius:50%; background:var(--amber); color:#142000; font-size:30px; font-weight:800; box-shadow:0 0 28px rgba(184,243,74,.25); animation:tick-pop .18s ease-out; }
+.completion-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:18px; }
+.completion-stats div { background:var(--surface-raised); border-radius:10px; padding:10px 5px; }
+.completion-stats strong, .completion-stats span { display:block; }
+.completion-stats strong { font:16px 'Space Mono',monospace; color:var(--text); }
+.completion-stats span { margin-top:4px; color:var(--text-muted); font-size:10px; }
 .history-workout { padding:14px 0; border-bottom:1px solid rgba(58,85,115,.35); }
 .history-workout summary { cursor:pointer; list-style:none; }
 .history-workout summary::-webkit-details-marker { display:none; }
@@ -1032,7 +1039,157 @@ function verifyPin(pin, stored) {
 
 // ── Profile / Day helpers ──────────────────────────────────────────────────────
 function dayRecord(key) { return ls('rg_day_'+key, {weight:null,sleep:null,readiness:null,meals:{},extra:[],workout:{},workoutDone:false,shielded:false}); }
-function saveDayRecord(key,rec){ sv('rg_day_'+key, rec); }
+var WORKOUT_SESSIONS_KEY = 'rg_workout_sessions';
+var WORKOUT_SESSIONS_VERSION = 2;
+
+function workoutSessionId(dayKey, programDayIndex) {
+  var suffix = programDayIndex == null ? 'all' : String(programDayIndex);
+  return 'workout_session_' + String(dayKey || '').replace(/[^0-9A-Za-z_-]/g, '_') + '_' + suffix;
+}
+
+function workoutHasSets(workout) {
+  return workout && Object.keys(workout).some(function(id) {
+    return Array.isArray(workout[id]) && workout[id].some(function(set) {
+      return set && (Number(set.weight) > 0 || Number(set.reps) > 0);
+    });
+  });
+}
+
+function programDayIdentity(sequence, programLength) {
+  var length = Math.max(1, Number(programLength) || (getActiveProgram() || []).length || 1);
+  var position = Math.max(0, Number(sequence) || 0);
+  var dayIndex = position % length;
+  var week = Math.floor(position / length) + 1;
+  var programDay = (getActiveProgram() || [])[dayIndex] || {};
+  return {
+    week: week,
+    day: dayIndex + 1,
+    index: dayIndex,
+    label: programDay.label || ('Day ' + (dayIndex + 1))
+  };
+}
+
+function workoutExerciseMatch(exercise, planned) {
+  if (!exercise || !planned) return 0;
+  if (exercise.id === planned.id) return 3;
+  var actual = String(exercise.muscle || '').toLowerCase().split(',');
+  var target = String(planned.muscle || '').toLowerCase().split(',');
+  return actual.some(function(muscle) {
+    return target.some(function(candidate) { return muscle.trim() && muscle.trim() === candidate.trim(); });
+  }) ? 1 : 0;
+}
+
+function groupWorkoutExercises(workout) {
+  var program = getActiveProgram() || [];
+  var groups = program.map(function(day, index) {
+    return {index:index, label:day.label, exercises:[], score:0};
+  });
+  Object.keys(workout || {}).forEach(function(id) {
+    var exercise = getExerciseData(id) || {id:id, name:id, muscle:''};
+    var best = -1;
+    var bestScore = -1;
+    groups.forEach(function(group, index) {
+      var score = (program[index].exercises || []).reduce(function(total, planned) {
+        return Math.max(total, workoutExerciseMatch(exercise, planned));
+      }, 0);
+      if (score > bestScore) { bestScore = score; best = index; }
+    });
+    if (best >= 0) {
+      groups[best].score += Math.max(0, bestScore);
+      groups[best].exercises.push({id:id, sets:workout[id] || []});
+    }
+  });
+  return groups.filter(function(group) { return group.exercises.length; });
+}
+
+function workoutSessionStore() {
+  var stored = ls(WORKOUT_SESSIONS_KEY, null);
+  if (!stored || stored.version !== WORKOUT_SESSIONS_VERSION || !stored.sessions) {
+    return {version:WORKOUT_SESSIONS_VERSION, sessions:{}, migrated:false};
+  }
+  return stored;
+}
+
+function saveWorkoutSession(session) {
+  if (!session || !session.id) return false;
+  var store = workoutSessionStore();
+  store.sessions[session.id] = session;
+  return sv(WORKOUT_SESSIONS_KEY, store);
+}
+
+function getWorkoutSession(dayKey, programDayIndex) {
+  var store = workoutSessionStore();
+  var exact = store.sessions[workoutSessionId(dayKey, programDayIndex)];
+  if (exact) return exact;
+  return store.sessions[workoutSessionId(dayKey, 'all')] || null;
+}
+
+function getWorkoutSessions() {
+  var store = workoutSessionStore();
+  return Object.keys(store.sessions).map(function(id) { return store.sessions[id]; }).sort(function(a,b) {
+    return String(a.dayKey || '').localeCompare(String(b.dayKey || ''));
+  });
+}
+
+function workoutDayKeys() {
+  var keys = {};
+  Object.keys(localStorage).forEach(function(key) {
+    if (key.indexOf('rg_day_') === 0) keys[key.slice(7)] = true;
+  });
+  Object.keys(SQLiteStorage.cache || {}).forEach(function(key) {
+    if (key.indexOf('rg_day_') === 0) keys[key.slice(7)] = true;
+  });
+  return Object.keys(keys);
+}
+
+function saveWorkoutSessionFromDay(dayKey, rec, sequence) {
+  if (!rec || !workoutHasSets(rec.workout)) return null;
+  var groups = groupWorkoutExercises(rec.workout);
+  var programLength=(getActiveProgram() || []).length;
+  var saved=[];
+  groups.forEach(function(group, groupIndex) {
+    var identity = programDayIdentity(sequence + groupIndex, programLength);
+    var session = {
+      id: workoutSessionId(dayKey, group.index),
+      dayKey: dayKey,
+      week: identity.week,
+      day: group.index + 1,
+      programDay: group.index,
+      programLabel: group.label || identity.label,
+      exerciseGroups: [group],
+      exercises: group.exercises,
+      completed: !!rec.workoutDone,
+      completedAt: rec.workoutMeta && (rec.workoutMeta.completedAt || rec.workoutMeta.updatedAt) || null,
+      startedAt: rec.workoutMeta && rec.workoutMeta.startedAt || null,
+      durationMinutes: rec.workoutMeta && rec.workoutMeta.durationMinutes || null,
+      updatedAt: new Date().toISOString()
+    };
+    saveWorkoutSession(session);
+    saved.push(session);
+  });
+  return saved;
+}
+
+function migrateWorkoutSessions() {
+  var store = workoutSessionStore();
+  if (store.migrated) return;
+  var records = [];
+  workoutDayKeys().sort().forEach(function(key) {
+    var rec = dayRecord(key);
+    if (workoutHasSets(rec.workout)) records.push({key:key, rec:rec});
+  });
+  records.forEach(function(item, index) {
+    saveWorkoutSessionFromDay(item.key, item.rec, index * ((getActiveProgram() || []).length || 1));
+  });
+  store = workoutSessionStore();
+  store.migrated = true;
+  sv(WORKOUT_SESSIONS_KEY, store);
+}
+
+function saveDayRecord(key,rec){
+  sv('rg_day_'+key, rec);
+  saveWorkoutSessionFromDay(key, rec, Object.keys(workoutSessionStore().sessions).length);
+}
 
 function goalDirection() {
   return profile && profile.goal === 'loss' ? -1 : 1;
@@ -2521,6 +2678,18 @@ function getWorkoutForDate(dayKey, rec) {
   return {index:index == null ? 0 : index, session:IRON_LOG_PROGRAM[index == null ? 0 : index] || IRON_LOG_PROGRAM[0]};
 }
 
+function getCompletedWorkoutCount() {
+  var sessions=getWorkoutSessions(), seen={};
+  sessions.forEach(function(s){if(s.completed) seen[s.id]=true;});
+  allDayKeys().forEach(function(key){var r=dayRecord(key);if(r.workoutDone) seen['legacy_'+key]=true;});
+  return Object.keys(seen).length;
+}
+
+function getNextProgramWorkout() {
+  var count=getCompletedWorkoutCount(), index=count % IRON_LOG_PROGRAM.length;
+  return {index:index, week:Math.floor(count/IRON_LOG_PROGRAM.length)+1, day:index+1, session:IRON_LOG_PROGRAM[index]};
+}
+
 function chooseWorkoutForDate(dayKey) {
   var rec=dayRecord(dayKey), overlay=document.createElement('div'); overlay.className='overlay';
   overlay.innerHTML='<div class="sheet"><div class="sheet-handle"></div><div class="sheet-title">Choose workout</div>'
@@ -3003,8 +3172,21 @@ function endWorkoutSession(dayKey) {
   rec.workoutMeta.durationMinutes=Math.max(1,Math.round((new Date(sessionEnd).getTime()-new Date(sessionStart).getTime())/60000));
   saveDayRecord(dayKey,rec);
   if(workoutTimer.interval) clearInterval(workoutTimer.interval);
-  showToast('Session ended and time saved','ok');
   renderGym();
+  showWorkoutSummary(rec);
+}
+
+function showWorkoutSummary(rec) {
+  var sets=0, volume=0;
+  Object.keys(rec.workout||{}).forEach(function(id){
+    (rec.workout[id]||[]).filter(Boolean).forEach(function(s){sets++;volume+=(Number(s.weight)||0)*(Number(s.reps)||0);});
+  });
+  var meta=rec.workoutMeta||{}, minutes=meta.durationMinutes||0;
+  var overlay=document.createElement('div'); overlay.className='overlay';
+  overlay.innerHTML='<div class="sheet completion-sheet"><div class="sheet-handle"></div><div class="completion-mark">✓</div><div class="sheet-title">Workout complete</div><div class="small dim">'+esc(meta.sessionLabel||'Session')+'</div><div class="completion-stats"><div><strong>'+formatDuration(minutes)+'</strong><span>duration</span></div><div><strong>'+sets+'</strong><span>sets</span></div><div><strong>'+Math.round(volume).toLocaleString()+'</strong><span>kg volume</span></div></div><button class="btn btn-primary" id="closeWorkoutSummary" style="width:100%;margin-top:16px">Done</button></div>';
+  document.body.appendChild(overlay);
+  if(navigator.vibrate) navigator.vibrate([30,50,30]);
+  overlay.querySelector('#closeWorkoutSummary').onclick=function(){overlay.remove();};
 }
 
 function setManualSessionDuration(dayKey, session) {
@@ -3617,6 +3799,7 @@ function exportData() {
       meals:ls('rg_meals',DEFAULT_MEALS),
       recentFoods:ls('rg_recent_foods',[]),
       lastBackup:ls('rg_last_backup',null),
+      workoutSessions:ls(WORKOUT_SESSIONS_KEY,{version:WORKOUT_SESSIONS_VERSION,sessions:{},migrated:false}),
       dayKeys:keys,
       days:{},
       idb:dbData
@@ -3652,6 +3835,7 @@ function importData() {
         sv('rg_meals',data.meals||DEFAULT_MEALS);
         sv('rg_recent_foods',data.recentFoods||[]);
         Object.keys(data.days||{}).forEach(function(k){sv('rg_day_'+k,data.days[k]);});
+        if(data.workoutSessions) sv(WORKOUT_SESSIONS_KEY,data.workoutSessions);
         FoodDB.importAll(data.idb||{}).then(function(){ profile=data.profile; sv('rg_last_backup', Date.now()); showToast('Profile, progress, meals, and workouts restored','ok'); setTimeout(function(){location.reload();},800); }).catch(function(){ showToast('Food database restore failed','warn'); });
       } catch(err) { console.error('Import failed:', err); showToast('Invalid or corrupted backup file','warn'); }
     };
@@ -3855,22 +4039,39 @@ function progressPlot(values, goal) {
     +'</svg></div><div class="plot-axis"><span>'+esc(labels[0])+'</span><span>'+esc(labels[1])+'</span><span>'+esc(labels[2])+'</span></div></div>';
 }
 
-function workoutHistoryHTML(records) {
-  var rows=[];
-  records.slice().reverse().forEach(function(item){
-    var rec=dayRecord(item.key), ids=Object.keys(rec.workout||{}).filter(function(id){return (rec.workout[id]||[]).some(Boolean);});
-    if(!ids.length) return;
-    var meta=rec.workoutMeta||{}, total=ids.reduce(function(n,id){return n+(rec.workout[id]||[]).filter(Boolean).length;},0);
-    var date=new Date(item.key+'T00:00:00').toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'});
-    var details=ids.map(function(id){
-      var ex=getExerciseData(id)||{name:id}, sets=(rec.workout[id]||[]).filter(Boolean);
-      var pr=getExercisePR(id);
-      return '<div><strong>'+esc(ex.name)+'</strong>'+sets.map(function(s,i){var isPR=pr&&s.weight===pr.weight&&s.reps===pr.reps;return '<div class="history-set-row"><span>Set '+(i+1)+'</span><span>'+s.weight+' kg × '+s.reps+(s.rir===0?' · failure':(s.rir!=null?' · '+s.rir+' RIR':''))+(isPR?' · <b style="color:var(--amber)">PR</b>':'')+'</span></div>';}).join('')+'</div>';
-    }).join('');
-    var statusLabel=rec.workoutDone?' · complete':'';
-    rows.push('<details class="history-workout"><summary><strong>'+esc(meta.sessionLabel||'Workout')+'</strong><span>'+date+' · '+total+' sets'+(meta.durationMinutes?' · '+meta.durationMinutes+' min':'')+statusLabel+'</span></summary><div style="padding-top:12px">'+details+'</div></details>');
+function workoutHistoryHTML() {
+  var sessions=getWorkoutSessions().filter(function(session) {
+    return (session.exercises||[]).some(function(exercise) {
+      return (exercise.sets||[]).some(Boolean);
+    });
+  }).reverse();
+  if(!sessions.length) return '<div class="empty-note">Completed workouts will appear here.</div>';
+
+  var weeks={};
+  sessions.forEach(function(session) {
+    var week=Number(session.week)||1;
+    (weeks[week]||(weeks[week]=[])).push(session);
   });
-  return rows.length?rows.join(''):'<div class="empty-note">Completed workouts will appear here.</div>';
+  return Object.keys(weeks).sort(function(a,b){return Number(b)-Number(a);}).map(function(week) {
+    var cards=weeks[week].map(function(session) {
+      var exercises=session.exercises||[], total=exercises.reduce(function(count, exercise) {
+        return count+(exercise.sets||[]).filter(Boolean).length;
+      },0);
+      var date=session.dayKey ? new Date(session.dayKey+'T00:00:00').toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'}) : 'Date not recorded';
+      var duration=session.durationMinutes!=null ? Number(session.durationMinutes)+' min' : 'Duration not recorded';
+      var label=session.programLabel||session.sessionLabel||'Workout';
+      var dayLabel=session.day ? 'Day '+session.day+' · ' : '';
+      var details=exercises.map(function(exercise) {
+        var ex=getExerciseData(exercise.id)||{name:exercise.id}, sets=(exercise.sets||[]).filter(Boolean), pr=getExercisePR(exercise.id);
+        return '<div><strong>'+esc(ex.name)+'</strong>'+sets.map(function(s,i){
+          var isPR=pr&&s.weight===pr.weight&&s.reps===pr.reps;
+          return '<div class="history-set-row"><span>Set '+(i+1)+'</span><span>'+s.weight+' kg × '+s.reps+(s.rir===0?' · failure':(s.rir!=null?' · '+s.rir+' RIR':''))+(isPR?' · <b style="color:var(--amber)">PR</b>':'')+'</span></div>';
+        }).join('')+'</div>';
+      }).join('');
+      return '<details class="history-workout"><summary><strong>'+esc(dayLabel+label)+'</strong><span>'+date+' · '+duration+' · '+total+' '+(total===1?'set':'sets')+'</span></summary><div style="padding-top:12px">'+details+'</div></details>';
+    }).join('');
+    return '<div class="eyebrow" style="margin-top:16px">Week '+esc(week)+'</div>'+cards;
+  }).join('');
 }
 
 function weightEntriesHTML(entries) {
@@ -3910,6 +4111,7 @@ function deleteWeightEntry(id) {
 function renderProgressSimple(mode) {
   mode=mode||'body';
   var entries=getWeightHistory(), records=allDayKeys().map(function(k){var r=dayRecord(k),t=getDayTotals(k);return {key:k,weight:r.weight,kcal:t.kcal,protein:t.protein};});
+  var workoutSessions=getWorkoutSessions().filter(function(session){return (session.exercises||[]).some(function(exercise){return (exercise.sets||[]).some(Boolean);});});
   var current=entries.length?entries[entries.length-1].weight:null, range='1w';
   var exOptions=[]; getActiveProgram().forEach(function(s){s.exercises.forEach(function(e){if(!exOptions.some(function(x){return x.id===e.id;}))exOptions.push(e);});});
   allDayKeys().forEach(function(key){Object.keys(dayRecord(key).workout||{}).forEach(function(id){var e=getExerciseData(id);if(e&&!exOptions.some(function(x){return x.id===id;}))exOptions.push(e);});});
@@ -3942,7 +4144,7 @@ function renderProgressSimple(mode) {
     +'<div class="progress-intro">'+(mode==='body'?'Weight and nutrition':'Lift progress and weekly work')+'</div>'
     +'<div class="progress-nav"><button class="btn '+(mode==='body'?'active':'')+'" id="bodyProgressBtn">Body & food</button><button class="btn '+(mode==='lifts'?'active':'')+'" id="liftProgressBtn">Lifts</button></div>'
     +(mode==='body'?bodySection:liftSection)
-    +'<details class="history-details"><summary>Workout history · '+records.filter(function(r){return r.workoutDone || Object.keys(dayRecord(r.key).workout||{}).some(function(id){return (dayRecord(r.key).workout[id]||[]).some(Boolean);});}).length+' sessions</summary>'+workoutHistoryHTML(records)+'</details>';
+    +'<details class="history-details"><summary>Workout history · '+workoutSessions.length+' '+(workoutSessions.length===1?'session':'sessions')+'</summary>'+workoutHistoryHTML()+'</details>';
   document.getElementById('settingsBtn').onclick=openSettings;
   document.getElementById('bodyProgressBtn').onclick=function(){renderProgressSimple('body');};
   document.getElementById('liftProgressBtn').onclick=function(){renderProgressSimple('lifts');};
@@ -3978,7 +4180,7 @@ function renderTodaySimple() {
   var calPct=Math.min(100,Math.round((tot.kcal/targets.kcal)*100));
   var proteinPct=Math.min(100,Math.round((tot.protein/targets.protein)*100));
   var tdays=profile.trainingDays||[1,2,3,5,6], isTraining=tdays.includes(new Date().getDay());
-  var chosen=getWorkoutForDate(key,rec), session=chosen.session, hasWorkout=isTraining||rec.selectedWorkout!=null;
+  var chosen=rec.workoutDone?getNextProgramWorkout():getWorkoutForDate(key,rec), session=chosen.session, hasWorkout=isTraining||rec.selectedWorkout!=null;
   var done=session.exercises.filter(function(ex){return (rec.workout||{})[ex.id]&&rec.workout[ex.id].length;}).length;
   var recent=ls('rg_recent_foods',[]).slice(0,5);
   var recentHtml=recent.length?'<div class="chips-row">'+recent.map(function(r){return '<button class="chip quick-recent" data-food="'+encodeURIComponent(JSON.stringify(r))+'">'+esc(r.name)+'</button>';}).join('')+'</div>':'';
@@ -3989,7 +4191,6 @@ function renderTodaySimple() {
     +'<section class="today-workout '+(!hasWorkout?'rest':'')+'"><div><span class="eyebrow">today\'s workout</span><strong>'+ (hasWorkout?esc(session.label):'Rest day')+'</strong><span class="small dim">'+(hasWorkout?done+' of '+session.exercises.length+' exercises':'')+'</span></div><button class="btn '+(hasWorkout?'btn-primary':'')+'" id="startWorkout">'+(hasWorkout?'Start':'Choose')+'</button></section>'
     +'<section class="simple-section"><div class="section-head"><span class="eyebrow">bodyweight</span><span class="small dim">once daily</span></div><div class="inline-entry"><input type="number" id="todayWeight" step="0.1" inputmode="decimal" placeholder="kg" value="'+(rec.weight||'')+'"><button class="btn" id="saveTodayWeight">Save</button></div></section>'
     +'<section class="simple-section"><div class="section-head"><span class="eyebrow">today\'s food</span></div>'+(rec.extra.length?'<div class="food-log-list">'+rec.extra.map(function(item,i){return '<div class="food-log-row"><span><strong>'+esc(item.name)+'</strong><small>'+Math.round(item.kcal* (item.servings||1))+' kcal · '+Math.round((item.protein||0)*(item.servings||1))+'g protein</small></span><button class="btn-ghost food-delete" data-food-index="'+i+'" aria-label="Delete '+esc(item.name)+'">Delete</button></div>';}).join('')+'</div>':'<div class="small dim">Nothing logged</div>')+recentHtml+'<div class="food-actions"><button class="btn" id="quickFoodBtn">Quick add</button><button class="btn btn-primary" id="addFoodBtn">Search food</button></div></section>'
-    +'<section class="simple-section"><div class="section-head"><span class="readiness-label">Readiness</span><span class="small dim">'+(rec.readiness?rec.readiness+'/5':'—')+'</span></div><div class="readiness-row">'+[{n:1,l:'1'},{n:2,l:'2'},{n:3,l:'3'},{n:4,l:'4'},{n:5,l:'5'}].map(function(x){return '<button class="ready-dot '+(rec.readiness===x.n?'active':'')+'" data-ready="'+x.n+'">'+x.l+'</button>';}).join('')+'</div></section>';
   document.getElementById('settingsBtn').onclick=openSettings;
   document.getElementById('calorieDetails').onclick=function(){document.getElementById('macroDetails').classList.toggle('open');};
   document.getElementById('startWorkout').onclick=function(){if(!hasWorkout) chooseWorkoutForDate(key); else {tab='gym';renderApp();}};
@@ -3998,7 +4199,6 @@ function renderTodaySimple() {
   document.getElementById('quickFoodBtn').onclick=function(){addQuickFood(key);};
   document.querySelectorAll('.quick-recent').forEach(function(btn){btn.onclick=function(){var r=JSON.parse(decodeURIComponent(btn.dataset.food));rec.extra.push({name:r.name,kcal:r.kcal,protein:r.protein||0,carbs:r.carbs||0,fat:r.fat||0,servings:1});saveDayRecord(key,rec);renderTodaySimple();};});
   document.querySelectorAll('.food-delete').forEach(function(btn){btn.onclick=function(){var current=dayRecord(key);current.extra.splice(parseInt(btn.dataset.foodIndex,10),1);saveDayRecord(key,current);showToast('Food entry deleted','ok');renderTodaySimple();};});
-  document.querySelectorAll('.ready-dot').forEach(function(btn){btn.onclick=function(){rec.readiness=parseInt(btn.dataset.ready,10);saveDayRecord(key,rec);renderTodaySimple();};});
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -4034,6 +4234,7 @@ function renderTab() {
 SQLiteStorage.init(function(){
   requestPersistentStorage();
   profile = ls('rg_profile', null);
+  migrateWorkoutSessions();
   FoodDB.open().then(function(){
     if(profile) {
       migrateFoodTotals();
