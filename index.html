@@ -485,25 +485,27 @@ input::placeholder { color: #7f95ad; }
 .history-workout summary::-webkit-details-marker { display:none; }
 .history-workout summary strong { display:block; font-size:14px; }
 .history-workout summary span { color:var(--text-muted); font-size:11px; }
-.history-workout { background:linear-gradient(145deg,#203b59,#14283f); border:1px solid #52799e; border-radius:16px; padding:0 15px 12px; margin:10px 0; box-shadow:0 8px 24px rgba(0,0,0,.24); overflow:hidden; }
-.history-workout summary { display:flex; justify-content:space-between; align-items:center; gap:14px; margin:0 -15px; padding:14px 15px; cursor:pointer; background:rgba(9,20,34,.32); }
+.history-workout { background:#172a40; border:1px solid #6a8eae; border-radius:16px; padding:0 12px 12px; margin:14px 0; box-shadow:0 5px 14px rgba(0,0,0,.28); overflow:hidden; }
+.history-workout summary { display:flex; justify-content:space-between; align-items:center; gap:14px; margin:0 -12px 12px; padding:15px 12px; cursor:pointer; background:#294c6b; border-bottom:1px solid #79a4c7; }
 .history-workout summary::-webkit-details-marker { display:none; }
 .history-workout summary::after { content:'＋'; color:#9bbbd8; font-size:18px; line-height:1; }
 .history-workout[open] summary::after { content:'−'; }
-.history-workout summary strong { display:block; flex:1; color:#f7fbff; font-size:15px; line-height:1.25; }
-.history-workout summary span { color:#c8d9e8; text-align:right; font-size:11px; line-height:1.55; }
+.history-workout summary strong { display:block; flex:1; color:#ffffff; font-size:15px; line-height:1.25; }
+.history-workout summary span { color:#e0edf7; text-align:right; font-size:11px; line-height:1.55; }
 .history-meta { display:block; }
-.history-exercise { padding:12px 0 10px; border-top:1px solid rgba(151,187,220,.2); color:#e4eef7; font-size:13px; }
-.history-exercise:first-child { border-top:0; }
-.history-exercise strong { display:block; color:#fff; font-size:13px; margin-bottom:7px; }
+.history-exercise { padding:11px 10px 12px; margin:8px 0; border:1px solid #5d82a2; border-radius:11px; background:#203b56; color:#e4eef7; font-size:13px; box-shadow:none; }
+.history-exercise:first-child { border-top:1px solid #39617f; }
+.history-exercise strong { display:block; color:#ffffff; font-size:13px; margin-bottom:8px; }
 .history-sets { display:flex; flex-wrap:wrap; gap:6px; }
-.history-set { display:inline-flex; align-items:center; gap:4px; background:#10233a; border:1px solid #446887; color:#d8e7f3; border-radius:8px; padding:5px 7px; font:11px 'Space Mono',monospace; }
-.history-set.has-pr { border-color:#c49b3f; background:rgba(196,155,63,.16); color:#fff0bf; }
+.history-set { display:inline-flex; align-items:center; gap:4px; background:#0b1b2d; border:1px solid #7899b3; color:#e3eff8; border-radius:8px; padding:6px 8px; font:11px 'Space Mono',monospace; box-shadow:none; }
+.history-set.has-pr { border-color:#e0b84f; background:#55431f; color:#fff0bf; }
 .history-rir { color:#a9c1d5; font-family:inherit; }
 .history-pr { color:#f4c95d; font-weight:700; }
 .history-card-stats { display:inline-flex; gap:7px; flex-wrap:wrap; justify-content:flex-end; }
 .history-stat { white-space:nowrap; }
 .history-details > summary { min-height:44px; display:flex; align-items:center; }
+.history-week-label { display:flex; justify-content:space-between; align-items:center; margin:18px 2px 6px; color:#aac5dc; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.history-week-label span:last-child { color:#718da6; font-size:10px; font-weight:500; letter-spacing:0; text-transform:none; }
 .add-duration-chip { border:1px solid #6684a2; background:#203b58; color:#d5e5f4; border-radius:20px; padding:4px 9px; font:11px inherit; cursor:pointer; }
 .ex-note-row { display:block !important; border-top:0 !important; padding-top:0 !important; }
 .ex-note-row .cue-toggle { color:var(--text-secondary); font-size:11px; cursor:pointer; }
@@ -540,7 +542,7 @@ input::placeholder { color: #7f95ad; }
 .compact-select { width:auto; min-height:36px; padding:6px 10px; font-size:12px; }
 .lift-value { color:var(--amber-light); font-weight:700; margin:8px 0; }
 .empty-note { color:var(--text-muted); font-size:13px; padding:18px 0; }
-.history-details { margin-top:18px; padding:0 12px 12px; color:var(--text-secondary); background:#0f1d2e; border:1px solid #294661; border-radius:16px; }
+.history-details { margin-top:18px; padding:0 10px 12px; color:var(--text-secondary); background:#070f1b; border:1px solid #456a88; border-radius:16px; }
 .history-details > summary { cursor:pointer; color:#f5f8fc; font-weight:700; padding:15px 3px 8px; }
 .history-row { display:grid; grid-template-columns:1fr 1fr 1fr; padding:10px 0; border-bottom:1px solid rgba(58,85,115,.35); font-size:12px; }
 .advanced-settings { margin-top:18px; border-top:1px solid var(--border); padding-top:14px; }
@@ -1189,6 +1191,28 @@ function getWorkoutSessions() {
   var changed=false;
   var sessions=Object.keys(store.sessions).map(function(id) {
     var session=store.sessions[id];
+    if(session.dayKey && session.programDay!=null) {
+      var liveGroups=groupWorkoutExercises(dayRecord(session.dayKey).workout);
+      var liveGroup=liveGroups.find(function(group){return group.index===Number(session.programDay);});
+      if(liveGroup) {
+        var liveRec=dayRecord(session.dayKey);
+        var liveMeta=(liveRec.workoutMetaBySession||{})[String(session.programDay)]||liveRec.workoutMeta||{};
+        var liveExercises=JSON.stringify(liveGroup.exercises);
+        if(JSON.stringify(session.exercises||[])!==liveExercises) {
+          session.exercises=liveGroup.exercises;
+          changed=true;
+        }
+        if(session.completed !== !!(liveMeta.completedAt || liveRec.workoutDone)) {
+          session.completed=!!(liveMeta.completedAt || liveRec.workoutDone);
+          changed=true;
+        }
+        var liveDuration=liveMeta.duration_sec!=null ? Number(liveMeta.duration_sec) : (liveMeta.durationMinutes!=null ? Number(liveMeta.durationMinutes)*60 : null);
+        if(liveDuration!=null && Number(session.duration_sec)!==liveDuration) {
+          session.duration_sec=liveDuration;
+          changed=true;
+        }
+      }
+    }
     if(session.duration_sec==null && session.durationMinutes!=null) {
       session.duration_sec=Number(session.durationMinutes)*60;
       changed=true;
@@ -1220,7 +1244,17 @@ function workoutDayKeys() {
 }
 
 function saveWorkoutSessionFromDay(dayKey, rec, sequence) {
-  if (!rec || !workoutHasSets(rec.workout)) return null;
+  var store=workoutSessionStore(), changed=false;
+  Object.keys(store.sessions).forEach(function(id){
+    if(store.sessions[id] && store.sessions[id].dayKey===dayKey) {
+      delete store.sessions[id];
+      changed=true;
+    }
+  });
+  if (!rec || !workoutHasSets(rec.workout)) {
+    if(changed) sv(WORKOUT_SESSIONS_KEY,store);
+    return null;
+  }
   var groups = groupWorkoutExercises(rec.workout);
   var programLength=(getActiveProgram() || []).length;
   var saved=[];
@@ -4237,7 +4271,8 @@ function workoutHistoryHTML() {
       }).join('');
       return '<details class="history-workout"><summary><strong>'+esc(dayLabel+label)+'</strong><span class="history-meta"><span>'+date+'</span><span class="history-card-stats"><span class="history-stat">'+duration+'</span><span class="history-stat">'+total+' '+(total===1?'set':'sets')+'</span></span></span></summary><div>'+details+'</div></details>';
     }).join('');
-    return '<div class="eyebrow" style="margin-top:16px">Week '+esc(week)+'</div>'+cards;
+    var cardCount=cards.split('<details').length-1;
+    return '<div class="history-week-label"><span>Week '+esc(week)+'</span><span>'+cardCount+' workout'+(cardCount===1?'':'s')+'</span></div>'+cards;
   }).join('');
 }
 
@@ -4456,7 +4491,7 @@ SQLiteStorage.init(function(){
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=14').catch(function(){});
   });
 }
 </script>
