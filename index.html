@@ -409,9 +409,8 @@ input::placeholder { color: #7f95ad; }
 .planned-set .btn-primary::after { content:'✓'; font-size:20px; line-height:1; }
 .planned-set .btn[disabled] { opacity:.35; cursor:not-allowed; }
 .planned-set .set-complete { color:var(--amber-light); font-size:23px; text-align:center; grid-column:5; animation:tick-pop .12s ease-out; }
-.planned-set .rir-chips { display:none; }
-.planned-set .rir-chip { min-width:27px; height:28px; padding:0 5px; border:1px solid var(--border-strong); border-radius:7px; background:var(--surface); color:var(--text-muted); font:11px 'Space Mono',monospace; cursor:pointer; }
-.planned-set .rir-chip.active { background:var(--amber); border-color:var(--amber); color:#142000; font-weight:700; }
+.planned-set .effort-btn { min-height:38px; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:5px 7px; border:1px solid var(--border-strong); border-radius:9px; background:var(--surface); color:var(--text-secondary); font:11px inherit; cursor:pointer; }
+.planned-set .effort-btn.has-value { color:#f4c95d; border-color:rgba(244,201,93,.55); background:rgba(244,201,93,.08); }
 .planned-set .set-rir { display:none; }
 .planned-set .btn-ghost[data-delete-set], .planned-set .btn-ghost[data-remove-draft] { grid-column:5; justify-self:end; }
 .set-last { grid-column:2 / 4; color:var(--text-muted); font-size:10px; }
@@ -421,8 +420,14 @@ input::placeholder { color: #7f95ad; }
   .gym-session-header { margin-left:-10px; margin-right:-10px; padding-left:10px; padding-right:10px; }
   .planned-set { grid-template-columns:18px minmax(0,1fr) minmax(0,1fr) minmax(70px,auto) 36px; gap:3px; }
   .planned-set input { font-size:16px; }
-  .planned-set select { font-size:11px; }
+  .planned-set .effort-btn { font-size:10px; padding-left:4px; padding-right:4px; }
 }
+.effort-sheet-copy { color:var(--text-muted); font-size:12px; line-height:1.45; margin:-4px 0 12px; }
+.effort-choice-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.effort-choice { min-height:48px; text-align:left; }
+.effort-choice strong, .effort-choice small { display:block; }
+.effort-choice small { margin-top:2px; color:var(--text-muted); font-size:10px; }
+.effort-choice.failure { border-color:rgba(255,123,131,.55); color:var(--rust-light); }
 .stat-strip { display:flex; justify-content:space-between; gap:8px; padding:12px 0 18px; }
 .stat-strip span { flex:1; min-width:0; }
 .stat-strip b, .stat-strip small { display:block; }
@@ -2857,9 +2862,8 @@ function renderGym() {
         ? '<span class="set-complete">✓</span>'
         : '<button class="btn btn-primary btn-sm" data-logset="'+ex.id+'" data-set-index="'+i+'" '+(hasValues?'':'disabled')+' aria-label="Log set">Log</button>';
       var rirOptions='<option value="">Effort</option><option value="3" '+(valueRir===3?'selected':'')+'>3+ RIR</option><option value="2" '+(valueRir===2?'selected':'')+'>2 RIR</option><option value="1" '+(valueRir===1?'selected':'')+'>1 RIR</option><option value="0" '+(valueRir===0?'selected':'')+'>Failure</option>';
-      var rirChips=['0','1','2','3+'].map(function(label){var val=parseInt(label,10);return '<button type="button" class="rir-chip '+(valueRir===val?'active':'')+'" data-rir-value="'+val+'" data-ex="'+ex.id+'" data-set-index="'+i+'">'+label+'</button>';}).join('');
-      var failureFlag='<button type="button" class="rir-chip failure-flag '+(valueRir===0?'active':'')+'" data-rir-value="0" data-ex="'+ex.id+'" data-set-index="'+i+'" aria-label="Mark failure">F</button>';
-      return '<div class="planned-set '+(logged?'is-complete':'')+'"><span class="set-number">'+(i+1)+'</span><input type="number" step="0.25" min="0" placeholder="kg" aria-label="Weight for set '+(i+1)+'" class="set-weight" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+valueW+'" inputmode="decimal"><input type="number" min="1" max="50" placeholder="reps" aria-label="Reps for set '+(i+1)+'" class="set-reps" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+valueR+'" inputmode="numeric"><select class="set-rir" data-ex="'+ex.id+'" data-set-index="'+i+'" aria-label="Effort for set '+(i+1)+'">'+rirOptions+'</select>'+loggedHtml+(logged?'':'<button class="btn-ghost" data-remove-draft="'+ex.id+'" data-set-index="'+i+'" aria-label="Remove set">×</button>')+'</div>';
+      var effortLabel=valueRir===0?'Failure':(valueRir!=null?valueRir+' RIR':'Effort');
+      return '<div class="planned-set '+(logged?'is-complete':'')+'"><span class="set-number">'+(i+1)+'</span><input type="number" step="0.25" min="0" placeholder="kg" aria-label="Weight for set '+(i+1)+'" class="set-weight" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+valueW+'" inputmode="decimal"><input type="number" min="1" max="50" placeholder="reps" aria-label="Reps for set '+(i+1)+'" class="set-reps" data-ex="'+ex.id+'" data-set-index="'+i+'" value="'+valueR+'" inputmode="numeric"><button type="button" class="effort-btn '+(valueRir!=null?'has-value':'')+'" data-effort-ex="'+ex.id+'" data-set-index="'+i+'" aria-label="Set effort for set '+(i+1)+'">'+effortLabel+'</button><select class="set-rir" data-ex="'+ex.id+'" data-set-index="'+i+'" aria-label="Effort for set '+(i+1)+'">'+rirOptions+'</select>'+loggedHtml+(logged?'':'<button class="btn-ghost" data-remove-draft="'+ex.id+'" data-set-index="'+i+'" aria-label="Remove set">×</button>')+'</div>';
     }).join('');
     var best = getBestE1RM(ex.id);
     
@@ -3019,11 +3023,11 @@ function attachGymEvents(key, rec, session, programDayIndex) {
       sv('rg_profile', profile);
       showToast('Cue saved', 'ok');
     });
-    document.querySelectorAll('.cue-toggle').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var row=btn.closest('.ex-note-row'), open=row.classList.toggle('open');
-        btn.setAttribute('aria-expanded', String(open));
-      });
+  });
+  document.querySelectorAll('.cue-toggle').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var row=btn.closest('.ex-note-row'), open=row.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
     });
   });
 
@@ -3069,15 +3073,9 @@ function attachGymEvents(key, rec, session, programDayIndex) {
     });
   });
 
-  document.querySelectorAll('.rir-chip').forEach(function(chip){
-    chip.addEventListener('click',function(){
-      var id=chip.dataset.ex, index=chip.dataset.setIndex;
-      var select=document.querySelector('.set-rir[data-ex="'+id+'"][data-set-index="'+index+'"]');
-      if(select) {
-        select.value=chip.dataset.rirValue;
-        select.dispatchEvent(new Event('input',{bubbles:true}));
-      }
-      chip.parentElement.querySelectorAll('.rir-chip').forEach(function(other){other.classList.toggle('active',other===chip);});
+  document.querySelectorAll('.effort-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      openEffortSheet(btn.dataset.effortEx, parseInt(btn.dataset.setIndex,10));
     });
   });
 
@@ -3836,6 +3834,40 @@ function openSheet(html) {
   document.body.appendChild(overlay);
   document.getElementById('closeSheetBtn').addEventListener('click',function(){overlay.remove();});
   overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});
+}
+
+function openEffortSheet(exId, setIndex) {
+  var select=document.querySelector('.set-rir[data-ex="'+exId+'"][data-set-index="'+setIndex+'"]');
+  if(!select) return;
+  var current=select.value===''?null:parseInt(select.value,10);
+  var options=[
+    {value:'',title:'Not set',copy:'Skip effort tracking'},
+    {value:'3',title:'3+ RIR',copy:'Could do 3 or more'},
+    {value:'2',title:'2 RIR',copy:'Could do 2 more'},
+    {value:'1',title:'1 RIR',copy:'Could do 1 more'},
+    {value:'0',title:'Failure',copy:'No more clean reps',failure:true}
+  ];
+  var overlay=document.createElement('div'); overlay.className='overlay';
+  overlay.innerHTML='<div class="sheet"><div class="sheet-handle"></div><div class="sheet-title">Set effort</div><div class="effort-sheet-copy">RIR means reps in reserve. Choose the option that best describes how hard this set felt.</div><div class="effort-choice-grid">'+options.map(function(option){
+    var active=(option.value===''?current===null:current===parseInt(option.value,10));
+    return '<button type="button" class="btn effort-choice '+(option.failure?'failure':'')+'" data-effort-value="'+option.value+'" '+(active?'aria-pressed="true"':'')+'><strong>'+option.title+(active?' ✓':'')+'</strong><small>'+option.copy+'</small></button>';
+  }).join('')+'</div><button type="button" class="btn" id="cancelEffortBtn" style="width:100%;margin-top:10px">Cancel</button></div>';
+  document.body.appendChild(overlay);
+  overlay.querySelector('#cancelEffortBtn').onclick=function(){overlay.remove();};
+  overlay.addEventListener('click',function(event){if(event.target===overlay) overlay.remove();});
+  overlay.querySelectorAll('[data-effort-value]').forEach(function(option){
+    option.onclick=function(){
+      select.value=option.dataset.effortValue;
+      select.dispatchEvent(new Event('input',{bubbles:true}));
+      var trigger=document.querySelector('.effort-btn[data-effort-ex="'+exId+'"][data-set-index="'+setIndex+'"]');
+      if(trigger) {
+        var value=option.dataset.effortValue;
+        trigger.textContent=value===''?'Effort':(value==='0'?'Failure':value+' RIR');
+        trigger.classList.toggle('has-value',value!=='');
+      }
+      overlay.remove();
+    };
+  });
 }
 
 // ── Toast notification ─────────────────────────────────────────────────────────
