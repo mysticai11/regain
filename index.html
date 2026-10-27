@@ -1149,6 +1149,7 @@ function saveWorkoutSessionFromDay(dayKey, rec, sequence) {
   var saved=[];
   groups.forEach(function(group, groupIndex) {
     var identity = programDayIdentity(sequence + groupIndex, programLength);
+    var groupMeta=(rec.workoutMetaBySession||{})[String(group.index)]||rec.workoutMeta||{};
     var session = {
       id: workoutSessionId(dayKey, group.index),
       dayKey: dayKey,
@@ -1158,10 +1159,10 @@ function saveWorkoutSessionFromDay(dayKey, rec, sequence) {
       programLabel: group.label || identity.label,
       exerciseGroups: [group],
       exercises: group.exercises,
-      completed: !!rec.workoutDone,
-      completedAt: rec.workoutMeta && (rec.workoutMeta.completedAt || rec.workoutMeta.updatedAt) || null,
-      startedAt: rec.workoutMeta && rec.workoutMeta.startedAt || null,
-      durationMinutes: rec.workoutMeta && rec.workoutMeta.durationMinutes || null,
+      completed: !!(groupMeta.completedAt || rec.workoutDone),
+      completedAt: groupMeta.completedAt || null,
+      startedAt: groupMeta.startedAt || null,
+      durationMinutes: groupMeta.durationMinutes || null,
       updatedAt: new Date().toISOString()
     };
     saveWorkoutSession(session);
@@ -2680,14 +2681,26 @@ function getWorkoutForDate(dayKey, rec) {
 
 function getCompletedWorkoutCount() {
   var sessions=getWorkoutSessions(), seen={};
-  sessions.forEach(function(s){if(s.completed) seen[s.id]=true;});
-  allDayKeys().forEach(function(key){var r=dayRecord(key);if(r.workoutDone) seen['legacy_'+key]=true;});
+  var sessionDays={};
+  sessions.forEach(function(s){sessionDays[s.dayKey]=true;if(s.completed) seen[s.id]=true;});
+  allDayKeys().forEach(function(key){var r=dayRecord(key);if(r.workoutDone&&!sessionDays[key]) seen['legacy_'+key]=true;});
   return Object.keys(seen).length;
 }
 
 function getNextProgramWorkout() {
   var count=getCompletedWorkoutCount(), index=count % IRON_LOG_PROGRAM.length;
   return {index:index, week:Math.floor(count/IRON_LOG_PROGRAM.length)+1, day:index+1, session:IRON_LOG_PROGRAM[index]};
+}
+
+function getActiveWorkoutSession(dayKey, programDayIndex) {
+  var session=getWorkoutSession(dayKey, programDayIndex);
+  if(session) return session;
+  return {id:workoutSessionId(dayKey, programDayIndex),dayKey:dayKey,programDay:programDayIndex,programLabel:(IRON_LOG_PROGRAM[programDayIndex]||{}).label||'Workout',exercises:[],status:'not_started'};
+}
+
+function getSessionMeta(rec, programDayIndex) {
+  rec.workoutMetaBySession=rec.workoutMetaBySession||{};
+  return rec.workoutMetaBySession[String(programDayIndex)]||(rec.workoutMetaBySession[String(programDayIndex)]={});
 }
 
 function chooseWorkoutForDate(dayKey) {
@@ -2815,22 +2828,22 @@ function renderGym() {
     +emptyRoutineHTML
     +exHTML+'</div><div id="restTimerWrap"></div>';
 
-  attachGymEvents(key, rec, session);
-  renderWorkoutTimer(key, rec, session);
+  attachGymEvents(key, rec, session, selected.index);
+  renderWorkoutTimer(key, rec, session, selected.index);
 }
 
-function renderWorkoutTimer(dayKey, rec, session) {
+function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
   var wrap=document.getElementById('sessionTimer'); if(!wrap) return;
-  var meta=rec.workoutMeta||{};
+  var meta=getSessionMeta(rec, programDayIndex);
   if(!meta.startedAt) {
     wrap.innerHTML='<span class="small dim">No session time yet</span><span class="timer-actions"><button class="btn btn-primary btn-sm" id="startWorkoutBtn">Start</button><button class="btn btn-sm" id="manualDurationBtn">Enter time</button></span>';
-    document.getElementById('startWorkoutBtn').onclick=function(){startWorkoutSession(dayKey,session);};
-    document.getElementById('manualDurationBtn').onclick=function(){setManualSessionDuration(dayKey,session);};
+    document.getElementById('startWorkoutBtn').onclick=function(){startWorkoutSession(dayKey,session,programDayIndex);};
+    document.getElementById('manualDurationBtn').onclick=function(){setManualSessionDuration(dayKey,session,programDayIndex);};
     return;
   }
   if(meta.completedAt) {
     wrap.innerHTML='<span><strong>'+formatDuration(meta.durationMinutes||Math.round(workoutElapsed(meta)/60))+'</strong><span class="small dim"> total</span></span><span class="timer-actions"><span class="small dim">Saved</span><button class="btn btn-sm" id="editDurationBtn">Edit</button></span>';
-    document.getElementById('editDurationBtn').onclick=function(){setManualSessionDuration(dayKey,session);};
+    document.getElementById('editDurationBtn').onclick=function(){setManualSessionDuration(dayKey,session,programDayIndex);};
     return;
   }
   var doneCount = session.exercises.reduce(function(total, ex){
@@ -2844,11 +2857,11 @@ function renderWorkoutTimer(dayKey, rec, session) {
   if(endButton) endButton.onclick=function(){
     var hasSets=Object.keys(rec.workout||{}).some(function(id){return (rec.workout[id]||[]).some(Boolean);});
     if(!hasSets&&!confirm('No sets are logged. End this session anyway?')) return;
-    endWorkoutSession(dayKey);
+    endWorkoutSession(dayKey, programDayIndex, session);
   };
   if(!meta.completedAt) {
     if(workoutTimer.interval) clearInterval(workoutTimer.interval);
-    workoutTimer.interval=setInterval(function(){var el=document.getElementById('workoutElapsed');if(el){var seconds=workoutElapsed(rec.workoutMeta);el.textContent=Math.floor(seconds/60)+':'+pad(seconds%60);}},1000);
+    workoutTimer.interval=setInterval(function(){var el=document.getElementById('workoutElapsed');if(el){var seconds=workoutElapsed(meta);el.textContent=Math.floor(seconds/60)+':'+pad(seconds%60);}},1000);
   }
 
   function renderRestTimer() {
@@ -2882,7 +2895,7 @@ function buildVolumeTable() {
     +'</table>';
 }
 
-function attachGymEvents(key, rec, session) {
+function attachGymEvents(key, rec, session, programDayIndex) {
   var chooseWorkoutBtn=document.getElementById('chooseWorkoutBtn');
   if(chooseWorkoutBtn) chooseWorkoutBtn.addEventListener('click',function(){chooseWorkoutForDate(key);});
   document.querySelectorAll('[data-pick-workout]').forEach(function(btn){
@@ -2939,19 +2952,17 @@ function attachGymEvents(key, rec, session) {
       rec.workout = rec.workout||{};
       rec.workout[id] = rec.workout[id]||[];
       rec.workoutDraft = rec.workoutDraft||{};
-      rec.workoutMeta=rec.workoutMeta||{};
+      var sessionMeta=getSessionMeta(rec, programDayIndex);
       var hadLoggedSets = Object.keys(rec.workout).some(function(workoutId){
         return (rec.workout[workoutId]||[]).some(Boolean);
       });
-      if(!rec.workoutMeta.startedAt) rec.workoutMeta.startedAt=new Date().toISOString();
-      if(!hadLoggedSets) rec.workoutMeta.firstSetAt=new Date().toISOString();
-      rec.workoutMeta.lastSetAt=new Date().toISOString();
-      rec.workoutMeta.sessionLabel=session.label;
+      if(!sessionMeta.startedAt) sessionMeta.startedAt=new Date().toISOString();
+      if(!hadLoggedSets) sessionMeta.firstSetAt=new Date().toISOString();
+      sessionMeta.lastSetAt=new Date().toISOString();
+      sessionMeta.sessionLabel=session.label;
       rec.workout[id][setIndex] = {weight:w,reps:r,rir:rirValue};
       if (rec.workoutDraft[id]) delete rec.workoutDraft[id][setIndex];
-      rec.workoutMeta=rec.workoutMeta||{sessionLabel:session.label};
-      rec.workoutMeta.sessionLabel=session.label;
-      rec.workoutMeta.updatedAt=new Date().toISOString();
+      sessionMeta.updatedAt=new Date().toISOString();
       // Check if all exercises done (2+ sets each)
       var allDone = session.exercises.every(function(ex){var actualId=(rec.swaps&&rec.swaps[ex.id])||ex.id;return (rec.workout[actualId]||[]).filter(Boolean).length>=(ex.sets||2);});
       if(allDone && !rec.workoutDone){
@@ -3151,37 +3162,39 @@ function formatDuration(minutes) {
   return Math.floor(total/60)+':'+pad(total%60);
 }
 
-function startWorkoutSession(dayKey, session) {
+function startWorkoutSession(dayKey, session, programDayIndex) {
   var rec=dayRecord(dayKey);
-  rec.workoutMeta=rec.workoutMeta||{};
-  if(!rec.workoutMeta.startedAt) {
-    rec.workoutMeta.startedAt=new Date().toISOString();
-    rec.workoutMeta.sessionLabel=session.label;
+  var meta=getSessionMeta(rec, programDayIndex);
+  if(!meta.startedAt) {
+    meta.startedAt=new Date().toISOString();
+    meta.sessionLabel=session.label;
     saveDayRecord(dayKey,rec);
   }
   renderGym();
 }
 
-function endWorkoutSession(dayKey) {
+function endWorkoutSession(dayKey, programDayIndex, session) {
   var rec=dayRecord(dayKey);
-  if(!rec.workoutMeta || !rec.workoutMeta.startedAt) return;
-  rec.workoutMeta.completedAt=new Date().toISOString();
-  rec.workoutDone=rec.workoutDone||false;
-  var sessionEnd=rec.workoutMeta.lastSetAt||rec.workoutMeta.completedAt;
-  var sessionStart=rec.workoutMeta.firstSetAt||rec.workoutMeta.startedAt;
-  rec.workoutMeta.durationMinutes=Math.max(1,Math.round((new Date(sessionEnd).getTime()-new Date(sessionStart).getTime())/60000));
+  var meta=getSessionMeta(rec, programDayIndex);
+  if(!meta.startedAt || meta.completedAt) return;
+  meta.completedAt=new Date().toISOString();
+  rec.workoutDone=true;
+  var sessionEnd=meta.lastSetAt||meta.completedAt;
+  var sessionStart=meta.firstSetAt||meta.startedAt;
+  meta.durationMinutes=Math.max(1,Math.round((new Date(sessionEnd).getTime()-new Date(sessionStart).getTime())/60000));
   saveDayRecord(dayKey,rec);
   if(workoutTimer.interval) clearInterval(workoutTimer.interval);
   renderGym();
-  showWorkoutSummary(rec);
+  showWorkoutSummary(rec, programDayIndex, session);
 }
 
-function showWorkoutSummary(rec) {
+function showWorkoutSummary(rec, programDayIndex, session) {
   var sets=0, volume=0;
-  Object.keys(rec.workout||{}).forEach(function(id){
-    (rec.workout[id]||[]).filter(Boolean).forEach(function(s){sets++;volume+=(Number(s.weight)||0)*(Number(s.reps)||0);});
+  (session.exercises||[]).forEach(function(ex){
+    var id=(rec.swaps&&rec.swaps[ex.id])||ex.id;
+    ((rec.workout||{})[id]||[]).filter(Boolean).forEach(function(s){sets++;volume+=(Number(s.weight)||0)*(Number(s.reps)||0);});
   });
-  var meta=rec.workoutMeta||{}, minutes=meta.durationMinutes||0;
+  var meta=getSessionMeta(rec, programDayIndex), minutes=meta.durationMinutes||0;
   var overlay=document.createElement('div'); overlay.className='overlay';
   overlay.innerHTML='<div class="sheet completion-sheet"><div class="sheet-handle"></div><div class="completion-mark">✓</div><div class="sheet-title">Workout complete</div><div class="small dim">'+esc(meta.sessionLabel||'Session')+'</div><div class="completion-stats"><div><strong>'+formatDuration(minutes)+'</strong><span>duration</span></div><div><strong>'+sets+'</strong><span>sets</span></div><div><strong>'+Math.round(volume).toLocaleString()+'</strong><span>kg volume</span></div></div><button class="btn btn-primary" id="closeWorkoutSummary" style="width:100%;margin-top:16px">Done</button></div>';
   document.body.appendChild(overlay);
@@ -3189,10 +3202,11 @@ function showWorkoutSummary(rec) {
   overlay.querySelector('#closeWorkoutSummary').onclick=function(){overlay.remove();};
 }
 
-function setManualSessionDuration(dayKey, session) {
+function setManualSessionDuration(dayKey, session, programDayIndex) {
   var rec=dayRecord(dayKey);
-  rec.workoutMeta=rec.workoutMeta||{sessionLabel:session.label};
-  var current=rec.workoutMeta.durationMinutes||Math.round(workoutElapsed(rec.workoutMeta)/60)||'';
+  var meta=getSessionMeta(rec, programDayIndex);
+  meta.sessionLabel=meta.sessionLabel||session.label;
+  var current=meta.durationMinutes||Math.round(workoutElapsed(meta)/60)||'';
   var value=prompt('Total session time in minutes', String(current));
   if(value===null) return;
   var minutes=Number(value);
@@ -3200,10 +3214,10 @@ function setManualSessionDuration(dayKey, session) {
     showToast('Enter a duration from 1 to 1440 minutes','warn');
     return;
   }
-  rec.workoutMeta.durationMinutes=Math.round(minutes);
-  rec.workoutMeta.sessionLabel=session.label;
-  if(!rec.workoutMeta.startedAt) rec.workoutMeta.completedAt=rec.workoutMeta.completedAt||new Date().toISOString();
-  rec.workoutMeta.updatedAt=new Date().toISOString();
+  meta.durationMinutes=Math.round(minutes);
+  meta.sessionLabel=session.label;
+  if(!meta.startedAt) meta.completedAt=meta.completedAt||new Date().toISOString();
+  meta.updatedAt=new Date().toISOString();
   saveDayRecord(dayKey,rec);
   showToast('Session time saved','ok');
   renderGym();

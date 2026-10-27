@@ -1,5 +1,5 @@
 // sw.js — Iron Log service worker
-const CACHE = 'iron-log-v11';
+const CACHE = 'iron-log-v12';
 const LOCAL_ASSETS = ['./', './index.html', './db.js', './manifest.json', './icon-192.svg', './icon-512.svg'];
 
 self.addEventListener('install', e => {
