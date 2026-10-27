@@ -353,6 +353,8 @@ input::placeholder { color: #7f95ad; }
 .alt-chip { border:1px solid var(--border-strong); color:var(--text-secondary); background:transparent; padding:3px 7px; border-radius:12px; font-size:10px; cursor:pointer; margin-left:6px; }
 .last-session-line { color:var(--text-muted); font-size:11px; margin-top:7px; }
 .last-session-line strong { color:var(--text-secondary); font-family:'Space Mono',monospace; font-weight:500; }
+.progression-guide { margin-top:8px; padding:8px 9px; border-left:2px solid #f4c95d; background:rgba(244,201,93,.08); color:#d9e7f2; font-size:11px; line-height:1.45; }
+.progression-guide-label { display:block; color:#f4c95d; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.08em; margin-bottom:2px; }
 .rest-bar { position:fixed; left:50%; bottom:calc(var(--nav-h) + var(--safe-b) + 8px); transform:translateX(-50%); width:min(528px,calc(100% - 28px)); z-index:15; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 10px 9px 14px; background:var(--surface-hi); border:1px solid var(--border-strong); border-radius:14px; box-shadow:0 6px 24px rgba(0,0,0,.35); }
 .rest-bar strong { color:var(--amber); font:18px 'Space Mono',monospace; }
 .rest-bar .btn { min-height:36px; padding:5px 10px; }
@@ -493,6 +495,8 @@ input::placeholder { color: #7f95ad; }
 .history-workout summary strong { display:block; flex:1; color:#ffffff; font-size:15px; line-height:1.25; }
 .history-workout summary span { color:#e0edf7; text-align:right; font-size:11px; line-height:1.55; }
 .history-meta { display:block; }
+.history-meta > span { display:block; }
+.history-card-stats { margin-top:3px; }
 .history-exercise { padding:11px 10px 12px; margin:8px 0; border:1px solid #5d82a2; border-radius:11px; background:#203b56; color:#e4eef7; font-size:13px; box-shadow:none; }
 .history-exercise:first-child { border-top:1px solid #39617f; }
 .history-exercise strong { display:block; color:#ffffff; font-size:13px; margin-bottom:8px; }
@@ -2704,6 +2708,26 @@ function getTopRepRange(rangeStr) {
   return parseInt(rangeStr, 10) || 12;
 }
 
+function getBottomRepRange(rangeStr) {
+  var match=String(rangeStr).match(/\d+/);
+  return match ? parseInt(match[0],10) : 1;
+}
+
+function progressionGuide(lastSets, repRange) {
+  if(!lastSets.length) return 'Start with a comfortable load in the '+repRange+' rep range.';
+  var low=getBottomRepRange(repRange), high=getTopRepRange(repRange);
+  var allTop=lastSets.every(function(set){return Number(set.reps)>=high;});
+  var guide=lastSets.map(function(set){
+    var weight=Number(set.weight), reps=Number(set.reps);
+    if(allTop) {
+      var next=Math.max(weight+2.5,Math.round((weight*1.025)*4)/4);
+      return weight+' kg × '+reps+' → try '+next+' kg × '+low+'–'+high;
+    }
+    return weight+' kg × '+reps+' → aim '+weight+' kg × '+Math.min(high,reps+1)+'–'+high;
+  });
+  return (allTop?'Beat last week by adding a little load: ':'Beat last week by adding a rep: ')+guide.join(' · ');
+}
+
 function openWarmUpSheet(exName, exId) {
   var inputEl = document.querySelector('.set-weight[data-ex="' + exId + '"]');
   var workingWeight = parseFloat(inputEl ? inputEl.value : '') || 40;
@@ -2908,6 +2932,7 @@ function renderGym() {
     var hitTop = completedSets.length >= targetSets && completedSets.slice(0, targetSets).every(function(s){ return Number(s.reps) >= topRep; });
     var progressionPrompt = hitTop ? '<div class="progression-tip" style="color:var(--sage-light);font-size:12px;margin-top:6px;font-family:\'Space Mono\',monospace">🎉 Top range hit! Add load & reset reps.</div>' : '';
     var lastSummary = lastSets.length ? 'Last: <strong>'+lastSets.map(function(s){return s.weight+' × '+s.reps;}).join(', ')+'</strong> · target '+(lastSets[lastSets.length-1].weight||'—')+' × '+topRep : 'No previous session yet';
+    var progressionGuideHTML = '<div class="progression-guide"><span class="progression-guide-label">Next time</span>'+esc(progressionGuide(lastSets,repsStr))+'</div>';
     
     var isCompound = ex.type === 'compound' || exOrig.type === 'compound';
     var warmUpLink = isCompound ? '<button class="btn-ghost warm-up-btn" data-exname="'+esc(ex.name)+'" data-exid="'+esc(ex.id)+'" style="font-size:10px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;cursor:pointer">Warm Up</button>' : '';
@@ -2936,7 +2961,7 @@ function renderGym() {
     });
     return '<div class="exercise-card '+(completedSets.length>=targetSets?'completed-card ':'')+(!earlierIncomplete&&completedSets.length<targetSets?'active-card':'')+'" id="excard-'+ex.id+'">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start">'
-        +'<div style="min-width:0"><div class="exercise-name" style="display:flex;align-items:center;flex-wrap:wrap">'+esc(ex.name)+'<span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">'+(ex.sets||exOrig.sets)+'×'+esc(ex.reps||exOrig.reps)+(customMode?'':' · '+esc(ex.rir||exOrig.rir)+' RIR')+'</span>'+swapLink+'</div><div class="last-session-line">'+lastSummary+'</div><div class="logged-count">'+sets.length+' set'+(sets.length===1?'':'s')+' logged '+detailsLink+'</div></div>'
+        +'<div style="min-width:0"><div class="exercise-name" style="display:flex;align-items:center;flex-wrap:wrap">'+esc(ex.name)+'<span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">'+(ex.sets||exOrig.sets)+'×'+esc(ex.reps||exOrig.reps)+(customMode?'':' · '+esc(ex.rir||exOrig.rir)+' RIR')+'</span>'+swapLink+'</div><div class="last-session-line">'+lastSummary+'</div>'+progressionGuideHTML+'<div class="logged-count">'+sets.length+' set'+(sets.length===1?'':'s')+' logged '+detailsLink+'</div></div>'
       +'</div>'
       +exerciseExtra
     +'</div>';
