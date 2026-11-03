@@ -1374,6 +1374,39 @@ button:active, .btn:active, .chip:active, .step-day:active { transform: scale(0.
   }
 }
 
+
+/* ── Date & Day Switcher Polish ── */
+.gym-date-pill {
+  font-size: 10px !important;
+  font-family: 'Space Mono', monospace !important;
+  font-weight: 700 !important;
+  color: var(--amber-light) !important;
+  background: rgba(217,139,63,0.12) !important;
+  border: 1px solid rgba(217,139,63,0.3) !important;
+  border-radius: 6px !important;
+  padding: 2px 7px !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+.gym-date-pill:hover, .gym-date-pill:active {
+  background: var(--amber) !important;
+  color: #1a0f00 !important;
+}
+.gym-date-banner {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  background: rgba(217,139,63,0.15) !important;
+  border: 1px solid rgba(217,139,63,0.4) !important;
+  border-radius: 8px !important;
+  padding: 6px 10px !important;
+  margin-top: 8px !important;
+  font-size: 11px !important;
+  color: var(--text) !important;
+}
+
 </style>
 </head>
 <body>
@@ -4683,10 +4716,13 @@ function chooseWorkoutForDate(dayKey) {
 // GYM TAB
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 function renderGym() {
-  var key = todayKey(), rec = dayRecord(key);
+  var key = window.activeGymDateKey || todayKey();
+  var rec = dayRecord(key);
   var prog = getActiveProgram();
-  var today = new Date();
-  var currentD = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  var activeDate = new Date(key + 'T00:00:00');
+  var currentD = activeDate.getDay();
+  var isActualToday = key === todayKey();
+  var formattedSessionDate = activeDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }); // 0=Sun, 1=Mon, ..., 6=Sat
   var completedCount = getCompletedWorkoutCount();
   var cycleWorkouts = prog.length || 5;
   var workoutWeek = Math.floor(completedCount / cycleWorkouts) + 1;
@@ -4732,7 +4768,10 @@ function renderGym() {
         + '<div class="cycle-week-title">' + ic('barbell', 15) + ' <span>Week ' + workoutWeek + '</span>' + (completedInCycle === 0 && completedCount > 0 ? ' <span class="fresh-week-badge">Fresh</span>' : '') + '</div>'
         + '<span class="cycle-badge">' + completedInCycle + ' / ' + cycleWorkouts + ' done</span>'
       + '</div>'
-      + '<button class="cycle-plan-btn" id="manageSplitTopBtn">✏️ Plan & Days</button>'
+      + '<div style="display:flex;align-items:center;gap:6px">'
+        + '<button type="button" class="cycle-plan-btn" id="gymDateSelectBtn" title="Change session date">📅 ' + esc(formattedSessionDate) + '</button>'
+        + '<button type="button" class="cycle-plan-btn" id="manageSplitTopBtn">✏️ Plan</button>'
+      + '</div>'
     + '</div>'
     + '<div class="schedule-stepper">' + stepperHTML + '</div>'
     + '<div class="cycle-selected-bar">'
@@ -4753,7 +4792,8 @@ function renderGym() {
     document.getElementById('content').innerHTML =
       '<div class="gym-page">'
       + '<div class="topbar"><div><span class="eyebrow">' + esc(activeSched.name) + '</span><div class="title">Gym</div></div></div>'
-      + cycleCardHTML
+      + (!isActualToday ? ('<div class="gym-date-banner" style="margin-bottom:10px"><span>📅 Logging for <strong>' + esc(formattedSessionDate) + '</strong></span><button type="button" class="btn-ghost" id="gymDateResetBtn" style="font-size:11px;color:var(--amber-light);font-weight:700;cursor:pointer">Jump to Today</button></div>') : '')
+    + cycleCardHTML
       + '<div class="rest-day-card">'
         + '<div class="rest-day-icon">💤</div>'
         + '<div class="rest-day-title">' + esc(activeSched.name) + ' — Scheduled Rest Day</div>'
@@ -4806,7 +4846,8 @@ function renderGym() {
     document.getElementById('content').innerHTML =
       '<div class="gym-page">'
       + '<div class="topbar"><div><span class="eyebrow">Week ' + workoutWeek + ' · ' + esc(activeSched.name) + '</span><div class="title">Gym</div></div></div>'
-      + cycleCardHTML
+      + (!isActualToday ? ('<div class="gym-date-banner" style="margin-bottom:10px"><span>📅 Logging for <strong>' + esc(formattedSessionDate) + '</strong></span><button type="button" class="btn-ghost" id="gymDateResetBtn" style="font-size:11px;color:var(--amber-light);font-weight:700;cursor:pointer">Jump to Today</button></div>') : '')
+    + cycleCardHTML
       + '<div class="today-completed-card">'
         + '<div class="completed-hero-icon">🏆</div>'
         + '<div class="completed-hero-title">Today\'s Workout Complete!</div>'
@@ -4980,6 +5021,7 @@ function renderGym() {
       + '<div class="gym-progress"><i style="width:' + Math.min(100, Math.round(loggedTotal / Math.max(1, totalPlanned) * 100)) + '%"></i></div>'
       + '<div class="session-timer" id="sessionTimer"></div>'
     + '</div>'
+    + (!isActualToday ? ('<div class="gym-date-banner" style="margin-bottom:10px"><span>📅 Logging for <strong>' + esc(formattedSessionDate) + '</strong></span><button type="button" class="btn-ghost" id="gymDateResetBtn" style="font-size:11px;color:var(--amber-light);font-weight:700;cursor:pointer">Jump to Today</button></div>') : '')
     + cycleCardHTML
     + exHTML
     + '</div><div id="restTimerWrap"></div>';
@@ -5103,6 +5145,15 @@ function buildVolumeTable() {
 }
 
 function attachGymEvents(key, rec, session, programDayIndex) {
+  var dateSelBtn = document.getElementById('gymDateSelectBtn');
+  if (dateSelBtn) dateSelBtn.onclick = openGymDateDaySheet;
+  var dateResetBtn = document.getElementById('gymDateResetBtn');
+  if (dateResetBtn) {
+    dateResetBtn.onclick = function() {
+      delete window.activeGymDateKey;
+      renderGym();
+    };
+  }
   var chooseWorkoutBtn=document.getElementById('chooseWorkoutBtn');
   if(chooseWorkoutBtn) chooseWorkoutBtn.addEventListener('click',function(){chooseWorkoutForDate(key);});
   document.querySelectorAll('[data-pick-workout]').forEach(function(btn){
@@ -6962,6 +7013,7 @@ function workoutHistoryHTML() {
       var toolbarHTML = '<div class="history-workout-toolbar">'
         + '<span class="history-toolbar-summary">' + exercises.length + ' exercises · ' + total + ' sets</span>'
         + '<div class="history-toolbar-actions">'
+          + '<button type="button" class="btn-edit-hist" data-edit-date-day="' + esc(session.id) + '">📅 Date & Day</button>'
           + '<button type="button" class="btn-edit-hist" data-edit-workout-session="' + esc(session.id) + '">✏️ Edit All</button>'
           + '<button type="button" class="btn-del-hist" data-delete-workout-session="' + esc(session.id) + '">🗑️ Delete</button>'
         + '</div>'
@@ -7488,6 +7540,206 @@ function openQuickEditSetModal(options) {
   renderQuickSheet();
 }
 
+
+function openEditDateAndDayModal(sessionId) {
+  var store = workoutSessionStore();
+  var session = store.sessions[sessionId];
+  if (!session) return;
+  var prog = getActiveProgram();
+
+  var overlay = document.createElement('div');
+  overlay.className = 'overlay';
+
+  var curDate = session.dayKey || todayKey();
+  var curProgramDay = session.programDay != null ? session.programDay : 0;
+  var curWeek = session.week || 1;
+
+  var progOptions = prog.map(function(p, idx) {
+    var isSel = (curProgramDay === idx) || (session.programLabel === p.label);
+    return '<option value="' + idx + '" ' + (isSel ? 'selected' : '') + '>' + esc(p.label) + '</option>';
+  }).join('');
+
+  overlay.innerHTML = '<div class="sheet" style="padding-bottom:calc(24px + var(--safe-b))">'
+    + '<div class="sheet-handle"></div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">'
+      + '<div>'
+        + '<span class="eyebrow" style="color:var(--amber-light)">Workout Schedule & Timing</span>'
+        + '<div class="sheet-title" style="margin-top:2px">Edit Date & Day</div>'
+      + '</div>'
+      + '<button type="button" class="btn-ghost" id="closeDateDayModalBtn" style="font-size:22px;line-height:1;padding:4px 8px;color:var(--text-muted)">✕</button>'
+    + '</div>'
+
+    + '<div style="background:var(--surface-raised);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px">'
+      + '<div style="margin-bottom:12px">'
+        + '<label class="eyebrow" style="margin-bottom:4px">Workout Date</label>'
+        + '<input type="date" id="modalEditDate" value="' + curDate + '" style="min-height:42px;height:42px;padding:6px 10px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:100%">'
+      + '</div>'
+      + '<div style="margin-bottom:12px">'
+        + '<label class="eyebrow" style="margin-bottom:4px">Workout Day / Split Routine</label>'
+        + '<select id="modalEditDay" style="min-height:42px;height:42px;padding:6px 10px;font-size:13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:100%">'
+          + progOptions
+        + '</select>'
+      + '</div>'
+      + '<div>'
+        + '<label class="eyebrow" style="margin-bottom:4px">Cycle Week</label>'
+        + '<input type="number" min="1" max="100" id="modalEditWeek" value="' + curWeek + '" style="min-height:42px;height:42px;padding:6px 10px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:100%">'
+      + '</div>'
+    + '</div>'
+
+    + '<div style="display:flex;gap:10px">'
+      + '<button type="button" class="btn" id="cancelDateDayModalBtn" style="flex:1">Cancel</button>'
+      + '<button type="button" class="btn btn-primary" id="saveDateDayModalBtn" style="flex:2">Save Date & Day</button>'
+    + '</div>'
+    + '</div>';
+
+  overlay.querySelector('#closeDateDayModalBtn').onclick = function() { overlay.remove(); };
+  overlay.querySelector('#cancelDateDayModalBtn').onclick = function() { overlay.remove(); };
+
+  overlay.querySelector('#saveDateDayModalBtn').onclick = function() {
+    var newDate = overlay.querySelector('#modalEditDate').value;
+    var selectedProgIdx = parseInt(overlay.querySelector('#modalEditDay').value, 10);
+    var newWeek = parseInt(overlay.querySelector('#modalEditWeek').value, 10);
+
+    if (!newDate) {
+      showToast('Please select a valid date', 'warn');
+      return;
+    }
+
+    var oldDate = session.dayKey;
+    session.dayKey = newDate;
+
+    if (!isNaN(selectedProgIdx) && prog[selectedProgIdx]) {
+      session.programDay = selectedProgIdx;
+      session.programLabel = prog[selectedProgIdx].label;
+      session.day = selectedProgIdx + 1;
+    }
+
+    if (!isNaN(newWeek) && newWeek > 0) {
+      session.week = newWeek;
+    }
+
+    // Transfer workout data to new day record if date changed
+    if (newDate !== oldDate) {
+      var oldRec = dayRecord(oldDate);
+      var newRec = dayRecord(newDate);
+      newRec.workout = newRec.workout || {};
+      (session.exercises || []).forEach(function(ex) {
+        if (oldRec.workout && oldRec.workout[ex.id]) {
+          newRec.workout[ex.id] = oldRec.workout[ex.id];
+          delete oldRec.workout[ex.id];
+        }
+      });
+      newRec.workoutDone = true;
+      var oldRemaining = Object.keys(oldRec.workout || {}).some(function(k){
+        return (oldRec.workout[k] || []).some(Boolean);
+      });
+      if (!oldRemaining) oldRec.workoutDone = false;
+      saveDayRecord(newDate, newRec);
+      saveDayRecord(oldDate, oldRec);
+    }
+
+    store.sessions[sessionId] = session;
+    sv(WORKOUT_SESSIONS_KEY, store);
+    overlay.remove();
+    showToast('Workout date & day updated', 'ok');
+    renderProgressSimple('lifts');
+  };
+
+  document.body.appendChild(overlay);
+}
+
+function openGymDateDaySheet() {
+  var overlay = document.createElement('div');
+  overlay.className = 'overlay';
+
+  var curKey = window.activeGymDateKey || todayKey();
+  var weeklySched = getWeeklySchedule();
+  var rec = dayRecord(curKey);
+  var currentD = new Date(curKey + 'T00:00:00').getDay();
+  var defaultScheduleDay = currentD === 0 ? 7 : currentD;
+  var curDayNum = rec.selectedDayNumber != null ? rec.selectedDayNumber : defaultScheduleDay;
+
+  var schedOptions = weeklySched.map(function(s) {
+    var isSel = s.dayNum === curDayNum;
+    return '<option value="' + s.dayNum + '" data-widx="' + (s.workoutIndex != null ? s.workoutIndex : '') + '" ' + (isSel ? 'selected' : '') + '>'
+      + esc(s.name) + ' — ' + esc(s.label)
+      + '</option>';
+  }).join('');
+
+  overlay.innerHTML = '<div class="sheet" style="padding-bottom:calc(24px + var(--safe-b))">'
+    + '<div class="sheet-handle"></div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">'
+      + '<div>'
+        + '<span class="eyebrow" style="color:var(--amber-light)">Active Logger Session</span>'
+        + '<div class="sheet-title" style="margin-top:2px">Session Date & Day</div>'
+      + '</div>'
+      + '<button type="button" class="btn-ghost" id="closeGymDateSheetBtn" style="font-size:22px;line-height:1;padding:4px 8px;color:var(--text-muted)">✕</button>'
+    + '</div>'
+
+    + '<div style="background:var(--surface-raised);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px">'
+      + '<div style="margin-bottom:12px">'
+        + '<label class="eyebrow" style="margin-bottom:4px">Logging Date</label>'
+        + '<input type="date" id="gymInputDate" value="' + curKey + '" style="min-height:42px;height:42px;padding:6px 10px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:100%">'
+        + '<div style="display:flex;gap:6px;margin-top:8px">'
+          + '<button type="button" class="chip" id="chipTodayBtn">Today</button>'
+          + '<button type="button" class="chip" id="chipYesterdayBtn">Yesterday</button>'
+          + '<button type="button" class="chip" id="chip2DaysAgoBtn">2 Days Ago</button>'
+        + '</div>'
+      + '</div>'
+      + '<div>'
+        + '<label class="eyebrow" style="margin-bottom:4px">Scheduled Day / Routine</label>'
+        + '<select id="gymInputDayNum" style="min-height:42px;height:42px;padding:6px 10px;font-size:13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:100%">'
+          + schedOptions
+        + '</select>'
+      + '</div>'
+    + '</div>'
+
+    + '<div style="display:flex;gap:10px">'
+      + '<button type="button" class="btn" id="cancelGymDateSheetBtn" style="flex:1">Cancel</button>'
+      + '<button type="button" class="btn btn-primary" id="applyGymDateSheetBtn" style="flex:2">Set Date & Day</button>'
+    + '</div>'
+    + '</div>';
+
+  overlay.querySelector('#closeGymDateSheetBtn').onclick = function() { overlay.remove(); };
+  overlay.querySelector('#cancelGymDateSheetBtn').onclick = function() { overlay.remove(); };
+
+  var dInput = overlay.querySelector('#gymInputDate');
+  overlay.querySelector('#chipTodayBtn').onclick = function() { dInput.value = todayKey(); };
+  overlay.querySelector('#chipYesterdayBtn').onclick = function() {
+    var yest = new Date(); yest.setDate(yest.getDate() - 1);
+    dInput.value = dateKey(yest);
+  };
+  overlay.querySelector('#chip2DaysAgoBtn').onclick = function() {
+    var twoDays = new Date(); twoDays.setDate(twoDays.getDate() - 2);
+    dInput.value = dateKey(twoDays);
+  };
+
+  overlay.querySelector('#applyGymDateSheetBtn').onclick = function() {
+    var chosenDate = dInput.value;
+    var daySelect = overlay.querySelector('#gymInputDayNum');
+    var chosenDayNum = parseInt(daySelect.value, 10);
+    var chosenOpt = daySelect.options[daySelect.selectedIndex];
+    var chosenWIdx = chosenOpt.dataset.widx !== '' ? parseInt(chosenOpt.dataset.widx, 10) : null;
+
+    if (!chosenDate) {
+      showToast('Please select a valid date', 'warn');
+      return;
+    }
+
+    window.activeGymDateKey = chosenDate;
+    var targetRec = dayRecord(chosenDate);
+    targetRec.selectedDayNumber = chosenDayNum;
+    targetRec.selectedWorkout = chosenWIdx;
+    saveDayRecord(chosenDate, targetRec);
+
+    overlay.remove();
+    showToast('Switched to ' + chosenDate, 'ok');
+    renderGym();
+  };
+
+  document.body.appendChild(overlay);
+}
+
 function openEditWorkoutSheet(sessionId) {
   var store = workoutSessionStore();
   var session = store.sessions[sessionId];
@@ -7560,16 +7812,30 @@ function openEditWorkoutSheet(sessionId) {
       + '<div class="sheet-title" style="margin-bottom:4px">Edit Workout</div>'
       + '<div style="font-size:12px;color:var(--text-muted);margin-bottom:14px">' + esc(session.programLabel || 'Workout') + '</div>'
 
-      // Meta controls: Date and Duration
+      // Meta controls: Date, Day, Week, and Duration
       + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;background:var(--surface-raised);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:14px">'
         + '<div>'
           + '<label class="eyebrow" style="margin-bottom:4px">Workout Date</label>'
-          + '<input type="date" id="editSessionDate" value="' + (session.dayKey || todayKey()) + '" style="min-height:38px;height:38px;padding:4px 8px;font-size:13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)">'
+          + '<input type="date" id="editSessionDate" value="' + (session.dayKey || todayKey()) + '" style="min-height:38px;height:38px;padding:4px 8px;font-size:13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:100%">'
+        + '</div>'
+        + '<div>'
+          + '<label class="eyebrow" style="margin-bottom:4px">Day / Routine</label>'
+          + '<select id="editSessionDay" style="min-height:38px;height:38px;padding:4px 8px;font-size:12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:100%">'
+            + getActiveProgram().map(function(p, pIdx) {
+                var isSel = (session.programDay === pIdx) || (session.programLabel === p.label);
+                return '<option value="' + pIdx + '" ' + (isSel ? 'selected' : '') + '>' + esc(p.label) + '</option>';
+              }).join('')
+          + '</select>'
+        + '</div>'
+        + '<div>'
+          + '<label class="eyebrow" style="margin-bottom:4px">Cycle Week</label>'
+          + '<input type="number" min="1" max="100" id="editSessionWeek" value="' + (session.week || 1) + '" style="min-height:38px;height:38px;padding:4px 8px;font-size:13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:100%">'
         + '</div>'
         + '<div>'
           + '<label class="eyebrow" style="margin-bottom:4px">Duration (min)</label>'
-          + '<input type="number" min="1" max="300" id="editSessionDuration" value="' + durationMinutes + '" style="min-height:38px;height:38px;padding:4px 8px;font-size:13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)">'
+          + '<input type="number" min="1" max="300" id="editSessionDuration" value="' + durationMinutes + '" style="min-height:38px;height:38px;padding:4px 8px;font-size:13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:100%">'
         + '</div>'
+      + '</div>'
       + '</div>'
 
       + exHTML
@@ -7588,6 +7854,17 @@ function openEditWorkoutSheet(sessionId) {
     overlay.querySelector('#cancelEditWorkoutBtn').onclick = function() { overlay.remove(); };
 
     overlay.querySelector('#saveEditWorkoutBtn').onclick = function() {
+      var progList = getActiveProgram();
+      var selDayIdx = parseInt(overlay.querySelector('#editSessionDay').value, 10);
+      if (!isNaN(selDayIdx) && progList[selDayIdx]) {
+        session.programDay = selDayIdx;
+        session.programLabel = progList[selDayIdx].label;
+        session.day = selDayIdx + 1;
+      }
+      var selWeek = parseInt(overlay.querySelector('#editSessionWeek').value, 10);
+      if (!isNaN(selWeek) && selWeek > 0) {
+        session.week = selWeek;
+      }
       captureCurrentInputs();
       var durInput = parseInt(overlay.querySelector('#editSessionDuration').value, 10);
       if (durInput && durInput > 0) {
@@ -7737,6 +8014,9 @@ function renderProgressSimple(mode) {
   });
   document.querySelectorAll('[data-delete-workout-session]').forEach(function(btn){
     btn.onclick = function(){ deleteWorkoutSession(btn.dataset.deleteWorkoutSession); };
+  });
+  document.querySelectorAll('[data-edit-date-day]').forEach(function(btn){
+    btn.onclick = function(){ openEditDateAndDayModal(btn.dataset.editDateDay); };
   });
   document.querySelectorAll('[data-edit-workout-session]').forEach(function(btn){
     btn.onclick = function(){ openEditWorkoutSheet(btn.dataset.editWorkoutSession); };
@@ -8114,7 +8394,7 @@ SQLiteStorage.init(function(){
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js?v=22').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=23').catch(function(){});
   });
 }
 </script>
