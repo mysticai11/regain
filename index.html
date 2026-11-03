@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -533,7 +533,7 @@ input::placeholder { color: #7f95ad; }
 .history-workout { background:#172a40; border:1px solid #6a8eae; border-radius:16px; padding:0 12px 12px; margin:14px 0; box-shadow:0 5px 14px rgba(0,0,0,.28); overflow:hidden; }
 .history-workout summary { display:flex; justify-content:space-between; align-items:center; gap:14px; margin:0 -12px 12px; padding:15px 12px; cursor:pointer; background:#294c6b; border-bottom:1px solid #79a4c7; }
 .history-workout summary::-webkit-details-marker { display:none; }
-.history-workout summary::after { content:'ï¼‹'; color:#9bbbd8; font-size:18px; line-height:1; }
+.history-workout summary::after { content:'+'; color:#9bbbd8; font-size:18px; line-height:1; }
 .history-workout[open] summary::after { content:'−'; }
 .history-workout summary strong { display:block; flex:1; color:#ffffff; font-size:15px; line-height:1.25; }
 .history-workout summary span { color:#e0edf7; text-align:right; font-size:11px; line-height:1.55; }
@@ -735,7 +735,7 @@ button:active, .btn:active, .chip:active, .step-day:active { transform: scale(0.
 <script>
 'use strict';
 
-// ── Hard constants (Â§2 of brief — never rendered as demographic labels) ──────
+// ── Hard constants (§2 of brief — never rendered as demographic labels) ──────
 var CAL_TARGET_REST  = 2700;
 var CAL_TARGET_GYM   = 3000;
 var PROT_TARGET_REST = 110;
@@ -6187,7 +6187,7 @@ SQLiteStorage.init(function(){
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js?v=16').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=17').catch(function(){});
   });
 }
 </script>
