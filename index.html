@@ -1594,7 +1594,7 @@ var DEFAULT_5DAY_ROUTINE = [
     dayIndex: 0,
     scheduleDay: 1,
     exercises: [
-      {id:'pull_ups', name:'Pull-ups (optional, skill practice)', muscle:'back,biceps', sets:1, reps:'failure', rir:'0', rest:120, cue:'Skill practice / warm-up', weightIncrement:2.5, type:'compound'},
+      {id:'pull_ups', name:'Pull-ups (optional, skill practice)', muscle:'back,biceps', sets:1, reps:'failure', rir:'0', rest:120, cue:'Bodyweight skill practice / warm-up', weightIncrement:2.5, type:'compound', bodyweight:true},
       {id:'incline_bench', name:'Barbell Incline Bench Press', muscle:'chest', sets:2, reps:'6–10', rir:'1–2', rest:150, cue:'Upper chest', weightIncrement:2.5, type:'compound'},
       {id:'machine_row', name:'Machine Row', muscle:'back', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Mid back', weightIncrement:2.5, type:'compound'},
       {id:'chest_press_machine', name:'Chest Press Machine', muscle:'chest', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Chest', weightIncrement:2.5, type:'machine'},
@@ -1633,7 +1633,7 @@ var DEFAULT_5DAY_ROUTINE = [
     dayIndex: 3,
     scheduleDay: 5,
     exercises: [
-      {id:'chin_ups', name:'Chin-ups (optional, skill practice)', muscle:'back,biceps', sets:1, reps:'failure', rir:'0', rest:120, cue:'Skill practice', weightIncrement:2.5, type:'compound'},
+      {id:'chin_ups', name:'Chin-ups (optional, skill practice)', muscle:'back,biceps', sets:1, reps:'failure', rir:'0', rest:120, cue:'Bodyweight skill practice', weightIncrement:2.5, type:'compound', bodyweight:true},
       {id:'bench', name:'Flat Bench Press', muscle:'chest', sets:2, reps:'6–10', rir:'1–2', rest:150, cue:'Chest', weightIncrement:2.5, type:'compound'},
       {id:'machine_row_b', name:'Machine Row', muscle:'back', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Mid back', weightIncrement:2.5, type:'compound'},
       {id:'incline_db_press', name:'Incline Dumbbell Press', muscle:'chest', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Upper chest', weightIncrement:2, type:'compound'},
@@ -3899,6 +3899,20 @@ function openWarmUpSheet(exName, exId) {
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 // GYM TAB
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+function isBodyweightExercise(id, name) {
+  var ex = (typeof getExerciseData === 'function' ? getExerciseData(id) : null) || {};
+  if (ex.bodyweight === true || ex.isBW === true || ex.type === 'bodyweight') return true;
+  var n = ((name || ex.name || id) + '').toLowerCase();
+  if (id === 'pull_ups' || id === 'chin_ups' || id === 'pullup' || id === 'chinup' || id === 'dips') return true;
+  if (/pull[\s-]?ups?/i.test(n) || /chin[\s-]?ups?/i.test(n) || /\bdips?\b/i.test(n) || /push[\s-]?ups?/i.test(n) || /bodyweight/i.test(n)) {
+    if (!/assisted/i.test(n) && !/pulldown/i.test(n) && !/machine/i.test(n) && !/cable/i.test(n)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function getExercisePR(exId) {
   var prVal = null;
   allDayKeys().forEach(function(key){
@@ -4623,6 +4637,7 @@ function renderGym() {
   var exHTML = session.exercises.map(function(exOrig, exIndex) {
     var exId = (rec.swaps && rec.swaps[exOrig.id]) ? rec.swaps[exOrig.id] : exOrig.id;
     var ex = getExerciseData(exId) || exOrig;
+    var isBW = isBodyweightExercise(ex.id, ex.name);
     var sets = (rec.workout || {})[ex.id] || [];
     var drafts = (rec.workoutDraft || {})[ex.id] || [];
     var lastSets = getLastSessionSets(ex.id, rec);
@@ -4634,14 +4649,30 @@ function renderGym() {
       var valueW = logged ? logged.weight : (draft ? draft.weight : (last ? last.weight : ''));
       var valueR = logged ? logged.reps : (draft ? draft.reps : (last ? last.reps : ''));
       var valueRir = logged ? logged.rir : (draft ? draft.rir : null);
-      var hasValues = Number(valueW) > 0 && Number(valueR) > 0;
+      
+      var hasValues = isBW ? (Number(valueR) > 0) : (Number(valueW) > 0 && Number(valueR) > 0);
       var usePrefill = !logged && !draft && !!last;
-      var inputW = usePrefill ? '' : valueW, inputR = usePrefill ? '' : valueR;
+      
+      var inputW = '';
+      if (logged) {
+        inputW = (isBW && (!logged.weight || Number(logged.weight) === 0)) ? 'BW' : logged.weight;
+      } else if (draft && draft.weight !== '' && draft.weight != null) {
+        inputW = (isBW && Number(draft.weight) === 0) ? 'BW' : draft.weight;
+      } else if (usePrefill) {
+        inputW = '';
+      } else {
+        inputW = isBW ? 'BW' : '';
+      }
+
+      var inputR = usePrefill ? '' : valueR;
+      var placeholderW = isBW ? 'BW' : (usePrefill ? valueW : 'kg');
+      var placeholderR = usePrefill ? valueR : 'reps';
+
       var rirOptions = '<option value="">Effort</option><option value="3" ' + (valueRir === 3 ? 'selected' : '') + '>3+ RIR</option><option value="2" ' + (valueRir === 2 ? 'selected' : '') + '>2 RIR</option><option value="1" ' + (valueRir === 1 ? 'selected' : '') + '>1 RIR</option><option value="0" ' + (valueRir === 0 ? 'selected' : '') + '>Failure</option>';
       var effortLabel = valueRir === 0 ? 'Failure' : (valueRir != null ? valueRir + ' RIR' : 'Effort');
 
       var actionCellHTML = logged
-        ? '<div class="set-action-cell"><button type="button" class="logged-set-badge" data-quick-edit-logged="' + ex.id + '" data-set-index="' + i + '" data-ex-name="' + esc(ex.name) + '" data-weight="' + logged.weight + '" data-reps="' + logged.reps + '" data-rir="' + (logged.rir != null ? logged.rir : '') + '" title="Logged set (tap to edit/delete)"><span class="check-icon">✓</span><span class="edit-hint">✎</span></button></div>'
+        ? '<div class="set-action-cell"><button type="button" class="logged-set-badge" data-quick-edit-logged="' + ex.id + '" data-set-index="' + i + '" data-ex-name="' + esc(ex.name) + '" data-weight="' + (logged.weight || 0) + '" data-reps="' + logged.reps + '" data-rir="' + (logged.rir != null ? logged.rir : '') + '" title="Logged set (tap to edit/delete)"><span class="check-icon">✓</span><span class="edit-hint">✎</span></button></div>'
         : '<div class="set-action-cell">'
           + '<button class="btn btn-primary btn-sm btn-log" data-logset="' + ex.id + '" data-set-index="' + i + '" ' + (hasValues ? '' : 'disabled') + ' aria-label="Log set">✓</button>'
           + (i >= plannedCount ? '<button type="button" class="btn-remove-draft" data-remove-draft="' + ex.id + '" data-set-index="' + i + '" aria-label="Remove draft set">×</button>' : '')
@@ -4649,8 +4680,8 @@ function renderGym() {
 
       return '<div class="planned-set ' + (logged ? 'is-complete' : '') + '">'
         + '<span class="set-number" style="font-weight:700;color:var(--text-muted);font-size:11px">' + (i + 1) + '</span>'
-        + '<input type="number" step="0.25" min="0" placeholder="' + (usePrefill ? valueW : 'kg') + '" class="set-weight ' + (usePrefill ? 'prefill ' : '') + (logged ? 'is-logged' : '') + '" data-prefill="' + (usePrefill ? valueW : '') + '" data-ex="' + ex.id + '" data-set-index="' + i + '" value="' + inputW + '" inputmode="decimal" ' + (logged ? 'disabled' : '') + '>'
-        + '<input type="number" min="1" max="50" placeholder="' + (usePrefill ? valueR : 'reps') + '" class="set-reps ' + (usePrefill ? 'prefill ' : '') + (logged ? 'is-logged' : '') + '" data-prefill="' + (usePrefill ? valueR : '') + '" data-ex="' + ex.id + '" data-set-index="' + i + '" value="' + inputR + '" inputmode="numeric" ' + (logged ? 'disabled' : '') + '>'
+        + '<input type="text" placeholder="' + placeholderW + '" class="set-weight ' + (usePrefill ? 'prefill ' : '') + (logged ? 'is-logged' : '') + '" data-prefill="' + (usePrefill ? valueW : '') + '" data-ex="' + ex.id + '" data-set-index="' + i + '" data-is-bw="' + (isBW ? '1' : '0') + '" value="' + inputW + '" inputmode="decimal" ' + (logged ? 'disabled' : '') + '>'
+        + '<input type="number" min="1" max="50" placeholder="' + placeholderR + '" class="set-reps ' + (usePrefill ? 'prefill ' : '') + (logged ? 'is-logged' : '') + '" data-prefill="' + (usePrefill ? valueR : '') + '" data-ex="' + ex.id + '" data-set-index="' + i + '" value="' + inputR + '" inputmode="numeric" ' + (logged ? 'disabled' : '') + '>'
         + '<button type="button" class="effort-btn ' + (valueRir != null ? 'has-value' : '') + '" data-effort-ex="' + ex.id + '" data-set-index="' + i + '" ' + (logged ? 'disabled' : '') + '>' + effortLabel + '</button>'
         + '<select class="set-rir" data-ex="' + ex.id + '" data-set-index="' + i + '" style="display:none">' + rirOptions + '</select>'
         + actionCellHTML
@@ -4663,20 +4694,33 @@ function renderGym() {
     var overload = getOverloadSuggestion(ex.id, exConfig, lastSets);
 
     var isCompound = ex.type === 'compound' || exOrig.type === 'compound';
-    var warmUpLink = isCompound ? '<button class="btn-ghost warm-up-btn" data-exname="' + esc(ex.name) + '" data-exid="' + esc(ex.id) + '" style="font-size:10px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;cursor:pointer">Warm Up</button>' : '';
-    var plateBtn = isCompound ? '<button class="btn-ghost plate-calc-btn" data-ex-weight="' + (lastSets.length ? lastSets[0].weight : 60) + '" style="font-size:10px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;cursor:pointer" title="Barbell plate calculator">⚖️</button>' : '';
+    var warmUpLink = (isCompound && !isBW) ? '<button class="btn-ghost warm-up-btn" data-exname="' + esc(ex.name) + '" data-exid="' + esc(ex.id) + '" style="font-size:10px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;cursor:pointer">Warm Up</button>' : '';
+    var plateBtn = (isCompound && !isBW) ? '<button class="btn-ghost plate-calc-btn" data-ex-weight="' + (lastSets.length ? lastSets[0].weight : 60) + '" style="font-size:10px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;cursor:pointer" title="Barbell plate calculator">⚖️</button>' : '';
     var swapLink = '<button class="btn-ghost swap-btn" data-swap-orig="' + exOrig.id + '" data-swap-curr="' + ex.id + '" data-muscle="' + (exOrig.muscle || '') + '" style="font-size:10px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;cursor:pointer" title="Swap exercise">Alt</button>';
 
     var pr = getExercisePR(ex.id);
-    var prStr = pr ? '<span class="ex-card-pr">🏆 PR: ' + pr.weight + 'kg × ' + pr.reps + '</span>' : '';
+    var prStr = '';
+    if (pr) {
+      var prText = isBW
+        ? ((!pr.weight || Number(pr.weight) === 0) ? (pr.reps + ' reps (BW)') : ('BW+' + pr.weight + 'kg × ' + pr.reps))
+        : (pr.weight + 'kg × ' + pr.reps);
+      prStr = '<span class="ex-card-pr">🏆 PR: ' + prText + '</span>';
+    }
     var completedSets = sets.filter(Boolean);
+
+    var targetDisplay = targetSets + ' × ' + esc(repsStr) + (ex.rir ? ' · ' + esc(ex.rir) + ' RIR' : '') + (isBW ? ' · Bodyweight' : '');
+
+    var lastSetsStr = lastSets.length ? lastSets.map(function(s){
+      var wDisp = isBW ? ((!s.weight || Number(s.weight) === 0) ? 'BW' : 'BW+' + s.weight) : s.weight;
+      return wDisp + '×' + s.reps + (s.rir != null ? '@' + s.rir : '');
+    }).join(', ') : '';
 
     return '<div class="exercise-card ' + (completedSets.length >= targetSets ? 'completed-card' : '') + '" id="excard-' + ex.id + '" style="margin-bottom:12px">'
       + '<div class="ex-card-header">'
         + '<div class="ex-card-title-group">'
           + '<div class="ex-card-name">'
             + esc(ex.name)
-            + '<span class="ex-card-target">' + targetSets + ' × ' + esc(repsStr) + (ex.rir ? ' · ' + esc(ex.rir) + ' RIR' : '') + '</span>'
+            + '<span class="ex-card-target">' + targetDisplay + '</span>'
             + prStr
           + '</div>'
         + '</div>'
@@ -4684,11 +4728,17 @@ function renderGym() {
       + '</div>'
       + overload.bannerHTML
       + '<div class="set-list" style="margin-top:6px">'
-        + '<div class="set-row-headers"><span class="set-col-hdr num">#</span><span class="set-col-hdr weight">KG</span><span class="set-col-hdr reps">REPS</span><span class="set-col-hdr effort">EFFORT</span><span class="set-col-hdr action">LOG</span></div>'
+        + '<div class="set-row-headers">'
+          + '<span class="set-col-hdr num">#</span>'
+          + '<span class="set-col-hdr weight">' + (isBW ? '+KG (BW)' : 'KG') + '</span>'
+          + '<span class="set-col-hdr reps">REPS</span>'
+          + '<span class="set-col-hdr effort">EFFORT</span>'
+          + '<span class="set-col-hdr action">LOG</span>'
+        + '</div>'
         + plannedRows
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">'
+        + '<div class="ex-card-footer">'
           + '<button class="btn btn-sm" data-add-set="' + ex.id + '" style="font-size:11px;padding:4px 10px">+ Add set</button>'
-          + (lastSets.length ? '<span style="font-size:10px;color:var(--text-muted);font-family:monospace">Last: ' + lastSets.map(function(s){return s.weight + '×' + s.reps + (s.rir != null ? '@' + s.rir : '');}).join(', ') + '</span>' : '')
+          + (lastSetsStr ? '<span style="font-size:10px;color:var(--text-muted);font-family:monospace">Last: ' + lastSetsStr + '</span>' : '')
         + '</div>'
       + '</div>'
       + '</div>';
@@ -4892,11 +4942,18 @@ function attachGymEvents(key, rec, session, programDayIndex) {
     btn.addEventListener('click', function(){
       triggerHaptic();
       var id = btn.dataset.logset;
+      var isBW = isBodyweightExercise(id);
       var setIndex = parseInt(btn.dataset.setIndex,10);
       var wEl = document.querySelector('.set-weight[data-ex="'+id+'"][data-set-index="'+setIndex+'"]');
       var rEl = document.querySelector('.set-reps[data-ex="'+id+'"][data-set-index="'+setIndex+'"]');
-      var w = parseFloat(wEl.value), r = parseInt(rEl.value,10);
-      if(!w||!r||w<=0||r<=0){showToast('Enter weight and reps','warn');return;}
+      var rawW = (wEl ? wEl.value : '').trim();
+      var w = 0;
+      if (rawW !== '' && rawW.toUpperCase() !== 'BW') {
+        w = parseFloat(rawW) || 0;
+      }
+      var r = parseInt(rEl.value, 10);
+      if (!r || r <= 0) { showToast('Please enter reps', 'warn'); return; }
+      if (!isBW && (!w || w <= 0)) { showToast('Please enter weight and reps', 'warn'); return; }
       var rirEl = document.querySelector('.set-rir[data-ex="'+id+'"][data-set-index="'+setIndex+'"]');
       var rirValue = rirEl && rirEl.value !== '' ? parseInt(rirEl.value,10) : null;
       rec = dayRecord(key);
@@ -4954,19 +5011,25 @@ function attachGymEvents(key, rec, session, programDayIndex) {
   document.querySelectorAll('.set-weight,.set-reps,.set-rir').forEach(function(input){
     input.addEventListener('input', function(){
       var draftRec=dayRecord(key), id=input.dataset.ex, index=parseInt(input.dataset.setIndex,10);
+      var isBW = isBodyweightExercise(id);
       draftRec.workoutDraft=draftRec.workoutDraft||{};
       draftRec.workoutDraft[id]=draftRec.workoutDraft[id]||[];
+      var wInput = document.querySelector('.set-weight[data-ex="'+id+'"][data-set-index="'+index+'"]');
+      var rInput = document.querySelector('.set-reps[data-ex="'+id+'"][data-set-index="'+index+'"]');
+      var rawW = (wInput ? wInput.value : '').trim();
+      var parsedW = (rawW === '' || rawW.toUpperCase() === 'BW') ? 0 : (parseFloat(rawW) || 0);
+      var parsedR = parseInt((rInput ? rInput.value : ''), 10) || '';
       var row={
-        weight: parseFloat(document.querySelector('.set-weight[data-ex="'+id+'"][data-set-index="'+index+'"]').value)||'',
-        reps: parseInt(document.querySelector('.set-reps[data-ex="'+id+'"][data-set-index="'+index+'"]').value,10)||'',
+        weight: parsedW,
+        reps: parsedR,
         rir: (document.querySelector('.set-rir[data-ex="'+id+'"][data-set-index="'+index+'"]').value || null)
       };
       draftRec.workoutDraft[id][index]=row;
       saveDayRecord(key,draftRec);
-      var weight=document.querySelector('.set-weight[data-ex="'+id+'"][data-set-index="'+index+'"]');
-      var reps=document.querySelector('.set-reps[data-ex="'+id+'"][data-set-index="'+index+'"]');
       var logButton=document.querySelector('[data-logset="'+id+'"][data-set-index="'+index+'"]');
-      if(logButton) logButton.disabled=!(parseFloat(weight.value)>0&&parseInt(reps.value,10)>0);
+      if(logButton) {
+        logButton.disabled = isBW ? !(parseInt(rInput.value, 10) > 0) : !(parseFloat(wInput.value) > 0 && parseInt(rInput.value, 10) > 0);
+      }
     });
   });
 
@@ -6641,11 +6704,22 @@ function workoutHistoryHTML() {
       var details=exercises.map(function(exercise) {
         var ex=getExerciseData(exercise.id)||{name:exercise.id}, sets=(exercise.sets||[]).filter(Boolean);
         var highestWeight=sets.reduce(function(max,set){return Math.max(max,Number(set.weight)||0);},0);
+        var isBW = isBodyweightExercise(exercise.id, ex.name);
+        var highestWeight = sets.reduce(function(max,set){return Math.max(max,Number(set.weight)||0);},0);
+        var highestReps = sets.reduce(function(max,set){return Math.max(max,Number(set.reps)||0);},0);
+        var bestBadge = isBW
+          ? (highestWeight > 0 ? ('Best BW+' + highestWeight + ' kg') : ('Best ' + highestReps + ' reps (BW)'))
+          : (highestWeight ? ('Best ' + highestWeight + ' kg') : (sets.length + ' sets'));
+
         var summary=sets.map(function(s,index){
           var effort=s.rir===0?'Failure':(s.rir!=null?s.rir+' RIR':'');
-          return '<button type="button" class="history-set-chip" data-quick-edit-set="true" data-session-id="'+esc(session.id)+'" data-ex-id="'+esc(exercise.id)+'" data-ex-name="'+esc(ex.name)+'" data-set-idx="'+index+'" data-weight="'+s.weight+'" data-reps="'+s.reps+'" data-rir="'+(s.rir!=null?s.rir:'')+'" title="Tap to edit this set">'
+          var setVal = isBW
+            ? ((!s.weight || Number(s.weight) === 0) ? ('BW × ' + s.reps) : ('BW+' + s.weight + 'kg × ' + s.reps))
+            : (s.weight + 'kg × ' + s.reps);
+
+          return '<button type="button" class="history-set-chip" data-quick-edit-set="true" data-session-id="'+esc(session.id)+'" data-ex-id="'+esc(exercise.id)+'" data-ex-name="'+esc(ex.name)+'" data-set-idx="'+index+'" data-weight="'+(s.weight||0)+'" data-reps="'+s.reps+'" data-rir="'+(s.rir!=null?s.rir:'')+'" title="Tap to edit this set">'
             + '<span class="chip-num">S'+(index+1)+'</span>'
-            + '<span class="chip-val">'+s.weight+'kg × '+s.reps+'</span>'
+            + '<span class="chip-val">'+setVal+'</span>'
             + (effort ? '<span class="chip-rir">'+effort+'</span>' : '')
             + '<span class="chip-edit-icon">✎</span>'
             + '</button>';
@@ -6776,7 +6850,8 @@ function openQuickEditSetModal(options) {
   var overlay = document.createElement('div');
   overlay.className = 'overlay';
 
-  var curW = Number(options.weight) || 20;
+  var isBW = isBodyweightExercise(options.exId, options.exName);
+  var curW = options.weight != null && options.weight !== '' ? Number(options.weight) : (isBW ? 0 : 20);
   var curR = Number(options.reps) || 10;
   var curRir = options.rir != null && options.rir !== '' ? Number(options.rir) : null;
 
@@ -6794,61 +6869,22 @@ function openQuickEditSetModal(options) {
       // Weight stepper
       + '<div class="quick-stepper-box">'
         + '<div style="display:flex;justify-content:space-between;align-items:center">'
-          + '<span class="eyebrow">Weight (kg)</span>'
-          + '<span style="font-size:11px;color:var(--text-muted);font-family:\'Space Mono\',monospace">Current: ' + curW + ' kg</span>'
+          + '<span class="eyebrow">' + (isBW ? 'Added Weight (kg · 0 = Bodyweight Only)' : 'Weight (kg)') + '</span>'
+          + '<span style="font-size:11px;color:var(--text-muted);font-family:\'Space Mono\',monospace">' + (isBW ? (curW <= 0 ? 'Current: Bodyweight (BW)' : 'Current: BW + ' + curW + ' kg') : ('Current: ' + curW + ' kg')) + '</span>'
         + '</div>'
         + '<div class="stepper-main">'
           + '<button type="button" class="stepper-btn" id="wDecBtn">−</button>'
-          + '<input type="number" step="0.25" min="0" id="quickWeightInp" class="stepper-input" value="' + curW + '" inputmode="decimal">'
+          + '<input type="number" step="0.25" min="0" id="quickWeightInp" class="stepper-input" value="' + curW + '" placeholder="' + (isBW ? 'BW (0)' : 'kg') + '" inputmode="decimal">'
           + '<button type="button" class="stepper-btn" id="wIncBtn">+</button>'
         + '</div>'
         + '<div class="chips-stepper-row">'
+          + (isBW ? '<button type="button" class="chip-adjust" data-set-bw="true" style="color:var(--sage-light);font-weight:700">BW (0)</button>' : '')
           + '<button type="button" class="chip-adjust" data-adj-w="-5">−5</button>'
           + '<button type="button" class="chip-adjust" data-adj-w="-2.5">−2.5</button>'
-          + '<button type="button" class="chip-adjust" data-adj-w="-1">−1</button>'
           + '<button type="button" class="chip-adjust" data-adj-w="1">+1</button>'
           + '<button type="button" class="chip-adjust" data-adj-w="2.5">+2.5</button>'
           + '<button type="button" class="chip-adjust" data-adj-w="5">+5</button>'
         + '</div>'
-      + '</div>'
-
-      // Reps stepper
-      + '<div class="quick-stepper-box">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center">'
-          + '<span class="eyebrow">Reps</span>'
-          + '<span style="font-size:11px;color:var(--text-muted);font-family:\'Space Mono\',monospace">Current: ' + curR + ' reps</span>'
-        + '</div>'
-        + '<div class="stepper-main">'
-          + '<button type="button" class="stepper-btn" id="rDecBtn">−</button>'
-          + '<input type="number" min="1" max="100" id="quickRepsInp" class="stepper-input" value="' + curR + '" inputmode="numeric">'
-          + '<button type="button" class="stepper-btn" id="rIncBtn">+</button>'
-        + '</div>'
-        + '<div class="chips-stepper-row">'
-          + '<button type="button" class="chip-adjust" data-adj-r="-2">−2</button>'
-          + '<button type="button" class="chip-adjust" data-adj-r="-1">−1</button>'
-          + '<button type="button" class="chip-adjust" data-adj-r="1">+1</button>'
-          + '<button type="button" class="chip-adjust" data-adj-r="2">+2</button>'
-          + '<button type="button" class="chip-adjust" data-adj-r="5">+5</button>'
-        + '</div>'
-      + '</div>'
-
-      // Effort / RIR selector
-      + '<div class="quick-stepper-box">'
-        + '<span class="eyebrow">Effort / RIR</span>'
-        + '<div class="rir-pills-row">'
-          + '<button type="button" class="rir-pill-btn ' + (curRir === null ? 'active' : '') + '" data-set-rir="">None</button>'
-          + '<button type="button" class="rir-pill-btn ' + (curRir === 3 ? 'active' : '') + '" data-set-rir="3">3 RIR</button>'
-          + '<button type="button" class="rir-pill-btn ' + (curRir === 2 ? 'active' : '') + '" data-set-rir="2">2 RIR</button>'
-          + '<button type="button" class="rir-pill-btn ' + (curRir === 1 ? 'active' : '') + '" data-set-rir="1">1 RIR</button>'
-          + '<button type="button" class="rir-pill-btn ' + (curRir === 0 ? 'active' : '') + '" data-set-rir="0" style="' + (curRir === 0 ? 'background:var(--rust-light);border-color:var(--rust-light);color:#fff;' : '') + '">Failure</button>'
-        + '</div>'
-      + '</div>'
-
-      // Footer actions
-      + '<div style="display:flex;gap:10px;margin-top:16px">'
-        + '<button type="button" class="btn" id="quickDeleteSetBtn" style="flex:1;color:var(--rust-light);border-color:rgba(239,68,68,0.3)">🗑️ Delete Set</button>'
-        + '<button type="button" class="btn btn-primary" id="quickSaveSetBtn" style="flex:2">Save Changes</button>'
-      + '</div>'
       + '</div>';
 
     // Event handlers
@@ -6861,6 +6897,14 @@ function openQuickEditSetModal(options) {
       curW = Math.max(0, parseFloat((curW - 2.5).toFixed(2)));
       wInp.value = curW;
     };
+    var bwBtn = overlay.querySelector('[data-set-bw]');
+    if (bwBtn) {
+      bwBtn.onclick = function() {
+        curW = 0;
+        wInp.value = 0;
+      };
+    }
+
     overlay.querySelector('#wIncBtn').onclick = function() {
       curW = parseFloat((curW + 2.5).toFixed(2));
       wInp.value = curW;
@@ -6947,10 +6991,11 @@ function openQuickEditSetModal(options) {
 
     // Save set
     overlay.querySelector('#quickSaveSetBtn').onclick = function() {
-      var finalW = parseFloat(wInp.value);
+      var rawW = (wInp.value || '').trim();
+      var finalW = (rawW === '' || rawW.toUpperCase() === 'BW') ? 0 : (parseFloat(rawW) || 0);
       var finalR = parseInt(rInp.value, 10);
-      if (!finalW || finalW <= 0 || !finalR || finalR <= 0) {
-        showToast('Please enter valid weight and reps', 'warn');
+      if (isNaN(finalW) || (!isBW && finalW <= 0) || !finalR || finalR <= 0) {
+        showToast(isBW ? 'Please enter valid reps' : 'Please enter valid weight and reps', 'warn');
         return;
       }
       var updatedSet = { weight: finalW, reps: finalR, rir: curRir };
@@ -7250,10 +7295,11 @@ function openEditWorkoutSheet(sessionId) {
 
   function renderModalBody() {
     var exHTML = currentExercises.map(function(ex, exIdx) {
+      var isBW = isBodyweightExercise(ex.id, ex.name);
       var setsRows = ex.sets.map(function(s, sIdx) {
         return '<div style="display:grid;grid-template-columns:30px 1fr 1fr 78px 30px;gap:6px;align-items:center;margin-bottom:6px">'
           + '<span style="font-size:11px;font-weight:700;color:var(--text-muted);text-align:center">S' + (sIdx + 1) + '</span>'
-          + '<input type="number" step="0.25" min="0" value="' + s.weight + '" placeholder="kg" style="min-height:36px;height:36px;font-size:14px;padding:4px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);text-align:center;font-family:\'Space Mono\',monospace" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '" data-field="weight">'
+          + '<input type="number" step="0.25" min="0" value="' + s.weight + '" placeholder="' + (isBW ? 'BW' : 'kg') + '" style="min-height:36px;height:36px;font-size:14px;padding:4px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);text-align:center;font-family:\'Space Mono\',monospace" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '" data-field="weight">'
           + '<input type="number" min="1" max="100" value="' + s.reps + '" placeholder="reps" style="min-height:36px;height:36px;font-size:14px;padding:4px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);text-align:center;font-family:\'Space Mono\',monospace" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '" data-field="reps">'
           + '<select style="min-height:36px;height:36px;font-size:11px;padding:2px 4px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '" data-field="rir">'
           + '<option value="" ' + (s.rir == null ? 'selected' : '') + '>Effort</option>'
@@ -7272,7 +7318,7 @@ function openEditWorkoutSheet(sessionId) {
           + '<button type="button" class="btn-ghost" style="font-size:11px;color:var(--rust-light);cursor:pointer" data-remove-ex-idx="' + exIdx + '">🗑️ Remove</button>'
         + '</div>'
         + '<div style="display:grid;grid-template-columns:30px 1fr 1fr 78px 30px;gap:6px;padding:0 0 4px 0;margin-bottom:4px;font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;text-align:center">'
-          + '<span>#</span><span>KG</span><span>REPS</span><span>EFFORT</span><span></span>'
+          + '<span>#</span><span>' + (isBW ? '+KG (BW)' : 'KG') + '</span><span>REPS</span><span>EFFORT</span><span></span>'
         + '</div>'
         + (setsRows || '<div style="font-size:11px;color:var(--text-muted);text-align:center;padding:8px 0">No sets logged.</div>')
         + '<div style="margin-top:6px;text-align:left">'
@@ -7842,7 +7888,7 @@ SQLiteStorage.init(function(){
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js?v=20').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=21').catch(function(){});
   });
 }
 </script>
