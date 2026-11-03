@@ -970,9 +970,21 @@ var DEFAULT_5DAY_ROUTINE = [
     ]
   },
   {
-    label: 'Day 4 — Chest & Back B',
+    label: 'Day 4 — Arms',
     dayIndex: 2,
     scheduleDay: 4,
+    exercises: [
+      {id:'ez_bar_curl', name:'EZ-Bar Curl', muscle:'biceps', sets:2, reps:'8–12', rir:'1–2', rest:90, cue:'Biceps', weightIncrement:2.5, type:'isolation'},
+      {id:'overhead_triceps_ext', name:'Overhead Triceps Extension', muscle:'triceps', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Triceps overhead stretch', weightIncrement:2.5, type:'isolation'},
+      {id:'hammer_curl', name:'Hammer Curl', muscle:'biceps,forearms', sets:2, reps:'8–12', rir:'1–2', rest:90, cue:'Brachialis & forearms', weightIncrement:2, type:'isolation'},
+      {id:'triceps_pushdown', name:'Triceps Pushdown', muscle:'triceps', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Triceps lateral head', weightIncrement:2.5, type:'isolation'},
+      {id:'incline_db_curl', name:'Incline Dumbbell Curl', muscle:'biceps', sets:2, reps:'8–12', rir:'1–2', rest:90, cue:'Biceps stretch', weightIncrement:2, type:'isolation'}
+    ]
+  },
+  {
+    label: 'Day 5 — Chest & Back B',
+    dayIndex: 3,
+    scheduleDay: 5,
     exercises: [
       {id:'chin_ups', name:'Chin-ups (optional, skill practice)', muscle:'back,biceps', sets:1, reps:'failure', rir:'0', rest:120, cue:'Skill practice', weightIncrement:2.5, type:'compound'},
       {id:'bench', name:'Flat Bench Press', muscle:'chest', sets:2, reps:'6–10', rir:'1–2', rest:150, cue:'Chest', weightIncrement:2.5, type:'compound'},
@@ -982,18 +994,6 @@ var DEFAULT_5DAY_ROUTINE = [
       {id:'close_grip_bench', name:'Close-Grip Bench Press (flat bench)', muscle:'triceps,chest', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Triceps & chest', weightIncrement:2.5, type:'compound'},
       {id:'pec_deck_b', name:'Pec Deck Fly', muscle:'chest', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Chest stretch', weightIncrement:2.5, type:'isolation'},
       {id:'wrist_extension', name:'Wrist Extension', muscle:'forearms', sets:1, reps:'12–20', rir:'1–2', rest:60, cue:'Forearms', weightIncrement:1.25, type:'isolation'}
-    ]
-  },
-  {
-    label: 'Day 5 — Arms',
-    dayIndex: 3,
-    scheduleDay: 5,
-    exercises: [
-      {id:'ez_bar_curl', name:'EZ-Bar Curl', muscle:'biceps', sets:2, reps:'8–12', rir:'1–2', rest:90, cue:'Biceps', weightIncrement:2.5, type:'isolation'},
-      {id:'overhead_triceps_ext', name:'Overhead Triceps Extension', muscle:'triceps', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Triceps overhead stretch', weightIncrement:2.5, type:'isolation'},
-      {id:'hammer_curl', name:'Hammer Curl', muscle:'biceps,forearms', sets:2, reps:'8–12', rir:'1–2', rest:90, cue:'Brachialis & forearms', weightIncrement:2, type:'isolation'},
-      {id:'triceps_pushdown', name:'Triceps Pushdown', muscle:'triceps', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Triceps lateral head', weightIncrement:2.5, type:'isolation'},
-      {id:'incline_db_curl', name:'Incline Dumbbell Curl', muscle:'biceps', sets:2, reps:'8–12', rir:'1–2', rest:90, cue:'Biceps stretch', weightIncrement:2, type:'isolation'}
     ]
   },
   {
@@ -1013,14 +1013,83 @@ var DEFAULT_5DAY_ROUTINE = [
 ];
 
 var SCHEDULE_7DAY = [
-  { dayNum: 1, name: 'Day 1', label: 'Chest & Back A', isRest: false, workoutIndex: 0 },
-  { dayNum: 2, name: 'Day 2', label: 'Legs & Shoulders A', isRest: false, workoutIndex: 1 },
-  { dayNum: 3, name: 'Day 3', label: 'Rest Day', isRest: true, workoutIndex: null },
-  { dayNum: 4, name: 'Day 4', label: 'Chest & Back B', isRest: false, workoutIndex: 2 },
-  { dayNum: 5, name: 'Day 5', label: 'Arms', isRest: false, workoutIndex: 3 },
-  { dayNum: 6, name: 'Day 6', label: 'Legs & Shoulders B', isRest: false, workoutIndex: 4 },
-  { dayNum: 7, name: 'Day 7', label: 'Rest Day', isRest: true, workoutIndex: null }
+  { dayNum: 1, name: 'Day 1', weekday: 'Mon', label: 'Chest & Back A', isRest: false, workoutIndex: 0 },
+  { dayNum: 2, name: 'Day 2', weekday: 'Tue', label: 'Legs & Shoulders A', isRest: false, workoutIndex: 1 },
+  { dayNum: 3, name: 'Day 3', weekday: 'Wed', label: 'Rest Day', isRest: true, workoutIndex: null },
+  { dayNum: 4, name: 'Day 4', weekday: 'Thu', label: 'Arms', isRest: false, workoutIndex: 2 },
+  { dayNum: 5, name: 'Day 5', weekday: 'Fri', label: 'Chest & Back B', isRest: false, workoutIndex: 3 },
+  { dayNum: 6, name: 'Day 6', weekday: 'Sat', label: 'Legs & Shoulders B', isRest: false, workoutIndex: 4 },
+  { dayNum: 7, name: 'Day 7', weekday: 'Sun', label: 'Rest Day', isRest: true, workoutIndex: null }
 ];
+
+function getWeeklySchedule() {
+  var prog = getActiveProgram();
+  var weekdays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  var jsDays = [1, 2, 3, 4, 5, 6, 0]; // Monday (1) to Sunday (0)
+  var tdays = (profile && Array.isArray(profile.trainingDays) && profile.trainingDays.length > 0)
+    ? profile.trainingDays
+    : [1, 2, 4, 5, 6];
+  
+  var schedule = [];
+  var workoutCursor = 0;
+  
+  for (var i = 0; i < 7; i++) {
+    var dayNum = i + 1; // 1..7 (Mon=1 .. Sun=7)
+    var jsDay = jsDays[i]; // 0..6
+    var isTrain = tdays.includes(jsDay);
+    var dayCode = weekdays[i];
+    
+    if (isTrain && prog.length > 0) {
+      var wIdx = workoutCursor % prog.length;
+      workoutCursor++;
+      var session = prog[wIdx] || {};
+      schedule.push({
+        dayNum: dayNum,
+        jsDay: jsDay,
+        name: 'Day ' + dayNum,
+        weekday: dayCode,
+        label: session.label || ('Workout ' + (wIdx + 1)),
+        isRest: false,
+        workoutIndex: wIdx
+      });
+    } else {
+      schedule.push({
+        dayNum: dayNum,
+        jsDay: jsDay,
+        name: 'Day ' + dayNum,
+        weekday: dayCode,
+        label: 'Rest Day',
+        isRest: true,
+        workoutIndex: null
+      });
+    }
+  }
+  return schedule;
+}
+
+function migrateWorkoutRoutineSwap() {
+  if (profile) {
+    if (Array.isArray(profile.trainingDays) && profile.trainingDays.join(',') === '1,2,3,5,6') {
+      profile.trainingDays = [1, 2, 4, 5, 6];
+      sv('rg_profile', profile);
+    }
+    if (profile.activeSplitData && Array.isArray(profile.activeSplitData) && profile.activeSplitData.length === 5) {
+      var d2 = profile.activeSplitData[2];
+      var d3 = profile.activeSplitData[3];
+      if (d2 && d3 && String(d2.label).indexOf('Chest & Back B') > -1 && String(d3.label).indexOf('Arms') > -1) {
+        d2.label = 'Day 5 — Chest & Back B';
+        d2.dayIndex = 3;
+        d2.scheduleDay = 5;
+        d3.label = 'Day 4 — Arms';
+        d3.dayIndex = 2;
+        d3.scheduleDay = 4;
+        profile.activeSplitData[2] = d3;
+        profile.activeSplitData[3] = d2;
+        sv('rg_profile', profile);
+      }
+    }
+  }
+}
 
 function getActiveProgram() {
   if (typeof profile !== 'undefined' && profile && profile.activeSplitData && Array.isArray(profile.activeSplitData) && profile.activeSplitData.length > 0) {
@@ -3658,9 +3727,10 @@ function buildRecommendationHTML(exId, exConfig, currentCompletedSets) {
 function getWorkoutForDate(dayKey, rec) {
   var prog = getActiveProgram();
   var d = new Date(dayKey + 'T00:00:00').getDay();
-  // 7-day schedule: Mon=1->0, Tue=2->1, Wed=3->Rest, Thu=4->2, Fri=5->3, Sat=6->4, Sun=0->Rest
-  var scheduleMap = { 1: 0, 2: 1, 4: 2, 5: 3, 6: 4 };
-  var defaultIndex = scheduleMap[d] != null ? scheduleMap[d] : null;
+  var dayNum = d === 0 ? 7 : d;
+  var weeklySched = getWeeklySchedule();
+  var matched = weeklySched.find(function(s){ return s.dayNum === dayNum; });
+  var defaultIndex = (matched && !matched.isRest) ? matched.workoutIndex : null;
 
   var index = rec && rec.selectedWorkout !== undefined ? rec.selectedWorkout : defaultIndex;
   if (index === null) {
@@ -3686,14 +3756,24 @@ function getCompletedWorkoutCount() {
 }
 
 function getNextProgramWorkout() {
-  var count=getCompletedWorkoutCount(), index=count % IRON_LOG_PROGRAM.length;
-  return {index:index, week:Math.floor(count/IRON_LOG_PROGRAM.length)+1, day:index+1, session:IRON_LOG_PROGRAM[index]};
+  var prog = getActiveProgram();
+  var count = getCompletedWorkoutCount(), len = Math.max(1, prog.length);
+  var index = count % len;
+  return { index: index, week: Math.floor(count / len) + 1, day: index + 1, session: prog[index] || prog[0] };
 }
 
 function getActiveWorkoutSession(dayKey, programDayIndex) {
-  var session=getWorkoutSession(dayKey, programDayIndex);
-  if(session) return session;
-  return {id:workoutSessionId(dayKey, programDayIndex),dayKey:dayKey,programDay:programDayIndex,programLabel:(IRON_LOG_PROGRAM[programDayIndex]||{}).label||'Workout',exercises:[],status:'not_started'};
+  var prog = getActiveProgram();
+  var session = getWorkoutSession(dayKey, programDayIndex);
+  if (session) return session;
+  return {
+    id: workoutSessionId(dayKey, programDayIndex),
+    dayKey: dayKey,
+    programDay: programDayIndex,
+    programLabel: (prog[programDayIndex] || {}).label || 'Workout',
+    exercises: [],
+    status: 'not_started'
+  };
 }
 
 function getSessionMeta(rec, programDayIndex) {
@@ -3702,9 +3782,10 @@ function getSessionMeta(rec, programDayIndex) {
 }
 
 function chooseWorkoutForDate(dayKey) {
+  var prog = getActiveProgram();
   var rec=dayRecord(dayKey), overlay=document.createElement('div'); overlay.className='overlay';
   overlay.innerHTML='<div class="sheet"><div class="sheet-handle"></div><div class="sheet-title">Choose workout</div>'
-    +IRON_LOG_PROGRAM.map(function(s,i){return '<button class="btn workout-choice" data-workout="'+i+'" style="text-align:left;margin-top:8px">'+esc(s.label)+'</button>';}).join('')
+    +prog.map(function(s,i){return '<button class="btn workout-choice" data-workout="'+i+'" style="text-align:left;margin-top:8px">'+esc(s.label)+'</button>';}).join('')
     +'<button class="btn" id="cancelWorkoutChoice" style="margin-top:12px">Cancel</button></div>';
   document.body.appendChild(overlay);
   overlay.querySelector('#cancelWorkoutChoice').onclick=function(){overlay.remove();};
@@ -3727,15 +3808,15 @@ function renderGym() {
   // Determine active schedule day (1..7)
   var defaultScheduleDay = currentD === 0 ? 7 : currentD;
   var scheduleDayNum = rec.selectedDayNumber != null ? rec.selectedDayNumber : defaultScheduleDay;
-  var activeSched = SCHEDULE_7DAY.find(function(s){ return s.dayNum === scheduleDayNum; }) || SCHEDULE_7DAY[0];
+  var weeklySched = getWeeklySchedule();
+  var activeSched = weeklySched.find(function(s){ return s.dayNum === scheduleDayNum; }) || weeklySched[0];
 
   // Stepper HTML: marks completed days in this cycle
-  var stepperHTML = SCHEDULE_7DAY.map(function(s) {
+  var stepperHTML = weeklySched.map(function(s) {
     var isSelected = s.dayNum === scheduleDayNum;
     var isToday = defaultScheduleDay === s.dayNum;
     var isDone = false;
     if (!s.isRest && s.workoutIndex != null) {
-      // Checked if this workout is done today or in cycle
       if (isToday && rec.workoutDone) isDone = true;
       else if (s.workoutIndex < completedInCycle) isDone = true;
     }
@@ -3743,7 +3824,7 @@ function renderGym() {
     var shortName = s.label.split('—')[1] || s.label;
 
     return '<div class="step-day ' + (isSelected ? 'active ' : '') + (isDone ? 'completed ' : '') + (s.isRest ? 'is-rest' : '') + '" data-pick-sched-day="' + s.dayNum + '" data-workout-idx="' + (s.workoutIndex != null ? s.workoutIndex : '') + '">'
-      + '<span class="step-day-num">' + s.name + '</span>'
+      + '<span class="step-day-num">' + (s.weekday || s.name) + '</span>'
       + '<span class="step-day-status">' + statusIcon + '</span>'
       + '<span class="step-day-name">' + esc(shortName.trim()) + '</span>'
       + '</div>';
@@ -3755,7 +3836,7 @@ function renderGym() {
       + '<div class="cycle-week-title">' + ic('barbell', 16) + ' Week ' + workoutWeek + (completedInCycle === 0 && completedCount > 0 ? ' · Fresh Week!' : '') + '</div>'
       + '<div style="display:flex;align-items:center;gap:8px">'
         + '<span class="cycle-badge">' + completedInCycle + ' / ' + cycleWorkouts + ' completed</span>'
-        + '<button class="btn-ghost" id="manageSplitTopBtn" style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;cursor:pointer">✏️ Edit Split</button>'
+        + '<button class="btn-ghost" id="manageSplitTopBtn" style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;cursor:pointer">✏️ Plan & Days</button>'
       + '</div>'
     + '</div>'
     + '<div class="schedule-stepper">' + stepperHTML + '</div>'
@@ -3763,7 +3844,7 @@ function renderGym() {
 
   // 1. If active schedule is a Rest Day
   if (activeSched.isRest || activeSched.workoutIndex == null) {
-    var nextWorkoutSched = SCHEDULE_7DAY.find(function(s){ return !s.isRest && s.dayNum > activeSched.dayNum; }) || SCHEDULE_7DAY[0];
+    var nextWorkoutSched = weeklySched.find(function(s){ return !s.isRest && s.dayNum > activeSched.dayNum; }) || weeklySched.find(function(s){ return !s.isRest; }) || weeklySched[0];
     document.getElementById('content').innerHTML =
       '<div class="gym-page">'
       + '<div class="topbar"><div><span class="eyebrow">' + esc(activeSched.name) + '</span><div class="title">Gym</div></div></div>'
@@ -3816,7 +3897,7 @@ function renderGym() {
   // 2. CHECK IF TODAY'S WORKOUT IS COMPLETED (GONE FROM MAIN SCREEN STATE)
   var isTodaySelected = activeSched.dayNum === defaultScheduleDay;
   if (isTodaySelected && rec.workoutDone) {
-    var nextWorkoutSched = SCHEDULE_7DAY.find(function(s){ return !s.isRest && s.dayNum > activeSched.dayNum; }) || SCHEDULE_7DAY[0];
+    var nextWorkoutSched = weeklySched.find(function(s){ return !s.isRest && s.dayNum > activeSched.dayNum; }) || weeklySched.find(function(s){ return !s.isRest; }) || weeklySched[0];
     document.getElementById('content').innerHTML =
       '<div class="gym-page">'
       + '<div class="topbar"><div><span class="eyebrow">Week ' + workoutWeek + ' · ' + esc(activeSched.name) + '</span><div class="title">Gym</div></div></div>'
@@ -4310,89 +4391,255 @@ function openCustomRoutineSheet(dayKey) {
 
 
 function openSplitManagerSheet() {
-  var prog = getActiveProgram();
+  var prog = JSON.parse(JSON.stringify(getActiveProgram()));
+  var currentTdays = (profile && Array.isArray(profile.trainingDays) && profile.trainingDays.length > 0)
+    ? profile.trainingDays.slice()
+    : [1, 2, 4, 5, 6];
+  var tdays = currentTdays.slice();
+  var weekDaysMeta = [
+    { js: 1, name: 'Mon' },
+    { js: 2, name: 'Tue' },
+    { js: 3, name: 'Wed' },
+    { js: 4, name: 'Thu' },
+    { js: 5, name: 'Fri' },
+    { js: 6, name: 'Sat' },
+    { js: 0, name: 'Sun' }
+  ];
+
   var overlay = document.createElement('div');
   overlay.className = 'overlay';
 
   function renderSplitUI() {
+    // Days of week toggles
+    var dayTogglesHTML = weekDaysMeta.map(function(d) {
+      var active = tdays.includes(d.js);
+      return '<button type="button" class="day-toggle ' + (active ? 'active' : '') + '" data-split-day="' + d.js + '" style="flex:1;text-align:center;padding:8px 0;font-size:12px">' + d.name + '</button>';
+    }).join('');
+
+    var trainCount = tdays.length;
+    var restCount = 7 - trainCount;
+
     var daysHTML = prog.map(function(day, dIdx) {
       var exListHTML = (day.exercises || []).map(function(ex, eIdx) {
-        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px">'
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px;gap:8px">'
           + '<div style="flex:1;min-width:0">'
-            + '<div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(ex.name) + '</div>'
-            + '<div style="font-size:11px;color:var(--text-muted)">' + ex.sets + ' sets · ' + esc(ex.reps) + (ex.rir ? ' · ' + esc(ex.rir) + ' RIR' : '') + '</div>'
+            + '<div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)">' + esc(ex.name) + '</div>'
+            + '<div style="font-size:11px;color:var(--text-muted)">'
+              + ex.sets + ' sets · ' + esc(ex.reps)
+              + (ex.rir ? ' · ' + esc(ex.rir) + ' RIR' : '')
+              + (ex.rest ? ' · ' + ex.rest + 's rest' : '')
+            + '</div>'
           + '</div>'
-          + '<div style="display:flex;gap:4px">'
+          + '<div style="display:flex;gap:3px;align-items:center">'
+            + (eIdx > 0 ? '<button class="btn-ghost" style="font-size:11px;padding:3px 5px" data-move-ex-up="' + dIdx + '" data-ex-idx="' + eIdx + '" title="Move Up">↑</button>' : '')
+            + (eIdx < (day.exercises || []).length - 1 ? '<button class="btn-ghost" style="font-size:11px;padding:3px 5px" data-move-ex-dn="' + dIdx + '" data-ex-idx="' + eIdx + '" title="Move Down">↓</button>' : '')
             + '<button class="btn-ghost" style="font-size:11px;padding:3px 6px" data-edit-ex-day="' + dIdx + '" data-edit-ex-idx="' + eIdx + '">Edit</button>'
             + '<button class="btn-ghost" style="font-size:11px;padding:3px 6px;color:var(--rust-light)" data-del-ex-day="' + dIdx + '" data-del-ex-idx="' + eIdx + '">×</button>'
           + '</div>'
         + '</div>';
       }).join('');
 
-      return '<div class="split-day-card" style="background:rgba(15,23,42,.6);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-          + '<div style="font-size:14px;font-weight:700;color:var(--text)">' + esc(day.label) + '</div>'
-          + '<div style="display:flex;gap:6px">'
-            + '<button class="btn btn-sm" style="font-size:10px;padding:3px 8px" data-add-ex-day="' + dIdx + '">+ Exercise</button>'
-            + '<button class="btn-ghost" style="font-size:10px;padding:3px 6px;color:var(--rust-light)" data-del-day="' + dIdx + '">Delete Day</button>'
+      var totalSets = (day.exercises || []).reduce(function(acc, item){ return acc + (Number(item.sets) || 0); }, 0);
+
+      return '<div class="split-day-card" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px">'
+          + '<div style="flex:1;min-width:0">'
+            + '<div style="font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(day.label) + '</div>'
+            + '<div style="font-size:11px;color:var(--amber-light);margin-top:1px">' + (day.exercises || []).length + ' exercises · ' + totalSets + ' sets</div>'
+          + '</div>'
+          + '<div style="display:flex;gap:4px;align-items:center">'
+            + (dIdx > 0 ? '<button class="btn-ghost" style="font-size:11px;padding:3px 6px" data-move-day-up="' + dIdx + '" title="Move Day Up">↑</button>' : '')
+            + (dIdx < prog.length - 1 ? '<button class="btn-ghost" style="font-size:11px;padding:3px 6px" data-move-day-dn="' + dIdx + '" title="Move Day Down">↓</button>' : '')
+            + '<button class="btn-ghost" style="font-size:11px;padding:3px 6px" data-rename-day="' + dIdx + '">✎ Rename</button>'
+            + '<button class="btn btn-sm" style="font-size:11px;padding:3px 8px" data-add-ex-day="' + dIdx + '">+ Exercise</button>'
+            + '<button class="btn-ghost" style="font-size:11px;padding:3px 6px;color:var(--rust-light)" data-del-day="' + dIdx + '" title="Delete Day">🗑️</button>'
           + '</div>'
         + '</div>'
-        + (exListHTML || '<div style="font-size:11px;color:var(--text-muted)">No exercises yet in this day.</div>')
+        + (exListHTML || '<div style="font-size:11px;color:var(--text-muted);padding:8px 0">No exercises yet in this workout day. Tap "+ Exercise" to add some!</div>')
       + '</div>';
     }).join('');
 
-    overlay.innerHTML = '<div class="sheet" style="max-height:85vh;overflow-y:auto">'
+    overlay.innerHTML = '<div class="sheet" style="max-height:88vh;overflow-y:auto">'
       + '<div class="sheet-handle"></div>'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
-        + '<div class="sheet-title" style="margin:0">Workout Split Manager</div>'
-        + '<button class="btn btn-sm" id="resetDefaultSplitBtn" style="font-size:10px">Reset Default</button>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+        + '<div class="sheet-title" style="margin:0">Workout Plan & Training Days</div>'
+        + '<button class="btn btn-sm" id="resetDefaultSplitBtn" style="font-size:11px">Reset Default</button>'
       + '</div>'
-      + '<div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Customize workout days, exercises, sets, and rep ranges. Your changes save automatically.</div>'
-      + '<div class="split-manager-list">' + daysHTML + '</div>'
-      + '<div style="display:flex;gap:10px;margin-top:14px">'
-        + '<button class="btn" id="addNewSplitDayBtn" style="flex:1">+ Add Day</button>'
-        + '<button class="btn btn-primary" id="saveCloseSplitBtn" style="flex:1">Done</button>'
+      + '<div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Customize which days you train and the workouts/exercises for each session.</div>'
+
+      // Section 1: Days of Week You Train
+      + '<div style="background:var(--surface-raised);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:14px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+          + '<span class="eyebrow" style="color:var(--text)">Days You Train</span>'
+          + '<span style="font-size:11px;color:var(--amber-light);font-weight:600">' + trainCount + ' training · ' + restCount + ' rest days</span>'
+        + '</div>'
+        + '<div style="display:flex;gap:4px;margin-top:6px">' + dayTogglesHTML + '</div>'
+      + '</div>'
+
+      // Section 2: Preset Split Templates
+      + '<div style="margin-bottom:14px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+          + '<span class="eyebrow">Quick Templates</span>'
+        + '</div>'
+        + '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px">'
+          + '<button class="chip" data-apply-template="5day">5-Day Muscle Split</button>'
+          + '<button class="chip" data-apply-template="4day">4-Day Upper/Lower</button>'
+          + '<button class="chip" data-apply-template="3day">3-Day Full Body</button>'
+          + '<button class="chip" data-apply-template="2day">2-Day Full Body</button>'
+          + '<button class="chip" data-apply-template="6day">6-Day PPL</button>'
+          + '<button class="chip" data-apply-template="blank">+ Blank Plan</button>'
+        + '</div>'
+      + '</div>'
+
+      // Section 3: Workout Days
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+        + '<span class="eyebrow">Workout Sessions (' + prog.length + ' days in split)</span>'
+      + '</div>'
+      + '<div class="split-manager-list">' + (daysHTML || '<div style="text-align:center;color:var(--text-muted);padding:20px 0">No workout days in this plan yet.</div>') + '</div>'
+
+      // Bottom buttons
+      + '<div style="display:flex;gap:10px;margin-top:16px">'
+        + '<button class="btn" id="addNewSplitDayBtn" style="flex:1">+ Add Workout Day</button>'
+        + '<button class="btn btn-primary" id="saveCloseSplitBtn" style="flex:1">Save & Apply Plan</button>'
       + '</div>'
     + '</div>';
 
-    // Events
-    overlay.querySelector('#saveCloseSplitBtn').onclick = function() {
-      profile.activeSplitData = prog;
-      sv('rg_profile', profile);
-      overlay.remove();
-      showToast('Split saved', 'ok');
-      renderGym();
-    };
+    // Day toggles events
+    overlay.querySelectorAll('[data-split-day]').forEach(function(btn) {
+      btn.onclick = function() {
+        var dayVal = parseInt(btn.dataset.splitDay, 10);
+        if (tdays.includes(dayVal)) {
+          if (tdays.length <= 1) {
+            showToast('You need at least 1 training day', 'warn');
+            return;
+          }
+          tdays = tdays.filter(function(x){ return x !== dayVal; });
+        } else {
+          tdays.push(dayVal);
+          tdays.sort(function(a,b){ return (a === 0 ? 7 : a) - (b === 0 ? 7 : b); });
+        }
+        renderSplitUI();
+      };
+    });
 
-    overlay.querySelector('#resetDefaultSplitBtn').onclick = function() {
-      if (!confirm('Reset back to the default 5-Day Muscle-Building Split?')) return;
-      prog = JSON.parse(JSON.stringify(DEFAULT_5DAY_ROUTINE));
-      profile.activeSplitData = prog;
-      sv('rg_profile', profile);
-      renderSplitUI();
-      showToast('Reset to 5-Day Split', 'ok');
-    };
+    // Preset templates events
+    overlay.querySelectorAll('[data-apply-template]').forEach(function(btn) {
+      btn.onclick = function() {
+        var key = btn.dataset.applyTemplate;
+        if (key === '5day') {
+          if (!confirm('Load the 5-Day Muscle Split (Chest & Back A, Legs & Shoulders A, Arms, Chest & Back B, Legs & Shoulders B)?')) return;
+          prog = JSON.parse(JSON.stringify(DEFAULT_5DAY_ROUTINE));
+          tdays = [1, 2, 4, 5, 6]; // Mon, Tue, Thu, Fri, Sat
+        } else if (key === '4day') {
+          if (!confirm('Load 4-Day Upper / Lower Split?')) return;
+          prog = JSON.parse(JSON.stringify(PROGRAM_4DAY));
+          tdays = [1, 2, 4, 5]; // Mon, Tue, Thu, Fri
+        } else if (key === '3day') {
+          if (!confirm('Load 3-Day Full Body / PPL Split?')) return;
+          prog = JSON.parse(JSON.stringify(PROGRAM_3DAY));
+          tdays = [1, 3, 5]; // Mon, Wed, Fri
+        } else if (key === '2day') {
+          if (!confirm('Load 2-Day Full Body Split?')) return;
+          prog = JSON.parse(JSON.stringify(PROGRAM_2DAY));
+          tdays = [2, 5]; // Tue, Fri
+        } else if (key === '6day') {
+          if (!confirm('Load 6-Day Push/Pull/Legs Split?')) return;
+          prog = JSON.parse(JSON.stringify(PROGRAM_6DAY));
+          tdays = [1, 2, 3, 4, 5, 6]; // Mon-Sat
+        } else if (key === 'blank') {
+          if (!confirm('Start a fresh blank workout plan?')) return;
+          prog = [
+            { label: 'Day 1 — Custom Workout', dayIndex: 0, exercises: [] }
+          ];
+          tdays = [1, 3, 5];
+        }
+        renderSplitUI();
+        showToast('Template loaded', 'ok');
+      };
+    });
 
-    overlay.querySelector('#addNewSplitDayBtn').onclick = function() {
-      var dayName = prompt('Enter Day Name (e.g. Day 6 — Full Body / Calves):', 'Day ' + (prog.length + 1) + ' — Custom');
-      if (!dayName) return;
-      prog.push({
-        label: dayName.trim(),
-        dayIndex: prog.length,
-        exercises: []
-      });
-      renderSplitUI();
-    };
+    // Reorder day up
+    overlay.querySelectorAll('[data-move-day-up]').forEach(function(btn) {
+      btn.onclick = function() {
+        var dI = parseInt(btn.dataset.moveDayUp, 10);
+        if (dI > 0) {
+          var temp = prog[dI];
+          prog[dI] = prog[dI - 1];
+          prog[dI - 1] = temp;
+          renderSplitUI();
+        }
+      };
+    });
 
+    // Reorder day down
+    overlay.querySelectorAll('[data-move-day-dn]').forEach(function(btn) {
+      btn.onclick = function() {
+        var dI = parseInt(btn.dataset.moveDayDn, 10);
+        if (dI < prog.length - 1) {
+          var temp = prog[dI];
+          prog[dI] = prog[dI + 1];
+          prog[dI + 1] = temp;
+          renderSplitUI();
+        }
+      };
+    });
+
+    // Rename day
+    overlay.querySelectorAll('[data-rename-day]').forEach(function(btn) {
+      btn.onclick = function() {
+        var dI = parseInt(btn.dataset.renameDay, 10);
+        var currentLabel = prog[dI].label || '';
+        var newName = prompt('Enter name for this workout day:', currentLabel);
+        if (newName && newName.trim()) {
+          prog[dI].label = newName.trim();
+          renderSplitUI();
+        }
+      };
+    });
+
+    // Reorder exercise up
+    overlay.querySelectorAll('[data-move-ex-up]').forEach(function(btn) {
+      btn.onclick = function() {
+        var dI = parseInt(btn.dataset.moveExUp, 10);
+        var eI = parseInt(btn.dataset.exIdx, 10);
+        if (eI > 0) {
+          var temp = prog[dI].exercises[eI];
+          prog[dI].exercises[eI] = prog[dI].exercises[eI - 1];
+          prog[dI].exercises[eI - 1] = temp;
+          renderSplitUI();
+        }
+      };
+    });
+
+    // Reorder exercise down
+    overlay.querySelectorAll('[data-move-ex-dn]').forEach(function(btn) {
+      btn.onclick = function() {
+        var dI = parseInt(btn.dataset.moveExDn, 10);
+        var eI = parseInt(btn.dataset.exIdx, 10);
+        if (eI < prog[dI].exercises.length - 1) {
+          var temp = prog[dI].exercises[eI];
+          prog[dI].exercises[eI] = prog[dI].exercises[eI + 1];
+          prog[dI].exercises[eI + 1] = temp;
+          renderSplitUI();
+        }
+      };
+    });
+
+    // Delete day
     overlay.querySelectorAll('[data-del-day]').forEach(function(btn) {
       btn.onclick = function() {
         var dI = parseInt(btn.dataset.delDay, 10);
-        if (!confirm('Delete ' + prog[dI].label + '?')) return;
+        if (prog.length <= 1) {
+          showToast('Workout plan must have at least 1 day', 'warn');
+          return;
+        }
+        if (!confirm('Delete ' + (prog[dI].label || 'this day') + '?')) return;
         prog.splice(dI, 1);
         renderSplitUI();
       };
     });
 
+    // Delete exercise
     overlay.querySelectorAll('[data-del-ex-day]').forEach(function(btn) {
       btn.onclick = function() {
         var dI = parseInt(btn.dataset.delExDay, 10);
@@ -4402,6 +4649,7 @@ function openSplitManagerSheet() {
       };
     });
 
+    // Add exercise to day
     overlay.querySelectorAll('[data-add-ex-day]').forEach(function(btn) {
       btn.onclick = function() {
         var dI = parseInt(btn.dataset.addExDay, 10);
@@ -4412,6 +4660,7 @@ function openSplitManagerSheet() {
       };
     });
 
+    // Edit exercise
     overlay.querySelectorAll('[data-edit-ex-day]').forEach(function(btn) {
       btn.onclick = function() {
         var dI = parseInt(btn.dataset.editExDay, 10);
@@ -4423,6 +4672,49 @@ function openSplitManagerSheet() {
         });
       };
     });
+
+    // Add new day
+    overlay.querySelector('#addNewSplitDayBtn').onclick = function() {
+      var dayName = prompt('Enter Day Name (e.g. Day ' + (prog.length + 1) + ' — Push):', 'Day ' + (prog.length + 1) + ' — Custom');
+      if (!dayName || !dayName.trim()) return;
+      prog.push({
+        label: dayName.trim(),
+        dayIndex: prog.length,
+        exercises: []
+      });
+      renderSplitUI();
+    };
+
+    // Reset default
+    overlay.querySelector('#resetDefaultSplitBtn').onclick = function() {
+      if (!confirm('Reset back to the default 5-Day Muscle-Building Split (Day 4 Arms, Day 5 Chest & Back B)?')) return;
+      prog = JSON.parse(JSON.stringify(DEFAULT_5DAY_ROUTINE));
+      tdays = [1, 2, 4, 5, 6];
+      profile.activeSplitData = prog;
+      profile.trainingDays = tdays;
+      sv('rg_profile', profile);
+      renderSplitUI();
+      showToast('Reset to 5-Day Muscle Split', 'ok');
+    };
+
+    // Save & Close
+    overlay.querySelector('#saveCloseSplitBtn').onclick = function() {
+      if (!tdays || tdays.length === 0) {
+        showToast('Please select at least 1 training day', 'warn');
+        return;
+      }
+      if (!prog || prog.length === 0) {
+        showToast('Please add at least 1 workout day', 'warn');
+        return;
+      }
+      profile.activeSplitData = prog;
+      profile.trainingDays = tdays;
+      profile.programSplit = 'custom';
+      sv('rg_profile', profile);
+      overlay.remove();
+      showToast('Workout plan & schedule saved ✓', 'ok');
+      renderTab();
+    };
   }
 
   document.body.appendChild(overlay);
@@ -4430,39 +4722,111 @@ function openSplitManagerSheet() {
 }
 
 function openAddExerciseModal(onAdd) {
+  var quickLibrary = [
+    { name: 'Flat Bench Press', muscle: 'chest', sets: 2, reps: '6–10', rir: '1–2', rest: 150, cue: 'Chest', type: 'compound' },
+    { name: 'Incline Dumbbell Press', muscle: 'chest', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Upper chest', type: 'compound' },
+    { name: 'Chest Press Machine', muscle: 'chest', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Chest', type: 'machine' },
+    { name: 'Pec Deck Fly', muscle: 'chest', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Chest stretch', type: 'isolation' },
+    { name: 'Pull-ups', muscle: 'back,biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Lats & mid back', type: 'compound' },
+    { name: 'Lat Pulldown', muscle: 'back', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Lats', type: 'cable' },
+    { name: 'Machine Row', muscle: 'back', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Mid back', type: 'compound' },
+    { name: 'Cable Row', muscle: 'back', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Mid back squeeze', type: 'machine' },
+    { name: 'Shoulder Press Machine', muscle: 'shoulders', sets: 2, reps: '6–10', rir: '1–2', rest: 120, cue: 'Deltoids', type: 'machine' },
+    { name: 'Lateral Raise Machine', muscle: 'shoulders', sets: 3, reps: '10–15', rir: '1–2', rest: 90, cue: 'Side delts', type: 'isolation' },
+    { name: 'Rear Delt Fly', muscle: 'shoulders', sets: 2, reps: '12–15', rir: '1–2', rest: 90, cue: 'Rear delts', type: 'isolation' },
+    { name: 'Leg Press', muscle: 'quads,glutes', sets: 2, reps: '8–12', rir: '1–2', rest: 150, cue: 'Quads & glutes', type: 'compound' },
+    { name: 'Romanian Deadlift', muscle: 'hamstrings', sets: 2, reps: '8–12', rir: '1–2', rest: 150, cue: 'Hamstrings & hinge', type: 'compound' },
+    { name: 'Leg Extension', muscle: 'quads', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Quads isolation', type: 'isolation' },
+    { name: 'Hamstring Curl', muscle: 'hamstrings', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Hamstrings isolation', type: 'isolation' },
+    { name: 'Standing Calf Raise', muscle: 'calves', sets: 3, reps: '12–20', rir: '1–2', rest: 60, cue: 'Calves stretch', type: 'isolation' },
+    { name: 'EZ-Bar Curl', muscle: 'biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Biceps peak', type: 'isolation' },
+    { name: 'Incline Dumbbell Curl', muscle: 'biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Biceps stretch', type: 'isolation' },
+    { name: 'Hammer Curl', muscle: 'biceps,forearms', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Brachialis & forearms', type: 'isolation' },
+    { name: 'Triceps Pushdown', muscle: 'triceps', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Triceps lock', type: 'isolation' },
+    { name: 'Overhead Triceps Extension', muscle: 'triceps', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Triceps overhead', type: 'isolation' }
+  ];
+
+  var quickChipsHTML = quickLibrary.map(function(item, idx) {
+    return '<button type="button" class="chip" data-quick-ex-idx="' + idx + '" style="font-size:11px;padding:4px 8px">' + item.name + '</button>';
+  }).join('');
+
   var modal = document.createElement('div');
   modal.className = 'overlay';
   modal.style.zIndex = '9999';
-  modal.innerHTML = '<div class="sheet">'
+  modal.innerHTML = '<div class="sheet" style="max-height:88vh;overflow-y:auto">'
     + '<div class="sheet-handle"></div>'
     + '<div class="sheet-title">Add Exercise</div>'
-    + '<label class="eyebrow" style="margin-top:8px">Exercise Name</label>'
+    + '<div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">Tap a popular exercise to autofill, or type custom details below:</div>'
+    + '<div style="display:flex;gap:5px;flex-wrap:wrap;max-height:100px;overflow-y:auto;padding:6px;background:var(--surface-raised);border-radius:8px;border:1px solid var(--border);margin-bottom:12px">'
+      + quickChipsHTML
+    + '</div>'
+    + '<label class="eyebrow">Exercise Name</label>'
     + '<input type="text" id="newExName" placeholder="e.g. Incline Dumbbell Press">'
+    + '<label class="eyebrow" style="margin-top:10px">Target Muscle Group</label>'
+    + '<input type="text" id="newExMuscle" placeholder="e.g. chest, back, shoulders, quads, biceps, triceps">'
     + '<div style="display:flex;gap:10px;margin-top:10px">'
       + '<div style="flex:1"><label class="eyebrow">Sets</label><input type="number" id="newExSets" value="2" min="1" max="10"></div>'
       + '<div style="flex:1"><label class="eyebrow">Rep Range</label><input type="text" id="newExReps" value="8–12" placeholder="e.g. 6–10, 8–12"></div>'
     + '</div>'
     + '<div style="display:flex;gap:10px;margin-top:10px">'
       + '<div style="flex:1"><label class="eyebrow">Target RIR</label><input type="text" id="newExRir" value="1–2" placeholder="e.g. 1–2"></div>'
-      + '<div style="flex:1"><label class="eyebrow">Weight +kg</label><input type="number" step="0.25" id="newExInc" value="2.5"></div>'
+      + '<div style="flex:1"><label class="eyebrow">Rest Seconds</label><input type="number" id="newExRest" value="90" min="0" step="15"></div>'
     + '</div>'
+    + '<div style="display:flex;gap:10px;margin-top:10px">'
+      + '<div style="flex:1"><label class="eyebrow">Weight +kg</label><input type="number" step="0.25" id="newExInc" value="2.5"></div>'
+      + '<div style="flex:1"><label class="eyebrow">Type</label><select id="newExType"><option value="machine">Machine</option><option value="compound" selected>Compound</option><option value="isolation">Isolation</option><option value="cable">Cable</option></select></div>'
+    + '</div>'
+    + '<label class="eyebrow" style="margin-top:10px">Notes / Cue</label>'
+    + '<input type="text" id="newExCue" placeholder="optional cue (e.g. full stretch, pause at bottom)">'
     + '<div style="display:flex;gap:10px;margin-top:16px">'
       + '<button class="btn" id="cancelAddExBtn" style="flex:1">Cancel</button>'
-      + '<button class="btn btn-primary" id="confirmAddExBtn" style="flex:1">Add</button>'
+      + '<button class="btn btn-primary" id="confirmAddExBtn" style="flex:1">Add Exercise</button>'
     + '</div>'
   + '</div>';
   document.body.appendChild(modal);
+
+  modal.querySelectorAll('[data-quick-ex-idx]').forEach(function(chip) {
+    chip.onclick = function() {
+      var item = quickLibrary[parseInt(chip.dataset.quickExIdx, 10)];
+      if (item) {
+        modal.querySelector('#newExName').value = item.name;
+        modal.querySelector('#newExMuscle').value = item.muscle;
+        modal.querySelector('#newExSets').value = item.sets;
+        modal.querySelector('#newExReps').value = item.reps;
+        modal.querySelector('#newExRir').value = item.rir;
+        modal.querySelector('#newExRest').value = item.rest;
+        modal.querySelector('#newExCue').value = item.cue || '';
+        modal.querySelector('#newExType').value = item.type || 'compound';
+      }
+    };
+  });
+
   modal.querySelector('#cancelAddExBtn').onclick = function() { modal.remove(); };
   modal.querySelector('#confirmAddExBtn').onclick = function() {
     var name = modal.querySelector('#newExName').value.trim();
     if (!name) { showToast('Please enter an exercise name', 'warn'); return; }
+    var muscle = modal.querySelector('#newExMuscle').value.trim() || 'other';
     var sets = parseInt(modal.querySelector('#newExSets').value, 10) || 2;
     var reps = modal.querySelector('#newExReps').value.trim() || '8–12';
     var rir = modal.querySelector('#newExRir').value.trim() || '1–2';
+    var rest = parseInt(modal.querySelector('#newExRest').value, 10) || 90;
     var inc = parseFloat(modal.querySelector('#newExInc').value) || 2.5;
+    var type = modal.querySelector('#newExType').value || 'compound';
+    var cue = modal.querySelector('#newExCue').value.trim();
     var id = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
     modal.remove();
-    onAdd({ id: id, name: name, sets: sets, reps: reps, rir: rir, rest: 120, weightIncrement: inc });
+    onAdd({
+      id: id,
+      name: name,
+      muscle: muscle,
+      sets: sets,
+      reps: reps,
+      rir: rir,
+      rest: rest,
+      cue: cue,
+      weightIncrement: inc,
+      type: type
+    });
   };
 }
 
@@ -4470,34 +4834,47 @@ function openEditExerciseModal(ex, onSave) {
   var modal = document.createElement('div');
   modal.className = 'overlay';
   modal.style.zIndex = '9999';
-  modal.innerHTML = '<div class="sheet">'
+  modal.innerHTML = '<div class="sheet" style="max-height:88vh;overflow-y:auto">'
     + '<div class="sheet-handle"></div>'
     + '<div class="sheet-title">Edit Exercise</div>'
     + '<label class="eyebrow" style="margin-top:8px">Exercise Name</label>'
     + '<input type="text" id="editExName" value="' + esc(ex.name) + '">'
+    + '<label class="eyebrow" style="margin-top:10px">Target Muscle Group</label>'
+    + '<input type="text" id="editExMuscle" value="' + esc(ex.muscle || '') + '">'
     + '<div style="display:flex;gap:10px;margin-top:10px">'
       + '<div style="flex:1"><label class="eyebrow">Sets</label><input type="number" id="editExSets" value="' + (ex.sets || 2) + '" min="1" max="10"></div>'
       + '<div style="flex:1"><label class="eyebrow">Rep Range</label><input type="text" id="editExReps" value="' + esc(ex.reps || '8–12') + '"></div>'
     + '</div>'
     + '<div style="display:flex;gap:10px;margin-top:10px">'
       + '<div style="flex:1"><label class="eyebrow">Target RIR</label><input type="text" id="editExRir" value="' + esc(ex.rir || '1–2') + '"></div>'
-      + '<div style="flex:1"><label class="eyebrow">Weight +kg</label><input type="number" step="0.25" id="editExInc" value="' + (ex.weightIncrement || 2.5) + '"></div>'
+      + '<div style="flex:1"><label class="eyebrow">Rest Seconds</label><input type="number" id="editExRest" value="' + (ex.rest != null ? ex.rest : 90) + '" min="0" step="15"></div>'
     + '</div>'
+    + '<div style="display:flex;gap:10px;margin-top:10px">'
+      + '<div style="flex:1"><label class="eyebrow">Weight +kg</label><input type="number" step="0.25" id="editExInc" value="' + (ex.weightIncrement || 2.5) + '"></div>'
+      + '<div style="flex:1"><label class="eyebrow">Type</label><select id="editExType"><option value="machine"' + (ex.type === 'machine' ? ' selected' : '') + '>Machine</option><option value="compound"' + (ex.type === 'compound' || !ex.type ? ' selected' : '') + '>Compound</option><option value="isolation"' + (ex.type === 'isolation' ? ' selected' : '') + '>Isolation</option><option value="cable"' + (ex.type === 'cable' ? ' selected' : '') + '>Cable</option></select></div>'
+    + '</div>'
+    + '<label class="eyebrow" style="margin-top:10px">Notes / Cue</label>'
+    + '<input type="text" id="editExCue" value="' + esc(ex.cue || '') + '">'
     + '<div style="display:flex;gap:10px;margin-top:16px">'
       + '<button class="btn" id="cancelEditExBtn" style="flex:1">Cancel</button>'
-      + '<button class="btn btn-primary" id="confirmEditExBtn" style="flex:1">Save</button>'
+      + '<button class="btn btn-primary" id="confirmEditExBtn" style="flex:1">Save Changes</button>'
     + '</div>'
   + '</div>';
   document.body.appendChild(modal);
+
   modal.querySelector('#cancelEditExBtn').onclick = function() { modal.remove(); };
   modal.querySelector('#confirmEditExBtn').onclick = function() {
     var name = modal.querySelector('#editExName').value.trim();
     if (!name) { showToast('Please enter an exercise name', 'warn'); return; }
     ex.name = name;
+    ex.muscle = modal.querySelector('#editExMuscle').value.trim() || 'other';
     ex.sets = parseInt(modal.querySelector('#editExSets').value, 10) || 2;
     ex.reps = modal.querySelector('#editExReps').value.trim() || '8–12';
     ex.rir = modal.querySelector('#editExRir').value.trim() || '1–2';
+    ex.rest = parseInt(modal.querySelector('#editExRest').value, 10) || 90;
     ex.weightIncrement = parseFloat(modal.querySelector('#editExInc').value) || 2.5;
+    ex.type = modal.querySelector('#editExType').value || 'compound';
+    ex.cue = modal.querySelector('#editExCue').value.trim();
     modal.remove();
     onSave(ex);
   };
@@ -4975,9 +5352,11 @@ function openSettings() {
     +'<details class="advanced-settings"><summary>Advanced</summary>'
     +'<label class="eyebrow" style="margin-top:12px">Training days</label>'
     +'<div class="day-toggles">'+dayNames.map(function(d,i){return '<button class="day-toggle'+(tdays.includes(i)?' active':'')+'" data-day="'+i+'">'+d+'</button>';}).join('')+'</div>'
-    +'<label class="eyebrow" style="margin-top:12px">Workout Split</label>'
-    +'<div style="display:flex;gap:8px">'
-      +'<select id="setSplit" style="flex:1"><option value="iron5day" selected>Iron Log · 5-day split</option></select>'
+    +'<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:12px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center">'
+        +'<div><div style="font-size:13px;font-weight:600">Custom Workout Plan</div><div style="font-size:11px;color:var(--text-muted)">Customize exercises, splits & routine</div></div>'
+        +'<button class="btn btn-sm" id="openPlanFromSettingsBtn" style="font-size:11px">Edit Plan</button>'
+      +'</div>'
     +'</div>'
     +'<label class="eyebrow" style="margin-top:12px">Equipment Access</label>'
     +'<select id="setEquip">'
@@ -5033,8 +5412,7 @@ function openSettings() {
     profile.calTargetGym=parseInt(document.getElementById('setTargetGym').value,10)||CAL_TARGET_GYM;
     profile.protTargetRest=parseInt(document.getElementById('setProtRest').value,10)||PROT_TARGET_REST;
     profile.protTargetGym=parseInt(document.getElementById('setProtGym').value,10)||PROT_TARGET_GYM;
-    profile.programSplit='iron5day';
-    profile.trainingDays=[1,2,3,5,6];
+    profile.trainingDays=tdays.length ? tdays : [1,2,4,5,6];
     profile.equipment=document.getElementById('setEquip').value;
     profile.dietaryPattern=document.getElementById('setDiet').value;
     profile.experience=document.getElementById('setExp').value;
@@ -5055,6 +5433,13 @@ function openSettings() {
       SQLiteStorage.clear().then(function(){return new Promise(function(resolve){var request=indexedDB.deleteDatabase('rg_food_db');request.onsuccess=request.onerror=request.onblocked=resolve;});}).then(function(){location.reload();}).catch(function(){showToast('Reset failed. Export a backup and try again.','warn');});
     }
   });
+  var openPlanBtn = overlay.querySelector('#openPlanFromSettingsBtn');
+  if (openPlanBtn) {
+    openPlanBtn.addEventListener('click', function(){
+      overlay.remove();
+      openSplitManagerSheet();
+    });
+  }
   overlay.querySelector('#editCustomFoodsBtn').addEventListener('click',function(){
     overlay.remove(); openCustomFoodsManager();
   });
@@ -6159,6 +6544,7 @@ SQLiteStorage.init(function(){
   requestPersistentStorage();
   profile = ls('rg_profile', null);
   migrateWorkoutSessions();
+  migrateWorkoutRoutineSwap();
   FoodDB.open().then(function(){
     if(profile) {
       migrateFoodTotals();
@@ -6187,7 +6573,7 @@ SQLiteStorage.init(function(){
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js?v=17').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=18').catch(function(){});
   });
 }
 </script>
