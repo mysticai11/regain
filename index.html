@@ -2451,11 +2451,39 @@ function getSessionType() {
 function calcE1RM(w, r) { return r===1 ? w : w*(1 + r/30); }
 
 function getBestE1RM(exId) {
+  var ids = (typeof getEquivalentExerciseIds === 'function') ? getEquivalentExerciseIds(exId) : [exId];
   var best = 0;
   allDayKeys().forEach(function(key){
     var rec = dayRecord(key);
-    var sets = (rec.workout||{})[exId] || [];
-    sets.forEach(function(s){ var e = calcE1RM(s.weight,s.reps); if(e>best) best=e; });
+    var wo = rec.workout || {};
+    ids.forEach(function(id){
+      var sets = wo[id] || [];
+      sets.forEach(function(s){
+        if (s && s.weight && s.reps) {
+          var e = calcE1RM(s.weight, s.reps);
+          if (e > best) best = e;
+        }
+      });
+    });
+  });
+  return best > 0 ? best : null;
+}
+
+function getBestRepCount(exId) {
+  var ids = (typeof getEquivalentExerciseIds === 'function') ? getEquivalentExerciseIds(exId) : [exId];
+  var best = 0;
+  allDayKeys().forEach(function(key){
+    var rec = dayRecord(key);
+    var wo = rec.workout || {};
+    ids.forEach(function(id){
+      var sets = wo[id] || [];
+      sets.forEach(function(s){
+        if (s && s.reps) {
+          var r = Number(s.reps) || 0;
+          if (r > best) best = r;
+        }
+      });
+    });
   });
   return best > 0 ? best : null;
 }
@@ -3572,20 +3600,35 @@ function buildE1RMChart(exId, records) {
   if(typeof Chart === 'undefined') return;
   if(charts.e1rm) { charts.e1rm.destroy(); charts.e1rm=null; }
   var points = [];
+  var ids = (typeof getEquivalentExerciseIds === 'function') ? getEquivalentExerciseIds(exId) : [exId];
+  var exObj = getExerciseData(exId) || {};
+  var isBW = isBodyweightExercise(exId, exObj.name);
+
   records.forEach(function(r){
-    var sets = (dayRecord(r.key).workout||{})[exId]||[];
+    var dayWo = dayRecord(r.key).workout || {};
     var best = 0;
-    sets.forEach(function(s){ var e=calcE1RM(s.weight,s.reps); if(e>best) best=e; });
-    if(best>0) points.push({key:r.key,e1rm:+best.toFixed(1)});
+    ids.forEach(function(id){
+      (dayWo[id] || []).forEach(function(s){
+        if (!s) return;
+        if (isBW) {
+          var reps = Number(s.reps) || 0;
+          if (reps > best) best = reps;
+        } else {
+          var e = calcE1RM(s.weight, s.reps);
+          if (e > best) best = e;
+        }
+      });
+    });
+    if(best > 0) points.push({key:r.key, val: isBW ? best : +best.toFixed(1)});
   });
   var ec = document.getElementById('e1rmChart');
   if(!ec) return;
   if(points.length < 2) { ec.parentElement.innerHTML='<div class="chart-empty">Log your first set today 💪</div>'; return; }
   var opts = chartDefaults();
-  opts.scales.y.title = {display:true,text:'e1RM (kg)',color:'#6E6657',font:{size:9}};
+  opts.scales.y.title = {display:true, text: isBW ? 'Reps (BW)' : 'e1RM (kg)', color:'#6E6657', font:{size:9}};
   charts.e1rm = new Chart(ec, {type:'line',data:{
     labels:points.map(function(p){return p.key.slice(5);}),
-    datasets:[{data:points.map(function(p){return p.e1rm;}),borderColor:'#A8C29C',backgroundColor:'rgba(168,194,156,0.06)',fill:true,tension:0.2,pointRadius:3,pointBackgroundColor:'#A8C29C',borderWidth:2}]
+    datasets:[{data:points.map(function(p){return p.val;}),borderColor:'#A8C29C',backgroundColor:'rgba(168,194,156,0.06)',fill:true,tension:0.2,pointRadius:3,pointBackgroundColor:'#A8C29C',borderWidth:2}]
   },options:opts});
 }
 
@@ -3968,16 +4011,29 @@ function isBodyweightExercise(id, name) {
 }
 
 function getExercisePR(exId) {
+  var ids = (typeof getEquivalentExerciseIds === 'function') ? getEquivalentExerciseIds(exId) : [exId];
   var prVal = null;
+  var isBW = isBodyweightExercise(exId);
   allDayKeys().forEach(function(key){
     var r = dayRecord(key);
-    var sets = (r.workout || {})[exId] || [];
-    sets.forEach(function(s){
-      if (s.weight != null && s.reps != null) {
-        if (!prVal || s.weight > prVal.weight || (s.weight === prVal.weight && s.reps > prVal.reps)) {
-          prVal = { weight: s.weight, reps: s.reps };
+    var wo = r.workout || {};
+    ids.forEach(function(id){
+      var sets = wo[id] || [];
+      sets.forEach(function(s){
+        if (s && s.reps != null && s.reps !== '') {
+          var w = Number(s.weight) || 0;
+          var reps = Number(s.reps) || 0;
+          if (reps > 0) {
+            if (!prVal) {
+              prVal = { weight: w, reps: reps };
+            } else if (isBW && (!w || w === 0) && (!prVal.weight || prVal.weight === 0)) {
+              if (reps > prVal.reps) prVal = { weight: 0, reps: reps };
+            } else if (w > prVal.weight || (w === prVal.weight && reps > prVal.reps)) {
+              prVal = { weight: w, reps: reps };
+            }
+          }
         }
-      }
+      });
     });
   });
   return prVal;
@@ -4736,6 +4792,21 @@ function chooseWorkoutForDate(dayKey) {
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 // GYM TAB
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+function attachCommonGymHeaderEvents() {
+  var dateSelBtn = document.getElementById('gymDateSelectBtn');
+  if (dateSelBtn) dateSelBtn.onclick = openGymDateDaySheet;
+  var dateResetBtn = document.getElementById('gymDateResetBtn');
+  if (dateResetBtn) {
+    dateResetBtn.onclick = function() {
+      delete window.activeGymDateKey;
+      renderGym();
+      showToast('Jumped to today', 'ok');
+    };
+  }
+  var manageBtn = document.getElementById('manageSplitTopBtn');
+  if (manageBtn) manageBtn.onclick = openSplitManagerSheet;
+}
+
 function renderGym() {
   var key = window.activeGymDateKey || todayKey();
   var rec = dayRecord(key);
@@ -4826,8 +4897,7 @@ function renderGym() {
       + '<div class="section" style="margin-top:20px"><span class="eyebrow">weekly volume targets</span>' + buildVolumeTable() + '</div>'
       + '</div>';
 
-    var manageBtn = document.getElementById('manageSplitTopBtn');
-    if (manageBtn) manageBtn.onclick = openSplitManagerSheet;
+    attachCommonGymHeaderEvents();
     document.querySelectorAll('[data-pick-sched-day]').forEach(function(b) {
       b.onclick = function() {
         var dayN = parseInt(b.dataset.pickSchedDay, 10);
@@ -4887,8 +4957,7 @@ function renderGym() {
       + '</div>'
       + '</div>';
 
-    var manageBtn = document.getElementById('manageSplitTopBtn');
-    if (manageBtn) manageBtn.onclick = openSplitManagerSheet;
+    attachCommonGymHeaderEvents();
     document.getElementById('openHistoryFromGymBtn').onclick = function() {
       tab = 'progress';
       renderApp();
@@ -5166,15 +5235,7 @@ function buildVolumeTable() {
 }
 
 function attachGymEvents(key, rec, session, programDayIndex) {
-  var dateSelBtn = document.getElementById('gymDateSelectBtn');
-  if (dateSelBtn) dateSelBtn.onclick = openGymDateDaySheet;
-  var dateResetBtn = document.getElementById('gymDateResetBtn');
-  if (dateResetBtn) {
-    dateResetBtn.onclick = function() {
-      delete window.activeGymDateKey;
-      renderGym();
-    };
-  }
+  attachCommonGymHeaderEvents();
   var chooseWorkoutBtn=document.getElementById('chooseWorkoutBtn');
   if(chooseWorkoutBtn) chooseWorkoutBtn.addEventListener('click',function(){chooseWorkoutForDate(key);});
   document.querySelectorAll('[data-pick-workout]').forEach(function(btn){
@@ -5274,14 +5335,27 @@ function attachGymEvents(key, rec, session, programDayIndex) {
         rec.workoutDraft[id][setIndex + 1] = { weight: w, reps: r, rir: rirValue };
       }
       // Real-time PR detection
-      var prevBestE1RM = getBestE1RM(id) || 0;
-      var currentE1RM = w * (1 + r / 30);
-      if (currentE1RM > prevBestE1RM + 0.25) {
-        playSound('workout_complete');
-        triggerHaptic();
-        showToast('🏆 NEW PR! ' + ((getExerciseData(id) || {}).name || 'Lift') + ': ' + w + 'kg × ' + r + ' (' + currentE1RM.toFixed(1) + 'kg e1RM)', 'ok');
+      var exObj = getExerciseData(id) || {};
+      var isBW = isBodyweightExercise(id, exObj.name);
+      if (isBW && (!w || w === 0)) {
+        var prevBestReps = getBestRepCount(id) || 0;
+        if (r > prevBestReps) {
+          playSound('workout_complete');
+          triggerHaptic();
+          showToast('🏆 NEW REPS PR! ' + (exObj.name || 'Lift') + ': ' + r + ' reps (BW)', 'ok');
+        } else {
+          playSound('set_logged');
+        }
       } else {
-        playSound('set_logged');
+        var prevBestE1RM = getBestE1RM(id) || 0;
+        var currentE1RM = w * (1 + r / 30);
+        if (currentE1RM > prevBestE1RM + 0.25) {
+          playSound('workout_complete');
+          triggerHaptic();
+          showToast('🏆 NEW PR! ' + (exObj.name || 'Lift') + ': ' + (w > 0 ? (w + 'kg × ' + r) : (r + ' reps')) + ' (' + currentE1RM.toFixed(1) + 'kg e1RM)', 'ok');
+        } else {
+          playSound('set_logged');
+        }
       }
       sessionMeta.updatedAt=new Date().toISOString();
       // Check if all exercises done (2+ sets each)
@@ -6950,8 +7024,10 @@ function goalTrajectoryText(entries) {
   return 'Estimated '+eta.toLocaleDateString([], {month:'short',year:'numeric'})+' · based on logged intake and weight trend';
 }
 
-function progressPlot(values, goal) {
+function progressPlot(values, goal, unit) {
   if(!values.length) return '<div class="empty-note">Log data to see this trend.</div>';
+  var unitLabel = unit || 'kg';
+  var isReps = unitLabel === 'reps';
   var nums=values.map(function(v){return Number(v.value);}).concat(goal!=null?[goal]:[]);
   var rawMin=Math.min.apply(null,nums), rawMax=Math.max.apply(null,nums), rawSpan=rawMax-rawMin;
   var pad=rawSpan?Math.max(rawSpan*.18,.5):Math.max(Math.abs(rawMax)*.03,.5);
@@ -6959,13 +7035,13 @@ function progressPlot(values, goal) {
   var points=values.map(function(v,i){var x=i/Math.max(1,values.length-1)*100,y=8+((max-v.value)/span)*84;return {x:x,y:y,v:v};});
   var poly=points.map(function(p){return p.x.toFixed(1)+','+p.y.toFixed(1);}).join(' ');
   var first=values[0].value, last=values[values.length-1].value, delta=last-first;
-  var deltaText=values.length>1?(delta===0?'No change':(delta>0?'+':'')+delta.toFixed(1)+' kg'):'First entry';
+  var deltaText=values.length>1?(delta===0?'No change':(delta>0?'+':'')+(isReps?Math.round(delta):delta.toFixed(1))+' '+unitLabel):'First entry';
   var labels=[values[0],values[Math.floor((values.length-1)/2)],values[values.length-1]].map(function(v){var raw=String(v.label||'').slice(0,10);return raw.replace(/^\\d{4}-/,'').replace('-','/');});
   var goalY=goal!=null?8+((max-goal)/span)*84:null;
   var goalLine=goalY!=null&&goalY>=0&&goalY<=100?'<div class="chart-goal" style="top:'+goalY+'%"><span>goal '+Number(goal).toFixed(1)+'</span></div>':'';
   var area=points.length>1?poly+' 100,100 0,100':'';
   return '<div class="plot-caption"><span>'+values.length+' point'+(values.length===1?'':'s')+'</span><b class="plot-change">'+deltaText+'</b></div>'
-    +'<div class="plot-shell"><div class="plot-current">'+Number(last).toFixed(1)+'</div><div class="line-chart" aria-label="Trend from '+first+' to '+last+'"><span class="chart-max">'+max.toFixed(1)+'</span><span class="chart-min">'+min.toFixed(1)+'</span>'+goalLine
+    +'<div class="plot-shell"><div class="plot-current">'+(isReps ? Math.round(last) + ' reps' : Number(last).toFixed(1) + ' kg')+'</div><div class="line-chart" aria-label="Trend from '+first+' to '+last+'"><span class="chart-max">'+(isReps ? Math.round(max) : max.toFixed(1))+'</span><span class="chart-min">'+(isReps ? Math.round(min) : min.toFixed(1))+'</span>'+goalLine
     +'<svg viewBox="0 0 100 100" preserveAspectRatio="none"><defs><linearGradient id="plotFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--amber)" stop-opacity=".28"/><stop offset="1" stop-color="var(--amber)" stop-opacity="0"/></linearGradient></defs>'
     +(area?'<polygon points="'+area+'" fill="url(#plotFill)"/>':'')
     +'<polyline points="'+poly+'" fill="none" stroke="var(--amber)" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/>'
@@ -7025,7 +7101,7 @@ function workoutHistoryHTML() {
         return '<div class="history-exercise">'
           + '<div class="history-exercise-head">'
             + '<strong>'+esc(ex.name)+'</strong>'
-            + (highestWeight ? '<span class="history-exercise-best">Best '+highestWeight+' kg</span>' : '<span style="font-size:11px;color:var(--text-muted)">'+sets.length+' sets</span>')
+            + '<span class="history-exercise-best">' + esc(bestBadge) + '</span>'
           + '</div>'
           + '<div class="history-sets">'+summary+'</div>'
           + '</div>';
@@ -7659,7 +7735,13 @@ function openEditDateAndDayModal(sessionId) {
       saveDayRecord(oldDate, oldRec);
     }
 
-    store.sessions[sessionId] = session;
+    var oldSessionId = sessionId;
+    var newSessionId = workoutSessionId(newDate, session.programDay);
+    if (oldSessionId !== newSessionId) {
+      delete store.sessions[oldSessionId];
+      session.id = newSessionId;
+    }
+    store.sessions[newSessionId] = session;
     sv(WORKOUT_SESSIONS_KEY, store);
     overlay.remove();
     showToast('Workout date & day updated', 'ok');
@@ -7996,12 +8078,58 @@ function renderProgressSimple(mode) {
     var rangeRecords=records.filter(function(r){return new Date(r.key+'T23:59:59').getTime()>=cutoff;});
     var liftControl=document.getElementById('liftSelect');
     var selected=liftControl?liftControl.value:null, liftValues=[];
-    rangeRecords.forEach(function(r){var best=0;(dayRecord(r.key).workout||{})[selected]&&dayRecord(r.key).workout[selected].forEach(function(s){if(s)best=Math.max(best,calcE1RM(s.weight,s.reps));});if(best)liftValues.push({value:best,label:r.key+' · '+best.toFixed(1)+' kg'});});
+    var selectedExData = selected ? getExerciseData(selected) : null;
+    var isBW = selected ? isBodyweightExercise(selected, selectedExData ? selectedExData.name : '') : false;
+    var eqIds = (typeof getEquivalentExerciseIds === 'function' && selected) ? getEquivalentExerciseIds(selected) : (selected ? [selected] : []);
+
+    rangeRecords.forEach(function(r){
+      var best = 0;
+      var dayWo = dayRecord(r.key).workout || {};
+      eqIds.forEach(function(id){
+        (dayWo[id] || []).forEach(function(s){
+          if (!s) return;
+          if (isBW) {
+            var reps = Number(s.reps) || 0;
+            if (reps > best) best = reps;
+          } else {
+            var e1 = calcE1RM(s.weight, s.reps);
+            if (e1 > best) best = e1;
+          }
+        });
+      });
+      if (best > 0) {
+        liftValues.push({
+          value: best,
+          label: r.key + ' · ' + (isBW ? (best + ' reps (BW)') : (best.toFixed(1) + ' kg'))
+        });
+      }
+    });
+
     var allLiftValues=[];
-    rangeRecords.forEach(function(r){var total=0,count=0;Object.keys(dayRecord(r.key).workout||{}).forEach(function(id){var best=0;(dayRecord(r.key).workout[id]||[]).forEach(function(s){if(s){best=Math.max(best,calcE1RM(s.weight,s.reps));}});if(best){total+=best;count++;}});if(count)allLiftValues.push({value:total/count,label:r.key});});
+    rangeRecords.forEach(function(r){
+      var total=0,count=0;
+      Object.keys(dayRecord(r.key).workout||{}).forEach(function(id){
+        var best=0;
+        var exIsBW = isBodyweightExercise(id);
+        (dayRecord(r.key).workout[id]||[]).forEach(function(s){
+          if(s){
+            if (exIsBW) {
+              var rVal = Number(s.reps) || 0;
+              if (rVal > best) best = rVal;
+            } else {
+              var e1 = calcE1RM(s.weight,s.reps);
+              if (e1 > best) best = e1;
+            }
+          }
+        });
+        if(best){total+=best;count++;}
+      });
+      if(count)allLiftValues.push({value:total/count,label:r.key});
+    });
+
     var first=allLiftValues.length?allLiftValues[0].value:1;
     var weightPlot=document.getElementById('weightPlot'); if(weightPlot) weightPlot.innerHTML=progressPlot(weightValues,profile.targetWeight);
-    var liftPlot=document.getElementById('liftPlot'); if(liftPlot) liftPlot.innerHTML=progressPlot(liftValues);
+    var liftPlot=document.getElementById('liftPlot'); if(liftPlot) liftPlot.innerHTML=progressPlot(liftValues, null, isBW ? 'reps' : 'kg');
     var direction=goalDirection(), latest=weightValues.length?weightValues[weightValues.length-1].value:null;
     var trend=weightValues.length>1?latest-weightValues[0].value:0;
     var status=weightValues.length>1?(direction*trend>0?'moving toward goal':direction*trend<0?'moving away from goal':'flat'):'need more entries';
@@ -8009,7 +8137,15 @@ function renderProgressSimple(mode) {
     var liftMeta=document.getElementById('liftMeta');
     if(liftMeta) {
       var firstLift=liftValues.length?liftValues[0].value:null, latestLift=liftValues.length?liftValues[liftValues.length-1].value:null;
-      liftMeta.textContent=latestLift!=null?(latestLift.toFixed(1)+' kg e1RM'+(firstLift!=null&&liftValues.length>1?' · '+(latestLift-firstLift>=0?'+':'')+(latestLift-firstLift).toFixed(1)+' since start':'')):'No lift entries yet';
+      if (latestLift != null) {
+        if (isBW) {
+          liftMeta.textContent = latestLift + ' reps (BW) peak' + (firstLift!=null&&liftValues.length>1 ? ' · ' + (latestLift-firstLift>=0?'+':'') + (latestLift-firstLift) + ' reps since start' : '');
+        } else {
+          liftMeta.textContent = latestLift.toFixed(1) + ' kg e1RM' + (firstLift!=null&&liftValues.length>1 ? ' · ' + (latestLift-firstLift>=0?'+':'') + (latestLift-firstLift).toFixed(1) + ' since start' : '');
+        }
+      } else {
+        liftMeta.textContent = 'No lift entries yet';
+      }
     }
   };
   var bodySection='<section class="progress-card"><div class="progress-card-head"><div><span class="eyebrow">'+esc(goalLabel())+'</span><h2>Bodyweight</h2></div><strong>'+(current!=null?current.toFixed(1)+' kg':'—')+'</strong></div><div id="weightMeta" class="progress-summary"></div><div class="range-row"><button class="range active" data-range="1w">7d</button><button class="range" data-range="1m">30d</button><button class="range" data-range="3m">90d</button></div><div id="weightPlot"></div><div class="progress-entry"><input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="Log weight" inputmode="decimal"><button class="btn btn-primary" id="saveProgressWeight">Save</button></div><details class="progress-more"><summary>Recent weigh-ins</summary><div class="weight-entry-list">'+weightEntriesHTML(entries)+'</div></details></section><section class="progress-card"><div class="progress-card-head"><div><span class="eyebrow">Nutrition</span><h2>Calories & protein</h2></div><span class="progress-summary">last 7 days</span></div>'+nutritionProgressHTML(records)+'</section>';
