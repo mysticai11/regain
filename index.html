@@ -3949,55 +3949,244 @@ function getLastSessionWeightReps(exId, rec) {
   return null;
 }
 
+
+function getEquivalentExerciseIds(exId) {
+  var ids = [exId];
+  // Strip _b, _a, _1, _2, _machine suffixes
+  var baseId = exId.replace(/_[ab\d]+$/i, '');
+  if (baseId !== exId && !ids.includes(baseId)) ids.push(baseId);
+  if (!ids.includes(baseId + '_b')) ids.push(baseId + '_b');
+  if (!ids.includes(baseId + '_a')) ids.push(baseId + '_a');
+  if (!ids.includes(baseId + '_machine')) ids.push(baseId + '_machine');
+
+  // Explicit pairs from the 5-day and 6-day split
+  var pairs = {
+    'machine_row_b': 'machine_row',
+    'machine_row': 'machine_row_b',
+    'lat_pulldown_b': 'lat_pulldown',
+    'lat_pulldown': 'lat_pulldown_b',
+    'pec_deck_b': 'pec_deck',
+    'pec_deck': 'pec_deck_b',
+    'hamstring_curl_b': 'hamstring_curl',
+    'hamstring_curl': 'hamstring_curl_b',
+    'leg_extension_b': 'leg_extension',
+    'leg_extension': 'leg_extension_b',
+    'shoulder_press_b': 'shoulder_press_machine',
+    'shoulder_press_machine': 'shoulder_press_b',
+    'lateral_raise_b': 'lateral_raise_machine',
+    'lateral_raise_machine': 'lateral_raise_b',
+    'pull_ups': 'chin_ups',
+    'chin_ups': 'pull_ups'
+  };
+  if (pairs[exId] && !ids.includes(pairs[exId])) {
+    ids.push(pairs[exId]);
+  }
+
+  // Also match by exercise name
+  var currentName = ((getExerciseData(exId) || {}).name || '').toLowerCase().trim();
+  if (currentName) {
+    var allEx = Object.keys(EXERCISE_LIBRARY || {});
+    allEx.forEach(function(k) {
+      var item = EXERCISE_LIBRARY[k];
+      if (item && item.name && item.name.toLowerCase().trim() === currentName) {
+        if (!ids.includes(k)) ids.push(k);
+      }
+    });
+  }
+  return ids;
+}
+
+function getScienceBasedWorkingWeight(exId, exName, exConfig) {
+  var id = (exId || '').toLowerCase();
+  var name = (exName || '').toLowerCase();
+  var isBW = isBodyweightExercise(exId, exName);
+  if (isBW) return null;
+
+  var userWeight = (profile && profile.weight) || 75;
+  var keys = allDayKeys().reverse();
+
+  function findLoggedWeight(matchIds) {
+    for (var i = 0; i < keys.length; i++) {
+      var r = dayRecord(keys[i]);
+      if (!r || !r.workout) continue;
+      for (var j = 0; j < matchIds.length; j++) {
+        var sets = (r.workout[matchIds[j]] || []).filter(function(s){ return s && Number(s.weight) > 0; });
+        if (sets.length > 0) {
+          var maxW = Math.max.apply(null, sets.map(function(s){ return Number(s.weight); }));
+          return { weight: maxW, id: matchIds[j] };
+        }
+      }
+    }
+    return null;
+  }
+
+  var inc = (exConfig && exConfig.weightIncrement) || 2.5;
+  function roundToInc(w) {
+    return Math.max(inc, +(Math.round(w / inc) * inc).toFixed(1));
+  }
+
+  // 1. CHEST & PRESSING CORRELATIONS
+  if (/bench|chest_press|incline/i.test(id) || /bench|chest press|incline/i.test(name)) {
+    var foundBench = findLoggedWeight(['bench', 'incline_bench', 'chest_press_machine', 'incline_db_press']);
+    if (foundBench) {
+      var baseWeight = foundBench.weight;
+      var isDb = /db|dumbbell/i.test(id) || /db|dumbbell/i.test(name);
+      var factor = 1.0;
+      if (/incline_db/i.test(id) || /incline dumbbell/i.test(name)) factor = 0.38;
+      else if (/incline/i.test(id) || /incline/i.test(name)) factor = 0.82;
+      else if (/close_grip/i.test(id) || /close-grip/i.test(name)) factor = 0.88;
+      else if (/chest_press/i.test(id) || /machine/i.test(name)) factor = 0.95;
+      else if (isDb) factor = 0.40;
+
+      if (/db|dumbbell/i.test(foundBench.id)) baseWeight = (baseWeight * 2) / 0.8;
+
+      var recW = roundToInc(baseWeight * factor);
+      return { weight: recW, source: 'correlated_lift', refLiftName: (getExerciseData(foundBench.id)||{}).name || 'Bench Press', refWeight: foundBench.weight, userWeight: userWeight };
+    }
+    var isDumbbell = /db|dumbbell/i.test(id) || /db|dumbbell/i.test(name);
+    var defW = isDumbbell ? roundToInc(userWeight * 0.20) : roundToInc(userWeight * 0.60);
+    return { weight: defW, source: 'bodyweight_ratio', userWeight: userWeight };
+  }
+
+  // 2. BACK & PULLING CORRELATIONS
+  if (/row|lat_pull|pulldown/i.test(id) || /row|pulldown|pull-down/i.test(name)) {
+    var foundPull = findLoggedWeight(['lat_pulldown', 'lat_pulldown_b', 'machine_row', 'machine_row_b', 'barbell_row']);
+    if (foundPull) {
+      var baseW = foundPull.weight;
+      var f = 1.0;
+      if (/single_arm/i.test(id)) f = 0.45;
+      else if (/machine_row/i.test(id) && /lat_pulldown/i.test(foundPull.id)) f = 0.95;
+      else if (/lat_pulldown/i.test(id) && /machine_row/i.test(foundPull.id)) f = 1.05;
+      var rW = roundToInc(baseW * f);
+      return { weight: rW, source: 'correlated_lift', refLiftName: (getExerciseData(foundPull.id)||{}).name || 'Pulling Lift', refWeight: foundPull.weight, userWeight: userWeight };
+    }
+    var defPull = roundToInc(userWeight * 0.55);
+    return { weight: defPull, source: 'bodyweight_ratio', userWeight: userWeight };
+  }
+
+  // 3. LEGS CORRELATIONS
+  if (/leg_press|romanian|rdl|leg_ext|hamstring|squat/i.test(id) || /leg press|deadlift|rdl|extension|curl/i.test(name)) {
+    var foundLeg = findLoggedWeight(['leg_press', 'romanian_deadlift', 'rdl', 'leg_extension', 'hamstring_curl']);
+    if (foundLeg) {
+      var baseL = foundLeg.weight;
+      var factorL = 1.0;
+      if (/leg_press/i.test(id) && !/leg_press/i.test(foundLeg.id)) factorL = 2.0;
+      else if ((/leg_ext|extension/i.test(id)) && /leg_press/i.test(foundLeg.id)) factorL = 0.32;
+      else if ((/hamstring|curl/i.test(id)) && /leg_press/i.test(foundLeg.id)) factorL = 0.28;
+      else if (/romanian|rdl/i.test(id) && /leg_press/i.test(foundLeg.id)) factorL = 0.55;
+      var recL = roundToInc(baseL * factorL);
+      return { weight: recL, source: 'correlated_lift', refLiftName: (getExerciseData(foundLeg.id)||{}).name || 'Leg Lift', refWeight: foundLeg.weight, userWeight: userWeight };
+    }
+    var defLeg = /leg_press/i.test(id) ? roundToInc(userWeight * 1.3) : roundToInc(userWeight * 0.45);
+    return { weight: defLeg, source: 'bodyweight_ratio', userWeight: userWeight };
+  }
+
+  // 4. SHOULDERS
+  if (/shoulder|overhead|lateral/i.test(id) || /shoulder|overhead|lateral/i.test(name)) {
+    if (/lateral/i.test(id) || /lateral/i.test(name)) {
+      return { weight: roundToInc(Math.max(5, userWeight * 0.09)), source: 'bodyweight_ratio', userWeight: userWeight };
+    }
+    return { weight: roundToInc(userWeight * 0.40), source: 'bodyweight_ratio', userWeight: userWeight };
+  }
+
+  // 5. ARMS (BICEPS / TRICEPS)
+  if (/curl|tricep|bicep/i.test(id) || /curl|tricep|bicep/i.test(name)) {
+    return { weight: roundToInc(userWeight * 0.25), source: 'bodyweight_ratio', userWeight: userWeight };
+  }
+
+  return { weight: roundToInc(userWeight * 0.40), source: 'bodyweight_ratio', userWeight: userWeight };
+}
+
 function getLastSessionSets(exId, rec) {
+  var equivalentIds = (typeof getEquivalentExerciseIds === 'function') ? getEquivalentExerciseIds(exId) : [exId];
   var keys = allDayKeys().reverse();
   var todayK = todayKey();
+
+  // 1. Check if logged earlier today under an equivalent exercise ID
+  if (rec && rec.workout) {
+    for (var e = 0; e < equivalentIds.length; e++) {
+      var eqId = equivalentIds[e];
+      if (eqId !== exId && rec.workout[eqId] && rec.workout[eqId].length > 0) {
+        var validEq = rec.workout[eqId].filter(function(s){ return s && (Number(s.reps) > 0 || Number(s.weight) > 0); });
+        if (validEq.length > 0) return rec.workout[eqId];
+      }
+    }
+  }
+
+  // 2. Search previous days in history
   for (var i = 0; i < keys.length; i++) {
-    if (keys[i] === todayK) continue;
-    var r = dayRecord(keys[i]);
-    var prevSets = (r.workout || {})[exId] || [];
-    if (prevSets.length > 0) return prevSets;
+    var k = keys[i];
+    var r = (k === todayK && rec) ? rec : dayRecord(k);
+    if (!r || !r.workout) continue;
+
+    // Check direct ID first
+    if (k !== todayK && r.workout[exId] && r.workout[exId].length > 0) {
+      var directValid = r.workout[exId].filter(function(s){ return s && (Number(s.reps) > 0 || Number(s.weight) > 0); });
+      if (directValid.length > 0) return r.workout[exId];
+    }
+
+    // Check equivalent IDs (e.g. machine_row on Day 1 for machine_row_b on Day 5)
+    for (var j = 0; j < equivalentIds.length; j++) {
+      var id = equivalentIds[j];
+      if (r.workout[id] && r.workout[id].length > 0) {
+        if (k !== todayK || id !== exId) {
+          var eqValid = r.workout[id].filter(function(s){ return s && (Number(s.reps) > 0 || Number(s.weight) > 0); });
+          if (eqValid.length > 0) return r.workout[id];
+        }
+      }
+    }
   }
   return [];
 }
 
 
 function getPreviousSessionFull(exId) {
+  var equivalentIds = (typeof getEquivalentExerciseIds === 'function') ? getEquivalentExerciseIds(exId) : [exId];
   var keys = allDayKeys().reverse();
   var todayK = todayKey();
   for (var i = 0; i < keys.length; i++) {
     if (keys[i] === todayK) continue;
     var r = dayRecord(keys[i]);
-    var prevSets = (r.workout || {})[exId] || [];
-    var valid = prevSets.filter(function(s){ return s && Number(s.reps) > 0; });
-    if (valid.length > 0) {
-      var d = new Date(keys[i] + 'T00:00:00');
-      var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      var formatted = dayNames[d.getDay()] + ', ' + months[d.getMonth()] + ' ' + d.getDate();
-      return { sets: prevSets, dayKey: keys[i], dateFormatted: formatted };
+    if (!r || !r.workout) continue;
+    for (var j = 0; j < equivalentIds.length; j++) {
+      var id = equivalentIds[j];
+      var prevSets = r.workout[id] || [];
+      var valid = prevSets.filter(function(s){ return s && (Number(s.reps) > 0 || Number(s.weight) > 0); });
+      if (valid.length > 0) {
+        var d = new Date(keys[i] + 'T00:00:00');
+        var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var formatted = dayNames[d.getDay()] + ', ' + months[d.getMonth()] + ' ' + d.getDate();
+        return { sets: prevSets, dayKey: keys[i], dateFormatted: formatted };
+      }
     }
   }
   return null;
 }
 
 function getHistorySessionsFull(exId, limit) {
+  var equivalentIds = (typeof getEquivalentExerciseIds === 'function') ? getEquivalentExerciseIds(exId) : [exId];
   var keys = allDayKeys().reverse();
   var todayK = todayKey();
   var found = [];
   for (var i = 0; i < keys.length; i++) {
     if (keys[i] === todayK) continue;
     var r = dayRecord(keys[i]);
-    var prevSets = (r.workout || {})[exId] || [];
-    var valid = prevSets.filter(function(s){ return s && Number(s.reps) > 0; });
-    if (valid.length > 0) {
-      var d = new Date(keys[i] + 'T00:00:00');
-      var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      var formatted = dayNames[d.getDay()] + ', ' + months[d.getMonth()] + ' ' + d.getDate();
-      found.push({ sets: prevSets, dayKey: keys[i], dateFormatted: formatted });
-      if (found.length >= (limit || 3)) break;
+    if (!r || !r.workout) continue;
+    for (var j = 0; j < equivalentIds.length; j++) {
+      var id = equivalentIds[j];
+      var prevSets = r.workout[id] || [];
+      var valid = prevSets.filter(function(s){ return s && (Number(s.reps) > 0 || Number(s.weight) > 0); });
+      if (valid.length > 0) {
+        var d = new Date(keys[i] + 'T00:00:00');
+        var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var formatted = dayNames[d.getDay()] + ', ' + months[d.getMonth()] + ' ' + d.getDate();
+        found.push({ sets: prevSets, dayKey: keys[i], dateFormatted: formatted });
+        break;
+      }
     }
+    if (found.length >= (limit || 3)) break;
   }
   return found;
 }
@@ -4153,44 +4342,81 @@ function compareExerciseSessions(previousSession, currentSets, plannedCount) {
 }
 
 
-function getOverloadSuggestion(exId, exConfig, lastSets) {
+function getOverloadSuggestion(exId, exConfig, lastSets, exName) {
   var repMax = exConfig.repMax || 10;
   var repMin = exConfig.repMin || 6;
   var targetSets = exConfig.sets || 2;
   var increment = exConfig.weightIncrement || 2.5;
+  var isBW = typeof isBodyweightExercise === 'function' ? isBodyweightExercise(exId, exName) : false;
 
-  if (!lastSets || !lastSets.length) {
-    return {
-      type: 'baseline',
-      bannerHTML: '<div class="overload-banner overload-baseline"><span class="overload-icon">🎯</span><div class="overload-text">Baseline Session: Establish working weight for ' + esc(exConfig.reps) + ' reps with 1–2 RIR in reserve.</div></div>'
-    };
+  // Case 1: We have previous working sets (from this or equivalent exercise earlier in week)
+  if (lastSets && lastSets.length) {
+    var validSets = lastSets.filter(function(s){
+      return s && (isBW ? Number(s.reps) > 0 : (Number(s.weight) > 0 && Number(s.reps) > 0));
+    });
+
+    if (validSets.length) {
+      if (isBW) {
+        var lastRepsBW = validSets.map(function(s){ return Number(s.reps); });
+        var maxRepsBW = Math.max.apply(null, lastRepsBW);
+        var addedWeight = Math.max.apply(null, validSets.map(function(s){ return Number(s.weight) || 0; }));
+        if (addedWeight > 0) {
+          return {
+            type: 'add_reps',
+            bannerHTML: '<div class="overload-banner overload-reps"><span class="overload-icon">⚡</span><div class="overload-text"><strong>Repeating Lift (Earlier in Week):</strong> Last logged at <strong>BW+' + addedWeight + ' kg × ' + maxRepsBW + ' reps</strong>. Aim for ' + (maxRepsBW + 1) + '–' + (maxRepsBW + 2) + ' reps!</div></div>'
+          };
+        }
+        var nextRepTarget = Math.max(repMin, maxRepsBW + 1);
+        return {
+          type: 'add_reps',
+          bannerHTML: '<div class="overload-banner overload-reps"><span class="overload-icon">⚡</span><div class="overload-text"><strong>Repeating Lift (Earlier in Week):</strong> Last logged <strong>' + lastRepsBW.join(', ') + ' reps (BW)</strong>. Aim for <strong>' + nextRepTarget + ' reps</strong> at Bodyweight!</div></div>'
+        };
+      }
+
+      var lastWeight = Math.max.apply(null, validSets.map(function(s){ return Number(s.weight); }));
+      var lastReps = validSets.map(function(s){ return Number(s.reps); });
+      var allAtTop = validSets.length >= targetSets && validSets.slice(0, targetSets).every(function(s){ return Number(s.reps) >= repMax; });
+
+      if (allAtTop) {
+        var nextWeight = +(lastWeight + increment).toFixed(2);
+        return {
+          type: 'increase_weight',
+          bannerHTML: '<div class="overload-banner overload-up"><span class="overload-icon">🎉</span><div class="overload-text"><strong>Top range reached (' + lastWeight + ' kg × ' + repMax + ')!</strong> Increase to <strong>' + nextWeight + ' kg</strong> (+' + increment + ' kg) for ' + repMin + '–' + (repMin + 2) + ' reps.</div></div>'
+        };
+      }
+
+      var maxReps = Math.max.apply(null, lastReps);
+      var targetReps = Math.min(repMax, maxReps + 1);
+      return {
+        type: 'add_reps',
+        bannerHTML: '<div class="overload-banner overload-reps"><span class="overload-icon">⚡</span><div class="overload-text"><strong>Repeating Lift (Earlier in Week):</strong> Target <strong>' + targetReps + '–' + repMax + ' reps</strong> at <strong>' + lastWeight + ' kg</strong> (Last: ' + lastReps.join(', ') + ' reps).</div></div>'
+      };
+    }
   }
 
-  var validSets = lastSets.filter(function(s){ return s && Number(s.weight) > 0 && Number(s.reps) > 0; });
-  if (!validSets.length) {
-    return {
-      type: 'baseline',
-      bannerHTML: '<div class="overload-banner overload-baseline"><span class="overload-icon">🎯</span><div class="overload-text">Baseline Session: Establish working weight for ' + esc(exConfig.reps) + ' reps.</div></div>'
-    };
+  // Case 2: No prior sets logged yet — generate science-based working weight recommendation
+  if (typeof getScienceBasedWorkingWeight === 'function') {
+    var scienceRec = getScienceBasedWorkingWeight(exId, exName, exConfig);
+    if (scienceRec && scienceRec.weight) {
+      if (scienceRec.source === 'correlated_lift') {
+        return {
+          type: 'science_rec',
+          suggestedWeight: scienceRec.weight,
+          bannerHTML: '<div class="overload-banner overload-reps"><span class="overload-icon">🔬</span><div class="overload-text"><strong>Science-Based Target:</strong> Based on your ' + esc(scienceRec.refLiftName) + ' (' + scienceRec.refWeight + ' kg), recommended starting weight is <strong>' + scienceRec.weight + ' kg</strong> for ' + esc(exConfig.reps) + ' reps.</div></div>'
+        };
+      } else {
+        return {
+          type: 'science_rec',
+          suggestedWeight: scienceRec.weight,
+          bannerHTML: '<div class="overload-banner overload-baseline"><span class="overload-icon">📊</span><div class="overload-text"><strong>Recommended Working Weight:</strong> Start at <strong>~' + scienceRec.weight + ' kg</strong> (based on ' + scienceRec.userWeight + ' kg bodyweight) for ' + esc(exConfig.reps) + ' reps (1–2 RIR).</div></div>'
+        };
+      }
+    }
   }
 
-  var lastWeight = Math.max.apply(null, validSets.map(function(s){ return Number(s.weight); }));
-  var lastReps = validSets.map(function(s){ return Number(s.reps); });
-  var allAtTop = validSets.length >= targetSets && validSets.slice(0, targetSets).every(function(s){ return Number(s.reps) >= repMax; });
-
-  if (allAtTop) {
-    var nextWeight = +(lastWeight + increment).toFixed(2);
-    return {
-      type: 'increase_weight',
-      bannerHTML: '<div class="overload-banner overload-up"><span class="overload-icon">🎉</span><div class="overload-text">Top range reached (' + lastWeight + ' kg × ' + repMax + ')! Increase to <strong>' + nextWeight + ' kg</strong> (+' + increment + ' kg) for ' + repMin + '–' + (repMin + 2) + ' reps.</div></div>'
-    };
-  }
-
-  var maxReps = Math.max.apply(null, lastReps);
-  var targetReps = Math.min(repMax, maxReps + 1);
   return {
-    type: 'add_reps',
-    bannerHTML: '<div class="overload-banner overload-reps"><span class="overload-icon">🎯</span><div class="overload-text">Overload Target: Aim for <strong>' + targetReps + '–' + repMax + ' reps</strong> at ' + lastWeight + ' kg (Last: ' + lastReps.join(', ') + ' reps).</div></div>'
+    type: 'baseline',
+    bannerHTML: '<div class="overload-banner overload-baseline"><span class="overload-icon">🎯</span><div class="overload-text">Baseline Session: Establish working weight for ' + esc(exConfig.reps) + ' reps with 1–2 RIR in reserve.</div></div>'
   };
 }
 
@@ -4665,7 +4891,7 @@ function renderGym() {
       }
 
       var inputR = usePrefill ? '' : valueR;
-      var placeholderW = isBW ? 'BW' : (usePrefill ? valueW : 'kg');
+      var placeholderW = isBW ? 'BW' : (usePrefill ? (valueW || (overload && overload.suggestedWeight) || 'kg') : ((overload && overload.suggestedWeight) ? ('~' + overload.suggestedWeight + 'kg') : 'kg'));
       var placeholderR = usePrefill ? valueR : 'reps';
 
       var rirOptions = '<option value="">Effort</option><option value="3" ' + (valueRir === 3 ? 'selected' : '') + '>3+ RIR</option><option value="2" ' + (valueRir === 2 ? 'selected' : '') + '>2 RIR</option><option value="1" ' + (valueRir === 1 ? 'selected' : '') + '>1 RIR</option><option value="0" ' + (valueRir === 0 ? 'selected' : '') + '>Failure</option>';
@@ -4691,7 +4917,7 @@ function renderGym() {
     var repsStr = ex.reps || exOrig.reps || '8–12';
     var targetSets = ex.sets || exOrig.sets || 2;
     var exConfig = { reps: repsStr, sets: targetSets, repMin: getBottomRepRange(repsStr), repMax: getTopRepRange(repsStr), weightIncrement: ex.weightIncrement || 2.5 };
-    var overload = getOverloadSuggestion(ex.id, exConfig, lastSets);
+    var overload = getOverloadSuggestion(ex.id, exConfig, lastSets, ex.name);
 
     var isCompound = ex.type === 'compound' || exOrig.type === 'compound';
     var warmUpLink = (isCompound && !isBW) ? '<button class="btn-ghost warm-up-btn" data-exname="' + esc(ex.name) + '" data-exid="' + esc(ex.id) + '" style="font-size:10px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;cursor:pointer">Warm Up</button>' : '';
@@ -7888,7 +8114,7 @@ SQLiteStorage.init(function(){
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js?v=21').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=22').catch(function(){});
   });
 }
 </script>
