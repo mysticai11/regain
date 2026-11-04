@@ -8581,11 +8581,7 @@ function openEditWorkoutSheet(sessionId) {
 
 function buildDotConsistencyCalendarHTML() {
   var now = new Date();
-  var months = [];
-  for (var m = 2; m >= 0; m--) {
-    var d = new Date(now.getFullYear(), now.getMonth() - m, 1);
-    months.push({ year: d.getFullYear(), month: d.getMonth() });
-  }
+  var months = [{ year: now.getFullYear(), month: now.getMonth() }];
   var monthNames = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
   var todayStr = todayKey();
   var trainedCount = 0;
@@ -9219,7 +9215,7 @@ SQLiteStorage.init(function(){
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js?v=31').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=32').catch(function(){});
   });
 }
 </script>
