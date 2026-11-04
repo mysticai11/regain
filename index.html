@@ -2414,7 +2414,7 @@ var DEFAULT_5DAY_ROUTINE = [
     exercises: [
       {id:'ez_bar_curl', name:'EZ-Bar Curl', muscle:'biceps', sets:2, reps:'8–12', rir:'1–2', rest:90, cue:'Biceps', weightIncrement:2.5, type:'isolation'},
       {id:'overhead_triceps_ext', name:'Overhead Triceps Extension', muscle:'triceps', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Triceps overhead stretch', weightIncrement:2.5, type:'isolation'},
-      {id:'hammer_curl', name:'Hammer Curl', muscle:'biceps,forearms', sets:2, reps:'8–12', rir:'1–2', rest:90, cue:'Brachialis & forearms', weightIncrement:2, type:'isolation'},
+      {id:'hammer_curl', name:'Hammer Curl', muscle:'forearms', sets:2, reps:'8–12', rir:'1–2', rest:90, cue:'Brachialis & forearms', weightIncrement:2, type:'isolation'},
       {id:'triceps_pushdown', name:'Triceps Pushdown', muscle:'triceps', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Triceps lateral head', weightIncrement:2.5, type:'isolation'},
       {id:'incline_db_curl', name:'Incline Dumbbell Curl', muscle:'biceps', sets:2, reps:'8–12', rir:'1–2', rest:90, cue:'Biceps stretch', weightIncrement:2, type:'isolation'}
     ]
@@ -2563,12 +2563,15 @@ function getExerciseData(id) {
 }
 
 function getAllExercisesForMuscle(muscleStr) {
-  var allProg = IRON_LOG_PROGRAM;
+  var allProg = getActiveProgram();
   var allEx = ALTERNATES.slice();
   allProg.forEach(function(s){ allEx = allEx.concat(s.exercises); });
   var seen = {}; var out = [];
+  var targetM = (muscleStr || '').toLowerCase().trim();
   allEx.forEach(function(e){
-    if(!seen[e.id] && (e.muscle === muscleStr || e.muscle.indexOf(muscleStr)>-1 || muscleStr.indexOf(e.muscle)>-1)) {
+    var eMuscles = String(e.muscle || '').toLowerCase().split(',').map(function(m){ return m.trim(); });
+    var match = eMuscles.includes(targetM) || (targetM.includes(',') && eMuscles.some(function(m){ return targetM.includes(m); }));
+    if(!seen[e.id] && match) {
       seen[e.id] = true; out.push(e);
     }
   });
@@ -2578,13 +2581,13 @@ function getAllExercisesForMuscle(muscleStr) {
 // Volume table calculation dynamically based on active program
 function getWeeklyVolume() {
   var prog = getActiveProgram();
-  var v = { 'Quads / Glutes': 0, 'Hamstrings': 0, 'Chest': 0, 'Back': 0, 'Shoulders': 0, 'Biceps': 0, 'Triceps': 0, 'Calves': 0 };
+  var v = { 'Quads / Glutes': 0, 'Hamstrings': 0, 'Chest': 0, 'Back': 0, 'Shoulders': 0, 'Biceps': 0, 'Triceps': 0, 'Forearms': 0, 'Calves': 0 };
   prog.forEach(function(sess){
     sess.exercises.forEach(function(ex){
       var m = String(ex.muscle || '').toLowerCase().split(',').map(function(mu){ return mu.trim(); });
       m.forEach(function(mu){
-        var mapped = mu==='quads'?'Quads / Glutes':mu==='glutes'?'Quads / Glutes':mu==='hamstrings'?'Hamstrings':mu==='chest'?'Chest':mu==='back'?'Back':mu==='shoulders'?'Shoulders':mu==='biceps'?'Biceps':mu==='triceps'?'Triceps':mu==='calves'?'Calves':'';
-        if(mapped) v[mapped] += ex.sets;
+        var mapped = mu==='quads'?'Quads / Glutes':mu==='glutes'?'Quads / Glutes':mu==='hamstrings'?'Hamstrings':mu==='chest'?'Chest':mu==='back'?'Back':mu==='shoulders'?'Shoulders':mu==='biceps'?'Biceps':mu==='triceps'?'Triceps':mu==='forearms'?'Forearms':mu==='calves'?'Calves':'';
+        if(mapped && v[mapped] != null) v[mapped] += (ex.sets || 2);
       });
     });
   });
@@ -2592,7 +2595,7 @@ function getWeeklyVolume() {
 }
 
 function getLoggedWeeklyVolume() {
-  var totals = { 'Quads / Glutes': 0, Hamstrings: 0, Chest: 0, Back: 0, Shoulders: 0, Biceps: 0, Triceps: 0, Calves: 0 };
+  var totals = { 'Quads / Glutes': 0, Hamstrings: 0, Chest: 0, Back: 0, Shoulders: 0, Biceps: 0, Triceps: 0, Forearms: 0, Calves: 0 };
   var cutoff = Date.now() - 7 * 86400000;
   allDayKeys().forEach(function(key) {
     if (new Date(key + 'T23:59:59').getTime() < cutoff) return;
@@ -2602,7 +2605,8 @@ function getLoggedWeeklyVolume() {
       if (!ex) return;
       var count = workout[id].filter(Boolean).length;
       String(ex.muscle || '').toLowerCase().split(',').forEach(function(mu) {
-        var mapped = mu.trim()==='quads'||mu.trim()==='glutes'?'Quads / Glutes':mu.trim().replace(/^./,function(c){return c.toUpperCase();});
+        var t = mu.trim();
+        var mapped = (t==='quads'||t==='glutes')?'Quads / Glutes':(t==='forearms'?'Forearms':t.replace(/^./,function(c){return c.toUpperCase();}));
         if (totals[mapped] != null) totals[mapped] += count;
       });
     });
@@ -2634,11 +2638,12 @@ function weeklyVolumeChart() {
 }
 
 function nutritionProgressHTML(records) {
+  var dailyTarget = getTargetsForDate(todayKey());
+  var target = dailyTarget.kcal;
+  var proteinTarget = dailyTarget.protein;
   var recent = records.slice(-7), days = recent.filter(function(r){ return r.kcal > 0; });
   var kcal = days.length ? Math.round(days.reduce(function(sum,r){ return sum + r.kcal; }, 0) / days.length) : 0;
   var protein = days.length ? Math.round(days.reduce(function(sum,r){ return sum + r.protein; }, 0) / days.length) : 0;
-  var target = Math.round(records.slice(-7).reduce(function(sum,r){ return sum + getTargetsForDate(r.key).kcal; }, 0) / 7);
-  var proteinTarget = Math.round(records.slice(-7).reduce(function(sum,r){ return sum + getTargetsForDate(r.key).protein; }, 0) / 7);
   var kcalPct = Math.min(100, Math.round(kcal / Math.max(1, target) * 100));
   var protPct = Math.min(100, Math.round(protein / Math.max(1, proteinTarget) * 100));
 
@@ -5646,7 +5651,6 @@ function renderGym() {
           ? ('<div class="prog-line" style="margin-bottom:10px"><div class="prog-line-fill' + (loggedTotal >= totalPlanned && totalPlanned > 0 ? ' lime' : '') + '" style="width:' + Math.min(100, Math.round(loggedTotal / Math.max(1, totalPlanned) * 100)) + '%"></div></div>')
           : '')
       + (!activeSched.isRest ? '<div class="session-timer-dock" id="sessionTimer"></div>' : '')
-      + '<div class="gym-sched-strip">' + stepperHTML + '</div>'
     + '</div>';
 
   var dateBannerHTML = !isActualToday
@@ -5762,7 +5766,15 @@ function renderGym() {
   }
 
   // 3. ACTIVE / EDITABLE WORKOUT LOGGING
-  var exHTML = session.exercises.map(function(exOrig, exIndex) {
+  var seenExIds = {};
+  var uniqueExercises = (session.exercises || []).filter(function(ex) {
+    if (!ex || !ex.id) return false;
+    if (seenExIds[ex.id]) return false;
+    seenExIds[ex.id] = true;
+    return true;
+  });
+
+  var exHTML = uniqueExercises.map(function(exOrig, exIndex) {
     var exId = (rec.swaps && rec.swaps[exOrig.id]) ? rec.swaps[exOrig.id] : exOrig.id;
     var ex = getExerciseData(exId) || exOrig;
     var isBW = isBodyweightExercise(ex.id, ex.name);
@@ -5827,7 +5839,7 @@ function renderGym() {
 
     var lastSetsStr = lastSets.length ? lastSets.map(function(s){
       var wDisp = isBW ? ((!s.weight || Number(s.weight) === 0) ? 'BW' : 'BW+' + s.weight) : s.weight;
-      return wDisp + '×' + s.reps + (s.rir != null ? '@' + s.rir : '');
+      return wDisp + '×' + s.reps;
     }).join(', ') : '';
 
     var metaLine = targetDisplay + (lastSetsStr ? ' · Last ' + lastSetsStr : '');
@@ -6650,7 +6662,7 @@ function openAddExerciseModal(onAdd) {
     { name: 'Standing Calf Raise', muscle: 'calves', sets: 3, reps: '12–20', rir: '1–2', rest: 60, cue: 'Calves stretch', type: 'isolation' },
     { name: 'EZ-Bar Curl', muscle: 'biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Biceps peak', type: 'isolation' },
     { name: 'Incline Dumbbell Curl', muscle: 'biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Biceps stretch', type: 'isolation' },
-    { name: 'Hammer Curl', muscle: 'biceps,forearms', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Brachialis & forearms', type: 'isolation' },
+    { name: 'Hammer Curl', muscle: 'forearms', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Brachialis & forearms', type: 'isolation' },
     { name: 'Triceps Pushdown', muscle: 'triceps', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Triceps lock', type: 'isolation' },
     { name: 'Overhead Triceps Extension', muscle: 'triceps', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Triceps overhead', type: 'isolation' }
   ];
@@ -7826,7 +7838,27 @@ function progressPlot(values, goal, unit) {
   var poly=points.map(function(p){return p.x.toFixed(1)+','+p.y.toFixed(1);}).join(' ');
   var first=values[0].value, last=values[values.length-1].value, delta=last-first;
   var deltaText=values.length>1?(delta===0?'No change':(delta>0?'+':'')+(isReps?Math.round(delta):delta.toFixed(1))+' '+unitLabel):'First entry';
-  var labels=[values[0],values[Math.floor((values.length-1)/2)],values[values.length-1]].map(function(v){var raw=String(v.label||'').slice(0,10);return raw.replace(/^\\d{4}-/,'').replace('-','/');});
+  var distinctLabels = [];
+  values.forEach(function(v){
+    var raw = String(v.label || '').slice(0, 10);
+    var match = raw.match(/\d{4}-\d{2}-\d{2}/);
+    var d = match ? new Date(match[0] + 'T00:00:00') : new Date(raw);
+    var dt = !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : raw.replace(/^\d{4}-/, '').replace('-', '/');
+    if (dt && !distinctLabels.includes(dt)) distinctLabels.push(dt);
+  });
+  var displayLabels = [];
+  if (distinctLabels.length <= 4) {
+    displayLabels = distinctLabels;
+  } else {
+    var step = (distinctLabels.length - 1) / 3;
+    displayLabels = [
+      distinctLabels[0],
+      distinctLabels[Math.round(step)],
+      distinctLabels[Math.round(step * 2)],
+      distinctLabels[distinctLabels.length - 1]
+    ];
+  }
+
   var goalY=goal!=null?8+((max-goal)/span)*84:null;
   var goalLine=goalY!=null&&goalY>=0&&goalY<=100?'<div class="chart-goal" style="top:'+goalY+'%"><span>goal '+Number(goal).toFixed(1)+'</span></div>':'';
   var area=points.length>1?poly+' 100,100 0,100':'';
@@ -7836,7 +7868,7 @@ function progressPlot(values, goal, unit) {
     
     +'<polyline points="'+poly+'" fill="none" stroke="#F5F5F4" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/>'
     +points.map(function(p,i){return '<circle cx="'+p.x+'" cy="'+p.y+'" r="'+(i===points.length-1?'3':'2.2')+'" fill="'+(i===points.length-1?'var(--amber-light)':'var(--amber)')+'" stroke="var(--surface)" stroke-width="1"><title>'+esc(p.v.label||p.v.value)+'</title></circle>';}).join('')
-    +'</svg></div><div class="plot-axis"><span>'+esc(labels[0])+'</span><span>'+esc(labels[1])+'</span><span>'+esc(labels[2])+'</span></div></div>';
+    +'</svg></div><div class="plot-axis" style="display:flex;justify-content:space-between">' + displayLabels.map(function(l){ return '<span>' + esc(l) + '</span>'; }).join('') + '</div></div>';
 }
 
 function workoutHistoryHTML() {
@@ -7853,13 +7885,15 @@ function workoutHistoryHTML() {
       return count + (ex.sets || []).filter(Boolean).length;
     }, 0);
     var dObj = session.dayKey ? new Date(session.dayKey + 'T00:00:00') : new Date();
-    var dateStr = dObj.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
+    var dateStr = dObj.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
     var storedMeta = session.dayKey ? (dayRecord(session.dayKey).workoutMetaBySession || {}) : {};
     var matchingMeta = storedMeta[String(session.programDay)] || Object.keys(storedMeta).map(function(k){ return storedMeta[k]; }).find(function(m){ return m && (m.duration_sec != null || m.durationMinutes != null); });
     var durationSec = session.duration_sec != null ? Number(session.duration_sec) : (matchingMeta && (matchingMeta.duration_sec != null ? Number(matchingMeta.duration_sec) : Number(matchingMeta.durationMinutes)*60));
     var durStr = durationSec ? (Math.round(durationSec / 60) + ' min') : '';
 
-    var cleanTitle = (session.programLabel || session.sessionLabel || 'Workout').replace(/^Day\s*\d+\s*[—–-]\s*/i, '');
+    var rawTitle = session.programLabel || session.sessionLabel || 'Workout';
+    var cleanTitle = rawTitle.replace(/^Day\s*\d+\s*[·•—–-]\s*/gi, '').replace(/^Day\s*\d+\s*[·•—–-]\s*/gi, '').trim();
+    if (!cleanTitle) cleanTitle = rawTitle;
 
     var exRows = exercises.map(function(exItem) {
       var exData = getExerciseData(exItem.id) || { name: exItem.id };
@@ -7892,7 +7926,7 @@ function workoutHistoryHTML() {
           + '<div style="font-family:\'Space Grotesk\',system-ui,sans-serif;font-weight:700;font-size:17px;color:var(--text)">' + esc(cleanTitle) + '</div>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:12px">'
-          + '<span class="hist-glass-badge tabnum">' + (durStr ? durStr + ' · ' : '') + totalSets + ' sets</span>'
+          + '<span class="hist-glass-badge tabnum">' + (durStr ? durStr + ' · ' : '') + totalSets + (totalSets === 1 ? ' set' : ' sets') + '</span>'
           + '<button type="button" class="btn-ghost" data-edit-workout-session="' + esc(session.id) + '" onclick="event.stopPropagation();event.preventDefault();" style="font-size:18px;line-height:1;padding:4px 8px;color:var(--text-secondary);cursor:pointer" aria-label="Session options">···</button>'
         + '</div>'
       + '</summary>'
@@ -8588,14 +8622,41 @@ function openGymDateDaySheet() {
       return;
     }
 
-    window.activeGymDateKey = chosenDate;
     var targetRec = dayRecord(chosenDate);
     targetRec.selectedDayNumber = chosenDayNum;
     targetRec.selectedWorkout = chosenWIdx;
-    saveDayRecord(chosenDate, targetRec);
 
+    if (chosenDate !== curKey) {
+      var srcRec = dayRecord(curKey);
+      var hasSets = srcRec.workout && Object.keys(srcRec.workout).some(function(k){ return (srcRec.workout[k]||[]).some(Boolean); });
+      if (hasSets || srcRec.workoutDone) {
+        targetRec.workout = srcRec.workout;
+        targetRec.workoutDone = srcRec.workoutDone;
+        targetRec.duration_sec = srcRec.duration_sec;
+        targetRec.durationMinutes = srcRec.durationMinutes;
+
+        var store = workoutSessionStore();
+        Object.keys(store.sessions).forEach(function(sId){
+          if (store.sessions[sId].dayKey === curKey) {
+            store.sessions[sId].dayKey = chosenDate;
+          }
+        });
+        sv(WORKOUT_SESSIONS_KEY, store);
+
+        srcRec.workout = {};
+        srcRec.workoutDone = false;
+        saveDayRecord(curKey, srcRec);
+        showToast('Moved logged workout to ' + chosenDate, 'ok');
+      } else {
+        showToast('Switched to ' + chosenDate, 'ok');
+      }
+    } else {
+      showToast('Date updated', 'ok');
+    }
+
+    saveDayRecord(chosenDate, targetRec);
+    window.activeGymDateKey = chosenDate;
     overlay.remove();
-    showToast('Switched to ' + chosenDate, 'ok');
     renderGym();
   };
 
@@ -8908,7 +8969,7 @@ function buildDotConsistencyCalendarHTML() {
   return '<div class="chk-calendar-wrap">'
     + '<div class="chk-cal-header">'
       + '<span class="t-label">' + monthNames[month] + ' ' + year + '</span>'
-      + '<span class="t-micro tabnum">' + trainedCount + ' / ' + plannedCount + ' workouts</span>'
+      + '<span class="t-micro tabnum">' + trainedCount + ' of ' + plannedCount + (plannedCount === 1 ? ' workout' : ' workouts') + '</span>'
     + '</div>'
     + '<div class="chk-weekdays">'
       + '<span class="chk-weekday-name">M</span>'
@@ -9131,8 +9192,15 @@ var DEFAULT_STAPLES = [
 ];
 
 function getStaplesShelfHTML() {
-  var staples = (profile && profile.customStaples) || DEFAULT_STAPLES;
-  if (!staples || !staples.length) return '';
+  var rawStaples = (profile && profile.customStaples) || DEFAULT_STAPLES;
+  if (!rawStaples || !rawStaples.length) return '';
+  var seenIds = {};
+  var staples = rawStaples.filter(function(s){
+    var sid = s.id || s.name;
+    if (seenIds[sid]) return false;
+    seenIds[sid] = true;
+    return true;
+  });
   var rows = staples.map(function(s, idx) {
     return '<div class="list-row glass-list-row" data-quick-staple="' + idx + '" style="cursor:pointer">'
       + '<span class="list-row-left">' + esc(s.name) + '</span>'
@@ -9521,7 +9589,7 @@ SQLiteStorage.init(function(){
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js?v=37').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=38').catch(function(){});
   });
 }
 </script>
