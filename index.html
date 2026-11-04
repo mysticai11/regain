@@ -2027,6 +2027,80 @@ body {
   gap: 8px;
 }
 
+
+/* ── Consistency Checklist Calendar ── */
+.chk-calendar-wrap {
+  margin-bottom: 28px;
+  background: var(--surface);
+  border-radius: var(--r-surface);
+  padding: 18px 16px;
+}
+.chk-cal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 14px;
+}
+.chk-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.chk-weekday-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.chk-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.chk-day {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-chip);
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  position: relative;
+  transition: all 0.15s ease;
+}
+.chk-day.empty {
+  visibility: hidden;
+  pointer-events: none;
+}
+.chk-day.past {
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  border: 1px solid var(--div);
+}
+.chk-day.future {
+  background: transparent;
+  color: #48484E;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.chk-day.today {
+  background: var(--surface-raised);
+  color: #FFFFFF;
+  border: 1.5px solid #FFFFFF;
+}
+.chk-day.trained {
+  background: var(--lime) !important;
+  color: #0B0B0C !important;
+  border: none !important;
+  font-weight: 700 !important;
+}
+.chk-day.trained.today {
+  box-shadow: 0 0 0 2px #FFFFFF;
+}
+
 </style>
 </head>
 <body>
@@ -8687,50 +8761,73 @@ function openEditWorkoutSheet(sessionId) {
 
 function buildDotConsistencyCalendarHTML() {
   var now = new Date();
-  var months = [{ year: now.getFullYear(), month: now.getMonth() }];
+  var year = now.getFullYear();
+  var month = now.getMonth();
   var monthNames = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
   var todayStr = todayKey();
+  var todayDate = now.getDate();
+  var tdays = (profile && profile.trainingDays) || [1,2,3,5,6];
+
+  var firstDay = new Date(year, month, 1);
+  var lastDay = new Date(year, month + 1, 0);
+  var daysInMonth = lastDay.getDate();
+  var startOffset = (firstDay.getDay() + 6) % 7; // Monday = 0
+
   var trainedCount = 0;
+  var plannedCount = 0;
+  var cells = [];
 
-  var monthsHTML = months.map(function(item) {
-    var firstDay = new Date(item.year, item.month, 1);
-    var lastDay = new Date(item.year, item.month + 1, 0);
-    var daysInMonth = lastDay.getDate();
-    var startOffset = (firstDay.getDay() + 6) % 7; // Monday = 0
-    
-    var cells = [];
-    for (var o = 0; o < startOffset; o++) {
-      cells.push('<div class="cal-dot empty"></div>');
+  for (var o = 0; o < startOffset; o++) {
+    cells.push('<div class="chk-day empty"></div>');
+  }
+
+  for (var day = 1; day <= daysInMonth; day++) {
+    var curDate = new Date(year, month, day);
+    var dow = curDate.getDay();
+    var isTrainingDay = tdays.includes(dow);
+    if (isTrainingDay) plannedCount++;
+
+    var mm = (month + 1 < 10 ? '0' : '') + (month + 1);
+    var dd = (day < 10 ? '0' : '') + day;
+    var key = year + '-' + mm + '-' + dd;
+    var rec = dayRecord(key);
+    var trained = rec && (rec.workoutDone || (rec.workout && Object.keys(rec.workout).some(function(k){return (rec.workout[k]||[]).some(Boolean);})));
+    var isToday = (key === todayStr);
+    var isPast = (day < todayDate);
+    var isFuture = (day > todayDate);
+
+    if (trained) trainedCount++;
+
+    var cls = 'chk-day';
+    if (trained) {
+      cls += ' trained';
+      if (isToday) cls += ' today';
+    } else if (isToday) {
+      cls += ' today';
+    } else if (isPast) {
+      cls += ' past';
+    } else {
+      cls += ' future';
     }
-    for (var day = 1; day <= daysInMonth; day++) {
-      var mm = (item.month + 1 < 10 ? '0' : '') + (item.month + 1);
-      var dd = (day < 10 ? '0' : '') + day;
-      var key = item.year + '-' + mm + '-' + dd;
-      var rec = dayRecord(key);
-      var trained = rec && (rec.workoutDone || (rec.workout && Object.keys(rec.workout).some(function(k){return (rec.workout[k]||[]).some(Boolean);})));
-      var isToday = (key === todayStr);
-      var isFuture = new Date(item.year, item.month, day) > now;
 
-      if (trained) trainedCount++;
+    cells.push('<div class="' + cls + '" title="' + key + (trained ? ' (Trained)' : '') + '"><span class="chk-day-num">' + day + '</span></div>');
+  }
 
-      var cls = 'cal-dot';
-      if (isFuture) cls += ' empty';
-      else if (trained && isToday) cls += ' today lit';
-      else if (isToday) cls += ' today';
-      else if (trained) cls += ' lit';
-
-      cells.push('<div class="' + cls + '"></div>');
-    }
-
-    return '<div class="cal-grid-month">'
-      + '<div class="cal-grid-month-title">' + monthNames[item.month] + ' ' + item.year + '</div>'
-      + '<div class="cal-grid-dots">' + cells.join('') + '</div>'
-      + '</div>';
-  }).join('');
-
-  return '<div style="margin-bottom:28px">'
-    + '<div class="t-label" style="margin-bottom:12px">' + trainedCount + (trainedCount === 1 ? ' workout' : ' workouts') + '</div>'
-    + monthsHTML
+  return '<div class="chk-calendar-wrap">'
+    + '<div class="chk-cal-header">'
+      + '<span class="t-label">' + monthNames[month] + ' ' + year + '</span>'
+      + '<span class="t-micro tabnum">' + trainedCount + ' / ' + plannedCount + ' workouts</span>'
+    + '</div>'
+    + '<div class="chk-weekdays">'
+      + '<span class="chk-weekday-name">M</span>'
+      + '<span class="chk-weekday-name">T</span>'
+      + '<span class="chk-weekday-name">W</span>'
+      + '<span class="chk-weekday-name">T</span>'
+      + '<span class="chk-weekday-name">F</span>'
+      + '<span class="chk-weekday-name">S</span>'
+      + '<span class="chk-weekday-name">S</span>'
+    + '</div>'
+    + '<div class="chk-days-grid">' + cells.join('') + '</div>'
     + '</div>';
 }
 
@@ -9321,7 +9418,7 @@ SQLiteStorage.init(function(){
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js?v=33').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=34').catch(function(){});
   });
 }
 </script>
