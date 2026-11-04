@@ -1912,6 +1912,121 @@ body {
   .set-row-compact { grid-template-columns: 20px 1fr 1fr 64px 40px !important; gap: 4px !important; }
 }
 
+
+/* ── Unified Precision Gym Header ── */
+.gym-header-unified {
+  margin-bottom: 20px;
+}
+.gym-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.gym-header-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.gym-header-btn:hover {
+  color: var(--text);
+}
+.gym-sched-strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  background: var(--surface);
+  border-radius: var(--r-control);
+  padding: 8px 6px;
+  margin-top: 14px;
+}
+.gym-sched-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 2px;
+  border-radius: var(--r-chip);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  user-select: none;
+}
+.gym-sched-cell.active {
+  background: var(--surface-raised);
+}
+.gym-sched-day {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  line-height: 1;
+}
+.gym-sched-cell.active .gym-sched-day {
+  color: var(--text);
+}
+.gym-sched-indicator {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  margin: 4px 0;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+.gym-sched-indicator.done {
+  color: var(--lime);
+}
+.gym-sched-indicator.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+.gym-sched-indicator.dot.active {
+  background: #FFFFFF;
+}
+.gym-sched-tag {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  line-height: 1;
+  text-transform: uppercase;
+}
+.gym-sched-cell.active .gym-sched-tag {
+  color: var(--text-secondary);
+}
+.gym-sched-cell.is-rest .gym-sched-tag {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* Session Timer Dock */
+.session-timer-dock {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 4px 0 8px;
+}
+.session-timer-dock .timer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 </style>
 </head>
 <body>
@@ -5319,7 +5434,7 @@ function renderGym() {
   var activeDate = new Date(key + 'T00:00:00');
   var currentD = activeDate.getDay();
   var isActualToday = key === todayKey();
-  var formattedSessionDate = activeDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }); // 0=Sun, 1=Mon, ..., 6=Sat
+  var formattedSessionDate = activeDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
   var completedCount = getCompletedWorkoutCount();
   var cycleWorkouts = prog.length || 5;
   var workoutWeek = Math.floor(completedCount / cycleWorkouts) + 1;
@@ -5332,7 +5447,8 @@ function renderGym() {
   var activeSched = weeklySched.find(function(s){ return s.dayNum === scheduleDayNum; }) || weeklySched[0];
 
   // Stepper HTML: marks completed days in this cycle
-  var stepperHTML = weeklySched.map(function(s) {
+  var dayLetters = ['M','T','W','T','F','S','S'];
+  var stepperHTML = weeklySched.map(function(s, idx) {
     var isSelected = s.dayNum === scheduleDayNum;
     var isToday = defaultScheduleDay === s.dayNum;
     var isDone = false;
@@ -5340,66 +5456,79 @@ function renderGym() {
       if (isToday && rec.workoutDone) isDone = true;
       else if (s.workoutIndex < completedInCycle) isDone = true;
     }
-    var statusIcon = isDone ? '✓' : s.isRest ? '💤' : (isToday ? '⚡' : '•');
-    // Short clean tag label: e.g. W1, W2, Rest, W3, W4, W5
+    var letter = s.weekday ? s.weekday.slice(0, 3).toUpperCase() : (dayLetters[idx] || 'D');
     var tagLabel = s.isRest ? 'Rest' : (s.workoutIndex != null ? ('W' + (s.workoutIndex + 1)) : 'Day');
+    
+    var indHTML = '';
+    if (isDone) {
+      indHTML = '<span class="gym-sched-indicator done">✓</span>';
+    } else if (s.isRest) {
+      indHTML = '<span class="gym-sched-indicator" style="opacity:0.4">—</span>';
+    } else if (isSelected || isToday) {
+      indHTML = '<span class="gym-sched-indicator dot active"></span>';
+    } else {
+      indHTML = '<span class="gym-sched-indicator dot"></span>';
+    }
 
-    return '<div class="step-day ' + (isSelected ? 'active ' : '') + (isDone ? 'completed ' : '') + (s.isRest ? 'is-rest' : '') + '" data-pick-sched-day="' + s.dayNum + '" data-workout-idx="' + (s.workoutIndex != null ? s.workoutIndex : '') + '" title="' + esc(s.name + ': ' + s.label) + '">'
-      + '<span class="step-day-num">' + esc(s.weekday || s.name) + '</span>'
-      + '<span class="step-day-status">' + statusIcon + '</span>'
-      + '<span class="step-day-tag">' + tagLabel + '</span>'
+    return '<div class="gym-sched-cell ' + (isSelected ? 'active ' : '') + (s.isRest ? 'is-rest' : '') + '" data-pick-sched-day="' + s.dayNum + '" data-workout-idx="' + (s.workoutIndex != null ? s.workoutIndex : '') + '" title="' + esc(s.name + ': ' + s.label) + '">'
+      + '<span class="gym-sched-day">' + letter + '</span>'
+      + indHTML
+      + '<span class="gym-sched-tag">' + tagLabel + '</span>'
       + '</div>';
   }).join('');
 
-  // Clean workout name for the selected day showcase bar
+  // Clean workout name for the selected day
   var activeCleanName = activeSched.isRest
     ? 'Scheduled Rest Day'
     : (activeSched.label.replace(/^Day\s*\d+\s*[—–-]\s*/i, '') || activeSched.label);
   var isTodayActive = defaultScheduleDay === activeSched.dayNum;
   var isActiveDone = isTodayActive ? rec.workoutDone : (activeSched.workoutIndex != null && activeSched.workoutIndex < completedInCycle);
 
-  // Top Cycle Progress Card with mobile-friendly showcase bar
-  var cycleCardHTML = '<div class="gym-cycle-card">'
-    + '<div class="cycle-headline">'
-      + '<div class="cycle-headline-left">'
-        + '<div class="cycle-week-title">' + ic('barbell', 15) + ' <span>Week ' + workoutWeek + '</span>' + (completedInCycle === 0 && completedCount > 0 ? ' <span class="fresh-week-badge">Fresh</span>' : '') + '</div>'
-        + '<span class="cycle-badge">' + completedInCycle + ' / ' + cycleWorkouts + ' done</span>'
+  var workoutIndex = activeSched.workoutIndex;
+  var session = (prog && prog[workoutIndex]) || (prog && prog[0]) || { label: 'Workout', exercises: [] };
+  var totalPlanned = (session.exercises || []).reduce(function(total, ex){ return total + (ex.sets || 0); }, 0);
+  var loggedTotal = (session.exercises || []).reduce(function(total, ex){
+    var actualId = (rec.swaps && rec.swaps[ex.id]) || ex.id;
+    return total + ((rec.workout || {})[actualId] || []).filter(Boolean).length;
+  }, 0);
+
+  var gymHeaderUnifiedHTML =
+    '<div class="gym-header-unified">'
+      + '<div class="gym-top-row">'
+        + '<button type="button" class="gym-header-btn" id="gymDateSelectBtn" title="Change session date">'
+          + esc(formattedSessionDate).toUpperCase() + ' · WEEK ' + workoutWeek
+        + '</button>'
+        + '<button type="button" class="gym-header-btn" id="manageSplitTopBtn">Plan</button>'
       + '</div>'
-      + '<div style="display:flex;align-items:center;gap:6px">'
-        + '<button type="button" class="cycle-plan-btn" id="gymDateSelectBtn" title="Change session date">📅 ' + esc(formattedSessionDate) + '</button>'
-        + '<button type="button" class="cycle-plan-btn" id="manageSplitTopBtn">✏️ Plan</button>'
+      + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'
+        + '<div class="t-title">' + esc(activeCleanName) + '</div>'
+        + (!activeSched.isRest ? ('<span class="t-micro tabnum" id="gymSetProgress">' + loggedTotal + ' / ' + totalPlanned + ' sets</span>') : '')
       + '</div>'
-    + '</div>'
-    + '<div class="schedule-stepper">' + stepperHTML + '</div>'
-    + '<div class="cycle-selected-bar">'
-      + '<span class="selected-day-badge ' + (activeSched.isRest ? 'is-rest' : '') + '">'
-        + (activeSched.isRest ? 'REST' : (isTodayActive ? 'TODAY' : (isActiveDone ? 'DONE' : 'SELECTED')))
-      + '</span>'
-      + '<div class="selected-day-text">'
-        + '<span class="selected-day-name">' + esc(activeSched.name) + '</span>'
-        + '<span class="selected-day-sep">·</span>'
-        + '<strong class="selected-workout-title">' + esc(activeCleanName) + '</strong>'
-      + '</div>'
-    + '</div>'
+      + (!activeSched.isRest
+          ? ('<div class="prog-line" style="margin-bottom:10px"><div class="prog-line-fill' + (loggedTotal >= totalPlanned && totalPlanned > 0 ? ' lime' : '') + '" style="width:' + Math.min(100, Math.round(loggedTotal / Math.max(1, totalPlanned) * 100)) + '%"></div></div>')
+          : '')
+      + (!activeSched.isRest ? '<div class="session-timer-dock" id="sessionTimer"></div>' : '')
+      + '<div class="gym-sched-strip">' + stepperHTML + '</div>'
     + '</div>';
+
+  var dateBannerHTML = !isActualToday
+    ? ('<div class="gym-date-banner" style="margin-bottom:14px"><span>Logging for <strong>' + esc(formattedSessionDate) + '</strong></span><button type="button" class="btn-ghost" id="gymDateResetBtn" style="font-size:11px;color:var(--text-secondary);font-weight:600;cursor:pointer">Jump to Today</button></div>')
+    : '';
 
   // 1. If active schedule is a Rest Day
   if (activeSched.isRest || activeSched.workoutIndex == null) {
     var nextWorkoutSched = weeklySched.find(function(s){ return !s.isRest && s.dayNum > activeSched.dayNum; }) || weeklySched.find(function(s){ return !s.isRest; }) || weeklySched[0];
     document.getElementById('content').innerHTML =
       '<div class="gym-page">'
-      + '<div class="topbar"><div><span class="eyebrow">' + esc(activeSched.name) + '</span><div class="title">Gym</div></div></div>'
-      + (!isActualToday ? ('<div class="gym-date-banner" style="margin-bottom:10px"><span>Logging for <strong>' + esc(formattedSessionDate) + '</strong></span><button type="button" class="btn-ghost" id="gymDateResetBtn" style="font-size:11px;color:var(--amber-light);font-weight:700;cursor:pointer">Jump to Today</button></div>') : '')
-    + cycleCardHTML
-      + '<div class="rest-day-card">'
-        + '<div class="rest-day-icon">💤</div>'
-        + '<div class="rest-day-title">' + esc(activeSched.name) + ' — Scheduled Rest Day</div>'
-        + '<div class="rest-day-desc">Muscles grow and adapt during rest. Hit your protein targets, stay hydrated, and get quality recovery.</div>'
-        + '<div style="display:flex;gap:10px;justify-content:center;margin-top:14px">'
-          + '<button class="btn btn-primary" id="previewNextWorkoutBtn">Start Next: ' + esc(nextWorkoutSched.label) + '</button>'
-        + '</div>'
+      + dateBannerHTML
+      + gymHeaderUnifiedHTML
+      + '<div class="today-workout-surface" style="margin-top:20px;flex-direction:column;align-items:flex-start">'
+        + '<div class="t-label" style="margin-bottom:4px">Rest Day</div>'
+        + '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:20px;font-weight:700;margin-bottom:6px">Recovery & Adaptation</div>'
+        + '<div class="t-body" style="color:var(--text-secondary);margin-bottom:16px">Muscles adapt during rest. Hit your protein targets and get quality recovery.</div>'
+        + '<button class="btn btn-primary" id="previewNextWorkoutBtn">Start Next: ' + esc(nextWorkoutSched.label.replace(/^Day\s*\d+\s*[—–-]\s*/i, '')) + '</button>'
       + '</div>'
-      + '<div class="section" style="margin-top:20px"><span class="eyebrow">weekly volume targets</span>' + buildVolumeTable() + '</div>'
+      + '<div style="margin-top:28px"><div class="t-label" style="margin-bottom:12px">Weekly volume targets</div>' + buildVolumeTable() + '</div>'
       + '</div>';
 
     attachCommonGymHeaderEvents();
@@ -5427,36 +5556,27 @@ function renderGym() {
     return;
   }
 
-  var workoutIndex = activeSched.workoutIndex;
-  var session = (prog && prog[workoutIndex]) || (prog && prog[0]) || { label: 'Workout', exercises: [] };
-  var totalPlanned = (session.exercises || []).reduce(function(total, ex){ return total + (ex.sets || 0); }, 0);
-  var loggedTotal = session.exercises.reduce(function(total, ex){
-    var actualId = (rec.swaps && rec.swaps[ex.id]) || ex.id;
-    return total + ((rec.workout || {})[actualId] || []).filter(Boolean).length;
-  }, 0);
-
   // 2. CHECK IF TODAY'S WORKOUT IS COMPLETED (GONE FROM MAIN SCREEN STATE)
   var isTodaySelected = activeSched.dayNum === defaultScheduleDay;
   if (isTodaySelected && rec.workoutDone) {
     var nextWorkoutSched = weeklySched.find(function(s){ return !s.isRest && s.dayNum > activeSched.dayNum; }) || weeklySched.find(function(s){ return !s.isRest; }) || weeklySched[0];
     document.getElementById('content').innerHTML =
       '<div class="gym-page">'
-      + '<div class="topbar"><div><span class="eyebrow">Week ' + workoutWeek + ' · ' + esc(activeSched.name) + '</span><div class="title">Gym</div></div></div>'
-      + (!isActualToday ? ('<div class="gym-date-banner" style="margin-bottom:10px"><span>📅 Logging for <strong>' + esc(formattedSessionDate) + '</strong></span><button type="button" class="btn-ghost" id="gymDateResetBtn" style="font-size:11px;color:var(--amber-light);font-weight:700;cursor:pointer">Jump to Today</button></div>') : '')
-    + cycleCardHTML
-      + '<div class="today-completed-card">'
+      + dateBannerHTML
+      + gymHeaderUnifiedHTML
+      + '<div class="today-completed-card" style="margin-top:20px">'
         + '<div class="completed-hero-title">Session Complete</div>'
-        + '<div class="completed-hero-sub">' + esc(session.label) + ' · ' + loggedTotal + ' sets logged</div>'
+        + '<div class="completed-hero-sub">' + esc(activeCleanName) + ' · ' + loggedTotal + ' sets logged</div>'
         + '<div class="completed-info-box">'
           + '<div><strong>Logged and archived in History.</strong></div>'
-          + '<div style="margin-top:4px">Inputs are removed from the main screen so your active space stays clean. You can edit sets, weights, or delete wrong logs anytime in <strong>Progress → History</strong>.</div>'
+          + '<div style="margin-top:4px">Inputs are archived to keep your active space clean. Edit sets, weights, or delete logs anytime in <strong>Progress → History</strong>.</div>'
         + '</div>'
         + '<div class="completed-actions">'
           + '<button class="btn btn-primary" id="openHistoryFromGymBtn">View in History</button>'
           + '<button class="btn" id="trainNextDayEarlyBtn">Next: ' + esc(nextWorkoutSched.name) + ' →</button>'
         + '</div>'
         + '<div style="margin-top:14px;text-align:center">'
-          + '<button class="btn-ghost" id="reopenSessionBtn" style="font-size:11px;color:var(--text-muted);cursor:pointer">Accidentally finished? Reopen today\'s inputs</button>'
+          + '<button class="btn-ghost" id="reopenSessionBtn" style="font-size:11px;color:var(--text-muted);cursor:pointer">Accidentally finished? Reopen session</button>'
         + '</div>'
       + '</div>'
       + '</div>';
@@ -5513,6 +5633,7 @@ function renderGym() {
     var lastSets = getLastSessionSets(ex.id, rec);
     var plannedCount = ex.sets || exOrig.sets || 2;
     var visibleCount = Math.max(plannedCount, sets.length, drafts.length);
+    var overload = (typeof getOverloadSuggestion === 'function') ? getOverloadSuggestion(ex.id, rec) : null;
 
     var plannedRows = Array.from({length: visibleCount}, function(_, i) {
       var logged = sets[i], draft = drafts[i], last = lastSets[i];
@@ -5557,26 +5678,11 @@ function renderGym() {
         + (logged
             ? '<button type="button" class="set-log-circle done" data-quick-edit-logged="' + ex.id + '" data-set-index="' + i + '">✓</button>'
             : '<button type="button" class="set-log-circle btn-log" data-logset="' + ex.id + '" data-set-index="' + i + '" ' + (hasValues ? '' : 'disabled') + '>○</button>')
-        + '</div>';}).join('');
+        + '</div>';
+    }).join('');
 
-    var repsStr = ex.reps || exOrig.reps || '8–12';
+    var repsStr = ex.reps || exOrig.reps || '8-12';
     var targetSets = ex.sets || exOrig.sets || 2;
-    var exConfig = { reps: repsStr, sets: targetSets, repMin: getBottomRepRange(repsStr), repMax: getTopRepRange(repsStr), weightIncrement: ex.weightIncrement || 2.5 };
-    var overload = getOverloadSuggestion(ex.id, exConfig, lastSets, ex.name);
-
-    var isCompound = ex.type === 'compound' || exOrig.type === 'compound';
-    var warmUpLink = (isCompound && !isBW) ? '<button class="btn-ghost warm-up-btn" data-exname="' + esc(ex.name) + '" data-exid="' + esc(ex.id) + '" style="font-size:10px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;cursor:pointer">Warm Up</button>' : '';
-    var plateBtn = (isCompound && !isBW) ? '<button class="btn-ghost plate-calc-btn" data-ex-weight="' + (lastSets.length ? lastSets[0].weight : 60) + '" style="font-size:10px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;cursor:pointer" title="Barbell plate calculator">⚖️</button>' : '';
-    var swapLink = '<button class="btn-ghost swap-btn" data-swap-orig="' + exOrig.id + '" data-swap-curr="' + ex.id + '" data-muscle="' + (exOrig.muscle || '') + '" style="font-size:10px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;cursor:pointer" title="Swap exercise">Alt</button>';
-
-    var pr = getExercisePR(ex.id);
-    var prStr = '';
-    if (pr) {
-      var prText = isBW
-        ? ((!pr.weight || Number(pr.weight) === 0) ? (pr.reps + ' reps (BW)') : ('BW+' + pr.weight + 'kg × ' + pr.reps))
-        : (pr.weight + 'kg × ' + pr.reps);
-      prStr = '<span class="t-micro" style="display:inline-flex;align-items:center;gap:6px;color:var(--text-secondary)"><span style="width:5px;height:5px;border-radius:50%;background:var(--lime);display:inline-block"></span>PR ' + esc(prText) + '</span>';
-    }
     var completedSets = sets.filter(Boolean);
 
     var targetDisplay = targetSets + ' × ' + esc(repsStr) + (ex.rir ? ' · ' + esc(ex.rir) + ' RIR' : '') + (isBW ? ' · Bodyweight' : '');
@@ -5587,6 +5693,15 @@ function renderGym() {
     }).join(', ') : '';
 
     var metaLine = targetDisplay + (lastSetsStr ? ' · Last ' + lastSetsStr : '');
+    var swapLink = '<button type="button" class="btn-text-action swap-btn" data-swap="' + ex.id + '" style="font-size:12px;color:var(--text-muted)">Alt</button>';
+
+    var bestWeight = lastSets.reduce(function(m, s){ return Math.max(m, Number(s.weight) || 0); }, 0);
+    var bestReps = lastSets.reduce(function(m, s){ return Math.max(m, Number(s.reps) || 0); }, 0);
+    var prStr = '';
+    if (bestWeight > 0 || bestReps > 0) {
+      prStr = '<span class="gym-ex-pr">' + (isBW ? (bestReps + ' reps PR') : (bestWeight + ' kg PR')) + '</span>';
+    }
+
     return '<section class="gym-ex-section" id="exsec-' + ex.id + '">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'
         + '<div style="flex:1;min-width:0">'
@@ -5618,24 +5733,15 @@ function renderGym() {
 
   document.getElementById('content').innerHTML =
     '<div class="gym-page">'
-    + '<div class="gym-session-header">'
-      + '<div class="gym-session-top">'
-        + '<div><span class="eyebrow">Week ' + workoutWeek + ' · ' + esc(activeSched.name) + '</span><div class="title">' + esc(session.label) + '</div></div>'
-        + '<div class="gym-session-meta"><span id="gymSetProgress">' + loggedTotal + ' / ' + totalPlanned + ' sets</span></div>'
-      + '</div>'
-      + '<div class="gym-progress"><i style="width:' + Math.min(100, Math.round(loggedTotal / Math.max(1, totalPlanned) * 100)) + '%"></i></div>'
-      + '<div class="session-timer" id="sessionTimer"></div>'
-    + '</div>'
-    + (!isActualToday ? ('<div class="gym-date-banner" style="margin-bottom:10px"><span>📅 Logging for <strong>' + esc(formattedSessionDate) + '</strong></span><button type="button" class="btn-ghost" id="gymDateResetBtn" style="font-size:11px;color:var(--amber-light);font-weight:700;cursor:pointer">Jump to Today</button></div>') : '')
-    + cycleCardHTML
+    + dateBannerHTML
+    + gymHeaderUnifiedHTML
     + exHTML
     + '</div><div id="restTimerWrap"></div>';
 
   attachGymEvents(key, rec, session, workoutIndex);
   renderWorkoutTimer(key, rec, session, workoutIndex);
 
-  var manageBtn = document.getElementById('manageSplitTopBtn');
-  if (manageBtn) manageBtn.onclick = openSplitManagerSheet;
+  attachCommonGymHeaderEvents();
   document.querySelectorAll('[data-pick-sched-day]').forEach(function(b) {
     b.onclick = function() {
       var dayN = parseInt(b.dataset.pickSchedDay, 10);
@@ -9215,7 +9321,7 @@ SQLiteStorage.init(function(){
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js?v=32').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=33').catch(function(){});
   });
 }
 </script>
