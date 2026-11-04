@@ -3,6 +3,7 @@ const path = require('path');
 
 const filesToCopy = [
   'index.html',
+  'tokens.css',
   'db.js',
   'manifest.json',
   'icon-192.svg',

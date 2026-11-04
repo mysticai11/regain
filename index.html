@@ -12,6 +12,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Iron Log">
 <link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="tokens.css">
 <script src="db.js"></script>
 <style>
 
@@ -1417,6 +1418,8 @@ function getWeeklyAvocadosCount() {
 
 function getDayTotals(key) {
   var rec = dayRecord(key);
+  rec.meals = rec.meals || {};
+  rec.extra = rec.extra || {};
   var plan = (profile && profile.mealPlan) || DEFAULT_MEAL_PLAN;
   var t = {kcal:0, protein:0, carbs:0, fat:0};
   Object.keys(plan).forEach(function(gKey){
@@ -3144,9 +3147,10 @@ function getEquivalentExerciseIds(exId) {
   // Also match by exercise name
   var currentName = ((getExerciseData(exId) || {}).name || '').toLowerCase().trim();
   if (currentName) {
-    var allEx = Object.keys(EXERCISE_LIBRARY || {});
+    var lib = typeof EXERCISE_LIBRARY !== 'undefined' ? EXERCISE_LIBRARY : {};
+    var allEx = Object.keys(lib);
     allEx.forEach(function(k) {
-      var item = EXERCISE_LIBRARY[k];
+      var item = lib[k];
       if (item && item.name && item.name.toLowerCase().trim() === currentName) {
         if (!ids.includes(k)) ids.push(k);
       }
@@ -3917,7 +3921,7 @@ function renderGym() {
     + '<div class="schedule-stepper">' + stepperHTML + '</div>'
     + '<div class="cycle-selected-bar">'
       + '<span class="selected-day-badge ' + (activeSched.isRest ? 'is-rest' : '') + '">'
-        + (activeSched.isRest ? '💤 REST' : (isTodayActive ? '⚡ TODAY' : (isActiveDone ? '✓ DONE' : 'SELECTED')))
+        + (activeSched.isRest ? 'REST' : (isTodayActive ? 'TODAY' : (isActiveDone ? 'DONE' : 'SELECTED')))
       + '</span>'
       + '<div class="selected-day-text">'
         + '<span class="selected-day-name">' + esc(activeSched.name) + '</span>'
@@ -3933,7 +3937,7 @@ function renderGym() {
     document.getElementById('content').innerHTML =
       '<div class="gym-page">'
       + '<div class="topbar"><div><span class="eyebrow">' + esc(activeSched.name) + '</span><div class="title">Gym</div></div></div>'
-      + (!isActualToday ? ('<div class="gym-date-banner" style="margin-bottom:10px"><span>📅 Logging for <strong>' + esc(formattedSessionDate) + '</strong></span><button type="button" class="btn-ghost" id="gymDateResetBtn" style="font-size:11px;color:var(--amber-light);font-weight:700;cursor:pointer">Jump to Today</button></div>') : '')
+      + (!isActualToday ? ('<div class="gym-date-banner" style="margin-bottom:10px"><span>Logging for <strong>' + esc(formattedSessionDate) + '</strong></span><button type="button" class="btn-ghost" id="gymDateResetBtn" style="font-size:11px;color:var(--amber-light);font-weight:700;cursor:pointer">Jump to Today</button></div>') : '')
     + cycleCardHTML
       + '<div class="rest-day-card">'
         + '<div class="rest-day-icon">💤</div>'
@@ -3989,15 +3993,14 @@ function renderGym() {
       + (!isActualToday ? ('<div class="gym-date-banner" style="margin-bottom:10px"><span>📅 Logging for <strong>' + esc(formattedSessionDate) + '</strong></span><button type="button" class="btn-ghost" id="gymDateResetBtn" style="font-size:11px;color:var(--amber-light);font-weight:700;cursor:pointer">Jump to Today</button></div>') : '')
     + cycleCardHTML
       + '<div class="today-completed-card">'
-        + '<div class="completed-hero-icon">🏆</div>'
-        + '<div class="completed-hero-title">Today\'s Workout Complete!</div>'
+        + '<div class="completed-hero-title">Session Complete</div>'
         + '<div class="completed-hero-sub">' + esc(session.label) + ' · ' + loggedTotal + ' sets logged</div>'
         + '<div class="completed-info-box">'
-          + '<div>🔒 <strong>Logged & archived in History.</strong></div>'
+          + '<div><strong>Logged and archived in History.</strong></div>'
           + '<div style="margin-top:4px">Inputs are removed from the main screen so your active space stays clean. You can edit sets, weights, or delete wrong logs anytime in <strong>Progress → History</strong>.</div>'
         + '</div>'
         + '<div class="completed-actions">'
-          + '<button class="btn btn-primary" id="openHistoryFromGymBtn">✏️ View / Edit in History</button>'
+          + '<button class="btn btn-primary" id="openHistoryFromGymBtn">View in History</button>'
           + '<button class="btn" id="trainNextDayEarlyBtn">Next: ' + esc(nextWorkoutSched.name) + ' →</button>'
         + '</div>'
         + '<div style="margin-top:14px;text-align:center">'
@@ -4007,24 +4010,33 @@ function renderGym() {
       + '</div>';
 
     attachCommonGymHeaderEvents();
-    document.getElementById('openHistoryFromGymBtn').onclick = function() {
-      tab = 'progress';
-      renderApp();
-    };
-    document.getElementById('trainNextDayEarlyBtn').onclick = function() {
-      var r = dayRecord(key);
-      r.selectedDayNumber = nextWorkoutSched.dayNum;
-      r.selectedWorkout = nextWorkoutSched.workoutIndex;
-      saveDayRecord(key, r);
-      renderGym();
-    };
-    document.getElementById('reopenSessionBtn').onclick = function() {
-      var r = dayRecord(key);
-      r.workoutDone = false;
-      saveDayRecord(key, r);
-      renderGym();
-      showToast('Session reopened for editing', 'ok');
-    };
+    var histBtn = document.getElementById('openHistoryFromGymBtn');
+    if (histBtn) {
+      histBtn.onclick = function() {
+        tab = 'progress';
+        renderApp();
+      };
+    }
+    var trainNextBtn = document.getElementById('trainNextDayEarlyBtn');
+    if (trainNextBtn) {
+      trainNextBtn.onclick = function() {
+        var r = dayRecord(key);
+        r.selectedDayNumber = nextWorkoutSched.dayNum;
+        r.selectedWorkout = nextWorkoutSched.workoutIndex;
+        saveDayRecord(key, r);
+        renderGym();
+      };
+    }
+    var reopenBtn = document.getElementById('reopenSessionBtn');
+    if (reopenBtn) {
+      reopenBtn.onclick = function() {
+        var r = dayRecord(key);
+        r.workoutDone = false;
+        saveDayRecord(key, r);
+        renderGym();
+        showToast('Session reopened for editing', 'ok');
+      };
+    }
     document.querySelectorAll('[data-pick-sched-day]').forEach(function(b) {
       b.onclick = function() {
         var dayN = parseInt(b.dataset.pickSchedDay, 10);
@@ -7552,13 +7564,10 @@ function renderTodaySimple() {
   var exercises=(session && session.exercises) ? session.exercises : [];
   var done=exercises.filter(function(ex){return (rec.workout||{})[ex.id]&&rec.workout[ex.id].length;}).length;
   var recent=ls('rg_recent_foods',[]).slice(0,5);
-  var recentHtml=recent.length?'<div class="chips-row">'+recent.map(function(r){return '<button class="chip quick-recent" data-food="'+encodeURIComponent(JSON.stringify(r))+'">'+esc(r.name)+'</button>';}).join('')+'</div>':'';
   var weightTrend = rec.weight != null ? buildWeightTrendChip(rec.weight) : '';
   var calRingHTML = buildCalRingHTML(Math.round(tot.kcal||0), targets.kcal, Math.round(tot.protein||0), targets.protein, Math.round(tot.carbs||0), Math.round(tot.fat||0));
   var weekDotHTML = buildWeekDotRowHTML(key);
-  var streak = computeStreak();
-  var streakBadge = streak > 0 ? '<span class="today-streak-badge">' + streak + 'd</span>' : '';
-  var nextSessionHTML = (rec.workoutDone || (!isTraining && rec.selectedWorkout==null)) ? buildNextSessionPreviewHTML() : '';
+
   document.getElementById('content').innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">'
       + '<span class="t-label">' + new Date().toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}).toUpperCase() + '</span>'
@@ -7593,46 +7602,182 @@ function renderTodaySimple() {
       + '<button class="btn btn-primary btn-sm" id="saveTodayWeight" style="display:none">Save</button>'
     + '</div>'
     + getStaplesShelfHTML()
-    + '<div style="margin-top:20px">'
+    + '<div style="margin-top:20px;margin-bottom:40px">'
       + '<div class="t-label" style="margin-bottom:8px">Today\'s Food</div>'
-      + (rec.extra.length
+      + (rec.extra && rec.extra.length
         ? ('<div>' + rec.extra.map(function(item, i) {
             var kc = Math.round(item.kcal * (item.servings || 1));
             var pr = Math.round((item.protein || 0) * (item.servings || 1));
-            return '<div class="list-row">'
+            return '<div class="list-row food-log-row" data-food-index="' + i + '" style="touch-action:pan-y">'
               + '<span class="list-row-left">' + esc(item.name) + '</span>'
               + '<span class="list-row-right">'
                 + '<span>' + kc + ' kcal · ' + pr + ' g</span>'
-                + '<button class="food-delete" data-food-index="' + i + '" style="background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;padding:4px 8px">×</button>'
+                + '<button class="food-delete" data-food-index="' + i + '" aria-label="Delete" style="background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;padding:2px 8px;margin-left:8px;line-height:1">×</button>'
               + '</span>'
             + '</div>';
           }).join('') + '</div>')
         : '<div class="t-micro" style="padding:12px 0">No food logged today.</div>')
-      + '<button class="btn-text-action" id="addFoodBtn" style="margin-top:8px">+ Add food</button>'
+      + (recent.length
+        ? ('<div style="margin-top:20px"><div class="t-label" style="margin-bottom:8px">Recent foods</div>'
+            + recent.map(function(r) {
+                var rKc = Math.round(r.kcal || 0);
+                var rPr = Math.round(r.protein || 0);
+                return '<div class="list-row quick-recent" data-food="' + encodeURIComponent(JSON.stringify(r)) + '" style="cursor:pointer">'
+                  + '<span class="list-row-left">' + esc(r.name) + '</span>'
+                  + '<span class="list-row-right">' + rKc + ' kcal · ' + rPr + ' g</span>'
+                + '</div>';
+              }).join('')
+          + '</div>')
+        : '')
+      + '<button class="btn-text-action" id="addFoodBtn" style="margin-top:14px">+ Add food</button>'
     + '</div>';
-  document.getElementById('settingsBtn').onclick=openSettings;
-  document.getElementById('startWorkout').onclick=function(){
-    if (rec.workoutDone) { tab = 'progress'; renderApp(); }
-    else if (!hasWorkout) chooseWorkoutForDate(key);
-    else { tab = 'gym'; renderApp(); }
-  };
-  var todayWeightInput=document.getElementById('todayWeight'), saveTodayWeight=document.getElementById('saveTodayWeight');
-  var savedWeight=rec.weight!=null?Number(rec.weight):null;
-  function updateWeightSaveState(){ var value=parseFloat(todayWeightInput.value); var changed=!isNaN(value)&&value>0&&(savedWeight==null||value!==savedWeight); saveTodayWeight.style.display=changed?'inline-flex':'none'; }
-  updateWeightSaveState();
-  todayWeightInput.addEventListener('input',updateWeightSaveState);
-  saveTodayWeight.onclick=function(){var w=parseFloat(todayWeightInput.value);if(!w||w<20||w>300){showToast('Enter a valid weight','warn');return;}profile.weightEntries=profile.weightEntries||[];profile.weightEntries.push({id:'weight_'+Date.now(),dayKey:key,weight:w,createdAt:new Date().toISOString()});sv('rg_profile',profile);rec.weight=w;saveDayRecord(key,rec);showToast('Saved '+w+' kg today','ok');renderTodaySimple();};
-  document.querySelectorAll('[data-quick-staple]').forEach(function(card){card.onclick=function(){var sIdx=parseInt(card.dataset.quickStaple,10);var staples=profile.customStaples||DEFAULT_STAPLES;var item=staples[sIdx];if(!item)return;var currentRec=dayRecord(key);currentRec.extra.push({name:item.name,kcal:item.kcal,protein:item.protein,carbs:item.carbs||0,fat:item.fat||0,servings:1});saveDayRecord(key,currentRec);playSound('set_logged');triggerHaptic();showToast('Logged '+item.name+' ('+item.protein+'g P)','ok');renderTodaySimple();};});
-  document.getElementById('addFoodBtn').onclick=function(){openFoodSearch(function(food,s){addFoodToDay(key,food,s);});};
-  document.getElementById('repeatYesterdayFoodBtn').onclick=function(){var now=new Date();var yesterdayKey=dateKey(addDays(now,-1));var yRec=dayRecord(yesterdayKey);if(!yRec||!yRec.extra||!yRec.extra.length){showToast('No meals logged yesterday','warn');return;}var currentRec=dayRecord(key);currentRec.extra=currentRec.extra||[];yRec.extra.forEach(function(item){currentRec.extra.push(Object.assign({},item));});saveDayRecord(key,currentRec);playSound('set_logged');triggerHaptic();showToast('Copied '+yRec.extra.length+' meals from yesterday!','ok');renderTodaySimple();};
-  document.getElementById('quickFoodBtn').onclick=function(){addQuickFood(key);};
-  document.querySelectorAll('.quick-recent').forEach(function(btn){btn.onclick=function(){var r=JSON.parse(decodeURIComponent(btn.dataset.food));rec.extra.push({name:r.name,kcal:r.kcal,protein:r.protein||0,carbs:r.carbs||0,fat:r.fat||0,servings:1});saveDayRecord(key,rec);renderTodaySimple();};});
-  document.querySelectorAll('.food-delete').forEach(function(btn){
-    var row=btn.closest('.food-log-row'),startX=0,deltaX=0;
-    btn.style.display='none';
-    row.addEventListener('touchstart',function(e){startX=e.changedTouches[0].clientX;deltaX=0;},{passive:true});
-    row.addEventListener('touchmove',function(e){deltaX=e.changedTouches[0].clientX-startX;if(deltaX<0)row.style.transform='translateX('+Math.max(deltaX,-110)+'px)';},{passive:true});
-    row.addEventListener('touchend',function(){if(deltaX>-70){row.style.transform='';return;}var current=dayRecord(key),index=parseInt(btn.dataset.foodIndex,10),removed=current.extra.splice(index,1)[0];saveDayRecord(key,current);renderTodaySimple();showUndoToast('Food entry deleted',function(){var restored=dayRecord(key);restored.extra.splice(Math.min(index,restored.extra.length),0,removed);saveDayRecord(key,restored);renderTodaySimple();});},{passive:true});
+
+  var settingsBtn = document.getElementById('settingsBtn');
+  if (settingsBtn) settingsBtn.onclick = openSettings;
+
+  var startWorkout = document.getElementById('startWorkout');
+  if (startWorkout) {
+    startWorkout.onclick = function() {
+      if (rec.workoutDone) { tab = 'progress'; renderApp(); }
+      else if (!hasWorkout) chooseWorkoutForDate(key);
+      else { tab = 'gym'; renderApp(); }
+    };
+  }
+
+  var todayWeightInput = document.getElementById('todayWeight');
+  var saveTodayWeight = document.getElementById('saveTodayWeight');
+  if (todayWeightInput && saveTodayWeight) {
+    var savedWeight = rec.weight != null ? Number(rec.weight) : null;
+    function updateWeightSaveState() {
+      var value = parseFloat(todayWeightInput.value);
+      var changed = !isNaN(value) && value > 0 && (savedWeight == null || value !== savedWeight);
+      saveTodayWeight.style.display = changed ? 'inline-flex' : 'none';
+    }
+    updateWeightSaveState();
+    todayWeightInput.addEventListener('input', updateWeightSaveState);
+    saveTodayWeight.onclick = function() {
+      var w = parseFloat(todayWeightInput.value);
+      if (!w || w < 20 || w > 300) { showToast('Enter a valid weight', 'warn'); return; }
+      profile.weightEntries = profile.weightEntries || [];
+      profile.weightEntries.push({ id: 'weight_' + Date.now(), dayKey: key, weight: w, createdAt: new Date().toISOString() });
+      sv('rg_profile', profile);
+      rec.weight = w;
+      saveDayRecord(key, rec);
+      showToast('Saved ' + w + ' kg today', 'ok');
+      renderTodaySimple();
+    };
+  }
+
+  document.querySelectorAll('[data-quick-staple]').forEach(function(card) {
+    card.onclick = function() {
+      var sIdx = parseInt(card.dataset.quickStaple, 10);
+      var staples = (profile && profile.customStaples) || DEFAULT_STAPLES;
+      var item = staples[sIdx];
+      if (!item) return;
+      var currentRec = dayRecord(key);
+      currentRec.extra = currentRec.extra || [];
+      currentRec.extra.push({ name: item.name, kcal: item.kcal, protein: item.protein, carbs: item.carbs || 0, fat: item.fat || 0, servings: 1 });
+      saveDayRecord(key, currentRec);
+      playSound('set_logged');
+      triggerHaptic();
+      showToast('Logged ' + item.name + ' (' + item.protein + 'g P)', 'ok');
+      renderTodaySimple();
+    };
+  });
+
+  var addFoodBtn = document.getElementById('addFoodBtn');
+  if (addFoodBtn) {
+    addFoodBtn.onclick = function() {
+      openFoodSearch(function(food, s) { addFoodToDay(key, food, s); });
+    };
+  }
+
+  var repeatBtn = document.getElementById('repeatYesterdayFoodBtn');
+  if (repeatBtn) {
+    repeatBtn.onclick = function() {
+      var now = new Date();
+      var yesterdayKey = dateKey(addDays(now, -1));
+      var yRec = dayRecord(yesterdayKey);
+      if (!yRec || !yRec.extra || !yRec.extra.length) { showToast('No meals logged yesterday', 'warn'); return; }
+      var currentRec = dayRecord(key);
+      currentRec.extra = currentRec.extra || [];
+      yRec.extra.forEach(function(item) { currentRec.extra.push(Object.assign({}, item)); });
+      saveDayRecord(key, currentRec);
+      playSound('set_logged');
+      triggerHaptic();
+      showToast('Copied ' + yRec.extra.length + ' meals from yesterday!', 'ok');
+      renderTodaySimple();
+    };
+  }
+
+  var quickBtn = document.getElementById('quickFoodBtn');
+  if (quickBtn) {
+    quickBtn.onclick = function() { addQuickFood(key); };
+  }
+
+  document.querySelectorAll('.quick-recent').forEach(function(btn) {
+    btn.onclick = function() {
+      var r = JSON.parse(decodeURIComponent(btn.dataset.food));
+      var currentRec = dayRecord(key);
+      currentRec.extra = currentRec.extra || [];
+      currentRec.extra.push({ name: r.name, kcal: r.kcal, protein: r.protein || 0, carbs: r.carbs || 0, fat: r.fat || 0, servings: 1 });
+      saveDayRecord(key, currentRec);
+      renderTodaySimple();
+    };
+  });
+
+  document.querySelectorAll('.food-delete').forEach(function(btn) {
+    btn.onclick = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      var idx = parseInt(btn.dataset.foodIndex, 10);
+      var current = dayRecord(key);
+      if (!current.extra || isNaN(idx) || !current.extra[idx]) return;
+      var removed = current.extra.splice(idx, 1)[0];
+      saveDayRecord(key, current);
+      renderTodaySimple();
+      showUndoToast('Food entry deleted', function() {
+        var restored = dayRecord(key);
+        restored.extra = restored.extra || [];
+        restored.extra.splice(Math.min(idx, restored.extra.length), 0, removed);
+        saveDayRecord(key, restored);
+        renderTodaySimple();
+      });
+    };
+  });
+
+  document.querySelectorAll('.food-log-row').forEach(function(row) {
+    var startX = 0, deltaX = 0;
+    var idx = parseInt(row.dataset.foodIndex, 10);
+    row.addEventListener('touchstart', function(e) {
+      if (!e.changedTouches || !e.changedTouches[0]) return;
+      startX = e.changedTouches[0].clientX;
+      deltaX = 0;
+    }, { passive: true });
+    row.addEventListener('touchmove', function(e) {
+      if (!e.changedTouches || !e.changedTouches[0]) return;
+      deltaX = e.changedTouches[0].clientX - startX;
+      if (deltaX < 0) {
+        row.style.transform = 'translateX(' + Math.max(deltaX, -80) + 'px)';
+      }
+    }, { passive: true });
+    row.addEventListener('touchend', function() {
+      if (deltaX < -60) {
+        var current = dayRecord(key);
+        if (!current.extra || isNaN(idx) || !current.extra[idx]) return;
+        var removed = current.extra.splice(idx, 1)[0];
+        saveDayRecord(key, current);
+        renderTodaySimple();
+        showUndoToast('Food entry deleted', function() {
+          var restored = dayRecord(key);
+          restored.extra = restored.extra || [];
+          restored.extra.splice(Math.min(idx, restored.extra.length), 0, removed);
+          saveDayRecord(key, restored);
+          renderTodaySimple();
+        });
+      } else {
+        row.style.transform = '';
+      }
+    }, { passive: true });
   });
 }
 
@@ -7697,7 +7842,7 @@ SQLiteStorage.init(function(){
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js?v=24').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=30').catch(function(){});
   });
 }
 </script>
