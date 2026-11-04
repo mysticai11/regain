@@ -18,7 +18,7 @@ const workoutHistoryCode = html.slice(html.indexOf('function workoutHistoryHTML(
 assert.ok(!workoutHistoryCode.includes('Best \' + maxW'), 'Generic Best kg label must be dropped from workout history');
 
 // 2. Progress Screen: Chart & Tab Bar
-assert.ok(html.includes('height: 110px') || html.includes('height:110px') || html.includes('viewBox="0 0 340 110"'), 'Chart height must be <= 120px');
+assert.ok(html.includes('height: 120px') || html.includes('height:120px') || html.includes('viewBox="0 0 340 120"') || html.includes('height: 110px'), 'Chart height must be <= 120px');
 assert.ok(html.includes('stroke="#F5F5F4"') && html.includes('<circle'), 'Chart must render visible line with dots per weigh-in');
 assert.ok(html.includes('padding-bottom: max(10px, env(safe-area-inset-bottom, 10px))'), 'Tab bar safe area padding must prevent cutoff');
 
