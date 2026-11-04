@@ -32,11 +32,11 @@ export function getRollingWeightValues(entries, source) {
 
 export function goalTrajectoryText(entries) {
   var target = Number((profile && profile.targetWeight) || 60), direction=goalDirection();
-  if(!target||entries.length<3) return 'Log 3 weigh-ins over 14+ days for an estimate';
+  if(!target||entries.length<7) return 'Keep logging — need 7+ weigh-ins for trend';
   var firstDate=new Date((entries[0].dayKey||entries[0].createdAt).slice(0,10)+'T12:00:00');
   var lastDate=new Date((entries[entries.length-1].dayKey||entries[entries.length-1].createdAt).slice(0,10)+'T12:00:00');
   var weeks=(lastDate-firstDate)/604800000;
-  if(weeks<2) return 'Keep logging for 14+ days for an estimate';
+  if(weeks<1) return 'Keep logging — need 7+ weigh-ins over time';
   var rate=(entries[entries.length-1].weight-entries[0].weight)/weeks;
   if(!Number.isFinite(rate)||direction*rate<=0) return 'No clear trend toward goal yet';
   var weeksLeft=Math.abs((target-entries[entries.length-1].weight)/rate);
@@ -95,13 +95,32 @@ export function progressPlot(values, goal, unit) {
   var goalY = insetY + ((max - goalNum) / span) * plotH;
   var goalLineHTML = '';
   if (goalY >= insetY && goalY <= svgHeight - insetY) {
-    goalLineHTML = '<line x1="' + insetX + '" y1="' + goalY.toFixed(1) + '" x2="' + (svgWidth - insetX - 28) + '" y2="' + goalY.toFixed(1) + '" stroke="#55555A" stroke-dasharray="3 3" stroke-width="1.5"/>'
-      + '<text x="' + (svgWidth - insetX) + '" y="' + (goalY + 4).toFixed(1) + '" fill="#8A8A8E" font-size="11" font-weight="600" text-anchor="end" font-family="Space Grotesk, sans-serif">' + Math.round(goalNum) + '</text>';
+    goalLineHTML = '<line x1="' + insetX + '" y1="' + goalY.toFixed(1) + '" x2="' + (svgWidth - insetX - 28) + '" y2="' + goalY.toFixed(1) + '" stroke="#C6F432" stroke-dasharray="3 3" stroke-width="1.5" stroke-opacity="0.8"/>'
+      + '<text x="' + (svgWidth - insetX) + '" y="' + (goalY + 4).toFixed(1) + '" fill="#C6F432" font-size="11" font-weight="600" text-anchor="end" font-family="Space Grotesk, sans-serif">' + Math.round(goalNum) + '</text>';
   }
 
   var dots = points.map(function(p) {
     return '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="3" fill="#F5F5F4" stroke="#0B0B0C" stroke-width="1.5"/>';
   }).join('');
+
+  var fillPolyHTML = '';
+  var defsHTML = '';
+  if (points.length > 1) {
+    var gradId = 'plotGrad_' + Math.floor(Math.random() * 100000);
+    defsHTML = '<defs>'
+      + '<linearGradient id="' + gradId + '" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="#C6F432" stop-opacity="0.22"/>'
+      + '<stop offset="100%" stop-color="#C6F432" stop-opacity="0.0"/>'
+      + '</linearGradient>'
+      + '</defs>';
+    var bottomY = svgHeight - insetY;
+    var firstPt = points[0];
+    var lastPt = points[points.length - 1];
+    var areaPoly = points.map(function(p){ return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ')
+      + ' ' + lastPt.x.toFixed(1) + ',' + bottomY.toFixed(1)
+      + ' ' + firstPt.x.toFixed(1) + ',' + bottomY.toFixed(1);
+    fillPolyHTML = '<polygon points="' + areaPoly + '" fill="url(#' + gradId + ')"/>';
+  }
 
   return '<div style="margin-top:0;margin-bottom:12px">'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'
@@ -110,7 +129,9 @@ export function progressPlot(values, goal, unit) {
     + '</div>'
     + '<div style="position:relative;width:100%;height:120px;background:none">'
       + '<svg viewBox="0 0 340 120" style="width:100%;height:120px;overflow:hidden">'
+        + defsHTML
         + goalLineHTML
+        + fillPolyHTML
         + '<polyline points="' + poly + '" fill="none" stroke="#F5F5F4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
         + dots
       + '</svg>'

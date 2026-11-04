@@ -1,7 +1,7 @@
 /* Today screen widgets: staples shelf, week dot row, calorie ring, and workout preview */
 
 import { profile } from "../../state.js";
-import { dayRecord, saveDayRecord } from "../../storage.js";
+import { dayRecord, saveDayRecord, getWorkoutSessions } from "../../storage.js";
 import { getActiveProgram, getWeeklySchedule } from "../../data/plan.js";
 import { DEFAULT_STAPLES } from "../../data/foods.js";
 import { todayKey, dateKey, addDays, esc, currentWeight, goalDirection } from "../../lib/format.js";
@@ -36,19 +36,15 @@ export function getStaplesShelfHTML() {
     seenIds[sid] = true;
     return true;
   });
-  var rows = staples.map(function(s, idx) {
-    return '<div class="list-row" data-quick-staple="' + idx + '" style="height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;cursor:pointer;padding:0">'
-      + '<span style="font-size:17px;font-weight:500;color:#F5F5F4">' + esc(s.name) + '</span>'
-      + '<span style="font-size:15px;color:#8A8A8E;font-variant-numeric:tabular-nums">' + s.kcal + ' kcal · ' + s.protein + ' g</span>'
-      + '</div>';
+  var chips = staples.map(function(s, idx) {
+    return '<button type="button" class="staple-chip" data-quick-staple="' + idx + '">' + esc(s.name) + '</button>';
   }).join('');
 
-  return '<div style="margin-top:28px;margin-bottom:28px">'
+  return '<div class="staples-shelf">'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'
-      + '<span class="t-label">Quick-add staples</span>'
-      + '<span class="t-micro">1-tap</span>'
+      + '<span class="t-label">Quick Add</span>'
     + '</div>'
-    + '<div>' + rows + '</div>'
+    + '<div class="staples-chip-row">' + chips + '</div>'
     + '</div>';
 }
 
@@ -59,13 +55,23 @@ export function buildWeekDotRowHTML(dayKey, activeSelectedKey) {
   var monday = addDays(now, -(dow === 0 ? 6 : dow - 1));
   var cols = [];
 
+  // Build session days map for fast lookup
+  var sessionDays = {};
+  try {
+    getWorkoutSessions().forEach(function(s) {
+      if (s.dayKey && (s.exercises || []).some(function(ex){ return (ex.sets || []).some(Boolean); })) {
+        sessionDays[s.dayKey] = true;
+      }
+    });
+  } catch(e) {}
+
   for (var d = 0; d < 7; d++) {
     var day = addDays(monday, d);
     var k = dateKey(day);
     var isToday = (k === todayKey());
     var isSelected = (k === activeSelectedKey);
     var rec = dayRecord(k);
-    var isTrained = rec && (rec.workoutDone || (rec.workout && Object.keys(rec.workout).some(function(id){return (rec.workout[id]||[]).some(Boolean);})));
+    var isTrained = !!sessionDays[k] || (rec && (rec.workoutDone || (rec.workout && Object.keys(rec.workout).some(function(id){return (rec.workout[id]||[]).some(Boolean);}))));
 
     var dotHTML = '';
     if (isTrained) {
@@ -189,7 +195,7 @@ export function buildCalRingHTML(kcalLogged, kcalTarget, protLogged, protTarget,
     + '<div style="font-size:15px;color:var(--text-secondary);margin-top:4px">' + (isOver ? 'kcal over target' : ('of ' + kcalTarget.toLocaleString() + ' kcal')) + '</div>'
     + '<div class="prog-line" style="margin-top:10px;margin-bottom:20px"><div class="prog-line-fill" style="width:' + calPct + '%"></div></div>'
     + '<div style="display:flex;align-items:baseline;gap:6px">'
-      + '<span class="t-display tabnum">' + Math.round(protLogged) + '</span>'
+      + '<span style="font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums">' + Math.round(protLogged) + '</span>'
       + '<span style="font-size:15px;color:var(--text-secondary)">/ ' + protTarget + ' g</span>'
     + '</div>'
     + '<div class="prog-line" style="margin-top:8px"><div class="prog-line-fill" style="width:' + protPct + '%"></div></div>'

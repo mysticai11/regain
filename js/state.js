@@ -15,6 +15,15 @@ export function getProfile() {
 }
 
 export function setProfile(p) {
+  if (p && Array.isArray(p.customStaples)) {
+    var seenStaple = {};
+    p.customStaples = p.customStaples.filter(function(s) {
+      var sid = (s.id || '') + '::' + (s.name || '');
+      if (seenStaple[sid]) return false;
+      seenStaple[sid] = true;
+      return true;
+    });
+  }
   profile = p;
   if (typeof window !== 'undefined') window.profile = p;
 }

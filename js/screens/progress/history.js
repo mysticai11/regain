@@ -17,7 +17,7 @@ export function workoutHistoryHTML() {
     if (todaySets > 0) {
       var tName = (todayRec.workoutSession && todayRec.workoutSession.label) || 'Active Workout';
       var cleanTName = tName.replace(/^Day\s*\d+\s*[—–-]\s*/i, '');
-      todayInProgressHTML = '<div class="list-row" style="background:#141416;border-radius:12px;padding:12px 16px;margin-bottom:24px;min-height:64px;display:flex;justify-content:space-between;align-items:center">'
+      todayInProgressHTML = '<div style="background:#141416;border-radius:12px;padding:12px 16px;margin-bottom:16px;min-height:64px;display:flex;justify-content:space-between;align-items:center">'
         + '<div><div style="font-size:11px;font-weight:600;color:#C6F432;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">In progress</div>'
         + '<div style="font-size:17px;font-weight:600;color:#F5F5F4">' + esc(cleanTName) + ' · ' + todaySets + (todaySets === 1 ? ' set' : ' sets') + '</div></div>'
         + '<button type="button" class="btn-text-action" id="resumeSessionBtn" onclick="if(window.renderApp){window.setTab?window.setTab(\'gym\'):(window.tab=\'gym\');window.renderApp();}" style="color:#C6F432;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Resume</button>'
@@ -31,89 +31,129 @@ export function workoutHistoryHTML() {
       return (exercise.sets || []).some(Boolean);
     });
   }).reverse();
+
   if (!sessions.length && !todayInProgressHTML) return '<div class="t-micro" style="padding:16px 0;color:var(--text-secondary)">No completed workouts yet.</div>';
 
-  return '<div style="display:flex;flex-direction:column">' + todayInProgressHTML + sessions.map(function(session, sIdx) {
-    var exercises = session.exercises || [];
-    var totalSets = exercises.reduce(function(count, ex) {
-      return count + (ex.sets || []).filter(Boolean).length;
+  // Group sessions into calendar weeks (Mon-Sun)
+  var weekGroups = {};
+  var weekOrder = [];
+  sessions.forEach(function(session) {
+    var d = session.dayKey ? new Date(session.dayKey + 'T00:00:00') : new Date();
+    var dow = d.getDay();
+    var diff = (dow === 0) ? 6 : dow - 1;
+    var mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - diff);
+    var wk = mon.getFullYear() + '-' + String(mon.getMonth()+1).padStart(2,'0') + '-' + String(mon.getDate()).padStart(2,'0');
+    if (!weekGroups[wk]) { weekGroups[wk] = { weekStart: mon, sessions: [] }; weekOrder.push(wk); }
+    weekGroups[wk].sessions.push(session);
+  });
+
+  var dayNames = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  var monthNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+  var html = '<div>' + todayInProgressHTML;
+
+  weekOrder.forEach(function(wk, wkIdx) {
+    var group = weekGroups[wk];
+    var totalSetsInWeek = group.sessions.reduce(function(acc, s) {
+      return acc + (s.exercises || []).reduce(function(a, ex) { return a + (ex.sets || []).filter(Boolean).length; }, 0);
     }, 0);
-    var dObj = session.dayKey ? new Date(session.dayKey + 'T00:00:00') : new Date();
-    var dayNames = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-    var monthNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-    var dateLabel = dayNames[dObj.getDay()] + ' ' + dObj.getDate() + ' ' + monthNames[dObj.getMonth()];
+    var weekNum = wkIdx + 1;
 
-    var storedMeta = session.dayKey ? (dayRecord(session.dayKey).workoutMetaBySession || {}) : {};
-    var matchingMeta = storedMeta[String(session.programDay)] || Object.keys(storedMeta).map(function(k){ return storedMeta[k]; }).find(function(m){ return m && (m.duration_sec != null || m.durationMinutes != null); });
-    var durationSec = session.duration_sec != null ? Number(session.duration_sec) : (matchingMeta && (matchingMeta.duration_sec != null ? Number(matchingMeta.duration_sec) : Number(matchingMeta.durationMinutes)*60));
-    var durStr = durationSec ? (Math.round(durationSec / 60) + ' min') : '';
+    html += '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin:' + (wkIdx === 0 ? '4' : '24') + 'px 0 12px">WEEK ' + weekNum + ' · ' + group.sessions.length + (group.sessions.length === 1 ? ' SESSION' : ' SESSIONS') + ' · ' + totalSetsInWeek + ' SETS</div>';
 
-    var rawTitle = session.programLabel || session.sessionLabel || 'Workout';
-    var cleanTitle = rawTitle.replace(/^Day\s*\d+\s*[·•—–-]\s*/gi, '').replace(/^Day\s*\d+\s*[·•—–-]\s*/gi, '').trim();
-    if (!cleanTitle) cleanTitle = rawTitle;
+    group.sessions.forEach(function(session, sIdx) {
+      var exercises = session.exercises || [];
+      var totalSets = exercises.reduce(function(count, ex) {
+        return count + (ex.sets || []).filter(Boolean).length;
+      }, 0);
+      var dObj = session.dayKey ? new Date(session.dayKey + 'T00:00:00') : new Date();
+      var dayLabel = dayNames[dObj.getDay()];
+      var monLabel = monthNames[dObj.getMonth()];
 
-    var words = cleanTitle.trim().split(/\s+/);
-    var balancedTitle = words.length > 1 ? (words.slice(0, -1).join(' ') + '\u00A0' + words[words.length - 1]) : cleanTitle;
+      var storedMeta = session.dayKey ? (dayRecord(session.dayKey).workoutMetaBySession || {}) : {};
+      var matchingMeta = storedMeta[String(session.programDay)] || Object.keys(storedMeta).map(function(k){ return storedMeta[k]; }).find(function(m){ return m && (m.duration_sec != null || m.durationMinutes != null); });
+      var durationSec = session.duration_sec != null ? Number(session.duration_sec) : (matchingMeta && (matchingMeta.duration_sec != null ? Number(matchingMeta.duration_sec) : Number(matchingMeta.durationMinutes)*60));
+      var durStr = durationSec ? (Math.round(durationSec / 60) + ' min') : '';
 
-    var statsText = (durStr ? durStr + ' · ' : '') + totalSets + (totalSets === 1 ? ' set' : ' sets');
+      var rawTitle = session.programLabel || session.sessionLabel || 'Workout';
+      var cleanTitle = rawTitle.replace(/^Day\s*\d+\s*[·•—–-]\s*/gi, '').trim();
+      if (!cleanTitle) cleanTitle = rawTitle;
 
-    var exRows = exercises.map(function(exItem) {
-      var exData = getExerciseData(exItem.id) || { name: exItem.id };
-      var sets = (exItem.sets || []).filter(Boolean);
-      var isBW = isBodyweightExercise(exItem.id, exData.name);
+      var statsText = (durStr ? durStr + ' · ' : '') + totalSets + (totalSets === 1 ? ' set' : ' sets');
 
-      var isPrInSession = false;
-      var priorSets = [];
-      for (var p = sIdx + 1; p < sessions.length; p++) {
-        var pEx = (sessions[p].exercises || []).find(function(e){ return e.id === exItem.id; });
-        if (pEx && pEx.sets && pEx.sets.length) {
-          pEx.sets.filter(Boolean).forEach(function(s){ priorSets.push(s); });
+      var exRows = exercises.map(function(exItem, exIdx) {
+        var exData = getExerciseData(exItem.id) || { name: exItem.id };
+        var sets = (exItem.sets || []).filter(Boolean);
+        var isBW = isBodyweightExercise(exItem.id, exData.name);
+
+        var isPrInSession = false;
+        var priorSets = [];
+        for (var p = sIdx + 1; p < group.sessions.length; p++) {
+          var pEx = (group.sessions[p].exercises || []).find(function(e){ return e.id === exItem.id; });
+          if (pEx && pEx.sets) pEx.sets.filter(Boolean).forEach(function(s){ priorSets.push(s); });
         }
-      }
-
-      if (priorSets.length > 0) {
-        if (isBW) {
-          var maxReps = sets.reduce(function(m, s){ return Math.max(m, Number(s.reps) || 0); }, 0);
-          var prevBestReps = priorSets.reduce(function(m, s){ return Math.max(m, Number(s.reps) || 0); }, 0);
-          if (prevBestReps > 0 && maxReps > prevBestReps) isPrInSession = true;
-        } else {
-          var maxE1 = sets.reduce(function(m, s){ return Math.max(m, calcE1RM(s.weight, s.reps)); }, 0);
-          var prevBestE1 = priorSets.reduce(function(m, s){ return Math.max(m, calcE1RM(s.weight, s.reps)); }, 0);
-          if (prevBestE1 > 0 && maxE1 > prevBestE1 + 0.1) isPrInSession = true;
+        for (var pw = wkIdx + 1; pw < weekOrder.length; pw++) {
+          weekGroups[weekOrder[pw]].sessions.forEach(function(ps) {
+            var pEx = (ps.exercises || []).find(function(e){ return e.id === exItem.id; });
+            if (pEx && pEx.sets) pEx.sets.filter(Boolean).forEach(function(s){ priorSets.push(s); });
+          });
         }
-      }
 
-      var setLines = sets.map(function(s) {
-        var wDisp = isBW ? ((!s.weight || Number(s.weight) === 0) ? 'BW' : ('BW+' + s.weight)) : s.weight;
-        return wDisp + ' × ' + s.reps + (s.rir != null ? (' · RIR ' + s.rir) : '');
-      }).join(', ');
+        if (priorSets.length > 0) {
+          if (isBW) {
+            var maxReps = sets.reduce(function(m, s){ return Math.max(m, Number(s.reps) || 0); }, 0);
+            var prevBestReps = priorSets.reduce(function(m, s){ return Math.max(m, Number(s.reps) || 0); }, 0);
+            if (prevBestReps > 0 && maxReps > prevBestReps) isPrInSession = true;
+          } else {
+            var maxE1 = sets.reduce(function(m, s){ return Math.max(m, calcE1RM(s.weight, s.reps)); }, 0);
+            var prevBestE1 = priorSets.reduce(function(m, s){ return Math.max(m, calcE1RM(s.weight, s.reps)); }, 0);
+            if (prevBestE1 > 0 && maxE1 > prevBestE1 + 0.1) isPrInSession = true;
+          }
+        }
 
-      return '<div style="padding:10px 0;border-bottom:1px solid #222">'
-        + '<div style="display:flex;justify-content:space-between;align-items:baseline">'
-          + '<span style="font-size:17px;font-weight:600;color:#F5F5F4">' + esc(exData.name) + '</span>'
-          + (isPrInSession ? '<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#C6F432;letter-spacing:0.08em;text-transform:uppercase"><span style="width:5px;height:5px;border-radius:50%;background:#C6F432;display:inline-block"></span>PR</span>' : '')
-        + '</div>'
-        + '<div style="font-size:15px;color:#8A8A8E;font-variant-numeric:tabular-nums;margin-top:4px">' + esc(setLines) + '</div>'
-        + '</div>';
-    }).join('');
+        var chips = sets.map(function(s) {
+          var wDisp = isBW ? ((!s.weight || Number(s.weight) === 0) ? 'BW' : ('BW+' + s.weight)) : s.weight;
+          var chipText = wDisp + '×' + s.reps;
+          var rir = s.rir;
+          var dotColor = rir === 0 ? '#C6F432' : (rir <= 2 ? '#F5F5F4' : '');
+          var dot = dotColor ? '<span style="width:4px;height:4px;border-radius:50%;background:' + dotColor + ';display:inline-block;margin-left:4px;flex-shrink:0;vertical-align:middle"></span>' : '';
+          return '<span style="display:inline-flex;align-items:center;background:#1C1C1F;border-radius:8px;padding:3px 8px;font-size:11px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;white-space:nowrap">' + esc(chipText) + dot + '</span>';
+        }).join('');
 
-    var chevronSVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+        return '<div style="padding:10px 0 10px 12px;border-left:2px solid #1C1C1F;margin-left:4px;border-bottom:1px solid #222">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+            + '<span style="font-size:15px;font-weight:600;color:#F5F5F4">' + esc(exData.name) + '</span>'
+            + (isPrInSession ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#C6F432;letter-spacing:0.08em;text-transform:uppercase"><span style="width:5px;height:5px;border-radius:50%;background:#C6F432;display:inline-block"></span>PR</span>' : '')
+          + '</div>'
+          + '<div style="display:flex;flex-wrap:wrap;gap:4px">' + chips + '</div>'
+          + '</div>';
+      }).join('');
 
-    return '<details class="history-session-details" style="margin-bottom:24px">'
-      + '<summary class="history-session-header" style="height:64px;min-height:64px;background:#141416;border-radius:12px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;list-style:none;user-select:none;box-sizing:border-box">'
-        + '<div style="flex:1;min-width:0;padding-right:12px">'
-          + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;line-height:1.2;margin-bottom:2px">' + esc(dateLabel) + '</div>'
-          + '<div style="font-size:17px;font-weight:600;color:#F5F5F4;line-height:1.25;text-wrap:balance;overflow-wrap:break-word">' + esc(balancedTitle) + '</div>'
-        + '</div>'
-        + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
-          + '<span style="font-size:15px;color:#8A8A8E;font-variant-numeric:tabular-nums;white-space:nowrap">' + esc(statsText) + '</span>'
-          + '<span class="history-chevron" style="display:inline-flex;align-items:center;color:#8A8A8E;transition:transform 0.2s ease">' + chevronSVG + '</span>'
-          + '<button type="button" class="btn-ghost history-menu-btn" data-edit-workout-session="' + esc(session.id) + '" onclick="event.stopPropagation();event.preventDefault();openEditWorkoutSheet(\'' + esc(session.id) + '\');" style="background:none;border:none;font-size:17px;line-height:1;padding:4px 6px;color:#8A8A8E;cursor:pointer" aria-label="Session options">···</button>'
-        + '</div>'
-      + '</summary>'
-      + '<div style="padding:4px 0 0">' + exRows + '</div>'
-      + '</details>';
-  }).join('') + '</div>';
+      var chevronSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+      var isFirstInWeek = (sIdx === 0 && wkIdx === 0);
+
+      html += '<details class="history-session-details" ' + (isFirstInWeek ? 'open' : '') + ' style="margin-bottom:12px">'
+        + '<summary class="history-session-header" style="min-height:72px;height:auto;background:#141416;border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;list-style:none;user-select:none;box-sizing:border-box;gap:12px">'
+          + '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;min-width:36px">'
+            + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1.1;letter-spacing:0.04em">' + esc(dayLabel) + ' ' + esc(monLabel) + '</div>'
+            + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1;font-variant-numeric:tabular-nums">' + String(dObj.getDate()) + '</div>'
+          + '</div>'
+          + '<div style="flex:1;min-width:0">'
+            + '<div style="font-size:17px;font-weight:600;color:#F5F5F4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(cleanTitle) + '</div>'
+            + '<div style="font-size:15px;color:#8A8A8E;margin-top:2px;font-variant-numeric:tabular-nums">' + esc(statsText) + '</div>'
+          + '</div>'
+          + '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0">'
+            + '<span class="history-chevron" style="display:inline-flex;align-items:center;color:#8A8A8E;transition:transform 0.2s ease">' + chevronSVG + '</span>'
+            + '<button type="button" class="btn-ghost history-menu-btn" data-edit-workout-session="' + esc(session.id) + '" onclick="event.stopPropagation();event.preventDefault();openEditWorkoutSheet(\'' + esc(session.id) + '\');" style="background:none;border:none;font-size:17px;line-height:1;padding:4px 6px;color:#8A8A8E;cursor:pointer;min-width:44px;text-align:center" aria-label="Session options">···</button>'
+          + '</div>'
+        + '</summary>'
+        + '<div style="padding:0 0 8px">' + exRows + '</div>'
+        + '</details>';
+    });
+  });
+
+  html += '</div>';
+  return html;
 }
 
 export function weightEntriesHTML(entries) {
@@ -174,10 +214,22 @@ export function weeklyVolumeChart() {
 }
 
 export function nutritionProgressHTML(records) {
-  var dailyTarget = getTargetsForDate(todayKey());
-  var target = dailyTarget.kcal;
-  var proteinTarget = dailyTarget.protein;
   var recent = records.slice(-7), days = recent.filter(function(r){ return r.kcal > 0; });
+  var target = 0, proteinTarget = 0;
+  if (days.length) {
+    var totalTargetKcal = 0, totalTargetProt = 0;
+    days.forEach(function(r) {
+      var dt = getTargetsForDate(r.key || todayKey());
+      totalTargetKcal += dt.kcal;
+      totalTargetProt += dt.protein;
+    });
+    target = Math.round(totalTargetKcal / days.length);
+    proteinTarget = Math.round(totalTargetProt / days.length);
+  } else {
+    var dt = getTargetsForDate(todayKey());
+    target = dt.kcal;
+    proteinTarget = dt.protein;
+  }
   var kcal = days.length ? Math.round(days.reduce(function(sum,r){ return sum + r.kcal; }, 0) / days.length) : 0;
   var protein = days.length ? Math.round(days.reduce(function(sum,r){ return sum + r.protein; }, 0) / days.length) : 0;
   var kcalPct = Math.min(100, Math.round(kcal / Math.max(1, target) * 100));

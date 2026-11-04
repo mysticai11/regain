@@ -54,8 +54,8 @@
 
 /* ── Quick-Add Staples Shelf ── */
 .staples-shelf {
-  margin-top: var(--spacing-xl);
-  margin-bottom: var(--spacing-xl);
+  margin-top: var(--spacing-20);
+  margin-bottom: var(--spacing-20);
 }
 .staples-header {
   display: flex;
@@ -63,21 +63,35 @@
   align-items: baseline;
   margin-bottom: var(--spacing-sm);
 }
-.staples-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-xs);
+.staples-chip-row {
+  display: flex;
+  gap: var(--spacing-8);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--spacing-4);
+  scrollbar-width: none;
 }
-.staple-pill {
-  background: var(--surface-raised);
+.staples-chip-row::-webkit-scrollbar {
+  display: none;
+}
+.staple-chip {
+  flex-shrink: 0;
+  height: 48px;
+  background: var(--surface2);
   border: none;
   border-radius: var(--r-control);
-  padding: var(--spacing-sm) var(--spacing-md);
-  text-align: left;
-  cursor: pointer;
+  color: var(--text);
+  font-size: var(--fs-15);
+  font-weight: 500;
   font-family: inherit;
-  display: flex;
-  flex-direction: column;
+  padding: 0 var(--spacing-16);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity var(--motion-fast);
+}
+.staple-chip:active {
+  opacity: 0.75;
+}
   gap: 2px;
   transition: opacity 0.15s ease;
 }

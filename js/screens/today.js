@@ -7,7 +7,7 @@ import { DEFAULT_MEAL_PLAN } from "../data/foods.js";
 import { todayKey, dateKey, addDays, esc, currentWeight, formatDuration } from "../lib/format.js";
 import { getTargetsForDate, getDayTotals, getWeeklyVolume, getLoggedWeeklyVolume, computeStreak, yesterdayMissed, foodMacros } from "../lib/calc.js";
 import { playSound, triggerHaptic, ic } from "../lib/dom.js";
-import { showToast } from "../components/toast.js";
+import { showToast, showUndoToast } from "../components/toast.js";
 import { buildGauge, statusPill, macroBar } from "../components/gauge.js";
 import { openFoodSearch, openCustomFoodBuilder, openRecipeBuilder, openCustomFoodsManager, openMealEditor, openEditItemSheet } from "./today/food-modal.js";
 import { addQuickFood, getStaplesShelfHTML, buildWeekDotRowHTML, openWorkoutOverrideSheet, buildCalRingHTML, buildWeightTrendChip, buildNextSessionPreviewHTML, buildWeekGlanceHTML, openCheckinSheet } from "./today/widgets.js";
@@ -45,9 +45,7 @@ export function renderTodaySimple() {
   var rawWorkoutName = isRest ? 'Rest Day' : (session ? session.label.replace(/^Day\s*\d+\s*[—–-]\s*/i, '') : 'Workout');
   var cleanWorkoutName = rawWorkoutName;
   var lastSpace = cleanWorkoutName.lastIndexOf(' ');
-  if (lastSpace > 0) {
-    cleanWorkoutName = cleanWorkoutName.substring(0, lastSpace) + '\u00A0' + cleanWorkoutName.substring(lastSpace + 1);
-  }
+  if (lastSpace > 0) cleanWorkoutName = cleanWorkoutName.substring(0, lastSpace) + '\u00A0' + cleanWorkoutName.substring(lastSpace + 1);
 
   var exercises = (session && session.exercises) ? session.exercises : [];
   var totalPlannedSets = exercises.reduce(function(acc, ex){ return acc + (ex.sets || 0); }, 0);
@@ -95,16 +93,18 @@ export function renderTodaySimple() {
         ? ('<div style="margin-top:12px"><button type="button" class="btn-text-action" id="resetSuggestedWorkoutBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0;cursor:pointer">Reset to suggested</button></div>')
         : '')
     + '</div>'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid #222;margin-bottom:20px">'
-      + '<div>'
-        + '<div class="t-label" style="margin-bottom:6px">Bodyweight</div>'
-        + '<div style="display:flex;align-items:baseline;gap:6px">'
-          + '<input type="number" id="todayWeight" step="0.1" inputmode="decimal" placeholder="0.0" value="' + (rec.weight || '') + '" style="font-family:\'Space Grotesk\',sans-serif;font-size:48px;font-weight:600;font-variant-numeric:tabular-nums;color:#F5F5F4;background:#1C1C1F;border:none;border-radius:12px;outline:none;padding:4px 12px;width:150px;line-height:1">'
-          + '<span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span>'
-        + '</div>'
-      + '</div>'
-      + '<button type="button" class="btn-text-action" id="saveTodayWeight" style="display:none;color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;padding:12px 0">Save</button>'
-    + '</div>'
+    + (function() {
+        var lastW = currentWeight();
+        var bwPlaceholder = lastW ? lastW.toFixed(1) : '—';
+        var bwValue = rec.weight ? rec.weight : '';
+        return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:16px 0;border-bottom:1px solid #222;margin-bottom:20px">'
+          + '<div style="display:flex;align-items:baseline;gap:6px">'
+            + '<input type="number" id="todayWeight" step="0.1" inputmode="decimal" placeholder="' + bwPlaceholder + '" value="' + bwValue + '" style="font-family:\'Space Grotesk\',sans-serif;font-size:48px;font-weight:600;font-variant-numeric:tabular-nums;color:#F5F5F4;background:transparent;border:none;outline:none;padding:0;width:140px;line-height:1">'
+            + '<span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span>'
+          + '</div>'
+          + '<button type="button" class="btn-text-action" id="saveTodayWeight" style="display:none;color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;padding:8px 0;min-height:48px">Save</button>'
+        + '</div>';
+      })()
     + getStaplesShelfHTML()
     + '<div style="margin-top:28px;margin-bottom:40px">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
@@ -123,7 +123,7 @@ export function renderTodaySimple() {
               + '</span>'
             + '</div>';
           }).join('') + '</div>')
-        : '<div style="font-size:15px;color:#55555A;padding:16px 0">No food logged today.</div>')
+        : '<div style="padding:20px 0 8px;text-align:center"><div style="font-size:15px;color:#55555A;margin-bottom:12px">No food logged yet</div></div>')
       + '<button class="btn-text-action" id="addFoodBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:16px 0 0;cursor:pointer;display:block">+ Add food</button>'
     + '</div>';
 
@@ -200,17 +200,32 @@ export function renderTodaySimple() {
   document.querySelectorAll('[data-quick-staple]').forEach(function(card) {
     card.onclick = function() {
       var sIdx = parseInt(card.dataset.quickStaple, 10);
-      var staples = (profile && profile.customStaples) || DEFAULT_STAPLES;
+      var rawStaples = (profile && profile.customStaples) || DEFAULT_STAPLES;
+      var seenIds = {};
+      var staples = rawStaples.filter(function(s) {
+        var sid = (s.id || '') + '::' + (s.name || '');
+        if (seenIds[sid]) return false;
+        seenIds[sid] = true;
+        return true;
+      });
       var item = staples[sIdx];
       if (!item) return;
       var currentRec = dayRecord(key);
       currentRec.extra = currentRec.extra || [];
+      var insertIdx = currentRec.extra.length;
       currentRec.extra.push({ name: item.name, kcal: item.kcal, protein: item.protein, carbs: item.carbs || 0, fat: item.fat || 0, servings: 1 });
       saveDayRecord(key, currentRec);
       playSound('set_logged');
       triggerHaptic();
-      showToast('Logged ' + item.name + ' (' + item.protein + 'g P)', 'ok');
       renderTodaySimple();
+      showUndoToast('Logged ' + item.name + ' (' + item.protein + 'g P)', function() {
+        var undoRec = dayRecord(key);
+        if (undoRec.extra && undoRec.extra.length > insertIdx) {
+          undoRec.extra.splice(insertIdx, 1);
+          saveDayRecord(key, undoRec);
+          renderTodaySimple();
+        }
+      });
     };
   });
 
@@ -346,16 +361,10 @@ export function renderChecklistHTML(rec, isTrainingDay) {
     
     var html = '';
     if (priorityHTML) {
-      html += '<div class="meal-group" style="margin-top:16px">'
-        + '<div class="eyebrow" style="margin-bottom:8px; color:var(--amber-light); display:flex; align-items:center; gap:4px">' + ic('flame', 14) + ' Priority (Energy-Dense Surplus Boosters)</div>'
-        + priorityHTML
-        + '</div>';
+      html += '<div class="meal-group" style="margin-top:16px"><div class="eyebrow" style="margin-bottom:8px; color:var(--amber-light); display:flex; align-items:center; gap:4px">' + ic('flame', 14) + ' Priority (Energy-Dense Surplus Boosters)</div>' + priorityHTML + '</div>';
     }
     if (optionalHTML) {
-      html += '<div class="meal-group" style="margin-top:16px">'
-        + '<div class="eyebrow" style="margin-bottom:8px; color:var(--text-muted); display:flex; align-items:center; gap:4px">' + ic('info', 14) + ' Optional (High-Volume/Protein - Can Skip if Full)</div>'
-        + optionalHTML
-        + '</div>';
+      html += '<div class="meal-group" style="margin-top:16px"><div class="eyebrow" style="margin-bottom:8px; color:var(--text-muted); display:flex; align-items:center; gap:4px">' + ic('info', 14) + ' Optional (High-Volume/Protein - Can Skip if Full)</div>' + optionalHTML + '</div>';
     }
     return html;
   }
@@ -372,19 +381,15 @@ export function addFoodToDay(key, food, servings) {
 }
 
 export function migrateFoodTotals() {
-  if(!profile || !profile.startDate) return;
-  if (ls('rg_food_totals_v2', false)) return;
+  if(!profile || !profile.startDate || ls('rg_food_totals_v2', false)) return;
   allDayKeys().forEach(function(key) {
     var rec=dayRecord(key), changed=false;
     (rec.extra||[]).forEach(function(item) {
       var servings=Number(item.servings)||1;
       if(servings>1) {
-        item.kcal=+(Number(item.kcal||0)).toFixed(1);
-        item.protein=+(Number(item.protein||0)).toFixed(1);
-        item.carbs=+(Number(item.carbs||0)).toFixed(1);
-        item.fat=+(Number(item.fat||0)).toFixed(1);
-        item.servings=1;
-        changed=true;
+        item.kcal=+(Number(item.kcal||0)).toFixed(1); item.protein=+(Number(item.protein||0)).toFixed(1);
+        item.carbs=+(Number(item.carbs||0)).toFixed(1); item.fat=+(Number(item.fat||0)).toFixed(1);
+        item.servings=1; changed=true;
       }
     });
     if(changed) saveDayRecord(key,rec);
