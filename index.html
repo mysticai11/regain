@@ -5329,8 +5329,8 @@ function renderGym() {
   }
 
   var workoutIndex = activeSched.workoutIndex;
-  var session = prog[workoutIndex] || prog[0];
-  var totalPlanned = session.exercises.reduce(function(total, ex){ return total + (ex.sets || 0); }, 0);
+  var session = (prog && prog[workoutIndex]) || (prog && prog[0]) || { label: 'Workout', exercises: [] };
+  var totalPlanned = (session.exercises || []).reduce(function(total, ex){ return total + (ex.sets || 0); }, 0);
   var loggedTotal = session.exercises.reduce(function(total, ex){
     var actualId = (rec.swaps && rec.swaps[ex.id]) || ex.id;
     return total + ((rec.workout || {})[actualId] || []).filter(Boolean).length;
@@ -7391,7 +7391,7 @@ function renderHistory() {
 }
 
 function getWeightHistory() {
-  var entries = Array.isArray(profile.weightEntries) ? profile.weightEntries.slice() : [];
+  var entries = (profile && Array.isArray(profile.weightEntries)) ? profile.weightEntries.slice() : [];
   allDayKeys().forEach(function(k) {
     var r=dayRecord(k);
     if(r.weight!=null && !entries.some(function(e){return e.dayKey===k;})) entries.push({id:'legacy_'+k,dayKey:k,weight:r.weight,createdAt:k+'T12:00:00'});
@@ -8592,7 +8592,7 @@ function renderProgressSimple(mode) {
     });
 
     var first=allLiftValues.length?allLiftValues[0].value:1;
-    var weightPlot=document.getElementById('weightPlot'); if(weightPlot) weightPlot.innerHTML=progressPlot(weightValues,profile.targetWeight);
+    var weightPlot=document.getElementById('weightPlot'); if(weightPlot) weightPlot.innerHTML=progressPlot(weightValues, (profile && profile.targetWeight) || null);
     var liftPlot=document.getElementById('liftPlot'); if(liftPlot) liftPlot.innerHTML=progressPlot(liftValues, null, isBW ? 'reps' : 'kg');
     var direction=goalDirection(), latest=weightValues.length?weightValues[weightValues.length-1].value:null;
     var trend=weightValues.length>1?latest-weightValues[0].value:0;
@@ -8913,9 +8913,12 @@ function renderTodaySimple() {
   var calPct=Math.min(100,Math.round((tot.kcal/targets.kcal)*100));
   var proteinPct=Math.min(100,Math.round((tot.protein/targets.protein)*100));
   var tdays=(profile && profile.trainingDays)||[1,2,3,5,6], isTraining=tdays.includes(new Date().getDay());
-  var chosen=rec.workoutDone?getNextProgramWorkout():getWorkoutForDate(key,rec), session=chosen.session, hasWorkout=isTraining||rec.selectedWorkout!=null;
-  var workoutWeek=rec.workoutDone?chosen.week:getWorkoutWeek(key);
-  var done=session.exercises.filter(function(ex){return (rec.workout||{})[ex.id]&&rec.workout[ex.id].length;}).length;
+  var chosen=rec.workoutDone?getNextProgramWorkout():getWorkoutForDate(key,rec);
+  var session=chosen ? chosen.session : null;
+  var hasWorkout=(session != null) && (isTraining || rec.selectedWorkout != null);
+  var workoutWeek=rec.workoutDone?(chosen ? chosen.week : 1):getWorkoutWeek(key);
+  var exercises=(session && session.exercises) ? session.exercises : [];
+  var done=exercises.filter(function(ex){return (rec.workout||{})[ex.id]&&rec.workout[ex.id].length;}).length;
   var recent=ls('rg_recent_foods',[]).slice(0,5);
   var recentHtml=recent.length?'<div class="chips-row">'+recent.map(function(r){return '<button class="chip quick-recent" data-food="'+encodeURIComponent(JSON.stringify(r))+'">'+esc(r.name)+'</button>';}).join('')+'</div>':'';
   var weightTrend = rec.weight != null ? buildWeightTrendChip(rec.weight) : '';
@@ -8929,9 +8932,9 @@ function renderTodaySimple() {
     +'<div class="topbar-right">'+streakBadge+'<button class="icon-btn" id="settingsBtn" aria-label="Settings">'+ic('settings')+'</button></div></div>'
     + '<section class="focus-card">' + calRingHTML + '</section>'
     + weekDotHTML
-    +(rec.workoutDone
+    +(rec.workoutDone && session
     ? '<section class="today-workout completed-today-section"><div><span class="eyebrow">Today&#39;s Workout &bull; Week ' + workoutWeek + '</span><strong>Done: ' + esc(session.label) + '</strong><span class="small dim">Logged &amp; saved in History</span></div><button class="btn btn-sm" id="startWorkout">History</button></section>'
-    : '<section class="today-workout ' + (!hasWorkout ? 'rest' : '') + '"><div><span class="eyebrow">Today&#39;s Workout' + (hasWorkout ? ' &bull; Week ' + workoutWeek : '') + '</span><strong>' + (hasWorkout ? esc(session.label) : 'Rest day') + '</strong><span class="small dim">' + (hasWorkout ? done + ' of ' + session.exercises.length + ' exercises' : '') + '</span></div><button class="btn ' + (hasWorkout ? 'btn-primary' : '') + '" id="startWorkout">' + (hasWorkout ? 'Start' : 'Choose') + '</button></section>')
+    : '<section class="today-workout ' + (!hasWorkout ? 'rest' : '') + '"><div><span class="eyebrow">Today&#39;s Workout' + (hasWorkout ? ' &bull; Week ' + workoutWeek : '') + '</span><strong>' + (hasWorkout && session ? esc(session.label) : 'Rest day') + '</strong><span class="small dim">' + (hasWorkout ? done + ' of ' + exercises.length + ' exercises' : 'Recovery & nutrition') + '</span></div><button class="btn ' + (hasWorkout ? 'btn-primary' : '') + '" id="startWorkout">' + (hasWorkout ? 'Start' : 'Choose') + '</button></section>')
     + nextSessionHTML
     +'<section class="simple-section"><div class="section-head"><span class="eyebrow">bodyweight</span><span class="small dim">once daily</span></div><div class="inline-entry"><input type="number" id="todayWeight" step="0.1" inputmode="decimal" placeholder="kg" value="'+(rec.weight||'')+'"><button class="btn" id="saveTodayWeight">Save</button></div>'+(rec.weight!=null?'<div class="small sage" style="margin-top:7px">Saved: '+rec.weight+' kg today</div>'+weightTrend:'')+' </section>'
     +getStaplesShelfHTML()+'<section class="simple-section"><div class="section-head"><span class="eyebrow">Today&#39;s Food</span></div>'+(rec.extra.length?'<div class="food-log-list">'+rec.extra.map(function(item,i){return '<div class="food-log-row"><span><strong>'+esc(item.name)+'</strong><small>'+Math.round(item.kcal*(item.servings||1))+' kcal - '+Math.round((item.protein||0)*(item.servings||1))+'g protein</small></span><button class="btn-ghost food-delete" data-food-index="'+i+'" aria-label="Delete">Del</button></div>';}).join('')+'</div>':'<div class="small dim">Nothing logged</div>')+recentHtml+'<div class="food-actions"><button class="btn" id="repeatYesterdayFoodBtn">Repeat Yesterday</button><button class="btn" id="quickFoodBtn">Quick add</button><button class="btn btn-primary" id="addFoodBtn">Search food</button></div></section>'
@@ -9014,7 +9017,8 @@ SQLiteStorage.init(function(){
       }
     }
   }).catch(function(err){
-    document.getElementById('app').innerHTML='<div class="loading"><div style="color:var(--rust-light)">IndexedDB error. Please reload.</div><div style="font-size:12px;color:var(--text-muted)">'+err.message+'</div></div>';
+    console.error('App startup error:', err);
+    document.getElementById('app').innerHTML='<div class="loading"><div style="color:var(--danger)">Startup Error</div><div style="font-size:12px;color:var(--text-2);margin-top:8px">'+esc(err.message)+'</div><button class="btn btn-sm" style="margin-top:16px" onclick="location.reload()">Reload</button></div>';
   });
 });
 
