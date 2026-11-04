@@ -1,4 +1,4 @@
-# Tally — Offline Workout Logger PWA
+# Regain — Offline Workout & Nutrition PWA
 
 A private, offline-first Progressive Web App for logging the 5-day beginner muscle-building split. The app also supports a loss goal, with editable calorie and protein targets.
 

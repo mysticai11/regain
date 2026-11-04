@@ -162,7 +162,7 @@ export function exportData() {
     };
     keys.forEach(function(k){ data.days[k]=dayRecord(k); });
     var jsonStr = JSON.stringify(data, null, 2);
-    var fileName = 'tally-backup-' + todayKey() + '.json';
+    var fileName = 'regain-backup-' + todayKey() + '.json';
 
     if (navigator.share && navigator.canShare) {
       try {

@@ -289,7 +289,7 @@ server.listen(8099, async () => {
       const d = new Date();
       const pad = n => String(n).padStart(2, '0');
       const todayStr = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-      const expectedFileName = 'tally-backup-' + todayStr + '.json';
+      const expectedFileName = 'regain-backup-' + todayStr + '.json';
       return {
         hasProfile: !!data.rg_profile,
         todayStr,

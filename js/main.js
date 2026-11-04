@@ -107,7 +107,7 @@ function onStorageReady() {
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if(typeof navigator !== 'undefined' && 'serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js?v=tally-v1').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=regain-v1').catch(function(){});
   });
 }
 

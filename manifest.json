@@ -1,7 +1,7 @@
 {
-  "name": "Tally",
-  "short_name": "Tally",
-  "description": "Private offline workout and meal logger.",
+  "name": "Regain",
+  "short_name": "Regain",
+  "description": "Minimal offline workout and nutrition tracker.",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
