@@ -1574,16 +1574,32 @@ body {
   background: var(--bg) !important;
   border-top: 1px solid var(--div) !important;
   padding: 8px 0 calc(8px + var(--safe-b)) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
 }
 .navitem {
-  color: var(--text-muted) !important;
+  color: #55555A !important;
   font-size: 11px !important;
   font-weight: 500 !important;
   position: relative !important;
   min-height: 48px !important;
+  background: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+.navitem:active {
+  background: none !important;
 }
 .navitem.active {
-  color: var(--text) !important;
+  color: #F5F5F4 !important;
+  background: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+.navitem.active svg {
+  filter: none !important;
 }
 .navitem.active::before {
   content: '' !important;
@@ -1592,7 +1608,7 @@ body {
   width: 4px !important;
   height: 4px !important;
   border-radius: 50% !important;
-  background: var(--lime) !important;
+  background: #C6F432 !important;
 }
 
 /* ── Today Screen Overhauls ───────────────────────────────────────── */
@@ -6105,8 +6121,9 @@ function attachGymEvents(key, rec, session, programDayIndex) {
       sessionMeta.sessionLabel=session.label;
       rec.workout[id][setIndex] = {weight:w,reps:r,rir:rirValue};
       if (rec.workoutDraft[id]) delete rec.workoutDraft[id][setIndex];
-      // Auto-fill next set with current set numbers so user does not re-type
-      if (!rec.workout[id][setIndex + 1]) {
+      // Only auto-fill next set draft if within planned count (do not automatically create 3rd/4th extra sets)
+      var exPlannedSets = (exObj && exObj.sets) || 2;
+      if (setIndex + 1 < exPlannedSets && !rec.workout[id][setIndex + 1]) {
         rec.workoutDraft[id] = rec.workoutDraft[id] || [];
         rec.workoutDraft[id][setIndex + 1] = { weight: w, reps: r, rir: rirValue };
       }
@@ -7827,17 +7844,18 @@ function goalTrajectoryText(entries) {
 }
 
 function progressPlot(values, goal, unit) {
-  if(!values.length) return '<div class="empty-note">Log data to see this trend.</div>';
+  if(!values.length) return '<div class="t-micro" style="padding:16px 0;color:var(--text-secondary)">Log data to see this trend.</div>';
   var unitLabel = unit || 'kg';
   var isReps = unitLabel === 'reps';
-  var nums=values.map(function(v){return Number(v.value);}).concat(goal!=null?[goal]:[]);
-  var rawMin=Math.min.apply(null,nums), rawMax=Math.max.apply(null,nums), rawSpan=rawMax-rawMin;
-  var pad=rawSpan?Math.max(rawSpan*.18,.5):Math.max(Math.abs(rawMax)*.03,.5);
-  var min=rawMin-pad, max=rawMax+pad, span=max-min||1;
-  var points=values.map(function(v,i){var x=i/Math.max(1,values.length-1)*100,y=8+((max-v.value)/span)*84;return {x:x,y:y,v:v};});
-  var poly=points.map(function(p){return p.x.toFixed(1)+','+p.y.toFixed(1);}).join(' ');
-  var first=values[0].value, last=values[values.length-1].value, delta=last-first;
-  var deltaText=values.length>1?(delta===0?'No change':(delta>0?'+':'')+(isReps?Math.round(delta):delta.toFixed(1))+' '+unitLabel):'First entry';
+  var nums = values.map(function(v){return Number(v.value);}).concat(goal!=null?[goal]:[]);
+  var rawMin = Math.min.apply(null,nums), rawMax = Math.max.apply(null,nums), rawSpan = rawMax-rawMin;
+  var pad = rawSpan ? Math.max(rawSpan*.18,.5) : Math.max(Math.abs(rawMax)*.03,.5);
+  var min = rawMin-pad, max = rawMax+pad, span = max-min||1;
+  var points = values.map(function(v,i){var x=i/Math.max(1,values.length-1)*100,y=8+((max-v.value)/span)*84;return {x:x,y:y,v:v};});
+  var poly = points.map(function(p){return p.x.toFixed(1)+','+p.y.toFixed(1);}).join(' ');
+  var first = values[0].value, last = values[values.length-1].value, delta = last-first;
+  var deltaText = values.length > 1 ? (delta === 0 ? '0.0 ' + unitLabel : (delta > 0 ? '+' : '') + (isReps ? Math.round(delta) : delta.toFixed(1)) + ' ' + unitLabel) : 'First entry';
+
   var distinctLabels = [];
   values.forEach(function(v){
     var raw = String(v.label || '').slice(0, 10);
@@ -7859,16 +7877,26 @@ function progressPlot(values, goal, unit) {
     ];
   }
 
-  var goalY=goal!=null?8+((max-goal)/span)*84:null;
-  var goalLine=goalY!=null&&goalY>=0&&goalY<=100?'<div class="chart-goal" style="top:'+goalY+'%"><span>goal '+Number(goal).toFixed(1)+'</span></div>':'';
-  var area=points.length>1?poly+' 100,100 0,100':'';
-  return '<div class="plot-caption"><span>'+values.length+' point'+(values.length===1?'':'s')+'</span><b class="plot-change">'+deltaText+'</b></div>'
-    +'<div class="plot-shell"><div class="plot-current">'+(isReps ? Math.round(last) + ' reps' : Number(last).toFixed(1) + ' kg')+'</div><div class="line-chart" aria-label="Trend from '+first+' to '+last+'"><span class="chart-max">'+(isReps ? Math.round(max) : max.toFixed(1))+'</span><span class="chart-min">'+(isReps ? Math.round(min) : min.toFixed(1))+'</span>'+goalLine
-    +'<svg viewBox="0 0 100 100" preserveAspectRatio="none"><defs><linearGradient id="plotFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--amber)" stop-opacity=".28"/><stop offset="1" stop-color="var(--amber)" stop-opacity="0"/></linearGradient></defs>'
-    
-    +'<polyline points="'+poly+'" fill="none" stroke="#F5F5F4" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/>'
-    +points.map(function(p,i){return '<circle cx="'+p.x+'" cy="'+p.y+'" r="'+(i===points.length-1?'3':'2.2')+'" fill="'+(i===points.length-1?'var(--amber-light)':'var(--amber)')+'" stroke="var(--surface)" stroke-width="1"><title>'+esc(p.v.label||p.v.value)+'</title></circle>';}).join('')
-    +'</svg></div><div class="plot-axis" style="display:flex;justify-content:space-between">' + displayLabels.map(function(l){ return '<span>' + esc(l) + '</span>'; }).join('') + '</div></div>';
+  var goalY = goal != null ? 8+((max-goal)/span)*84 : null;
+  var goalLine = (goalY != null && goalY >= 0 && goalY <= 100)
+    ? '<line x1="0" y1="' + goalY + '" x2="100" y2="' + goalY + '" stroke="#55555A" stroke-dasharray="3 3" stroke-width="1.5" vector-effect="non-scaling-stroke"/>'
+    : '';
+
+  return '<div style="margin-bottom:12px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'
+      + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + values.length + ' point' + (values.length === 1 ? '' : 's') + '</span>'
+      + '<span class="tabnum" style="font-size:15px;color:var(--text-secondary)">' + esc(deltaText) + '</span>'
+    + '</div>'
+    + '<div style="position:relative;width:100%;height:140px;background:none">'
+      + '<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%;height:100%;overflow:visible">'
+        + goalLine
+        + '<polyline points="' + poly + '" fill="none" stroke="#F5F5F4" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/>'
+      + '</svg>'
+    + '</div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11px;letter-spacing:0.08em;color:var(--text-secondary);text-transform:uppercase">'
+      + displayLabels.map(function(l){ return '<span>' + esc(l) + '</span>'; }).join('')
+    + '</div>'
+    + '</div>';
 }
 
 function workoutHistoryHTML() {
@@ -7877,9 +7905,9 @@ function workoutHistoryHTML() {
       return (exercise.sets || []).some(Boolean);
     });
   }).reverse();
-  if (!sessions.length) return '<div class="glass-card" style="padding:20px;text-align:center"><div class="t-micro">No completed workouts yet.</div></div>';
+  if (!sessions.length) return '<div class="t-micro" style="padding:16px 0;color:var(--text-secondary)">No completed workouts yet.</div>';
 
-  return '<div style="display:flex;flex-direction:column;gap:12px">' + sessions.map(function(session) {
+  return '<div style="display:flex;flex-direction:column">' + sessions.map(function(session, sIdx) {
     var exercises = session.exercises || [];
     var totalSets = exercises.reduce(function(count, ex) {
       return count + (ex.sets || []).filter(Boolean).length;
@@ -7910,30 +7938,31 @@ function workoutHistoryHTML() {
         return wDisp + ' × ' + s.reps + (s.rir != null ? (' · RIR ' + s.rir) : '');
       }).join(', ');
 
-      return '<div class="glass-hist-ex-row">'
-        + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px">'
-          + '<span style="font-size:14px;font-weight:600;color:var(--text)">' + esc(exData.name) + '</span>'
-          + '<span class="t-micro" style="color:var(--text-secondary)">' + esc(bestText) + '</span>'
+      return '<div style="padding:8px 0;border-bottom:1px solid #222">'
+        + '<div style="display:flex;justify-content:space-between;align-items:baseline">'
+          + '<span style="font-size:15px;font-weight:600;color:var(--text)">' + esc(exData.name) + '</span>'
+          + '<span style="font-size:13px;color:var(--text-secondary)">' + esc(bestText) + '</span>'
         + '</div>'
-        + '<div class="t-micro tabnum" style="color:var(--text-muted)">' + esc(setLines) + '</div>'
+        + '<div class="tabnum" style="font-size:13px;color:var(--text-secondary);margin-top:2px">' + esc(setLines) + '</div>'
         + '</div>';
     }).join('');
 
-    return '<details class="glass-card hist-glass-card">'
-      + '<summary class="hist-glass-header">'
-        + '<div>'
-          + '<div class="t-label" style="font-size:10px;margin-bottom:3px">' + esc(dateStr) + '</div>'
-          + '<div style="font-family:\'Space Grotesk\',system-ui,sans-serif;font-weight:700;font-size:17px;color:var(--text)">' + esc(cleanTitle) + '</div>'
+    return '<details style="border-bottom:1px solid #222;padding:12px 0">'
+      + '<summary style="display:flex;justify-content:space-between;align-items:flex-start;cursor:pointer;list-style:none;user-select:none">'
+        + '<div style="flex:1;min-width:0;padding-right:12px">'
+          + '<div class="t-label" style="font-size:11px;margin-bottom:2px;color:var(--text-secondary)">' + esc(dateStr).toUpperCase() + '</div>'
+          + '<div style="font-family:var(--font-display);font-weight:600;font-size:17px;color:var(--text);text-wrap:balance;overflow-wrap:break-word;line-height:1.25">' + esc(cleanTitle) + '</div>'
         + '</div>'
-        + '<div style="display:flex;align-items:center;gap:12px">'
-          + '<span class="hist-glass-badge tabnum">' + (durStr ? durStr + ' · ' : '') + totalSets + (totalSets === 1 ? ' set' : ' sets') + '</span>'
-          + '<button type="button" class="btn-ghost" data-edit-workout-session="' + esc(session.id) + '" onclick="event.stopPropagation();event.preventDefault();" style="font-size:18px;line-height:1;padding:4px 8px;color:var(--text-secondary);cursor:pointer" aria-label="Session options">···</button>'
+        + '<div style="display:flex;align-items:center;gap:12px;white-space:nowrap;flex-shrink:0">'
+          + '<span class="tabnum" style="font-size:15px;color:var(--text-secondary)">' + (durStr ? durStr + ' · ' : '') + totalSets + (totalSets === 1 ? ' set' : ' sets') + '</span>'
+          + '<button type="button" class="btn-ghost" data-edit-workout-session="' + esc(session.id) + '" onclick="event.stopPropagation();event.preventDefault();" style="font-size:18px;line-height:1;padding:4px 6px;color:var(--text-secondary);cursor:pointer" aria-label="Session options">···</button>'
         + '</div>'
       + '</summary>'
-      + '<div class="hist-glass-content">' + exRows + '</div>'
+      + '<div style="padding-top:10px;padding-left:4px">' + exRows + '</div>'
       + '</details>';
   }).join('') + '</div>';
 }
+
 function weightEntriesHTML(entries) {
   return entries.slice().reverse().slice(0,8).map(function(e){
     var label=new Date(e.createdAt||e.dayKey+'T12:00:00').toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
@@ -8842,6 +8871,28 @@ function openEditWorkoutSheet(sessionId) {
         saveDayRecord(session.dayKey, rec);
       }
 
+      // Propagate edited exercises to activeSplitData so subsequent weeks carry changes forward
+      if (typeof profile !== 'undefined' && profile) {
+        profile.activeSplitData = profile.activeSplitData || JSON.parse(JSON.stringify(getActiveProgram()));
+        var pDay = session.programDay;
+        if (pDay != null && profile.activeSplitData[pDay]) {
+          profile.activeSplitData[pDay].exercises = currentExercises.map(function(ex) {
+            var orig = (getExerciseData(ex.id) || {});
+            return {
+              id: ex.id,
+              name: ex.name,
+              muscle: orig.muscle || 'other',
+              sets: (ex.sets && ex.sets.length) || orig.sets || 2,
+              reps: orig.reps || '8–12',
+              rir: orig.rir || '1–2',
+              rest: orig.rest || 90,
+              type: orig.type || 'isolation'
+            };
+          });
+          sv('rg_profile', profile);
+        }
+      }
+
       store.sessions[sessionId] = session;
       sv(WORKOUT_SESSIONS_KEY, store);
       overlay.remove();
@@ -8928,10 +8979,10 @@ function buildDotConsistencyCalendarHTML() {
 
   var trainedCount = 0;
   var plannedCount = 0;
-  var cells = [];
+  var dots = [];
 
   for (var o = 0; o < startOffset; o++) {
-    cells.push('<div class="chk-day empty"></div>');
+    dots.push('<span class="dot-cell empty" style="width:6px;height:6px;border-radius:50%;background:#222222;display:inline-block"></span>');
   }
 
   for (var day = 1; day <= daysInMonth; day++) {
@@ -8946,41 +8997,35 @@ function buildDotConsistencyCalendarHTML() {
     var rec = dayRecord(key);
     var trained = rec && (rec.workoutDone || (rec.workout && Object.keys(rec.workout).some(function(k){return (rec.workout[k]||[]).some(Boolean);})));
     var isToday = (key === todayStr);
-    var isPast = (day < todayDate);
-    var isFuture = (day > todayDate);
 
     if (trained) trainedCount++;
 
-    var cls = 'chk-day';
-    if (trained) {
-      cls += ' trained';
-      if (isToday) cls += ' today';
+    var dotStyle = 'width:6px;height:6px;border-radius:50%;display:inline-block;box-sizing:border-box;';
+    if (trained && isToday) {
+      dotStyle += 'background:#C6F432;'; // today session = lime
+    } else if (trained) {
+      dotStyle += 'background:#F5F5F4;'; // trained = white
     } else if (isToday) {
-      cls += ' today';
-    } else if (isPast) {
-      cls += ' past';
+      dotStyle += 'background:transparent;border:1.5px solid #F5F5F4;'; // today untrained = ring
     } else {
-      cls += ' future';
+      dotStyle += 'background:#222222;'; // empty = #222
     }
 
-    cells.push('<div class="' + cls + '" title="' + key + (trained ? ' (Trained)' : '') + '"><span class="chk-day-num">' + day + '</span></div>');
+    dots.push('<span class="dot-cell" style="' + dotStyle + '" title="' + key + (trained ? ' (Trained)' : '') + '"></span>');
   }
 
-  return '<div class="chk-calendar-wrap">'
-    + '<div class="chk-cal-header">'
+  while (dots.length % 7 !== 0) {
+    dots.push('<span class="dot-cell empty" style="width:6px;height:6px;border-radius:50%;background:#222222;display:inline-block"></span>');
+  }
+
+  return '<div style="margin-bottom:32px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
       + '<span class="t-label">' + monthNames[month] + ' ' + year + '</span>'
-      + '<span class="t-micro tabnum">' + trainedCount + ' of ' + plannedCount + (plannedCount === 1 ? ' workout' : ' workouts') + '</span>'
+      + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + trainedCount + ' of ' + plannedCount + (plannedCount === 1 ? ' workout' : ' workouts') + '</span>'
     + '</div>'
-    + '<div class="chk-weekdays">'
-      + '<span class="chk-weekday-name">M</span>'
-      + '<span class="chk-weekday-name">T</span>'
-      + '<span class="chk-weekday-name">W</span>'
-      + '<span class="chk-weekday-name">T</span>'
-      + '<span class="chk-weekday-name">F</span>'
-      + '<span class="chk-weekday-name">S</span>'
-      + '<span class="chk-weekday-name">S</span>'
+    + '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:14px;justify-items:center;align-items:center;padding:4px 0">'
+      + dots.join('')
     + '</div>'
-    + '<div class="chk-days-grid">' + cells.join('') + '</div>'
     + '</div>';
 }
 
@@ -9073,23 +9118,36 @@ function renderProgressSimple(mode) {
       + '<span class="t-micro">' + (profile && profile.targetWeight ? ('Target ' + profile.targetWeight + ' kg') : '') + '</span>'
     + '</div>'
     + '<div class="t-display" style="margin-bottom:14px">' + (current != null ? current.toFixed(1) : '—') + '<span style="font-size:18px;color:var(--text-secondary);margin-left:4px">kg</span></div>'
-    + '<div class="range-row" style="margin-bottom:16px">'
-      + '<button class="range active" data-range="1w">4W</button>'
-      + '<button class="range" data-range="1m">12W</button>'
-      + '<button class="range" data-range="all">All</button>'
+    + '<div class="seg-range" style="display:flex;gap:24px;align-items:center;margin-bottom:16px">'
+      + '<button type="button" class="range-btn active" data-range="1w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:600;color:#F5F5F4;border-bottom:2px solid #F5F5F4;cursor:pointer">4W</button>'
+      + '<button type="button" class="range-btn" data-range="1m" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">12W</button>'
+      + '<button type="button" class="range-btn" data-range="all" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">All</button>'
     + '</div>'
     + '<div id="weightPlot"></div>'
-    + '<div id="weightMeta" class="t-micro" style="margin-top:10px"></div>'
-    + '<div style="display:flex;gap:8px;margin-top:16px">'
-      + '<input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="Log weight (kg)" inputmode="decimal" style="flex:1">'
-      + '<button class="btn btn-primary" id="saveProgressWeight">Save</button>'
+    + '<div id="weightMeta" class="tabnum" style="font-size:13px;color:var(--text-secondary);margin-top:10px;line-height:1.4"></div>'
+    + '<div style="display:flex;align-items:center;gap:12px;margin-top:16px">'
+      + '<input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="Log weight (kg)" inputmode="decimal" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:17px;font-family:var(--font-display);font-variant-numeric:tabular-nums;flex:1">'
+      + '<button type="button" class="btn-text-action" id="saveProgressWeight" style="display:none;font-size:15px;font-weight:600;color:#F5F5F4;background:none;border:none;height:48px;padding:0 8px;cursor:pointer">Save</button>'
     + '</div>'
     + '</div>'
     + '<div style="margin-top:28px">'
       + '<div class="t-label" style="margin-bottom:8px">Nutrition · Last 7 days</div>'
       + nutritionProgressHTML(records)
     + '</div>';
-  var liftSection='<section class="progress-card"><div class="progress-card-head"><div><span class="eyebrow">Strength</span><h2>Lift progress</h2></div><span id="liftMeta" class="progress-summary"></span></div><select id="liftSelect" class="compact-select">'+exOptions.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join('')+'</select><div id="liftPlot"></div></section><section class="progress-card"><div class="progress-card-head"><div><span class="eyebrow">Training</span><h2>Weekly work</h2></div><span class="progress-summary">7 days</span></div>'+weeklyVolumeChart()+'</section>';
+  var liftSection = '<div style="margin-bottom:32px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'
+      + '<span class="t-label">Lift progress</span>'
+      + '<span id="liftMeta" class="t-micro tabnum" style="color:var(--text-secondary)"></span>'
+    + '</div>'
+    + '<select id="liftSelect" style="background:#1C1C1F;border:none;border-radius:12px;height:44px;padding:0 12px;color:#F5F5F4;font-size:14px;width:100%;margin-bottom:12px">'
+      + exOptions.map(function(e){ return '<option value="' + e.id + '">' + esc(e.name) + '</option>'; }).join('')
+    + '</select>'
+    + '<div id="liftPlot"></div>'
+    + '</div>'
+    + '<div style="margin-top:32px">'
+      + '<div class="t-label" style="margin-bottom:12px">Weekly work · Sets last 7 days · target 10–18</div>'
+      + weeklyVolumeChart()
+    + '</div>';
   document.getElementById('content').innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">'
       + '<span class="t-label">Progress</span>'
@@ -9108,7 +9166,26 @@ function renderProgressSimple(mode) {
   document.getElementById('settingsBtn').onclick=openSettings;
   document.getElementById('bodyProgressBtn').onclick=function(){renderProgressSimple('body');};
   document.getElementById('liftProgressBtn').onclick=function(){renderProgressSimple('lifts');};
-  document.querySelectorAll('[data-range]').forEach(function(btn){btn.onclick=function(){range=btn.dataset.range;document.querySelectorAll('[data-range]').forEach(function(b){b.classList.toggle('active',b===btn);});render();};});
+  document.querySelectorAll('[data-range]').forEach(function(btn){
+    btn.onclick = function(){
+      range = btn.dataset.range;
+      document.querySelectorAll('[data-range]').forEach(function(b){
+        var isAct = (b === btn);
+        b.classList.toggle('active', isAct);
+        b.style.color = isAct ? '#F5F5F4' : '#55555A';
+        b.style.borderBottom = isAct ? '2px solid #F5F5F4' : '2px solid transparent';
+        b.style.fontWeight = isAct ? '600' : '500';
+      });
+      render();
+    };
+  });
+  var pWInput = document.getElementById('progressWeight');
+  var pWSave = document.getElementById('saveProgressWeight');
+  if (pWInput && pWSave) {
+    pWInput.addEventListener('input', function(){
+      pWSave.style.display = pWInput.value.trim() ? 'inline-flex' : 'none';
+    });
+  }
   var liftSelect=document.getElementById('liftSelect'); if(liftSelect) liftSelect.onchange=render;
   document.querySelectorAll('[data-edit-weight]').forEach(function(btn){btn.onclick=function(){editWeightEntry(btn.dataset.editWeight);};});
   document.querySelectorAll('[data-delete-weight]').forEach(function(btn){btn.onclick=function(){deleteWeightEntry(btn.dataset.deleteWeight);};});
@@ -9589,7 +9666,7 @@ SQLiteStorage.init(function(){
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js?v=38').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=39').catch(function(){});
   });
 }
 </script>
