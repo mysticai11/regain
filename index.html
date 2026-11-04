@@ -2101,6 +2101,70 @@ body {
   box-shadow: 0 0 0 2px #FFFFFF;
 }
 
+
+/* ── Grey Glassmorphic Card System ── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.04) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  border-radius: var(--r-surface) !important;
+  padding: 18px !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.07) !important;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease !important;
+}
+
+.glass-list-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  padding: 11px 4px !important;
+  transition: background 0.12s ease !important;
+}
+.glass-list-row:last-child {
+  border-bottom: none !important;
+}
+.glass-list-row:hover, .glass-list-row:active {
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* History Glass Details/Summary */
+.hist-glass-card {
+  margin-bottom: 12px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+.hist-glass-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 16px 18px !important;
+  cursor: pointer !important;
+  list-style: none !important;
+  user-select: none !important;
+}
+.hist-glass-header::-webkit-details-marker {
+  display: none !important;
+}
+.hist-glass-badge {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: var(--text-secondary) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 20px !important;
+  padding: 3px 10px !important;
+}
+.hist-glass-content {
+  padding: 4px 18px 16px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+.glass-hist-ex-row {
+  padding: 10px 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+.glass-hist-ex-row:last-child {
+  border-bottom: none !important;
+}
+
 </style>
 </head>
 <body>
@@ -7778,15 +7842,15 @@ function workoutHistoryHTML() {
       return (exercise.sets || []).some(Boolean);
     });
   }).reverse();
-  if (!sessions.length) return '<div class="t-micro" style="padding:16px 0">No completed workouts yet.</div>';
+  if (!sessions.length) return '<div class="glass-card" style="padding:20px;text-align:center"><div class="t-micro">No completed workouts yet.</div></div>';
 
-  return sessions.map(function(session) {
+  return '<div style="display:flex;flex-direction:column;gap:12px">' + sessions.map(function(session) {
     var exercises = session.exercises || [];
     var totalSets = exercises.reduce(function(count, ex) {
       return count + (ex.sets || []).filter(Boolean).length;
     }, 0);
     var dObj = session.dayKey ? new Date(session.dayKey + 'T00:00:00') : new Date();
-    var dateStr = dObj.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' });
+    var dateStr = dObj.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
     var storedMeta = session.dayKey ? (dayRecord(session.dayKey).workoutMetaBySession || {}) : {};
     var matchingMeta = storedMeta[String(session.programDay)] || Object.keys(storedMeta).map(function(k){ return storedMeta[k]; }).find(function(m){ return m && (m.duration_sec != null || m.durationMinutes != null); });
     var durationSec = session.duration_sec != null ? Number(session.duration_sec) : (matchingMeta && (matchingMeta.duration_sec != null ? Number(matchingMeta.duration_sec) : Number(matchingMeta.durationMinutes)*60));
@@ -7809,31 +7873,30 @@ function workoutHistoryHTML() {
         return wDisp + ' × ' + s.reps + (s.rir != null ? (' · RIR ' + s.rir) : '');
       }).join(', ');
 
-      return '<div style="padding:8px 0;border-bottom:1px solid var(--div)">'
-        + '<div style="display:flex;justify-content:space-between;font-size:14px;color:var(--text)">'
-          + '<span>' + esc(exData.name) + '</span>'
-          + '<span class="t-micro">' + esc(bestText) + '</span>'
+      return '<div class="glass-hist-ex-row">'
+        + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px">'
+          + '<span style="font-size:14px;font-weight:600;color:var(--text)">' + esc(exData.name) + '</span>'
+          + '<span class="t-micro" style="color:var(--text-secondary)">' + esc(bestText) + '</span>'
         + '</div>'
-        + '<div class="t-micro" style="margin-top:2px">' + esc(setLines) + '</div>'
+        + '<div class="t-micro tabnum" style="color:var(--text-muted)">' + esc(setLines) + '</div>'
         + '</div>';
     }).join('');
 
-    return '<details class="hist-item">'
-      + '<summary class="hist-item-header" style="list-style:none">'
+    return '<details class="glass-card hist-glass-card">'
+      + '<summary class="hist-glass-header">'
         + '<div>'
-          + '<div class="t-micro">' + esc(dateStr) + '</div>'
-          + '<div style="font-weight:600;font-size:15px;color:var(--text);margin-top:2px">' + esc(cleanTitle) + '</div>'
+          + '<div class="t-label" style="font-size:10px;margin-bottom:3px">' + esc(dateStr) + '</div>'
+          + '<div style="font-family:\'Space Grotesk\',system-ui,sans-serif;font-weight:700;font-size:17px;color:var(--text)">' + esc(cleanTitle) + '</div>'
         + '</div>'
-        + '<div style="display:flex;align-items:center;gap:10px">'
-          + '<span style="font-size:13px;color:var(--text-secondary);font-variant-numeric:tabular-nums">' + (durStr ? durStr + ' · ' : '') + totalSets + ' sets</span>'
-          + '<button type="button" class="btn-ghost" data-edit-workout-session="' + esc(session.id) + '" style="font-size:16px;padding:4px 8px;color:var(--text-muted)">···</button>'
+        + '<div style="display:flex;align-items:center;gap:12px">'
+          + '<span class="hist-glass-badge tabnum">' + (durStr ? durStr + ' · ' : '') + totalSets + ' sets</span>'
+          + '<button type="button" class="btn-ghost" data-edit-workout-session="' + esc(session.id) + '" style="font-size:18px;line-height:1;padding:4px 8px;color:var(--text-secondary);cursor:pointer" aria-label="Session options">···</button>'
         + '</div>'
       + '</summary>'
-      + '<div style="padding:10px 0 4px">' + exRows + '</div>'
+      + '<div class="hist-glass-content">' + exRows + '</div>'
       + '</details>';
-  }).join('');
+  }).join('') + '</div>';
 }
-
 function weightEntriesHTML(entries) {
   return entries.slice().reverse().slice(0,8).map(function(e){
     var label=new Date(e.createdAt||e.dayKey+'T12:00:00').toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
@@ -9036,18 +9099,20 @@ function getStaplesShelfHTML() {
   var staples = (profile && profile.customStaples) || DEFAULT_STAPLES;
   if (!staples || !staples.length) return '';
   var rows = staples.map(function(s, idx) {
-    return '<div class="list-row" data-quick-staple="' + idx + '" style="cursor:pointer">'
+    return '<div class="list-row glass-list-row" data-quick-staple="' + idx + '" style="cursor:pointer">'
       + '<span class="list-row-left">' + esc(s.name) + '</span>'
       + '<span class="list-row-right">' + s.kcal + ' kcal · ' + s.protein + ' g</span>'
       + '</div>';
   }).join('');
 
-  return '<div style="margin-top:20px;margin-bottom:20px">'
-    + '<div class="t-label" style="margin-bottom:8px">Quick-add staples</div>'
-    + rows
+  return '<div class="glass-card" style="margin-top:20px;margin-bottom:20px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      + '<span class="t-label">Quick-add staples</span>'
+      + '<span class="t-micro">1-tap</span>'
+    + '</div>'
+    + '<div>' + rows + '</div>'
     + '</div>';
 }
-
 function buildWeekDotRowHTML(dayKey) {
   var letters = ['M','T','W','T','F','S','S'];
   var now = new Date(dayKey + 'T00:00:00');
@@ -9178,13 +9243,16 @@ function renderTodaySimple() {
       + '<button class="btn btn-primary btn-sm" id="saveTodayWeight" style="display:none">Save</button>'
     + '</div>'
     + getStaplesShelfHTML()
-    + '<div style="margin-top:20px;margin-bottom:40px">'
-      + '<div class="t-label" style="margin-bottom:8px">Today\'s Food</div>'
+    + '<div class="glass-card" style="margin-top:20px;margin-bottom:40px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+        + '<span class="t-label">Today\'s Food</span>'
+        + '<span class="t-micro tabnum">' + (rec.extra ? rec.extra.length : 0) + (rec.extra && rec.extra.length === 1 ? ' item' : ' items') + '</span>'
+      + '</div>'
       + (rec.extra && rec.extra.length
         ? ('<div>' + rec.extra.map(function(item, i) {
             var kc = Math.round(item.kcal * (item.servings || 1));
             var pr = Math.round((item.protein || 0) * (item.servings || 1));
-            return '<div class="list-row food-log-row" data-food-index="' + i + '" style="touch-action:pan-y">'
+            return '<div class="list-row food-log-row glass-list-row" data-food-index="' + i + '" style="touch-action:pan-y">'
               + '<span class="list-row-left">' + esc(item.name) + '</span>'
               + '<span class="list-row-right">'
                 + '<span>' + kc + ' kcal · ' + pr + ' g</span>'
@@ -9198,7 +9266,7 @@ function renderTodaySimple() {
             + recent.map(function(r) {
                 var rKc = Math.round(r.kcal || 0);
                 var rPr = Math.round(r.protein || 0);
-                return '<div class="list-row quick-recent" data-food="' + encodeURIComponent(JSON.stringify(r)) + '" style="cursor:pointer">'
+                return '<div class="list-row quick-recent glass-list-row" data-food="' + encodeURIComponent(JSON.stringify(r)) + '" style="cursor:pointer">'
                   + '<span class="list-row-left">' + esc(r.name) + '</span>'
                   + '<span class="list-row-right">' + rKc + ' kcal · ' + rPr + ' g</span>'
                 + '</div>';
@@ -9418,7 +9486,7 @@ SQLiteStorage.init(function(){
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js?v=34').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=36').catch(function(){});
   });
 }
 </script>

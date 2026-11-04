@@ -55,3 +55,66 @@
   --tap-compact: 44px;
 }
 
+
+/* ── Grey Glassmorphic Card System ── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.04) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  border-radius: var(--r-surface) !important;
+  padding: 18px !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.07) !important;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease !important;
+}
+
+.glass-list-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  padding: 11px 4px !important;
+  transition: background 0.12s ease !important;
+}
+.glass-list-row:last-child {
+  border-bottom: none !important;
+}
+.glass-list-row:hover, .glass-list-row:active {
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* History Glass Details/Summary */
+.hist-glass-card {
+  margin-bottom: 12px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+.hist-glass-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 16px 18px !important;
+  cursor: pointer !important;
+  list-style: none !important;
+  user-select: none !important;
+}
+.hist-glass-header::-webkit-details-marker {
+  display: none !important;
+}
+.hist-glass-badge {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: var(--text-secondary) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 20px !important;
+  padding: 3px 10px !important;
+}
+.hist-glass-content {
+  padding: 4px 18px 16px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+.glass-hist-ex-row {
+  padding: 10px 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+.glass-hist-ex-row:last-child {
+  border-bottom: none !important;
+}
