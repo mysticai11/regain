@@ -1,0 +1,353 @@
+/* Shared UI components: ListRow, SectionLabel, Button, Input, Sheet, Toast, TabBar, ProgressLine, SetRow, and DayToggle */
+
+/* ── SectionLabel ── */
+.section-label {
+  font-size: var(--fs-11);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text2);
+  margin-top: var(--spacing-32);
+  margin-bottom: var(--spacing-12);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.section-label-meta { font-size: var(--fs-11); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text2); }
+
+/* ── ListRow ── */
+.list-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: var(--spacing-12) !important;
+  padding: 0 !important;
+  min-height: 56px !important;
+  height: 56px !important;
+  border-bottom: 1px solid var(--divider) !important;
+  box-sizing: border-box !important;
+  background: none !important;
+}
+.list-row:last-child { border-bottom: none !important; }
+.list-row-name {
+  font-size: var(--fs-17) !important;
+  font-weight: 400 !important;
+  color: var(--text) !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--spacing-8) !important;
+}
+.list-row-val { font-size: var(--fs-15) !important; color: var(--text2) !important; font-variant-numeric: tabular-nums !important; text-align: right !important; flex-shrink: 0 !important; display: inline-flex !important; align-items: baseline !important; }
+
+/* ── StatNumber ── */
+.stat-number { display: inline-flex; align-items: baseline; font-variant-numeric: tabular-nums; }
+.stat-number-val { font-size: var(--fs-48); font-weight: 600; line-height: 1; }
+.stat-number-unit { font-size: var(--fs-15); font-weight: 400; color: var(--text2); margin-left: var(--spacing-4); }
+
+/* ── Buttons ── */
+.btn {
+  min-height: var(--tap-min);
+  height: var(--tap-min);
+  background: var(--surface2);
+  border: none;
+  color: var(--text);
+  border-radius: var(--r-control);
+  font-size: var(--fs-15);
+  font-weight: 600;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--spacing-16);
+  cursor: pointer;
+  transition: opacity var(--motion-fast);
+  user-select: none;
+  box-sizing: border-box;
+}
+.btn:active { opacity: 0.85; }
+.btn-primary { background: var(--lime) !important; color: var(--accent-dark) !important; box-shadow: none !important; }
+.btn-primary:active { opacity: 0.85 !important; }
+.btn-text-action {
+  background: none !important;
+  border: none !important;
+  color: var(--text) !important;
+  font-size: var(--fs-15) !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  user-select: none !important;
+  line-height: 1 !important;
+}
+.btn-text-action:active { opacity: 0.75 !important; }
+.btn-text-action.destructive { color: var(--danger) !important; }
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: var(--text2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  cursor: pointer;
+  border-radius: var(--r-control);
+  padding: 0;
+}
+.icon-btn:active { color: var(--text); }
+
+.swap-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+}
+.swap-btn:active { color: var(--text); }
+
+/* ── Inputs & Selects ── */
+input[type=number], input[type=text], input[type=password], input[type=date], select, textarea {
+  min-height: var(--tap-min);
+  height: var(--tap-min);
+  background: var(--surface2);
+  border: none;
+  color: var(--text);
+  border-radius: var(--r-control);
+  font-size: var(--fs-15);
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  padding: 0 var(--spacing-16);
+  outline: none;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
+input:focus, select:focus, textarea:focus { border: none; outline: none; }
+input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayWeight::placeholder { color: var(--text3) !important; opacity: 1 !important; }
+
+/* ── SegmentedText ── */
+.segmented-text { display: flex; align-items: center; gap: var(--spacing-24); border-bottom: 1px solid var(--divider); box-sizing: border-box; }
+.seg-tab-btn, .seg-text-item {
+  background: none !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  padding: var(--spacing-8) 0 var(--spacing-12) !important;
+  font-size: var(--fs-15) !important;
+  font-weight: 600 !important;
+  color: var(--text3) !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 1 !important;
+  transition: color var(--motion-fast);
+}
+.seg-tab-btn.active, .seg-text-item.active { color: var(--text) !important; border-bottom-color: var(--text) !important; }
+
+/* ── Precision Input (Set Row) ── */
+.precision-input {
+  height: var(--tap-min) !important;
+  min-height: var(--tap-min) !important;
+  background: var(--surface2) !important;
+  border: none !important;
+  border-radius: var(--r-control) !important;
+  color: var(--text) !important;
+  font-size: var(--fs-17) !important;
+  font-weight: 600 !important;
+  font-family: var(--font-family) !important;
+  font-variant-numeric: tabular-nums !important;
+  text-align: center !important;
+  outline: none !important;
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  padding: 0 var(--spacing-8) !important;
+}
+.precision-input::placeholder { color: var(--text3) !important; opacity: 1 !important; }
+.precision-input:disabled { opacity: 0.75 !important; cursor: default !important; }
+.precision-input.muted-val { color: var(--text2) !important; }
+
+/* ── Set Row Precision ── */
+.set-row-precision { display: flex !important; align-items: center !important; gap: var(--spacing-12) !important; min-height: var(--tap-min) !important; margin-bottom: var(--spacing-8) !important; box-sizing: border-box !important; }
+.precision-circle-tap {
+  width: var(--tap-min) !important;
+  height: var(--tap-min) !important;
+  background: none !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+}
+.precision-circle-tap:disabled { opacity: 0.3 !important; cursor: default !important; }
+.precision-circle {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: var(--r-full) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  transition: transform var(--motion-fast), background var(--motion-fast) !important;
+  border: 2px solid var(--text3) !important;
+  color: transparent !important;
+  background: transparent !important;
+}
+.precision-circle.done, .precision-circle-tap.done .precision-circle { background: var(--lime) !important; border-color: var(--lime) !important; color: var(--accent-dark) !important; transform: scale(1.05); }
+.rir-cycle-text {
+  height: var(--tap-min) !important;
+  background: none !important;
+  border: none !important;
+  color: var(--text) !important;
+  font-family: inherit !important;
+  font-size: var(--fs-15) !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  padding: 0 var(--spacing-8) !important;
+  min-width: 48px !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+}
+.rir-cycle-text:disabled { opacity: 0.75 !important; cursor: default !important; }
+
+/* ── Sheets & Overlays ── */
+.sheet-overlay, .modal-backdrop, .overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-normal);
+}
+.sheet-overlay.active, .modal-backdrop.open, .overlay.open { opacity: 1; pointer-events: auto; }
+.sheet {
+  background: var(--surface) !important;
+  border: none !important;
+  border-radius: var(--r-surface) var(--r-surface) 0 0 !important;
+  padding: var(--spacing-20) var(--spacing-20) calc(var(--spacing-24) + var(--safe-b)) !important;
+  width: 100% !important;
+  max-width: 480px !important;
+  max-height: 88vh !important;
+  overflow-y: auto !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+}
+.sheet-handle { width: 36px; height: 4px; background: var(--divider); border-radius: var(--r-full); margin: 0 auto var(--spacing-16); }
+.sheet-title { font-size: var(--fs-28); font-weight: 600; color: var(--text); line-height: 1.15; }
+
+/* ── Toast Notifications ── */
+.toast-wrap {
+  position: fixed;
+  top: var(--spacing-20);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 300;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  width: calc(100% - 40px);
+  max-width: 440px;
+}
+.toast {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--divider);
+  padding: var(--spacing-12) var(--spacing-16);
+  border-radius: var(--r-control);
+  font-size: var(--fs-15);
+  font-weight: 600;
+  box-shadow: none;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.toast-undo-btn {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: var(--fs-15);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-left: var(--spacing-16);
+  text-decoration: underline;
+}
+
+/* ── Tab Bar ── */
+.tab-bar, .bottomnav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--nav-h) + var(--safe-b));
+  padding-bottom: max(10px, env(safe-area-inset-bottom, 10px));
+  background: rgba(11, 11, 12, 0.96);
+  border-top: 1px solid var(--divider);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+  max-width: 480px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+.tab-item, .navitem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  flex: 1;
+  height: 100%;
+  padding-top: var(--spacing-8);
+  font-family: inherit;
+  position: relative;
+  font-size: var(--fs-11);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.tab-item.active, .navitem.active { color: var(--text) !important; }
+.tab-item.active::after, .navitem.active::after { content: ''; position: absolute; bottom: max(6px, calc(var(--safe-b) - 2px)); width: 4px; height: 4px; border-radius: var(--r-full); background: var(--lime); }
+.tab-item-label { font-size: var(--fs-11); font-weight: 600; letter-spacing: 0.04em; }
+
+/* ── Progress Line: 2px, #222 track, white fill ── */
+.prog-line-wrap, .prog-line { width: 100%; height: 2px; background: var(--divider); border-radius: 1px; overflow: hidden; box-sizing: border-box; }
+.prog-line-fill { height: 100%; background: var(--text) !important; border-radius: 1px; }
+
+/* ── Day Toggles ── */
+.day-toggles { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 6px !important; margin-top: var(--spacing-4) !important; }
+.day-toggle { background: #1C1C1F !important; border: none !important; color: #55555A !important; border-radius: var(--r-control) !important; height: var(--tap-min) !important; min-height: var(--tap-min) !important; font-size: var(--fs-15) !important; font-weight: 600 !important; cursor: pointer !important; font-family: inherit !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 0 !important; }
+.day-toggle.active { background: #F5F5F4 !important; color: #0B0B0C !important; font-weight: 600 !important; }
+
+/* ── DotGrid (Consistency Calendar) ── */
+.dot-grid { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 14px !important; justify-items: center !important; align-items: center !important; box-sizing: border-box !important; }
+.dot-cell { width: 6px !important; height: 6px !important; border-radius: var(--r-full) !important; display: inline-block !important; box-sizing: border-box !important; }
+.dot-cell.trained { background: #FFFFFF !important; }
+.dot-cell.today-session { background: var(--lime) !important; }
+.dot-cell.today-untrained { background: transparent !important; border: 1.5px solid var(--text) !important; }
+.dot-cell.empty { background: #222222 !important; }

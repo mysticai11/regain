@@ -1,0 +1,174 @@
+/* Screen styles: Progress screen layout, consistency calendar, weight chart, and workout history */
+
+/* ── Segmented Tabs (Body / Lifts) ── */
+.seg-tabs {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xl);
+  border-bottom: 1px solid var(--div);
+}
+.seg-tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: var(--spacing-xs) 0;
+  font-size: var(--fs-15);
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  margin-right: var(--spacing-lg);
+}
+.seg-tab-btn.active {
+  color: var(--text);
+  border-bottom-color: var(--text);
+  font-weight: 600;
+}
+
+/* ── Range Selector (4W / 12W / All) ── */
+.seg-range {
+  display: flex;
+  gap: var(--spacing-xl);
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+.range-btn {
+  background: none;
+  border: none;
+  padding: var(--spacing-xxs) 0;
+  font-size: var(--fs-15);
+  font-weight: 500;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+.range-btn.active {
+  color: var(--text);
+  border-bottom-color: var(--text);
+  font-weight: 600;
+}
+
+/* ── Dot Consistency Calendar ── */
+.dot-cell {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-full);
+  display: inline-block;
+  box-sizing: border-box;
+}
+
+/* ── Workout History: 64px Filled Session Bar ── */
+.history-session-details {
+  margin-bottom: var(--spacing-xl);
+  border: none;
+}
+.history-session-header {
+  height: 64px !important;
+  min-height: 64px !important;
+  background: var(--surface) !important;
+  border-radius: var(--r-control) !important;
+  padding: 10px var(--spacing-md) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  cursor: pointer !important;
+  list-style: none !important;
+  user-select: none !important;
+  box-sizing: border-box !important;
+}
+.history-session-header::-webkit-details-marker {
+  display: none !important;
+}
+.history-session-details[open] .history-chevron {
+  transform: rotate(180deg);
+}
+.history-chevron {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+}
+
+/* ── Volume Table ── */
+.vol-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-13);
+  margin-top: var(--spacing-xs);
+}
+.vol-table th {
+  text-align: left;
+  font-size: var(--fs-11);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  padding: var(--spacing-xs) 0;
+  border-bottom: 1px solid var(--div);
+}
+.vol-table td {
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--div);
+  color: var(--text);
+}
+.vol-table .sets-val {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* ── Progress Card System ── */
+.glass-card {
+  background: var(--surface) !important;
+  border: 1px solid var(--divider) !important;
+  border-radius: var(--r-surface) !important;
+  padding: 16px !important;
+  box-shadow: none !important;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease !important;
+}
+.glass-list-row {
+  border-bottom: 1px solid var(--divider) !important;
+  padding: 12px 0 !important;
+  transition: background 0.12s ease !important;
+}
+.glass-list-row:last-child {
+  border-bottom: none !important;
+}
+.hist-glass-card {
+  margin-bottom: var(--spacing-sm) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+.hist-glass-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 16px 18px !important;
+  cursor: pointer !important;
+  list-style: none !important;
+  user-select: none !important;
+}
+.hist-glass-header::-webkit-details-marker {
+  display: none !important;
+}
+.hist-glass-badge {
+  font-size: var(--fs-12) !important;
+  font-weight: 500 !important;
+  color: var(--text-secondary) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: var(--r-surface) !important;
+  padding: 3px 10px !important;
+}
+.hist-glass-content {
+  padding: 4px 18px 16px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+.glass-hist-ex-row {
+  padding: 10px 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+.glass-hist-ex-row:last-child {
+  border-bottom: none !important;
+}
+

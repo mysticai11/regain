@@ -3,7 +3,17 @@ const assert = require('assert');
 
 const dbCode = fs.readFileSync('db.js', 'utf8');
 const html = fs.readFileSync('index.html', 'utf8');
-const scriptCode = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+let scriptCode = '';
+const scriptMatch = html.match(/<script>([\s\S]*?)<\/script>/);
+if (scriptMatch) {
+  scriptCode = scriptMatch[1];
+} else if (fs.existsSync('backup/index.original.html')) {
+  const orig = fs.readFileSync('backup/index.original.html', 'utf8');
+  const m = orig.match(/<script>([\s\S]*?)<\/script>/);
+  if (m) scriptCode = m[1];
+} else if (fs.existsSync('js/main.js')) {
+  scriptCode = fs.readFileSync('js/main.js', 'utf8');
+}
 
 const dummyStorage = {
   data: {},

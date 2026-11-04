@@ -1,0 +1,128 @@
+/* Screen styles: Gym logger, exercise rows, unified header, timer dock, and rest timer */
+
+/* ── Gym Page Container ── */
+.gym-page {
+  padding: 0 var(--spacing-lg);
+}
+
+/* ── Unified Precision Gym Header ── */
+.gym-header-unified {
+  margin-bottom: var(--spacing-xl);
+}
+#gymDateSelectBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: var(--fs-11);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+#gymSetProgress {
+  font-size: var(--fs-15);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+/* ── Date Banner (When Logging Non-Today) ── */
+.gym-date-banner {
+  margin-bottom: var(--spacing-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--surface);
+  border-radius: var(--r-control);
+}
+
+/* ── Collapsed 56px Exercise Row ── */
+.gym-ex-collapsed-row {
+  min-height: 56px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  border-bottom: 1px solid var(--div) !important;
+  cursor: pointer !important;
+  padding: var(--spacing-xs) 0 !important;
+  box-sizing: border-box !important;
+  user-select: none !important;
+}
+.gym-ex-collapsed-row:hover, .gym-ex-collapsed-row:active {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ── Expanded Exercise Section ── */
+.gym-ex-section-expanded {
+  padding: var(--spacing-md) 0 var(--spacing-lg) !important;
+  border-bottom: 1px solid var(--div) !important;
+}
+
+/* ── Session Timer Dock ── */
+.session-timer-dock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 2px;
+}
+#workoutElapsed {
+  font-size: var(--fs-15);
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Rest Timer Dock / Sheet ── */
+#restTimerWrap {
+  position: relative;
+  z-index: 150;
+}
+
+/* ── Stepper ── */
+.stepper-row {
+  display: flex;
+  gap: var(--spacing-xxs);
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+.sched-step {
+  flex: 1;
+  height: 4px;
+  background: var(--surface-raised);
+  border-radius: 2px;
+}
+.sched-step.is-done {
+  background: var(--text);
+}
+.sched-step.is-active {
+  background: var(--lime);
+}
+
+/* ── Cue Collapsed Toggle ── */
+.cue-toggle {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--fs-13);
+  cursor: pointer;
+  padding: var(--spacing-xs) 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xxs);
+  font-family: inherit;
+}
+.cue-content {
+  font-size: var(--fs-13);
+  color: var(--text-secondary);
+  line-height: 1.4;
+  padding: var(--spacing-xs) 0 var(--spacing-sm);
+  display: none;
+}
+.cue-content.open {
+  display: block;
+}
+

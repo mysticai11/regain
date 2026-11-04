@@ -1,6 +1,6 @@
-# Iron Log — Offline Workout Logger PWA
+# Tally — Offline Workout Logger PWA
 
-A private, offline-first Progressive Web App for logging the Iron Log 5-day beginner muscle-building split. The app also supports a loss goal, with editable calorie and protein targets.
+A private, offline-first Progressive Web App for logging the 5-day beginner muscle-building split. The app also supports a loss goal, with editable calorie and protein targets.
 
 ---
 
@@ -46,7 +46,7 @@ After adding, the app runs in standalone mode (no browser chrome, full-screen).
 
 ---
 
-## Iron Log training plan
+## Tally training plan
 
 The app ships with one editable 5-day plan:
 

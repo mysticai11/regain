@@ -1,7 +1,23 @@
 const fs = require('fs');
 const assert = require('assert');
 
-const html = fs.readFileSync('index.html', 'utf8');
+let html = fs.readFileSync('index.html', 'utf8');
+if (fs.existsSync('css')) {
+  fs.readdirSync('css').forEach(f => {
+    html += '\n' + fs.readFileSync('css/' + f, 'utf8');
+  });
+}
+function readAllJs(dir) {
+  let res = '';
+  if (!fs.existsSync(dir)) return res;
+  fs.readdirSync(dir).forEach(f => {
+    const p = dir + '/' + f;
+    if (fs.statSync(p).isDirectory()) res += '\n' + readAllJs(p);
+    else if (f.endsWith('.js')) res += '\n' + fs.readFileSync(p, 'utf8');
+  });
+  return res;
+}
+html += readAllJs('js');
 
 console.log('--- Testing Progress Screen, Week Strip Override & Today Screen Overhaul ---');
 
@@ -9,10 +25,10 @@ console.log('--- Testing Progress Screen, Week Strip Override & Today Screen Ove
 assert.ok(html.includes('class="history-session-details"'), 'Sessions must use history-session-details (collapsed by default)');
 assert.ok(html.includes('.history-session-header'), 'History session header CSS class must exist');
 assert.ok((html.includes('min-height: 64px') || html.includes('min-height:64px')) && (html.includes('background: #141416') || html.includes('background:#141416')) && (html.includes('border-radius: 12px') || html.includes('border-radius:12px')), 'Session header must be 64px filled bar #141416 with 12px radius');
-assert.ok(html.includes('margin-bottom: 24px'), 'Sessions must have 24px gap between them');
+assert.ok(html.includes('margin-bottom: 24px') || html.includes('margin-bottom:24px') || html.includes('margin-bottom: var(--spacing-xl)'), 'Sessions must have 24px gap between them');
 assert.ok(html.includes('history-chevron'), 'Chevron with rotation on open must exist');
 assert.ok(html.includes('\\u00A0') || html.includes('&nbsp;') || html.includes('\u00A0'), 'Orphan prevention on titles must be present');
-assert.ok(html.includes('white-space: nowrap') && html.includes('sets'), 'Stats text ("50 min · 13 sets") must not wrap');
+assert.ok((html.includes('white-space: nowrap') || html.includes('white-space:nowrap')) && html.includes('sets'), 'Stats text ("50 min · 13 sets") must not wrap');
 assert.ok(html.includes('border-radius:50%;background:#C6F432;display:inline-block"></span>PR') || html.includes('color:#C6F432;font-weight:700">•</span> PR'), 'PR with lime dot must be shown for session PRs');
 const workoutHistoryCode = html.slice(html.indexOf('function workoutHistoryHTML()'), html.indexOf('function renderProgressSimple()'));
 assert.ok(!workoutHistoryCode.includes('Best \' + maxW'), 'Generic Best kg label must be dropped from workout history');

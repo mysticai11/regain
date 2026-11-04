@@ -1,0 +1,46 @@
+/* Screen styles: Settings screen, SectionLabel groups, inline inputs, and destructive actions */
+
+.settings-sheet {
+  background: var(--surface) !important;
+  border-radius: var(--r-surface) var(--r-surface) 0 0 !important;
+  padding: var(--spacing-lg) var(--spacing-lg) calc(var(--spacing-xl) + var(--safe-b)) !important;
+  max-width: 480px !important;
+  width: 100% !important;
+  max-height: 88vh !important;
+  overflow-y: auto !important;
+}
+
+.settings-group {
+  margin-top: var(--spacing-xl);
+  margin-bottom: var(--spacing-md);
+}
+
+.settings-unit-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.settings-unit-field input {
+  text-align: right;
+  padding-right: 52px;
+  width: 100%;
+}
+.settings-unit-field .unit-suffix {
+  position: absolute;
+  right: 14px;
+  color: var(--text-secondary);
+  font-size: var(--fs-15);
+  pointer-events: none;
+}
+
+.settings-destructive-btn {
+  color: var(--danger) !important;
+  font-size: var(--fs-15) !important;
+  font-weight: 600 !important;
+  background: none !important;
+  border: none !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+}
+

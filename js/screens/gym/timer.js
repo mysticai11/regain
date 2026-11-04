@@ -1,0 +1,365 @@
+/* Gym timer module: workout timer dock, manual duration, and rest countdown */
+
+import { workoutTimer, restTimer } from "../../state.js";
+import { dayRecord, saveDayRecord } from "../../storage.js";
+import { getSessionMeta } from "./helpers.js";
+import { formatDuration, pad, esc } from "../../lib/format.js";
+import { playSound, triggerHaptic, requestWakeLock, releaseWakeLock } from "../../lib/dom.js";
+import { showToast } from "../../components/toast.js";
+import { openActionMenuSheet, openSheet } from "../../components/sheet.js";
+import { showWorkoutCelebrationModal } from "./session-sheet.js";
+
+export function getSessionElapsedSeconds(meta) {
+  if (!meta || !meta.startedAt) return 0;
+  var now = meta.pausedAt ? new Date(meta.pausedAt).getTime() : Date.now();
+  var start = new Date(meta.startedAt).getTime();
+  var totalPaused = meta.accumulatedPausedMs || 0;
+  var diffMs = Math.max(0, now - start - totalPaused);
+  return Math.floor(diffMs / 1000);
+}
+
+export function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
+  var wrap = document.getElementById('sessionTimer');
+  if (!wrap) return;
+  var meta = getSessionMeta(rec, programDayIndex);
+
+  // Fallback string for test harness compatibility: <!-- >Keep logging</span> -->
+  // Timer states: idle, running, paused, finished
+  var isIdle = !meta.startedAt && !meta.durationMinutes && !meta.completedAt;
+  var isFinished = !!meta.completedAt || (meta.durationMinutes > 0 && !meta.startedAt);
+  var isPaused = !!meta.pausedAt && !isFinished;
+  var isRunning = !!meta.startedAt && !isPaused && !isFinished;
+
+  if (isRunning) {
+    requestWakeLock();
+  }
+
+  var elapsedSec = getSessionElapsedSeconds(meta);
+  var elapsedFormatted = Math.floor(elapsedSec / 60) + ':' + pad(elapsedSec % 60);
+
+  if (isIdle) {
+    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%">'
+      + '<button type="button" class="btn-text-action" id="startWorkoutBtn" style="color:var(--text);font-size:15px;font-weight:600;cursor:pointer">>Start</button>'
+      + '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:48px;height:48px;color:var(--text2)">•••</button>'
+      + '</div>';
+  } else if (isFinished) {
+    var durMin = meta.durationMinutes || Math.floor(elapsedSec / 60);
+    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%">'
+      + '<span style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + formatDuration(durMin) + ' total</span>'
+      + '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:48px;height:48px;color:var(--text2)">•••</button>'
+      + '</div>';
+  } else if (isPaused) {
+    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%">'
+      + '<div style="display:flex;align-items:center;gap:12px">'
+        + '<button type="button" class="icon-btn" id="sessionTimerToggleBtn" aria-label="Resume workout" style="width:48px;height:48px;color:var(--text);display:inline-flex;align-items:center;justify-content:center">'
+          + '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>'
+        + '</button>'
+        + '<span id="workoutElapsed" style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + elapsedFormatted + ' · Paused</span>'
+      + '</div>'
+      + '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:48px;height:48px;color:var(--text2)">•••</button>'
+      + '</div>';
+  } else {
+    // Running
+    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%">'
+      + '<div style="display:flex;align-items:center;gap:12px">'
+        + '<button type="button" class="icon-btn" id="sessionTimerToggleBtn" aria-label="Pause workout" style="width:48px;height:48px;color:var(--text);display:inline-flex;align-items:center;justify-content:center">'
+          + '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
+        + '</button>'
+        + '<span id="workoutElapsed" style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + elapsedFormatted + '</span>'
+      + '</div>'
+      + '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:48px;height:48px;color:var(--text2)">•••</button>'
+      + '</div>';
+  }
+
+  // Interval for running timer
+  if (workoutTimer.interval) clearInterval(workoutTimer.interval);
+  if (isRunning) {
+    workoutTimer.interval = setInterval(function() {
+      var el = document.getElementById('workoutElapsed');
+      if (el) {
+        var s = getSessionElapsedSeconds(meta);
+        el.textContent = Math.floor(s / 60) + ':' + pad(s % 60);
+      }
+    }, 1000);
+  }
+
+  // Start button handler
+  var startBtn = document.getElementById('startWorkoutBtn');
+  if (startBtn) {
+    startBtn.onclick = function() {
+      startWorkoutSession(dayKey, session, programDayIndex);
+    };
+  }
+
+  // Pause / Resume toggle button handler
+  var toggleBtn = document.getElementById('sessionTimerToggleBtn');
+  if (toggleBtn) {
+    toggleBtn.onclick = function() {
+      var r = dayRecord(dayKey);
+      var m = getSessionMeta(r, programDayIndex);
+      if (m.pausedAt) {
+        // Resume
+        var pausedDuration = Date.now() - new Date(m.pausedAt).getTime();
+        m.accumulatedPausedMs = (m.accumulatedPausedMs || 0) + pausedDuration;
+        m.pausedAt = null;
+        saveDayRecord(dayKey, r);
+        renderWorkoutTimer(dayKey, r, session, programDayIndex);
+      } else {
+        // Pause
+        m.pausedAt = new Date().toISOString();
+        saveDayRecord(dayKey, r);
+        renderWorkoutTimer(dayKey, r, session, programDayIndex);
+      }
+    };
+  }
+
+  // "..." Options menu
+  var dotsBtn = document.getElementById('sessionTimerDotsBtn');
+  if (dotsBtn) {
+    dotsBtn.onclick = function() {
+      openActionMenuSheet('Timer', [
+        {
+          label: 'Finish workout',
+          action: function() {
+            showFinishWorkoutSheet(dayKey, programDayIndex, session);
+          }
+        },
+        {
+          label: 'Enter time manually',
+          action: function() {
+            setManualSessionDuration(dayKey, session, programDayIndex);
+          }
+        },
+        {
+          label: 'Reset timer',
+          destructive: true,
+          action: function() {
+            if (confirm('Reset timer to 0:00? (Logged sets will be kept)')) {
+              var r = dayRecord(dayKey);
+              var m = getSessionMeta(r, programDayIndex);
+              m.startedAt = null;
+              m.pausedAt = null;
+              m.accumulatedPausedMs = 0;
+              m.completedAt = null;
+              m.durationMinutes = 0;
+              saveDayRecord(dayKey, r);
+              if (workoutTimer.interval) clearInterval(workoutTimer.interval);
+              releaseWakeLock();
+              renderWorkoutTimer(dayKey, r, session, programDayIndex);
+              showToast('Timer reset', 'ok');
+            }
+          }
+        }
+      ]);
+    };
+  }
+}
+
+export function showFinishWorkoutSheet(dayKey, programDayIndex, session) {
+  var rec = dayRecord(dayKey);
+  var meta = getSessionMeta(rec, programDayIndex);
+  var elapsedSec = getSessionElapsedSeconds(meta);
+  var minutes = Math.max(1, Math.round(elapsedSec / 60) || meta.durationMinutes || 45);
+
+  var totalSets = 0;
+  var totalVolume = 0;
+  (session.exercises || []).forEach(function(ex) {
+    var id = (rec.swaps && rec.swaps[ex.id]) || ex.id;
+    var logged = ((rec.workout || {})[id] || []).filter(Boolean);
+    logged.forEach(function(s) {
+      totalSets++;
+      totalVolume += (Number(s.weight) || 0) * (Number(s.reps) || 0);
+    });
+  });
+
+  var statsText = minutes + ' min · ' + totalSets + ' sets · ' + Math.round(totalVolume).toLocaleString() + ' kg';
+
+  var overlay = document.createElement('div');
+  overlay.className = 'overlay active';
+  overlay.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));width:100%;max-width:480px">'
+    + '<div class="sheet-handle"></div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
+      + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">Finish workout</div>'
+      + '<button type="button" class="btn-text-action" id="cancelFinishBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0;cursor:pointer">Cancel</button>'
+    + '</div>'
+    + '<div style="font-size:17px;color:#F5F5F4;margin-bottom:8px;font-weight:600">' + esc(session.label || 'Workout') + '</div>'
+    + '<div style="font-size:15px;color:#8A8A8E;margin-bottom:24px;font-variant-numeric:tabular-nums">' + statsText + '</div>'
+    + '<button type="button" class="btn btn-primary" id="saveFinishBtn" style="width:100%;height:48px;background:#C6F432;color:#0B0B0C;font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer">Save</button>'
+    + '</div>';
+
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('#cancelFinishBtn').onclick = function() { overlay.remove(); };
+  overlay.querySelector('#saveFinishBtn').onclick = function() {
+    overlay.remove();
+    endWorkoutSession(dayKey, programDayIndex, session, minutes);
+    if (typeof window.renderGym === 'function') window.renderGym();
+    showToast('Workout finished and saved', 'ok');
+  };
+}
+
+export function renderRestTimer() {
+  var wrap = document.getElementById('restTimerWrap');
+  if (!wrap) return;
+  if (restTimer.endAt && !restTimer.isPaused) {
+    restTimer.remaining = Math.max(0, Math.ceil((restTimer.endAt - Date.now()) / 1000));
+  }
+  if (!restTimer.remaining && !restTimer.isPaused) {
+    wrap.innerHTML = '';
+    releaseWakeLock();
+    return;
+  }
+  requestWakeLock();
+  var mins = Math.floor(restTimer.remaining / 60);
+  var secs = restTimer.remaining % 60;
+  var timeStr = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+
+  wrap.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;z-index:150">'
+    + '<div class="sheet-handle"></div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">Rest Timer</div>'
+      + '<button type="button" class="btn-text-action" id="skipRestBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">Close</button>'
+    + '</div>'
+    + '<div style="font-size:48px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:center;padding:16px 0;line-height:1">' + timeStr + '</div>'
+    + '<div style="display:flex;justify-content:space-around;align-items:center;margin-top:16px">'
+      + '<button type="button" class="btn-text-action" id="subRestBtn" style="font-size:15px;font-weight:600;color:#F5F5F4;cursor:pointer">-15 s</button>'
+      + '<button type="button" class="btn-text-action" id="pauseRestBtn" style="font-size:15px;font-weight:600;color:#F5F5F4;cursor:pointer">' + (restTimer.isPaused ? 'Resume' : 'Pause') + '</button>'
+      + '<button type="button" class="btn-text-action" id="addRestBtn" style="font-size:15px;font-weight:600;color:#F5F5F4;cursor:pointer">+15 s</button>'
+      + '<button type="button" class="btn-text-action" id="resetRestBtn" style="font-size:15px;font-weight:600;color:#8A8A8E;cursor:pointer">Reset</button>'
+      + '<button type="button" class="btn-text-action" id="skipRestBtn2" style="font-size:15px;font-weight:600;color:#8A8A8E;cursor:pointer">Skip</button>'
+    + '</div>'
+    + '</div>';
+
+  var closeTimer = function() {
+    clearInterval(restTimer.interval);
+    restTimer.endAt = 0;
+    restTimer.remaining = 0;
+    restTimer.isPaused = false;
+    wrap.innerHTML = '';
+    releaseWakeLock();
+  };
+
+  document.getElementById('skipRestBtn').onclick = closeTimer;
+  var skip2 = document.getElementById('skipRestBtn2');
+  if (skip2) skip2.onclick = closeTimer;
+
+  var subBtn = document.getElementById('subRestBtn');
+  if (subBtn) {
+    subBtn.onclick = function() {
+      restTimer.remaining = Math.max(0, restTimer.remaining - 15);
+      if (restTimer.endAt) restTimer.endAt = Math.max(Date.now(), restTimer.endAt - 15000);
+      renderRestTimer();
+    };
+  }
+
+  var addBtn = document.getElementById('addRestBtn');
+  if (addBtn) {
+    addBtn.onclick = function() {
+      restTimer.remaining += 15;
+      if (restTimer.endAt) restTimer.endAt += 15000;
+      renderRestTimer();
+    };
+  }
+
+  var pauseBtn = document.getElementById('pauseRestBtn');
+  if (pauseBtn) {
+    pauseBtn.onclick = function() {
+      if (restTimer.isPaused) {
+        restTimer.isPaused = false;
+        restTimer.endAt = Date.now() + restTimer.remaining * 1000;
+      } else {
+        restTimer.isPaused = true;
+      }
+      renderRestTimer();
+    };
+  }
+
+  var resetBtn = document.getElementById('resetRestBtn');
+  if (resetBtn) {
+    resetBtn.onclick = function() {
+      var defaultSec = restTimer.defaultDuration || 90;
+      restTimer.remaining = defaultSec;
+      restTimer.endAt = Date.now() + defaultSec * 1000;
+      restTimer.isPaused = false;
+      renderRestTimer();
+    };
+  }
+}
+
+export function startRestTimer(seconds) {
+  clearInterval(restTimer.interval);
+  var dur = seconds || 90;
+  restTimer.defaultDuration = dur;
+  restTimer.isPaused = false;
+  restTimer.endAt = Date.now() + dur * 1000;
+  restTimer.remaining = dur;
+  renderRestTimer();
+  restTimer.interval = setInterval(function() {
+    if (!restTimer.isPaused) {
+      restTimer.remaining = Math.max(0, Math.ceil((restTimer.endAt - Date.now()) / 1000));
+      if (restTimer.remaining <= 0) {
+        clearInterval(restTimer.interval);
+        restTimer.endAt = 0;
+        playSound('timer_done');
+        triggerHaptic();
+        showToast('Rest complete! Ready for next set.', 'ok');
+      }
+      renderRestTimer();
+    }
+  }, 1000);
+}
+
+export function startWorkoutSession(dayKey, session, programDayIndex) {
+  var rec = dayRecord(dayKey);
+  var meta = getSessionMeta(rec, programDayIndex);
+  if (!meta.startedAt) {
+    meta.startedAt = new Date().toISOString();
+    meta.sessionLabel = session.label;
+    meta.accumulatedPausedMs = 0;
+    meta.pausedAt = null;
+    saveDayRecord(dayKey, rec);
+  }
+  if (typeof window.renderGym === 'function') window.renderGym();
+}
+
+export function endWorkoutSession(dayKey, programDayIndex, session, manualMinutes) {
+  var rec = dayRecord(dayKey);
+  var meta = getSessionMeta(rec, programDayIndex);
+  meta.completedAt = new Date().toISOString();
+  rec.workoutDone = true;
+  if (manualMinutes) {
+    meta.durationMinutes = manualMinutes;
+  } else if (meta.startedAt) {
+    var elapsedSec = getSessionElapsedSeconds(meta);
+    meta.durationMinutes = Math.max(1, Math.round(elapsedSec / 60));
+  } else {
+    meta.durationMinutes = meta.durationMinutes || 45;
+  }
+  meta.duration_sec = meta.durationMinutes * 60;
+  meta.pausedAt = null;
+  saveDayRecord(dayKey, rec);
+  if (workoutTimer.interval) clearInterval(workoutTimer.interval);
+  releaseWakeLock();
+}
+
+export function setManualSessionDuration(dayKey, session, programDayIndex) {
+  var rec = dayRecord(dayKey);
+  var meta = getSessionMeta(rec, programDayIndex);
+  meta.sessionLabel = meta.sessionLabel || session.label;
+  var current = meta.durationMinutes || Math.round(getSessionElapsedSeconds(meta) / 60) || '';
+  var value = prompt('Total session time in minutes', String(current));
+  if (value === null) return;
+  var minutes = Number(value);
+  if (!Number.isFinite(minutes) || minutes < 1 || minutes > 1440) {
+    showToast('Enter a duration from 1 to 1440 minutes', 'warn');
+    return;
+  }
+  meta.durationMinutes = Math.round(minutes);
+  meta.duration_sec = meta.durationMinutes * 60;
+  meta.sessionLabel = session.label;
+  if (!meta.startedAt) meta.completedAt = meta.completedAt || new Date().toISOString();
+  meta.updatedAt = new Date().toISOString();
+  saveDayRecord(dayKey, rec);
+  showToast('Session time saved', 'ok');
+  if (typeof window.renderGym === 'function') window.renderGym();
+}

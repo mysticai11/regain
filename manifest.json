@@ -1,14 +1,18 @@
 {
-  "name": "Iron Log",
-  "short_name": "Iron Log",
-  "description": "Private offline workout logger for the Iron Log 5-day split",
+  "name": "Tally",
+  "short_name": "Tally",
+  "description": "Private offline workout and meal logger.",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#15130F",
-  "theme_color": "#15130F",
+  "background_color": "#0B0B0C",
+  "theme_color": "#0B0B0C",
   "icons": [
-    { "src": "icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
-    { "src": "icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/icons/icon-monochrome-512.png", "sizes": "512x512", "type": "image/png", "purpose": "monochrome" },
+    { "src": "icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any" }
   ]
 }

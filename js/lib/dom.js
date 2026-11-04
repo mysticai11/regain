@@ -1,0 +1,242 @@
+/* DOM utilities: SVG icon renderer, Web Audio synthesizer, haptics, and wake lock */
+
+export var ICONS = {
+  home:    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9h12v-9"/></svg>',
+  chart:   '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  barbell: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12h2M20 12h2M5 8v8M19 8v8M5 12h14"/></svg>',
+  flame:   '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c1 3-3 4-3 8a3 3 0 0 0 6 0c0-1-.5-2-.5-2 1 1 2 2.5 2 5a4.5 4.5 0 0 1-9 0C7.5 9 11 8 12 3z"/></svg>',
+  bolt:    '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>',
+  check:   '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13l4 4L19 7"/></svg>',
+  plus:    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
+  x:       '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  settings:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>',
+  info:    '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg>',
+  moon:    '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
+  shield:  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 3v6c0 5-3 7.5-7 9-4-1.5-7-4-7-9V6l7-3z"/></svg>',
+  skip:    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5v14l10-7L5 5z"/><path d="M19 5v14"/></svg>',
+  bowl:    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M12 11V6"/></svg>',
+  egg:     '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c4 4 7 9 7 13a7 7 0 0 1-14 0c0-4 3-9 7-13z"/></svg>',
+  search:  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>',
+  download:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v13M7 11l5 5 5-5"/><path d="M5 21h14"/></svg>',
+  upload:  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V3M7 8l5-5 5 5"/><path d="M5 21h14"/></svg>',
+  trash:   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>',
+  trend_up:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M15 7h7v7"/></svg>',
+  cook:    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12c.5-5 4-8 9-8a9 9 0 0 1 7 11H2z"/><path d="M2 12h17M12 12v8"/></svg>',
+  book:    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>',
+  refresh: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>',
+  sun:     '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',
+  target:  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+  trophy:  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"/><path d="M12 2a6 6 0 0 1 6 6v3.5c0 3.3-2.7 6-6 6s-6-2.7-6-6V8a6 6 0 0 1 6-6Z"/></svg>',
+  frown:   '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
+  avocado: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.5 2 6 6 6 12c0 5 3.5 8.5 6 8.5s6-3.5 6-8.5c0-6-2.5-10-6-10z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+};
+
+export function ic(name, size) {
+  var s = ICONS[name] || '';
+  if (size) s = s.replace(/width="\d+"/, 'width="'+size+'"').replace(/height="\d+"/, 'height="'+size+'"');
+  return '<span class="icon">' + s + '</span>';
+}
+
+// ── LocalStorage & SQLite helpers ────────────────────────────────────────────────
+var SQLiteStorage = {
+  db: null,
+  cache: {},
+  active: false,
+  
+  init: function(callback) {
+    var self = this;
+    if (window.Capacitor && window.Capacitor.isPluginAvailable('CapacitorSQLite')) {
+      try {
+        var sqlite = window.Capacitor.Plugins.CapacitorSQLite;
+        sqlite.createConnection({ database: 'regain_storage', version: 1, encrypted: false, mode: 'no-encryption' })
+          .then(function(conn) {
+            self.db = conn;
+            return sqlite.open({ database: 'regain_storage' });
+          })
+          .then(function() {
+            var query = 'CREATE TABLE IF NOT EXISTS rg_storage (key TEXT PRIMARY KEY, value TEXT);';
+            return window.Capacitor.Plugins.CapacitorSQLite.execute({ database: 'regain_storage', statements: query });
+          })
+          .then(function() {
+            var select = 'SELECT * FROM rg_storage;';
+            return window.Capacitor.Plugins.CapacitorSQLite.query({ database: 'regain_storage', statement: select });
+          })
+          .then(function(res) {
+            if (res && res.values) {
+              res.values.forEach(function(row) {
+                self.cache[row.key] = row.value;
+                localStorage.setItem(row.key, row.value); // Self-healing sync
+              });
+            }
+            self.active = true;
+            console.log('SQLite database pre-loaded successfully!');
+            if (callback) callback();
+          })
+          .catch(function(err) {
+            console.error('SQLite init error, falling back to LocalStorage:', err);
+            self.active = false;
+            if (callback) callback();
+          });
+      } catch(e) {
+        console.error('Capacitor SQLite plugin error:', e);
+        self.active = false;
+        if (callback) callback();
+      }
+    } else {
+      self.active = false;
+      if (callback) callback();
+    }
+  },
+  
+  get: function(key) {
+    return this.cache[key] || null;
+  },
+  
+  set: function(key, valStr) {
+    this.cache[key] = valStr;
+    if (this.active && window.Capacitor) {
+      var query = 'INSERT OR REPLACE INTO rg_storage (key, value) VALUES (?, ?);';
+      window.Capacitor.Plugins.CapacitorSQLite.executeJSPS({
+        database: 'regain_storage',
+        statements: query,
+        values: [key, valStr]
+      }).catch(function(e) {
+        console.error('SQLite write error:', e);
+      });
+    }
+  },
+  
+  delete: function(key) {
+    delete this.cache[key];
+    localStorage.removeItem(key);
+    if (this.active && window.Capacitor) {
+      var query = 'DELETE FROM rg_storage WHERE key = ?;';
+      window.Capacitor.Plugins.CapacitorSQLite.executeJSPS({
+        database: 'regain_storage',
+        statements: query,
+        values: [key]
+      }).catch(function(e) {
+        console.error('SQLite delete error:', e);
+      });
+    }
+  },
+
+  clear: function() {
+    var self=this;
+    Object.keys(this.cache).forEach(function(key){delete self.cache[key];});
+    localStorage.clear();
+    if(this.active && window.Capacitor) {
+      return window.Capacitor.Plugins.CapacitorSQLite.executeJSPS({
+        database:'regain_storage',
+        statements:'DELETE FROM rg_storage;'
+      }).catch(function(e){console.error('SQLite clear error:',e);throw e;});
+    }
+    return Promise.resolve();
+  }
+};
+
+export function hashPin(pin, salt) {
+  var bytes = new TextEncoder().encode(pin);
+  return crypto.subtle.importKey('raw', bytes, 'PBKDF2', false, ['deriveBits']).then(function(key) {
+    return crypto.subtle.deriveBits({name:'PBKDF2', salt:new TextEncoder().encode(salt), iterations:310000, hash:'SHA-256'}, key, 256);
+  }).then(function(bits) {
+    return btoa(String.fromCharCode.apply(null, new Uint8Array(bits)));
+  });
+}
+
+export function verifyPin(pin, stored) {
+  return hashPin(pin, stored.salt).then(function(hash) { return hash === stored.hash; });
+}
+
+// ── Profile / Day helpers ──────────────────────────────────────────────────────
+
+export var _audioCtx = null;
+export function getAudioContext() {
+  if (!_audioCtx) {
+    var AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) _audioCtx = new AudioCtx();
+  }
+  if (_audioCtx && _audioCtx.state === 'suspended') {
+    _audioCtx.resume();
+  }
+  return _audioCtx;
+}
+
+export function playSound(type) {
+  try {
+    var ctx = getAudioContext();
+    if (!ctx) return;
+    var now = ctx.currentTime;
+    if (type === 'set_logged') {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.setValueAtTime(659.25, now + 0.08);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc.start(now);
+      osc.stop(now + 0.25);
+    } else if (type === 'timer_done') {
+      [0, 0.15, 0.3].forEach(function(delay, i) {
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(880 + i * 110, now + delay);
+        gain.gain.setValueAtTime(0.2, now + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.12);
+        osc.start(now + delay);
+        osc.stop(now + delay + 0.12);
+      });
+    } else if (type === 'workout_complete') {
+      [0, 0.1, 0.2, 0.32].forEach(function(delay, i) {
+        var freqs = [523.25, 659.25, 783.99, 1046.5];
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freqs[i], now + delay);
+        gain.gain.setValueAtTime(0.18, now + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.28);
+        osc.start(now + delay);
+        osc.stop(now + delay + 0.28);
+      });
+    }
+  } catch(e) {}
+}
+
+export var _wakeLock = null;
+export function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator && !_wakeLock) {
+      navigator.wakeLock.request('screen').then(function(lock){
+        _wakeLock = lock;
+        lock.addEventListener('release', function(){ _wakeLock = null; });
+      }).catch(function(){});
+    }
+  } catch(e) {}
+}
+
+export function releaseWakeLock() {
+  try {
+    if (_wakeLock) {
+      _wakeLock.release().catch(function(){});
+      _wakeLock = null;
+    }
+  } catch(e) {}
+}
+
+export function triggerHaptic() {
+  try {
+    if (window.Capacitor && window.Capacitor.isPluginAvailable('Haptics')) {
+      window.Capacitor.Plugins.Haptics.vibrate();
+    } else if (navigator.vibrate) {
+      navigator.vibrate(15);
+    }
+  } catch(e) {}
+}

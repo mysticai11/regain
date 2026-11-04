@@ -1,0 +1,239 @@
+/* Data persistence: localStorage, SQLiteStorage, day records, and backup export/import */
+
+import { esc, allDayKeys } from "./lib/format.js";
+import { showToast } from "./components/toast.js";
+import { saveWorkoutSessionFromDay, workoutSessionStore } from "./storage-sessions.js";
+export * from "./storage-sessions.js";
+export { allDayKeys };
+
+export var SQLiteStorage = {
+  db: null,
+  cache: {},
+  active: false,
+  
+  init: function(callback) {
+    var self = this;
+    if (window.Capacitor && window.Capacitor.isPluginAvailable('CapacitorSQLite')) {
+      try {
+        var sqlite = window.Capacitor.Plugins.CapacitorSQLite;
+        sqlite.createConnection({ database: 'regain_storage', version: 1, encrypted: false, mode: 'no-encryption' })
+          .then(function(conn) {
+            self.db = conn;
+            return sqlite.open({ database: 'regain_storage' });
+          })
+          .then(function() {
+            var query = 'CREATE TABLE IF NOT EXISTS rg_storage (key TEXT PRIMARY KEY, value TEXT);';
+            return window.Capacitor.Plugins.CapacitorSQLite.execute({ database: 'regain_storage', statements: query });
+          })
+          .then(function() {
+            var select = 'SELECT * FROM rg_storage;';
+            return window.Capacitor.Plugins.CapacitorSQLite.query({ database: 'regain_storage', statement: select });
+          })
+          .then(function(res) {
+            if (res && res.values) {
+              res.values.forEach(function(row) {
+                self.cache[row.key] = row.value;
+                localStorage.setItem(row.key, row.value); // Self-healing sync
+              });
+            }
+            self.active = true;
+            console.log('SQLite database pre-loaded successfully!');
+            if (callback) callback();
+          })
+          .catch(function(err) {
+            console.error('SQLite init error, falling back to LocalStorage:', err);
+            self.active = false;
+            if (callback) callback();
+          });
+      } catch(e) {
+        console.error('Capacitor SQLite plugin error:', e);
+        self.active = false;
+        if (callback) callback();
+      }
+    } else {
+      self.active = false;
+      if (callback) callback();
+    }
+  },
+  
+  get: function(key) {
+    return this.cache[key] || null;
+  },
+  
+  set: function(key, valStr) {
+    this.cache[key] = valStr;
+    if (this.active && window.Capacitor) {
+      var query = 'INSERT OR REPLACE INTO rg_storage (key, value) VALUES (?, ?);';
+      window.Capacitor.Plugins.CapacitorSQLite.executeJSPS({
+        database: 'regain_storage',
+        statements: query,
+        values: [key, valStr]
+      }).catch(function(e) {
+        console.error('SQLite write error:', e);
+      });
+    }
+  },
+  
+  delete: function(key) {
+    delete this.cache[key];
+    localStorage.removeItem(key);
+    if (this.active && window.Capacitor) {
+      var query = 'DELETE FROM rg_storage WHERE key = ?;';
+      window.Capacitor.Plugins.CapacitorSQLite.executeJSPS({
+        database: 'regain_storage',
+        statements: query,
+        values: [key]
+      }).catch(function(e) {
+        console.error('SQLite delete error:', e);
+      });
+    }
+  },
+
+  clear: function() {
+    var self=this;
+    Object.keys(this.cache).forEach(function(key){delete self.cache[key];});
+    localStorage.clear();
+    if(this.active && window.Capacitor) {
+      return window.Capacitor.Plugins.CapacitorSQLite.executeJSPS({
+        database:'regain_storage',
+        statements:'DELETE FROM rg_storage;'
+      }).catch(function(e){console.error('SQLite clear error:',e);throw e;});
+    }
+    return Promise.resolve();
+  }
+};
+
+export function ls(k, fb) {
+  try {
+    var v = SQLiteStorage.active ? SQLiteStorage.get(k) : localStorage.getItem(k);
+    return v ? JSON.parse(v) : fb;
+  } catch(e) {
+    return fb;
+  }
+}
+
+export function sv(k, v) {
+  try {
+    var valStr = JSON.stringify(v);
+    localStorage.setItem(k, valStr);
+    SQLiteStorage.set(k, valStr);
+    return true;
+  } catch(e) {
+    console.error('Save failed for '+k, e);
+    if(typeof showToast === 'function') showToast('Could not save data. Export a backup and try again.','warn');
+    return false;
+  }
+}
+
+export function dayRecord(key) {
+  var r = ls('rg_day_'+key, null);
+  if (!r) return {weight:null,sleep:null,readiness:null,meals:{},extra:[],workout:{},workoutDone:false,shielded:false};
+  if (!Array.isArray(r.extra)) r.extra = [];
+  if (!r.workout) r.workout = {};
+  if (!r.meals) r.meals = {};
+  return r;
+}
+
+export function saveDayRecord(key,rec){
+  sv('rg_day_'+key, rec);
+  saveWorkoutSessionFromDay(key, rec, Object.keys(workoutSessionStore().sessions).length);
+}
+
+export function exportData() {
+  FoodDB.exportAll().then(function(dbData){
+    var keys = allDayKeys();
+    var keySet = {};
+    keys.forEach(function(k){ keySet[k] = true; });
+    Object.keys(localStorage).forEach(function(k){ if(k.indexOf('rg_day_') === 0) keySet[k.slice(7)] = true; });
+    Object.keys(SQLiteStorage.cache || {}).forEach(function(k){ if(k.indexOf('rg_day_') === 0) keySet[k.slice(7)] = true; });
+    keys = Object.keys(keySet).sort();
+    var data = {
+      app:'Tally',
+      version:3,
+      exported: new Date().toISOString(),
+      profile:ls('rg_profile',null),
+      meals:ls('rg_meals',DEFAULT_MEALS),
+      recentFoods:ls('rg_recent_foods',[]),
+      lastBackup:ls('rg_last_backup',null),
+      workoutSessions:ls(WORKOUT_SESSIONS_KEY,{version:WORKOUT_SESSIONS_VERSION,sessions:{},migrated:false}),
+      dayKeys:keys,
+      days:{},
+      idb:dbData
+    };
+    keys.forEach(function(k){ data.days[k]=dayRecord(k); });
+    var jsonStr = JSON.stringify(data, null, 2);
+    var fileName = 'tally-backup-' + todayKey() + '.json';
+
+    if (navigator.share && navigator.canShare) {
+      try {
+        var file = new File([jsonStr], fileName, { type: 'application/json' });
+        if (navigator.canShare({ files: [file] })) {
+          navigator.share({
+            title: 'Regain Backup ' + todayKey(),
+            text: 'Regain workout and nutrition backup',
+            files: [file]
+          }).then(function(){
+            sv('rg_last_backup', Date.now());
+            showToast('Backup shared successfully', 'ok');
+          }).catch(function(e){
+            if (e.name !== 'AbortError') fallbackDownload(jsonStr, fileName);
+          });
+          return;
+        }
+      } catch(e) {}
+    }
+    fallbackDownload(jsonStr, fileName);
+  }).catch(function(err) {
+    console.error('Export failed:', err);
+    showToast('Export failed. Try again after freeing device storage.','warn');
+  });
+
+  function fallbackDownload(jsonStr, fileName) {
+    var blob = new Blob([jsonStr], {type:'application/json'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href=url; a.download=fileName; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    sv('rg_last_backup', Date.now());
+    showToast('Profile, progress, meals, and workouts exported','ok');
+  }
+}
+
+export function importData() {
+  var input=document.createElement('input'); input.type='file'; input.accept='.json';
+  input.addEventListener('change',function(){
+    var file=input.files[0]; if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(e){
+      try {
+        var data=JSON.parse(e.target.result);
+        if(!data.profile || !data.days || typeof data.days !== 'object') throw new Error('Invalid backup file');
+        if(!confirm('This will overwrite all current data. Continue?')) return;
+        var importedKeys=Object.keys(data.days), existingKeys=[];
+        Object.keys(localStorage).forEach(function(k){if(k.indexOf('rg_day_')===0) existingKeys.push(k.slice(7));});
+        Object.keys(SQLiteStorage.cache||{}).forEach(function(k){if(k.indexOf('rg_day_')===0&&existingKeys.indexOf(k.slice(7))<0) existingKeys.push(k.slice(7));});
+        existingKeys.forEach(function(k){if(importedKeys.indexOf(k)<0) SQLiteStorage.delete('rg_day_'+k);});
+        sv('rg_profile',data.profile);
+        sv('rg_meals',data.meals||DEFAULT_MEALS);
+        sv('rg_recent_foods',data.recentFoods||[]);
+        Object.keys(data.days||{}).forEach(function(k){sv('rg_day_'+k,data.days[k]);});
+        if(data.workoutSessions) sv(WORKOUT_SESSIONS_KEY,data.workoutSessions);
+        FoodDB.importAll(data.idb||{}).then(function(){ profile=data.profile; sv('rg_last_backup', Date.now()); showToast('Profile, progress, meals, and workouts restored','ok'); setTimeout(function(){location.reload();},800); }).catch(function(){ showToast('Food database restore failed','warn'); });
+      } catch(err) { console.error('Import failed:', err); showToast('Invalid or corrupted backup file','warn'); }
+    };
+    reader.readAsText(file);
+  });
+  input.click();
+}
+
+export function requestPersistentStorage() {
+  if (!navigator.storage || !navigator.storage.persist) return;
+  navigator.storage.persist().then(function(granted) {
+    if (!granted) console.info('Persistent storage was not granted by the browser');
+  }).catch(function(err) {
+    console.warn('Persistent storage request failed:', err);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+// ONBOARDING
+// ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════

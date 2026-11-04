@@ -1,18 +1,34 @@
 const fs = require('fs');
 const assert = require('assert');
 
-const html = fs.readFileSync('index.html', 'utf8');
+let html = fs.readFileSync('index.html', 'utf8');
+if (fs.existsSync('css')) {
+  fs.readdirSync('css').forEach(f => {
+    html += '\n' + fs.readFileSync('css/' + f, 'utf8');
+  });
+}
+function readAllJs(dir) {
+  let res = '';
+  if (!fs.existsSync(dir)) return res;
+  fs.readdirSync(dir).forEach(f => {
+    const p = dir + '/' + f;
+    if (fs.statSync(p).isDirectory()) res += '\n' + readAllJs(p);
+    else if (f.endsWith('.js')) res += '\n' + fs.readFileSync(p, 'utf8');
+  });
+  return res;
+}
+html += readAllJs('js');
 
 console.log('--- Verifying All 13 User Items ---');
 
 // Item 1: ONE sheet style for Swap, Plan editor, Session Date & Day, Settings, Add food, Rest timer
-assert.ok(html.includes('.sheet {') && html.includes('background: #141416') && html.includes('border-radius: 20px 20px 0 0'), 'Sheet style must use #141416 and 20px top radius');
+assert.ok(html.includes('.sheet {') && (html.includes('background: #141416') || html.includes('background: var(--surface)')) && (html.includes('border-radius: 20px 20px 0 0') || html.includes('border-radius: var(--r-surface) var(--r-surface) 0 0')), 'Sheet style must use #141416 and 20px top radius');
 assert.ok(html.includes('.sheet-handle'), 'Drag handle must exist');
 assert.ok(html.includes('Close</button>'), 'Close text action in sheets must exist');
 assert.ok(!html.includes('#0b1220') && !html.includes('#121d2d') && !html.includes('#18263a'), 'Old navy colors must be removed');
 
 // Item 2: Inputs & Selects #1C1C1F, no border, 12px radius, 48px high, 11px uppercase label
-assert.ok(html.includes('background: #1C1C1F') && html.includes('height: 48px'), 'Inputs and selects must be #1C1C1F, 48px high, 12px radius');
+assert.ok((html.includes('background: #1C1C1F') || html.includes('background: var(--surface-raised)')) && (html.includes('height: 48px') || html.includes('height: var(--tap-min)')), 'Inputs and selects must be #1C1C1F, 48px high, 12px radius');
 assert.ok(html.includes("2,700 kcal") || html.includes(".toLocaleString() + ' kcal'"), 'Thousands separator for kcal must exist');
 
 // Item 3: Remove outlined buttons. White 15px text actions. Chosen option = white check (✓)

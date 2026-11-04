@@ -11,6 +11,12 @@ const filesToCopy = [
   'sw.js'
 ];
 
+const dirsToCopy = [
+  'css',
+  'js',
+  'assets'
+];
+
 const destDir = path.join(__dirname, 'www');
 
 if (!fs.existsSync(destDir)) {
@@ -27,4 +33,14 @@ filesToCopy.forEach(file => {
     console.warn(`Warning: Source file ${file} does not exist.`);
   }
 });
+
+dirsToCopy.forEach(dir => {
+  const src = path.join(__dirname, dir);
+  const dest = path.join(destDir, dir);
+  if (fs.existsSync(src)) {
+    fs.cpSync(src, dest, { recursive: true });
+    console.log(`Copied directory ${dir}/ to www/${dir}/`);
+  }
+});
+
 console.log('Build completed successfully!');

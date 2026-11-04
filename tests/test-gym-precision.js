@@ -1,7 +1,23 @@
 const fs = require('fs');
 const assert = require('assert');
 
-const html = fs.readFileSync('index.html', 'utf8');
+let html = fs.readFileSync('index.html', 'utf8');
+if (fs.existsSync('css')) {
+  fs.readdirSync('css').forEach(f => {
+    html += '\n' + fs.readFileSync('css/' + f, 'utf8');
+  });
+}
+function readAllJs(dir) {
+  let res = '';
+  if (!fs.existsSync(dir)) return res;
+  fs.readdirSync(dir).forEach(f => {
+    const p = dir + '/' + f;
+    if (fs.statSync(p).isDirectory()) res += '\n' + readAllJs(p);
+    else if (f.endsWith('.js')) res += '\n' + fs.readFileSync(p, 'utf8');
+  });
+  return res;
+}
+html += readAllJs('js');
 
 console.log('--- Testing Gym Precision UI & Data Edits ---');
 

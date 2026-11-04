@@ -1,0 +1,96 @@
+/* Design tokens: CSS variables for colors, typography scale, spacing grid, radii, and tap targets */
+:root {
+  /* Colors */
+  --bg: #0B0B0C;
+  --surface: #141416;
+  --surface2: #1C1C1F;
+  --surface-raised: #1C1C1F;
+  --surface-hi: #1C1C1F;
+  --divider: #222222;
+  --div: #222222;
+  --border: #222222;
+  --border-strong: #222222;
+
+  --text: #F5F5F4;
+  --text2: #8A8A8E;
+  --text-secondary: #8A8A8E;
+  --text3: #55555A;
+  --text-muted: #55555A;
+  --text-tertiary: #55555A;
+
+  /* Accent: Pure Lime with dark text #0B0B0C */
+  --accent: #C6F432;
+  --lime: #C6F432;
+  --accent-dark: #0B0B0C;
+  --lime-border: #C6F432;
+  --amber: #C6F432;
+  --amber-light: #C6F432;
+  --amber-dark: #C6F432;
+
+  /* Destructive */
+  --danger: #FF4D4F;
+  --danger-bg: rgba(255, 77, 79, 0.12);
+
+  /* Typography: Single Grotesk family, weights 400/600, tabular numerals on all numbers, no monospace */
+  --font-grotesk: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --font-family: var(--font-grotesk);
+  --font-display: var(--font-grotesk);
+  --font-body: var(--font-grotesk);
+
+  /* Strict Type Scale: 96 / 48 / 28 / 17 / 15 / 11 (11px uppercase has +8% tracking) */
+  --fs-96: 96px;
+  --fs-48: 48px;
+  --fs-28: 28px;
+  --fs-17: 17px;
+  --fs-15: 15px;
+  --fs-11: 11px;
+  /* Legacy alias compatibility mapped strictly to token scale */
+  --fs-24: 28px;
+  --fs-20: 17px;
+  --fs-14: 15px;
+  --fs-13: 15px;
+  --fs-12: 11px;
+  --fs-10: 11px;
+
+  /* Spacing Grid: 4 / 8 / 12 / 16 / 24 / 32 / 48, screen margin 20 */
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-48: 48px;
+  --screen-margin: 20px;
+
+  /* Spacing Aliases */
+  --spacing-xxs: 4px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 20px;
+  --spacing-xl: 24px;
+  --spacing-xxl: 32px;
+  --spacing-hero: 48px;
+
+  /* Geometry & Radii: 20 (surfaces, sheets) and 12 (controls) */
+  --r-surface: 20px;
+  --r-sheet: 20px;
+  --r-control: 12px;
+  --r-chip: 12px;
+  --r-full: 9999px;
+  --r-lg: 20px;
+  --r-sm: 12px;
+  --r-xs: 12px;
+
+  /* Layout & Interaction Targets: 48 min */
+  --tap-min: 48px;
+  --tap-compact: 48px;
+  --nav-h: 60px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+
+  /* Motion: 150-200ms ease-out */
+  --motion-fast: 150ms ease-out;
+  --motion-normal: 200ms ease-out;
+  --transition-default: 150ms ease-out;
+}
