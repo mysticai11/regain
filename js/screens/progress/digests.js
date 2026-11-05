@@ -5,7 +5,7 @@ import { dayRecord, allDayKeys, getWorkoutSessions } from "../../storage.js";
 import { getDayTotals, getTargetsForDate } from "../../lib/calc.js";
 import { todayKey, dateKey, addDays, esc, daysBetween } from "../../lib/format.js";
 import { triggerHaptic } from "../../lib/dom.js";
-import { getWeightHistory } from "./charts.js";
+import { getWeightHistory, buildDotConsistencyCalendarHTML } from "./charts.js";
 
 export function buildMonthlyDigestHTML(year, month, bgColor) {
   var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -299,5 +299,62 @@ export function openHistoryArchiveModal(defaultTab) {
   overlay.onclick = function(e) { if (e.target === overlay) { triggerHaptic(); overlay.remove(); } };
 
   renderTab(defaultTab);
+}
+
+export function buildHistoryScreenHTML(historyTab) {
+  historyTab = historyTab || 'weeks';
+  var calendarHTML = buildDotConsistencyCalendarHTML();
+  var tabsHTML = '<div class="seg-tabs" style="margin-top:20px;margin-bottom:16px">'
+    + '<button type="button" class="seg-tab-btn' + (historyTab === 'weeks' ? ' active' : '') + '" id="historyTabWeeksBtn">Past Weeks</button>'
+    + '<button type="button" class="seg-tab-btn' + (historyTab === 'months' ? ' active' : '') + '" id="historyTabMonthsBtn">Past Months</button>'
+    + '</div>';
+  var listHTML = (historyTab === 'weeks') ? buildWeeklyDigestHTML() : buildAllMonthsHistoryHTML();
+  return '<div class="app-view" style="padding-bottom:calc(32px + var(--safe-b))">'
+    + calendarHTML
+    + tabsHTML
+    + '<div id="historyDigestListContainer">' + listHTML + '</div>'
+    + '</div>';
+}
+
+export function wireHistoryScreenEvents(container, onTabSwitch, onMonthChange) {
+  if (!container || typeof container.querySelector !== 'function') return;
+  var prevM = container.querySelector('#prevProgressMonthBtn');
+  if (prevM) prevM.onclick = function() {
+    triggerHaptic();
+    window.activeProgressMonthOffset = (window.activeProgressMonthOffset || 0) - 1;
+    if (typeof onMonthChange === 'function') onMonthChange();
+  };
+  var nextM = container.querySelector('#nextProgressMonthBtn');
+  if (nextM) nextM.onclick = function() {
+    triggerHaptic();
+    window.activeProgressMonthOffset = (window.activeProgressMonthOffset || 0) + 1;
+    if (typeof onMonthChange === 'function') onMonthChange();
+  };
+
+  var wBtn = container.querySelector('#historyTabWeeksBtn');
+  if (wBtn) wBtn.onclick = function() {
+    triggerHaptic();
+    if (typeof onTabSwitch === 'function') onTabSwitch('weeks');
+  };
+  var mBtn = container.querySelector('#historyTabMonthsBtn');
+  if (mBtn) mBtn.onclick = function() {
+    triggerHaptic();
+    if (typeof onTabSwitch === 'function') onTabSwitch('months');
+  };
+
+  container.querySelectorAll('[data-toggle-digest]').forEach(function(el) {
+    el.onclick = function() {
+      var target = document.getElementById(el.dataset.toggleDigest);
+      if (target) target.style.display = (target.style.display === 'none' ? 'block' : 'none');
+    };
+  });
+
+  container.querySelectorAll('[data-jump-day]').forEach(function(btn) {
+    btn.onclick = function() {
+      triggerHaptic();
+      window.activeTodaySelectedDateKey = btn.dataset.jumpDay;
+      if (typeof setTab === 'function') setTab('today');
+    };
+  });
 }
 

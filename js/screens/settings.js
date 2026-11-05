@@ -11,28 +11,14 @@ import { openCustomFoodsManager } from "./today/food-modal.js";
 import { todayKey, esc, currentWeight } from "../lib/format.js";
 
 export function openSettings() {
-  var weekDaysMeta = [
-    { js: 1, name: 'Mon' },
-    { js: 2, name: 'Tue' },
-    { js: 3, name: 'Wed' },
-    { js: 4, name: 'Thu' },
-    { js: 5, name: 'Fri' },
-    { js: 6, name: 'Sat' },
-    { js: 0, name: 'Sun' }
-  ];
+  if (document.getElementById('settingsOverlay')) return;
+  var weekDaysMeta = [{ js: 1, name: 'Mon' }, { js: 2, name: 'Tue' }, { js: 3, name: 'Wed' }, { js: 4, name: 'Thu' }, { js: 5, name: 'Fri' }, { js: 6, name: 'Sat' }, { js: 0, name: 'Sun' }];
   var tdays = (profile.trainingDays || [1, 2, 4, 5, 6]).slice();
-  var overlay = document.createElement('div'); overlay.className = 'overlay';
-  var equipVal = profile.equipment || 'full';
-  var dietVal = profile.dietaryPattern || 'nonveg';
-  var goalVal = profile.goal || 'gain';
-  var expVal = profile.experience || 'novice';
-  var shields = profile.shields || 0;
-
-  var restKcal = profile.calTargetRest || CAL_TARGET_REST;
-  var gymKcal = profile.calTargetGym || CAL_TARGET_GYM;
-  var restProt = profile.protTargetRest || PROT_TARGET_REST;
-  var gymProt = profile.protTargetGym || PROT_TARGET_GYM;
-  var targetWeight = profile.targetWeight || 60.0;
+  var overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.id = 'settingsOverlay';
+  var equipVal = profile.equipment || 'full', dietVal = profile.dietaryPattern || 'nonveg', goalVal = profile.goal || 'gain', expVal = profile.experience || 'novice', shields = profile.shields || 0;
+  var restKcal = profile.calTargetRest || CAL_TARGET_REST, gymKcal = profile.calTargetGym || CAL_TARGET_GYM, restProt = profile.protTargetRest || PROT_TARGET_REST, gymProt = profile.protTargetGym || PROT_TARGET_GYM, targetWeight = profile.targetWeight || 60.0;
 
   var chevronSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8A8E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:12px;pointer-events:none"><path d="M6 9l6 6 6-6"/></svg>';
 
@@ -48,7 +34,7 @@ export function openSettings() {
     + '<div class="sheet-handle"></div>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
       + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">Settings</div>'
-      + '<button type="button" class="btn-text-action" id="closeSettingsBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">Close</button>'
+      + '<button type="button" class="btn-text-action" id="closeSettingsBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:8px 0;cursor:pointer;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:flex-end">Close</button>'
     + '</div>'
 
     // TARGETS (Compact Card)
@@ -233,27 +219,19 @@ export function openSettings() {
 
   ['setTargetRest', 'setTargetGym', 'setProtRest', 'setProtGym', 'setTargetWeight'].forEach(function(id) {
     var el = document.getElementById(id);
-    if (el) {
-      el.addEventListener('blur', function() {
-        if (saveTargetsOnBlur()) {
-          showToast('Saved', 'ok');
-        }
-      });
-    }
+    if (el) el.addEventListener('blur', function() { if (saveTargetsOnBlur()) showToast('Saved', 'ok'); });
   });
 
   ['setGoal', 'setEquip', 'setDiet', 'setExp'].forEach(function(id) {
     var el = document.getElementById(id);
-    if (el) {
-      el.addEventListener('change', function() {
-        profile.goal = document.getElementById('setGoal').value;
-        profile.equipment = document.getElementById('setEquip').value;
-        profile.dietaryPattern = document.getElementById('setDiet').value;
-        profile.experience = document.getElementById('setExp').value;
-        sv('rg_profile', profile);
-        showToast('Saved', 'ok');
-      });
-    }
+    if (el) el.addEventListener('change', function() {
+      profile.goal = document.getElementById('setGoal').value;
+      profile.equipment = document.getElementById('setEquip').value;
+      profile.dietaryPattern = document.getElementById('setDiet').value;
+      profile.experience = document.getElementById('setExp').value;
+      sv('rg_profile', profile);
+      showToast('Saved', 'ok');
+    });
   });
 
   overlay.querySelectorAll('.day-toggle').forEach(function(btn) {
@@ -281,7 +259,12 @@ export function openSettings() {
     });
   });
 
-  var closeSheetFn = function() {
+  var isClosing = false;
+  var closeSheetFn = function(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (isClosing) return;
+    isClosing = true;
     saveTargetsOnBlur();
     overlay.style.transition = 'opacity 140ms ease-out';
     overlay.style.opacity = '0';
@@ -292,14 +275,19 @@ export function openSettings() {
     }
     setTimeout(function() {
       overlay.remove();
+      var remaining = document.getElementById('settingsOverlay');
+      if (remaining && typeof remaining.remove === 'function') remaining.remove();
       if (typeof window !== 'undefined' && typeof window.renderApp === 'function') window.renderApp();
     }, 180);
   };
 
-  overlay.querySelector('#closeSettingsBtn').addEventListener('click', closeSheetFn);
+  var closeBtn = overlay.querySelector('#closeSettingsBtn');
   var bottomDoneBtn = overlay.querySelector('#closeSettingsBottomBtn');
-  if (bottomDoneBtn) bottomDoneBtn.addEventListener('click', closeSheetFn);
-  overlay.addEventListener('click', function(e){ if (e.target === overlay) closeSheetFn(); });
+  ['click', 'pointerdown'].forEach(function(evt) {
+    if (closeBtn) closeBtn.addEventListener(evt, closeSheetFn);
+    if (bottomDoneBtn) bottomDoneBtn.addEventListener(evt, closeSheetFn);
+  });
+  overlay.addEventListener('click', function(e){ if (e.target === overlay) closeSheetFn(e); });
 
   var saveBtn = overlay.querySelector('#saveSettingsBtn');
   if (saveBtn) {

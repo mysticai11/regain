@@ -180,3 +180,4 @@ export function getAllKnownExercises() {
   BUILTIN_EXERCISE_CATALOG.forEach(register);
   return result;
 }
+

@@ -31,6 +31,8 @@ global.document = {
         get innerHTML() { return contentHTML; },
         set innerHTML(val) { contentHTML = val; },
         addEventListener: () => {},
+        querySelector: () => null,
+        querySelectorAll: () => [],
         classList: { add: () => {}, remove: () => {} }
       };
     }
@@ -70,7 +72,8 @@ async function run() {
   const bodyScreen = contentHTML;
 
   assert.ok(bodyScreen.includes('id="bodyProgressBtn"') && bodyScreen.includes('seg-tab-btn active'), 'Body tab button must be active');
-  assert.ok(bodyScreen.includes('Consistency ·') || bodyScreen.includes('dot-grid'), 'Consistency calendar must be on Body screen');
+  assert.ok(!bodyScreen.includes('Consistency ·'), 'Body screen must NOT contain consistency calendar');
+  assert.ok(!bodyScreen.includes('openHistoryArchiveBtn'), 'Body screen must NOT contain history archive button');
   assert.ok(bodyScreen.includes('id="weightPlot"'), 'Weight plot must be on Body screen');
   assert.ok(bodyScreen.includes('id="progressWeight"'), 'Log weight input must be on Body screen');
   assert.ok(bodyScreen.includes('id="weightEntriesContainer"'), 'Weight entries container must be on Body screen');
@@ -92,6 +95,16 @@ async function run() {
   assert.ok(!liftsScreen.includes('id="weightPlot"'), 'Lifts screen must NOT contain weightPlot');
   assert.ok(!liftsScreen.includes('id="progressWeight"'), 'Lifts screen must NOT contain progressWeight input');
   assert.ok(!liftsScreen.includes('Nutrition · Last 7 days'), 'Lifts screen must NOT contain Nutrition');
+
+  // 3. Render dedicated History screen
+  renderProgressSimple('history');
+  const historyScreen = contentHTML;
+
+  assert.ok(historyScreen.includes('id="historyProgressBtn"') && historyScreen.includes('seg-tab-btn active'), 'History tab button must be active');
+  assert.ok(historyScreen.includes('Consistency ·') || historyScreen.includes('dot-grid'), 'Consistency calendar must be on History screen');
+  assert.ok(historyScreen.includes('id="historyTabWeeksBtn"') && historyScreen.includes('id="historyTabMonthsBtn"'), 'Weekly and monthly sub-tabs must be on History screen');
+  assert.ok(!historyScreen.includes('id="weightPlot"'), 'History screen must NOT contain weightPlot');
+  assert.ok(!historyScreen.includes('id="liftSelect"'), 'History screen must NOT contain liftSelect');
 
   // Verify Lifts screen section ordering: History at top, Lift plot middle, Weekly work at bottom
   const historyIdx = liftsScreen.indexOf('No completed workouts yet') !== -1

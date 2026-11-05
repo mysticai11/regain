@@ -130,7 +130,7 @@ export function renderTodaySimple() {
     + '</div>';
 
   var settingsBtn = document.getElementById('settingsBtn');
-  if (settingsBtn) settingsBtn.onclick = openSettings;
+  if (settingsBtn) settingsBtn.onclick = function(e) { if (e && e.stopPropagation) e.stopPropagation(); openSettings(); };
 
   var prevWk = document.getElementById('prevWeekBtn');
   if (prevWk) prevWk.onclick = function() { triggerHaptic(); window.todayWeekOffset = (window.todayWeekOffset || 0) - 1; renderTodaySimple(); };

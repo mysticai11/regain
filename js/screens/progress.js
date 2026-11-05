@@ -13,7 +13,7 @@ import { getWeightHistory, getProgressRows, getRollingWeightValues, buildDotCons
 import { getEquivalentExerciseIds } from "./gym/sets.js";
 import { workoutHistoryHTML, getResumeWorkoutCardHTML, nutritionProgressHTML, weeklyVolumeChart, editWeightEntry, deleteWeightEntry, weightEntriesHTML } from "./progress/history.js";
 import { openSessionMenu, openEditWorkoutSheet } from "./progress/session-editor.js";
-import { buildMonthlyDigestHTML, buildWeeklyDigestHTML, openHistoryArchiveModal } from "./progress/digests.js";
+import { buildMonthlyDigestHTML, buildWeeklyDigestHTML, openHistoryArchiveModal, buildHistoryScreenHTML, wireHistoryScreenEvents } from "./progress/digests.js";
 export * from "./progress/charts.js?v=4";
 export * from "./progress/history.js";
 export * from "./progress/session-editor.js";
@@ -79,8 +79,9 @@ function setupChartInteractions(container) {
   });
 }
 
-export function renderProgressSimple(mode) {
+export function renderProgressSimple(mode, historySubTab) {
   mode=mode||'body';
+  historySubTab=historySubTab||'weeks';
   var entries=getWeightHistory(), records=allDayKeys().map(function(k){var r=dayRecord(k),t=getDayTotals(k);return {key:k,weight:r.weight,kcal:t.kcal,protein:t.protein};});
   var workoutSessions=getWorkoutSessions().filter(function(session){return (session.exercises||[]).some(function(exercise){return (exercise.sets||[]).some(Boolean);});});
   var current=entries.length?entries[entries.length-1].weight:null, range='4w';
@@ -187,22 +188,9 @@ export function renderProgressSimple(mode) {
 
     var advisorCard = '';
     if (entries.length >= 5 && weeklyRate != null) {
-      if (avgCalories >= 2700 && weeklyRate < 0.25) {
-        advisorCard = '<div style="font-size:15px;color:#F5F5F4;line-height:1.35;border-top:1px solid #222222;padding-top:10px">'
-          + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:2px">Bulking Pace: Slow</span>'
-          + 'Eating ~' + avgCalories.toLocaleString() + ' kcal and gaining slowly (' + rateStr + '). Target is +0.25–0.50 kg/wk. Increase intake by +150–200 kcal/day.'
-          + '</div>';
-      } else if (isRateOnTarget) {
-        advisorCard = '<div style="font-size:15px;color:#F5F5F4;line-height:1.35;border-top:1px solid #222222;padding-top:10px">'
-          + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:2px">Bulking Pace: On Target</span>'
-          + rateStr + ' (target +0.25–0.50 kg/wk) · Est. ' + Math.round(targetW) + ' kg by ' + etaText
-          + '</div>';
-      } else if (weeklyRate > 0.55) {
-        advisorCard = '<div style="font-size:15px;color:#F5F5F4;line-height:1.35;border-top:1px solid #222222;padding-top:10px">'
-          + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:2px">Bulking Pace: Fast</span>'
-          + 'Gaining ' + rateStr + ' vs +0.25–0.50 kg/wk target. Maintain a clean surplus.'
-          + '</div>';
-      }
+      var paceTitle = (avgCalories >= 2700 && weeklyRate < 0.25) ? 'Bulking Pace: Slow' : (isRateOnTarget ? 'Bulking Pace: On Target' : (weeklyRate > 0.55 ? 'Bulking Pace: Fast' : ''));
+      var paceBody = (avgCalories >= 2700 && weeklyRate < 0.25) ? ('Eating ~' + avgCalories.toLocaleString() + ' kcal and gaining slowly (' + rateStr + '). Target is +0.25–0.50 kg/wk. Increase intake by +150–200 kcal/day.') : (isRateOnTarget ? (rateStr + ' (target +0.25–0.50 kg/wk) · Est. ' + Math.round(targetW) + ' kg by ' + etaText) : (weeklyRate > 0.55 ? ('Gaining ' + rateStr + ' vs +0.25–0.50 kg/wk target. Maintain a clean surplus.') : ''));
+      if (paceTitle) advisorCard = '<div style="font-size:15px;color:#F5F5F4;line-height:1.35;border-top:1px solid #222222;padding-top:10px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:2px">' + paceTitle + '</span>' + paceBody + '</div>';
     }
 
     var weightMeta=document.getElementById('weightMeta');
@@ -283,16 +271,14 @@ export function renderProgressSimple(mode) {
     + '</div>'
     + weeklyVolumeChart()
     + '</div>';
-  var historyCardHTML = '<div id="openHistoryArchiveBtn" style="background:#141416;border-radius:14px;padding:14px 16px;margin-top:14px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;cursor:pointer">'
-    + '<div style="display:flex;align-items:center;gap:12px">'
-      + '<span style="width:8px;height:8px;border-radius:50%;background:#C6F432;display:inline-block"></span>'
-      + '<div>'
-        + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">Weekly & Monthly History</div>'
-        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">View previous weeks, daily breakdowns & monthly reviews</div>'
-      + '</div>'
-    + '</div>'
-    + '<button type="button" class="btn-text-action" style="color:#C6F432;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">View &rarr;</button>'
-    + '</div>';
+  var viewContent = '';
+  if (mode === 'body') {
+    viewContent = '<div class="app-view">' + bodySection + '</div>';
+  } else if (mode === 'lifts') {
+    viewContent = '<div class="app-view">' + getResumeWorkoutCardHTML() + workoutHistoryHTML() + liftChartBlock + weeklyWorkBlock + '</div>';
+  } else {
+    viewContent = buildHistoryScreenHTML(historySubTab);
+  }
 
   document.getElementById('content').innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">'
@@ -302,20 +288,32 @@ export function renderProgressSimple(mode) {
     + '<div class="seg-tabs" style="margin-bottom:20px">'
       + '<button class="seg-tab-btn' + (mode === 'body' ? ' active' : '') + '" id="bodyProgressBtn">Body</button>'
       + '<button class="seg-tab-btn' + (mode === 'lifts' ? ' active' : '') + '" id="liftProgressBtn">Lifts</button>'
+      + '<button class="seg-tab-btn' + (mode === 'history' ? ' active' : '') + '" id="historyProgressBtn">History</button>'
     + '</div>'
-    + (mode === 'body'
-        ? ('<div class="app-view">' + buildDotConsistencyCalendarHTML() + historyCardHTML + bodySection + '</div>')
-        : ('<div class="app-view">' + getResumeWorkoutCardHTML() + workoutHistoryHTML() + liftChartBlock + weeklyWorkBlock + '</div>')
-      );
-  document.getElementById('settingsBtn').onclick=openSettings;
-  document.getElementById('bodyProgressBtn').onclick=function(){ if (mode !== 'body') { triggerHaptic(); renderProgressSimple('body'); } };
-  document.getElementById('liftProgressBtn').onclick=function(){ if (mode !== 'lifts') { triggerHaptic(); renderProgressSimple('lifts'); } };
-  var prevM = document.getElementById('prevProgressMonthBtn');
-  if (prevM) prevM.onclick = function() { triggerHaptic(); window.activeProgressMonthOffset = (window.activeProgressMonthOffset || 0) - 1; renderProgressSimple('body'); };
-  var nextM = document.getElementById('nextProgressMonthBtn');
-  if (nextM) nextM.onclick = function() { triggerHaptic(); window.activeProgressMonthOffset = (window.activeProgressMonthOffset || 0) + 1; renderProgressSimple('body'); };
-  var archiveBtn = document.getElementById('openHistoryArchiveBtn');
-  if (archiveBtn) archiveBtn.onclick = function() { triggerHaptic(); openHistoryArchiveModal(); };
+    + viewContent;
+
+  var settingsBtn = document.getElementById('settingsBtn');
+  if (settingsBtn) {
+    settingsBtn.onclick = function(e) { if (e && e.stopPropagation) e.stopPropagation(); openSettings(); };
+  }
+  document.getElementById('bodyProgressBtn').onclick = function() {
+    if (mode !== 'body') { triggerHaptic(); renderProgressSimple('body'); }
+  };
+  document.getElementById('liftProgressBtn').onclick = function() {
+    if (mode !== 'lifts') { triggerHaptic(); renderProgressSimple('lifts'); }
+  };
+  document.getElementById('historyProgressBtn').onclick = function() {
+    if (mode !== 'history') { triggerHaptic(); renderProgressSimple('history'); }
+  };
+
+  if (mode === 'history') {
+    wireHistoryScreenEvents(document.getElementById('content'), function(newTab) {
+      renderProgressSimple('history', newTab);
+    }, function() {
+      renderProgressSimple('history', historySubTab);
+    });
+  }
+
   var contentEl = document.getElementById('content');
   if (contentEl) {
     var touchStartX = 0, touchStartY = 0;
@@ -326,8 +324,13 @@ export function renderProgressSimple(mode) {
       if (!e.changedTouches || !e.changedTouches[0]) return;
       var dx = e.changedTouches[0].clientX - touchStartX, dy = e.changedTouches[0].clientY - touchStartY;
       if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-        if (dx < 0 && mode === 'body') { triggerHaptic(); renderProgressSimple('lifts'); }
-        else if (dx > 0 && mode === 'lifts') { triggerHaptic(); renderProgressSimple('body'); }
+        if (dx < 0) {
+          if (mode === 'body') { triggerHaptic(); renderProgressSimple('lifts'); }
+          else if (mode === 'lifts') { triggerHaptic(); renderProgressSimple('history'); }
+        } else if (dx > 0) {
+          if (mode === 'history') { triggerHaptic(); renderProgressSimple('lifts'); }
+          else if (mode === 'lifts') { triggerHaptic(); renderProgressSimple('body'); }
+        }
       }
     };
   }
@@ -361,8 +364,6 @@ export function renderProgressSimple(mode) {
     };
   }
   var liftSelect=document.getElementById('liftSelect'); if(liftSelect) liftSelect.onchange=render;
-  document.querySelectorAll('[data-edit-weight]').forEach(function(btn){btn.onclick=function(){editWeightEntry(btn.dataset.editWeight);};});
-  document.querySelectorAll('[data-delete-weight]').forEach(function(btn){btn.onclick=function(){deleteWeightEntry(btn.dataset.deleteWeight);};});
   document.querySelectorAll('[data-edit-workout-session]').forEach(function(btn){
     btn.onclick = function(e){
       if (e && e.stopPropagation) e.stopPropagation();
