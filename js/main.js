@@ -40,7 +40,12 @@ export function renderApp() {
 
 export function renderTab() {
   var content = document.getElementById('content');
-  if (content) content.innerHTML = '';
+  if (content) {
+    content.innerHTML = '';
+    content.classList.remove('page-enter');
+    void content.offsetWidth;
+    content.classList.add('page-enter');
+  }
   try {
     if (tab === 'today') renderTodaySimple();
     else if (tab === 'progress') renderProgressSimple();

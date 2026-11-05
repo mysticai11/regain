@@ -225,6 +225,16 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
 .rir-cycle-text:disabled { opacity: 0.75 !important; cursor: default !important; }
 
 /* ── Sheets & Overlays ── */
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sheetSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
 .sheet-overlay, .modal-backdrop, .overlay {
   position: fixed;
   inset: 0;
@@ -237,6 +247,7 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   opacity: 1;
   pointer-events: auto;
   visibility: visible;
+  animation: overlayFadeIn 180ms ease-out forwards;
 }
 .sheet-overlay.is-hidden, .modal-backdrop.is-hidden, .overlay.is-hidden,
 .sheet-overlay[hidden], .modal-backdrop[hidden], .overlay[hidden] {
@@ -253,8 +264,11 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   max-width: 480px !important;
   max-height: 88vh !important;
   overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
   box-sizing: border-box !important;
   position: relative !important;
+  animation: sheetSlideUp 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform;
 }
 .sheet-handle { width: 36px; height: 4px; background: var(--divider); border-radius: var(--r-full); margin: 0 auto var(--spacing-16); }
 .sheet-title { font-size: var(--fs-28); font-weight: 600; color: var(--text); line-height: 1.15; }

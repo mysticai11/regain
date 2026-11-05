@@ -283,8 +283,17 @@ export function openSettings() {
 
   var closeSheetFn = function() {
     saveTargetsOnBlur();
-    overlay.remove();
-    if (typeof window !== 'undefined' && typeof window.renderApp === 'function') window.renderApp();
+    overlay.style.transition = 'opacity 140ms ease-out';
+    overlay.style.opacity = '0';
+    var s = overlay.querySelector('.sheet');
+    if (s) {
+      s.style.transition = 'transform 180ms cubic-bezier(0.16, 1, 0.3, 1)';
+      s.style.transform = 'translateY(100%)';
+    }
+    setTimeout(function() {
+      overlay.remove();
+      if (typeof window !== 'undefined' && typeof window.renderApp === 'function') window.renderApp();
+    }, 180);
   };
 
   overlay.querySelector('#closeSettingsBtn').addEventListener('click', closeSheetFn);

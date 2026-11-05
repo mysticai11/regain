@@ -288,19 +288,17 @@ export function renderProgressSimple(mode) {
       + '<span class="t-label">Progress</span>'
       + '<button class="icon-btn" id="settingsBtn" aria-label="Settings">' + ic('settings') + '</button>'
     + '</div>'
-    + getResumeWorkoutCardHTML()
-    + '<div class="seg-tabs">'
+    + '<div class="seg-tabs" style="margin-bottom:20px">'
       + '<button class="seg-tab-btn' + (mode === 'body' ? ' active' : '') + '" id="bodyProgressBtn">Body</button>'
       + '<button class="seg-tab-btn' + (mode === 'lifts' ? ' active' : '') + '" id="liftProgressBtn">Lifts</button>'
     + '</div>'
-    + buildDotConsistencyCalendarHTML()
-    + (mode === 'body' ? bodySection : liftSection)
-    + '<div style="margin-top:24px">'
-      + workoutHistoryHTML()
-    + '</div>';
+    + (mode === 'body'
+        ? ('<div class="app-view">' + buildDotConsistencyCalendarHTML() + bodySection + '</div>')
+        : ('<div class="app-view">' + getResumeWorkoutCardHTML() + liftSection + '<div style="margin-top:24px">' + workoutHistoryHTML() + '</div></div>')
+      );
   document.getElementById('settingsBtn').onclick=openSettings;
-  document.getElementById('bodyProgressBtn').onclick=function(){renderProgressSimple('body');};
-  document.getElementById('liftProgressBtn').onclick=function(){renderProgressSimple('lifts');};
+  document.getElementById('bodyProgressBtn').onclick=function(){ if (mode !== 'body') renderProgressSimple('body'); };
+  document.getElementById('liftProgressBtn').onclick=function(){ if (mode !== 'lifts') renderProgressSimple('lifts'); };
   document.querySelectorAll('[data-range]').forEach(function(btn){
     btn.onclick = function(){
       range = btn.dataset.range;
