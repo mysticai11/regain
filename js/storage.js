@@ -38,20 +38,24 @@ export var SQLiteStorage = {
             }
             self.active = true;
             console.log('SQLite database pre-loaded successfully!');
+            migrateLegacyKeys();
             if (callback) callback();
           })
           .catch(function(err) {
             console.error('SQLite init error, falling back to LocalStorage:', err);
             self.active = false;
+            migrateLegacyKeys();
             if (callback) callback();
           });
       } catch(e) {
         console.error('Capacitor SQLite plugin error:', e);
         self.active = false;
+        migrateLegacyKeys();
         if (callback) callback();
       }
     } else {
       self.active = false;
+      migrateLegacyKeys();
       if (callback) callback();
     }
   },
@@ -125,6 +129,48 @@ export function sv(k, v) {
   }
 }
 
+export function migrateLegacyKeys() {
+  try {
+    var prefixMap = {
+      'tally_profile': 'rg_profile',
+      'regain_profile': 'rg_profile',
+      'tally_meals': 'rg_meals',
+      'regain_meals': 'rg_meals',
+      'tally_recent_foods': 'rg_recent_foods',
+      'regain_recent_foods': 'rg_recent_foods',
+      'tally_last_backup': 'rg_last_backup',
+      'tally_workout_sessions': 'rg_workout_sessions'
+    };
+    Object.keys(prefixMap).forEach(function(oldKey) {
+      var newKey = prefixMap[oldKey];
+      var current = ls(newKey, null);
+      if (current === null) {
+        var legacy = ls(oldKey, null);
+        if (legacy !== null) {
+          sv(newKey, legacy);
+        }
+      }
+    });
+
+    if (typeof localStorage !== 'undefined') {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (!k) continue;
+        var match = k.match(/^(?:tally|regain)_day_(\d{4}-\d{2}-\d{2})$/);
+        if (match) {
+          var newKey = 'rg_day_' + match[1];
+          if (ls(newKey, null) === null) {
+            var val = ls(k, null);
+            if (val !== null) sv(newKey, val);
+          }
+        }
+      }
+    }
+  } catch(e) {
+    console.warn('Migration error:', e);
+  }
+}
+
 export function dayRecord(key) {
   var r = ls('rg_day_'+key, null);
   if (!r) return {weight:null,sleep:null,readiness:null,meals:{},extra:[],workout:{},workoutDone:false,shielded:false};
@@ -148,7 +194,7 @@ export function exportData() {
     Object.keys(SQLiteStorage.cache || {}).forEach(function(k){ if(k.indexOf('rg_day_') === 0) keySet[k.slice(7)] = true; });
     keys = Object.keys(keySet).sort();
     var data = {
-      app:'Tally',
+      app:'Regain',
       version:3,
       exported: new Date().toISOString(),
       profile:ls('rg_profile',null),
