@@ -1,6 +1,6 @@
 /* Gym screen: main logger accordion view, set inputs, and gym header */
 
-import { profile, activeGymDateKey, activeExpandedExId, setActiveExpandedExId } from "../state.js";
+import { profile, activeGymDateKey, activeExpandedExId, setActiveExpandedExId, setTab } from "../state.js";
 import { dayRecord, saveDayRecord } from "../storage.js";
 import { getActiveProgram, getExerciseData, getWeeklySchedule } from "../data/plan.js";
 import { todayKey, dateKey, formatDuration, workoutElapsed, esc, pad } from "../lib/format.js";
@@ -91,7 +91,7 @@ export function renderGym() {
   if (activeSched.isRest || activeSched.workoutIndex == null) {
     var nextWorkoutSched = weeklySched.find(function(s){ return !s.isRest && s.dayNum > activeSched.dayNum; }) || weeklySched.find(function(s){ return !s.isRest; }) || weeklySched[0];
     document.getElementById('content').innerHTML =
-      '<div class="gym-page" style="padding:0 20px">'
+      '<div class="gym-page">'
       + dateBannerHTML
       + gymHeaderUnifiedHTML
       + '<div style="background:#141416;border-radius:20px;padding:24px 20px;margin-top:16px">'
@@ -122,7 +122,7 @@ export function renderGym() {
   if (isTodaySelected && rec.workoutDone) {
     var nextWorkoutSched = weeklySched.find(function(s){ return !s.isRest && s.dayNum > activeSched.dayNum; }) || weeklySched.find(function(s){ return !s.isRest; }) || weeklySched[0];
     document.getElementById('content').innerHTML =
-      '<div class="gym-page" style="padding:0 20px">'
+      '<div class="gym-page">'
       + dateBannerHTML
       + gymHeaderUnifiedHTML
       + '<div style="background:#141416;border-radius:20px;padding:24px 20px;margin-top:16px">'
@@ -143,7 +143,7 @@ export function renderGym() {
     var histBtn = document.getElementById('openHistoryFromGymBtn');
     if (histBtn) {
       histBtn.onclick = function() {
-        tab = 'progress';
+        setTab('progress');
         renderApp();
       };
     }
@@ -292,7 +292,7 @@ export function renderGym() {
           + '<option value="0" ' + (valueRir === 0 ? 'selected' : '') + '>F</option>'
         + '</select>'
         + '<button type="button" class="precision-circle-tap ' + (logged ? 'done' : 'btn-log') + '" ' + (logged ? ('data-quick-edit-logged="' + ex.id + '"') : ('data-logset="' + ex.id + '"')) + ' data-set-index="' + i + '" data-ex-name="' + esc(ex.name) + '" data-weight="' + (logged ? (logged.weight || 0) : '') + '" data-reps="' + (logged ? logged.reps : '') + '" data-rir="' + (logged && logged.rir != null ? logged.rir : '') + '" ' + (!logged && !hasValues ? 'disabled' : '') + ' aria-label="' + (logged ? 'Edit logged set' : 'Log set') + '">'
-          + '<span class="precision-circle ' + (logged ? 'done' : '') + '">' + (logged ? '✓' : '○') + '</span>'
+          + '<span class="precision-circle ' + (logged ? 'done' : '') + '">' + (logged ? '✓' : '') + '</span>'
         + '</button>'
         + '</div>'
         + tagHTML;
@@ -340,7 +340,7 @@ export function renderGym() {
   }).join('');
 
   document.getElementById('content').innerHTML =
-    '<div class="gym-page" style="padding:0 20px">'
+    '<div class="gym-page">'
     + dateBannerHTML
     + gymHeaderUnifiedHTML
     + exHTML

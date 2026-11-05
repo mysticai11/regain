@@ -49,7 +49,7 @@ export function progressPlot(values, goal, unit) {
   if(!values.length) return '<div class="t-micro" style="padding:16px 0;color:var(--text-secondary)">Log data to see this trend.</div>';
   var unitLabel = unit || 'kg';
   var isReps = unitLabel === 'reps';
-  var nums = values.map(function(v){return Number(v.value);}).concat(goal!=null?[goal]:[]);
+  var nums = values.map(function(v){return Number(v.value);});
   var rawMin = Math.min.apply(null,nums), rawMax = Math.max.apply(null,nums), rawSpan = rawMax-rawMin;
   var pad = rawSpan ? Math.max(rawSpan*.18,.5) : Math.max(Math.abs(rawMax)*.03,.5);
   var min = rawMin-pad, max = rawMax+pad, span = max-min||1;
@@ -91,10 +91,10 @@ export function progressPlot(values, goal, unit) {
     ];
   }
 
-  var goalNum = goal != null ? Number(goal) : ((profile && profile.targetWeight) ? Number(profile.targetWeight) : 60);
-  var goalY = insetY + ((max - goalNum) / span) * plotH;
+  var goalNum = goal != null ? Number(goal) : ((profile && profile.targetWeight) ? Number(profile.targetWeight) : null);
+  var goalY = goalNum != null ? (insetY + ((max - goalNum) / span) * plotH) : -999;
   var goalLineHTML = '';
-  if (goalY >= insetY && goalY <= svgHeight - insetY) {
+  if (goalNum != null && goalY >= insetY && goalY <= svgHeight - insetY) {
     goalLineHTML = '<line x1="' + insetX + '" y1="' + goalY.toFixed(1) + '" x2="' + (svgWidth - insetX - 28) + '" y2="' + goalY.toFixed(1) + '" stroke="#C6F432" stroke-dasharray="3 3" stroke-width="1.5" stroke-opacity="0.8"/>'
       + '<text x="' + (svgWidth - insetX) + '" y="' + (goalY + 4).toFixed(1) + '" fill="#C6F432" font-size="11" font-weight="600" text-anchor="end" font-family="Space Grotesk, sans-serif">' + Math.round(goalNum) + '</text>';
   }
@@ -124,7 +124,7 @@ export function progressPlot(values, goal, unit) {
 
   return '<div style="margin-top:0;margin-bottom:12px">'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'
-      + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + values.length + ' point' + (values.length === 1 ? '' : 's') + '</span>'
+      + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + values.length + ' point' + (values.length === 1 ? '' : 's') + (goalNum != null ? (' · Target ' + Math.round(goalNum) + ' ' + unitLabel) : '') + '</span>'
       + '<span class="tabnum" style="font-size:15px;color:var(--text-secondary)">' + esc(deltaText) + '</span>'
     + '</div>'
     + '<div style="position:relative;width:100%;height:120px;background:none">'

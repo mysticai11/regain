@@ -1,11 +1,13 @@
 /* Progress screen: main view container, segmented tabs (Body / Lifts), and settings button */
 
-import { dayRecord, allDayKeys, getWorkoutSessions } from "../storage.js";
+import { profile } from "../state.js";
+import { dayRecord, saveDayRecord, sv, allDayKeys, getWorkoutSessions } from "../storage.js";
 import { getDayTotals, calcE1RM } from "../lib/calc.js";
 import { getActiveProgram, getExerciseData, isBodyweightExercise } from "../data/plan.js";
 import { esc, todayKey, goalDirection } from "../lib/format.js";
 import { ic } from "../lib/dom.js";
 import { openSettings } from "./settings.js";
+import { showToast } from "../components/toast.js";
 import { openQuickEditSetModal } from "../components/quick-edit-modal.js";
 import { getWeightHistory, getProgressRows, getRollingWeightValues, buildDotConsistencyCalendarHTML, progressPlot, goalTrajectoryText } from "./progress/charts.js";
 import { getEquivalentExerciseIds } from "./gym/sets.js";
@@ -80,8 +82,25 @@ export function renderProgressSimple(mode) {
     var liftPlot=document.getElementById('liftPlot'); if(liftPlot) liftPlot.innerHTML=progressPlot(liftValues, null, isBW ? 'reps' : 'kg');
     var direction=goalDirection(), latest=weightValues.length?weightValues[weightValues.length-1].value:null;
     var trend=weightValues.length>1?latest-weightValues[0].value:0;
-    var status=weightValues.length>1?(direction*trend>0?'moving toward goal':direction*trend<0?'moving away from goal':'flat'):'need more entries';
-    var weightMeta=document.getElementById('weightMeta'); if(weightMeta) weightMeta.innerHTML=latest!=null?(latest+' kg 7-day avg · goal '+(profile.targetWeight||'—')+' kg · '+status+'<br><span class="progress-summary">'+esc(goalTrajectoryText(entries))+'</span>'):'No weight entries yet';
+    var weightMeta=document.getElementById('weightMeta');
+    if (weightMeta) {
+      if (latest != null) {
+        var toGoalNum = profile && profile.targetWeight ? (profile.targetWeight - latest) : null;
+        var toGoalText = toGoalNum != null ? ((toGoalNum > 0 ? '+' : '') + toGoalNum.toFixed(1) + ' kg') : '—';
+        var trendText = weightValues.length > 1 ? ((trend > 0 ? '+' : '') + trend.toFixed(1) + ' kg') : '—';
+        var hintCard = entries.length < 7
+          ? '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.04em;text-transform:uppercase">Log 7+ weigh-ins for a trend</div>'
+          : '';
+        weightMeta.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:#141416;border-radius:12px;padding:12px 14px;text-align:center;margin-top:10px">'
+          + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px">7-Day Avg</div><div style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + latest.toFixed(1) + ' <span style="font-size:11px;color:#8A8A8E">kg</span></div></div>'
+          + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px">To Goal</div><div style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + toGoalText + '</div></div>'
+          + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px">Trend</div><div style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + trendText + '</div></div>'
+          + '</div>'
+          + hintCard;
+      } else {
+        weightMeta.innerHTML = '<div style="padding:12px 0;font-size:15px;color:#8A8A8E">No weight entries yet</div>';
+      }
+    }
     var liftMeta=document.getElementById('liftMeta');
     if(liftMeta) {
       var firstLift=liftValues.length?liftValues[0].value:null, latestLift=liftValues.length?liftValues[liftValues.length-1].value:null;
@@ -111,7 +130,7 @@ export function renderProgressSimple(mode) {
     + '<div id="weightMeta" class="tabnum" style="font-size:15px;color:var(--text-secondary);margin-top:10px;line-height:1.4"></div>'
     + '<div style="display:flex;align-items:center;gap:12px;margin-top:16px">'
       + '<input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="Log weight (kg)" inputmode="decimal" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:17px;font-family:var(--font-display);font-variant-numeric:tabular-nums;flex:1">'
-      + '<button type="button" class="btn-text-action" id="saveProgressWeight" style="display:none;font-size:15px;font-weight:600;color:#F5F5F4;background:none;border:none;height:48px;padding:0 8px;cursor:pointer">Save</button>'
+      + '<button type="button" class="btn btn-primary" id="saveProgressWeight" style="height:48px;min-height:48px;padding:0 16px;cursor:pointer">Save</button>'
     + '</div>'
     + '</div>'
     + '<div style="margin-top:28px">'
@@ -143,8 +162,7 @@ export function renderProgressSimple(mode) {
     + '</div>'
     + buildDotConsistencyCalendarHTML()
     + (mode === 'body' ? bodySection : liftSection)
-    + '<div style="margin-top:32px">'
-      + '<div class="t-label" style="margin-bottom:12px">Workout history · ' + workoutSessions.length + (workoutSessions.length === 1 ? ' session' : ' sessions') + '</div>'
+    + '<div style="margin-top:24px">'
       + workoutHistoryHTML()
     + '</div>';
   document.getElementById('settingsBtn').onclick=openSettings;
@@ -163,12 +181,19 @@ export function renderProgressSimple(mode) {
       render();
     };
   });
-  var pWInput = document.getElementById('progressWeight');
-  var pWSave = document.getElementById('saveProgressWeight');
-  if (pWInput && pWSave) {
-    pWInput.addEventListener('input', function(){
-      pWSave.style.display = pWInput.value.trim() ? 'inline-flex' : 'none';
-    });
+  var saveWeight=document.getElementById('saveProgressWeight');
+  if(saveWeight) {
+    saveWeight.onclick = function() {
+      var pInp = document.getElementById('progressWeight');
+      var value = pInp ? parseFloat((pInp.value || '').trim()) : NaN;
+      if(!value || isNaN(value) || value < 20 || value > 300) { showToast('Enter a valid weight', 'warn'); return; }
+      profile.weightEntries = profile.weightEntries || [];
+      profile.weightEntries.push({ id: 'weight_' + Date.now(), dayKey: todayKey(), weight: value, createdAt: new Date().toISOString() });
+      sv('rg_profile', profile);
+      var r = dayRecord(todayKey()); r.weight = value; saveDayRecord(todayKey(), r);
+      showToast('Bodyweight saved', 'ok');
+      renderProgressSimple('body');
+    };
   }
   var liftSelect=document.getElementById('liftSelect'); if(liftSelect) liftSelect.onchange=render;
   document.querySelectorAll('[data-edit-weight]').forEach(function(btn){btn.onclick=function(){editWeightEntry(btn.dataset.editWeight);};});
@@ -187,28 +212,20 @@ export function renderProgressSimple(mode) {
   });
   document.querySelectorAll('[data-edit-workout-session]').forEach(function(btn){
     btn.onclick = function(e){
-      if (e) {
-        if (e.stopPropagation) e.stopPropagation();
-        if (e.preventDefault) e.preventDefault();
-      }
+      if (e && e.stopPropagation) e.stopPropagation();
+      if (e && e.preventDefault) e.preventDefault();
       openEditWorkoutSheet(btn.dataset.editWorkoutSession);
     };
   });
   document.querySelectorAll('[data-quick-edit-set]').forEach(function(btn){
     btn.onclick = function() {
       openQuickEditSetModal({
-        context: 'history',
-        sessionId: btn.dataset.sessionId,
-        exId: btn.dataset.exId,
-        exName: btn.dataset.exName,
-        setIndex: parseInt(btn.dataset.setIdx, 10),
-        weight: parseFloat(btn.dataset.weight) || 0,
-        reps: parseInt(btn.dataset.reps, 10) || 0,
-        rir: btn.dataset.rir === '' ? null : parseInt(btn.dataset.rir, 10)
+        context: 'history', sessionId: btn.dataset.sessionId, exId: btn.dataset.exId, exName: btn.dataset.exName,
+        setIndex: parseInt(btn.dataset.setIdx, 10), weight: parseFloat(btn.dataset.weight) || 0,
+        reps: parseInt(btn.dataset.reps, 10) || 0, rir: btn.dataset.rir === '' ? null : parseInt(btn.dataset.rir, 10)
       });
     };
   });
-  var saveWeight=document.getElementById('saveProgressWeight'); if(saveWeight) saveWeight.onclick=function(){var value=parseFloat(document.getElementById('progressWeight').value);if(!value||value<20||value>300){showToast('Enter a valid weight','warn');return;}profile.weightEntries=profile.weightEntries||[];profile.weightEntries.push({id:'weight_'+Date.now(),dayKey:todayKey(),weight:value,createdAt:new Date().toISOString()});sv('rg_profile',profile);var r=dayRecord(todayKey());r.weight=value;saveDayRecord(todayKey(),r);showToast('Bodyweight saved','ok');renderProgressSimple('body');};
   render();
 }
 

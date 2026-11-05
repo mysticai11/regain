@@ -56,11 +56,11 @@ export function workoutElapsed(meta) {
 }
 
 export function currentDayNum() {
-  return daysBetween(profile.programStartDate || todayKey(), todayKey()) + 1;
+  return daysBetween((profile && profile.programStartDate) || todayKey(), todayKey()) + 1;
 }
 
 export function allDayKeys() {
-  var start = profile.programStartDate || todayKey();
+  var start = (profile && profile.programStartDate) || todayKey();
   var end = todayKey();
   var count = Math.max(daysBetween(start, end) + 1, 1);
   var keys = [];
@@ -78,11 +78,11 @@ export function currentWeight() {
       return Number(r.weight);
     }
   }
-  return Number(profile.startWeight) || 54.0;
+  return Number(profile && profile.startWeight) || 54.0;
 }
 
 export function goalDirection() {
-  var cur = currentWeight(), tgt = Number(profile.targetWeight) || 60;
+  var cur = currentWeight(), tgt = Number(profile && profile.targetWeight) || 60;
   return tgt > cur ? 'gain' : tgt < cur ? 'lose' : 'maintain';
 }
 

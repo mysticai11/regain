@@ -37,8 +37,9 @@
   --font-display: var(--font-grotesk);
   --font-body: var(--font-grotesk);
 
-  /* Strict Type Scale: 96 / 48 / 28 / 17 / 15 / 11 (11px uppercase has +8% tracking) */
+  /* Strict Type Scale: 96 / 64 / 48 / 28 / 17 / 15 / 11 (11px uppercase has +8% tracking) */
   --fs-96: 96px;
+  --fs-64: 64px;
   --fs-48: 48px;
   --fs-28: 28px;
   --fs-17: 17px;
@@ -87,7 +88,10 @@
   --tap-min: 48px;
   --tap-compact: 48px;
   --nav-h: 60px;
+  --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
 
   /* Motion: 150-200ms ease-out */
   --motion-fast: 150ms ease-out;

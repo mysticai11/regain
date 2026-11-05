@@ -11,6 +11,7 @@ import { showToast, showUndoToast } from "../components/toast.js";
 import { buildGauge, statusPill, macroBar } from "../components/gauge.js";
 import { openFoodSearch, openCustomFoodBuilder, openRecipeBuilder, openCustomFoodsManager, openMealEditor, openEditItemSheet } from "./today/food-modal.js";
 import { addQuickFood, getStaplesShelfHTML, buildWeekDotRowHTML, openWorkoutOverrideSheet, buildCalRingHTML, buildWeightTrendChip, buildNextSessionPreviewHTML, buildWeekGlanceHTML, openCheckinSheet } from "./today/widgets.js";
+import { openSettings } from "./settings.js";
 export * from "./today/food-modal.js";
 export * from "./today/widgets.js";
 
@@ -95,14 +96,15 @@ export function renderTodaySimple() {
     + '</div>'
     + (function() {
         var lastW = currentWeight();
-        var bwPlaceholder = lastW ? lastW.toFixed(1) : '—';
+        var bwPlaceholder = lastW ? lastW.toFixed(1) : '54.0';
         var bwValue = rec.weight ? rec.weight : '';
-        return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:16px 0;border-bottom:1px solid #222;margin-bottom:20px">'
-          + '<div style="display:flex;align-items:baseline;gap:6px">'
-            + '<input type="number" id="todayWeight" step="0.1" inputmode="decimal" placeholder="' + bwPlaceholder + '" value="' + bwValue + '" style="font-family:\'Space Grotesk\',sans-serif;font-size:48px;font-weight:600;font-variant-numeric:tabular-nums;color:#F5F5F4;background:transparent;border:none;outline:none;padding:0;width:140px;line-height:1">'
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222;margin-bottom:20px;gap:12px">'
+          + '<div style="display:flex;align-items:center;gap:8px;flex:1">'
+            + '<span class="t-label" style="min-width:54px">Weight</span>'
+            + '<input type="number" id="todayWeight" step="0.1" inputmode="decimal" placeholder="' + bwPlaceholder + '" value="' + bwValue + '" style="font-family:\'Space Grotesk\',sans-serif;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;color:#F5F5F4;background:#1C1C1F;border:none;border-radius:12px;outline:none;padding:0 12px;height:44px;min-height:44px;flex:1;max-width:130px">'
             + '<span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span>'
           + '</div>'
-          + '<button type="button" class="btn-text-action" id="saveTodayWeight" style="display:none;color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;padding:8px 0;min-height:48px">Save</button>'
+          + '<button type="button" class="btn btn-primary" id="saveTodayWeight" style="height:44px;min-height:44px;padding:0 16px;cursor:pointer">Save</button>'
         + '</div>';
       })()
     + getStaplesShelfHTML()
@@ -122,9 +124,9 @@ export function renderTodaySimple() {
                 + '<button class="food-delete" data-food-index="' + i + '" aria-label="Delete" style="background:none;border:none;color:#55555A;font-size:17px;cursor:pointer;padding:8px;line-height:1;margin-right:-8px">×</button>'
               + '</span>'
             + '</div>';
-          }).join('') + '</div>')
-        : '<div style="padding:20px 0 8px;text-align:center"><div style="font-size:15px;color:#55555A;margin-bottom:12px">No food logged yet</div></div>')
-      + '<button class="btn-text-action" id="addFoodBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:16px 0 0;cursor:pointer;display:block">+ Add food</button>'
+          }).join('') + '</div>'
+          + '<button class="btn-text-action" id="addFoodBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:16px 0 0;cursor:pointer;display:block">+ Add food</button>')
+        : '<div style="padding:16px 0 12px;text-align:left"><div style="font-size:15px;color:#55555A;margin-bottom:12px">No food logged yet today.</div><button type="button" class="btn btn-primary" id="addFoodBtn" style="height:44px;min-height:44px;padding:0 20px;cursor:pointer">+ Add food</button></div>')
     + '</div>';
 
   var settingsBtn = document.getElementById('settingsBtn');
@@ -163,11 +165,11 @@ export function renderTodaySimple() {
       if (isRest) {
         openWorkoutOverrideSheet(activeDateKey);
       } else if (isSessionDone) {
-        tab = 'progress';
+        setTab('progress');
         renderApp();
       } else {
         window.activeGymDateKey = activeDateKey;
-        tab = 'gym';
+        setTab('gym');
         renderApp();
       }
     };
@@ -176,23 +178,16 @@ export function renderTodaySimple() {
   var todayWeightInput = document.getElementById('todayWeight');
   var saveTodayWeight = document.getElementById('saveTodayWeight');
   if (todayWeightInput && saveTodayWeight) {
-    var savedWeight = rec.weight != null ? Number(rec.weight) : null;
-    function updateWeightSaveState() {
-      var value = parseFloat(todayWeightInput.value);
-      var changed = !isNaN(value) && value > 0 && (savedWeight == null || value !== savedWeight);
-      saveTodayWeight.style.display = changed ? 'inline-block' : 'none';
-    }
-    updateWeightSaveState();
-    todayWeightInput.addEventListener('input', updateWeightSaveState);
     saveTodayWeight.onclick = function() {
-      var w = parseFloat(todayWeightInput.value);
-      if (!w || w < 20 || w > 300) { showToast('Enter a valid weight', 'warn'); return; }
+      var valStr = (todayWeightInput.value || '').trim();
+      var w = parseFloat(valStr || todayWeightInput.placeholder);
+      if (!w || isNaN(w) || w < 20 || w > 300) { showToast('Enter a valid weight', 'warn'); return; }
       profile.weightEntries = profile.weightEntries || [];
       profile.weightEntries.push({ id: 'weight_' + Date.now(), dayKey: key, weight: w, createdAt: new Date().toISOString() });
       sv('rg_profile', profile);
       rec.weight = w;
       saveDayRecord(key, rec);
-      showToast('Saved ' + w + ' kg today', 'ok');
+      showToast('Saved ' + w.toFixed(1) + ' kg today', 'ok');
       renderTodaySimple();
     };
   }

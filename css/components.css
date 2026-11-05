@@ -233,11 +233,17 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   align-items: flex-end;
   justify-content: center;
   z-index: 200;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--motion-normal);
+  box-sizing: border-box;
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
 }
-.sheet-overlay.active, .modal-backdrop.open, .overlay.open { opacity: 1; pointer-events: auto; }
+.sheet-overlay.is-hidden, .modal-backdrop.is-hidden, .overlay.is-hidden,
+.sheet-overlay[hidden], .modal-backdrop[hidden], .overlay[hidden] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
 .sheet {
   background: var(--surface) !important;
   border: none !important;
@@ -316,7 +322,7 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
   background: none;
   border: none;
   color: var(--text3);
@@ -327,17 +333,37 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   font-family: inherit;
   position: relative;
   font-size: var(--fs-11);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-.tab-item.active, .navitem.active { color: var(--text) !important; }
-.tab-item.active::after, .navitem.active::after { content: ''; position: absolute; bottom: max(6px, calc(var(--safe-b) - 2px)); width: 4px; height: 4px; border-radius: var(--r-full); background: var(--lime); }
-.tab-item-label { font-size: var(--fs-11); font-weight: 600; letter-spacing: 0.04em; }
+.tab-item.active, .navitem.active { color: var(--text) !important; font-weight: 500 !important; }
+.tab-item.active::before, .navitem.active::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--r-full);
+  background: var(--lime);
+}
+.tab-item-label { font-size: var(--fs-11); font-weight: 500; letter-spacing: 0.04em; }
 
-/* ── Progress Line: 2px, #222 track, white fill ── */
-.prog-line-wrap, .prog-line { width: 100%; height: 2px; background: var(--divider); border-radius: 1px; overflow: hidden; box-sizing: border-box; }
-.prog-line-fill { height: 100%; background: var(--text) !important; border-radius: 1px; }
+/* ── Progress Line: 6px rounded track with lime fill ── */
+.prog-line-wrap, .prog-line {
+  width: 100%;
+  height: 6px;
+  background: var(--surface2);
+  border-radius: var(--r-full);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.prog-line-fill {
+  height: 100%;
+  background: var(--lime) !important;
+  border-radius: var(--r-full);
+  transition: width var(--motion-normal);
+}
 
 /* ── Day Toggles ── */
 .day-toggles { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 6px !important; margin-top: var(--spacing-4) !important; }

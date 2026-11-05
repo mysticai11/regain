@@ -43,4 +43,15 @@ dirsToCopy.forEach(dir => {
   }
 });
 
+// Sync to Android Capacitor assets directory
+const androidAppDir = path.join(__dirname, 'android', 'app', 'src', 'main');
+if (fs.existsSync(androidAppDir)) {
+  const androidPublicDir = path.join(androidAppDir, 'assets', 'public');
+  if (!fs.existsSync(androidPublicDir)) {
+    fs.mkdirSync(androidPublicDir, { recursive: true });
+  }
+  fs.cpSync(destDir, androidPublicDir, { recursive: true });
+  console.log(`Synced www/ to android/app/src/main/assets/public/`);
+}
+
 console.log('Build completed successfully!');

@@ -44,3 +44,43 @@
   padding: 0 !important;
 }
 
+/* Onboarding */
+.onboard {
+  padding: 32px var(--screen-margin);
+  max-width: 480px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+.onboard input, .onboard select {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--surface2);
+  border: none;
+  border-radius: var(--r-control);
+  height: 48px;
+  padding: 0 var(--spacing-16);
+  color: var(--text);
+  font-size: var(--fs-15);
+  margin-top: 6px;
+}
+.onboard-title {
+  font-size: var(--fs-28);
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.onboard-sub {
+  font-size: var(--fs-15);
+  color: var(--text2);
+  line-height: 1.4;
+  margin-bottom: var(--spacing-16);
+}
+.onboard label {
+  font-size: var(--fs-11);
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: block;
+}
+

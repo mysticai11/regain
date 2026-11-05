@@ -18,10 +18,21 @@ html, body {
   min-height: 100vh;
   min-height: 100dvh;
   overscroll-behavior: none;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar, html::-webkit-scrollbar, body::-webkit-scrollbar, .content::-webkit-scrollbar, #app::-webkit-scrollbar, .sheet::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
-/* Typography scale: 96 / 48 / 28 / 17 / 15 / 11 */
-.t-hero    { font-size: var(--fs-96); line-height: 1.0; font-weight: 600; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+/* Typography scale: 96 / 64 / 48 / 28 / 17 / 15 / 11 */
+.t-hero    { font-size: var(--fs-64); line-height: 1.0; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
 .t-display { font-size: var(--fs-48); line-height: 1.05; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
 .t-title   { font-size: var(--fs-28); line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; }
 .t-body    { font-size: var(--fs-17); line-height: 1.35; font-weight: 400; }
@@ -39,12 +50,21 @@ input, button, select, textarea, .tabnum, .stat-num {
 }
 
 /* Utilities */
+/* Shared Page Gutter & Safe Area Inset Wrapper */
+.content, .page-gutter {
+  padding-top: max(var(--spacing-16), calc(var(--safe-t) + var(--spacing-8)));
+  padding-left: calc(var(--screen-margin) + var(--safe-l));
+  padding-right: calc(var(--screen-margin) + var(--safe-r));
+  padding-bottom: calc(var(--nav-h) + var(--safe-b) + var(--spacing-24));
+  box-sizing: border-box;
+  width: 100%;
+}
+
 #app {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
   min-height: 100dvh;
-  padding-bottom: calc(var(--nav-h) + var(--safe-b) + var(--spacing-lg));
   position: relative;
 }
 

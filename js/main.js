@@ -20,34 +20,40 @@ export function renderApp() {
     if (p) setProfile(p);
   }
   document.getElementById('app').innerHTML =
-    '<main class="content" id="content"></main>'
-    +'<nav class="bottomnav tab-bar">'
-      +'<button class="navitem tab-item'+(tab==='today'?' active':'')+'" data-tab="today">'+ic('home')+'<span class="tab-item-label">Today</span></button>'
-      +'<button class="navitem tab-item'+(tab==='progress'?' active':'')+'" data-tab="progress">'+ic('chart')+'<span class="tab-item-label">Progress</span></button>'
-      +'<button class="navitem tab-item'+(tab==='gym'?' active':'')+'" data-tab="gym">'+ic('barbell')+'<span class="tab-item-label">Gym</span></button>'
-    +'</nav>';
+    '<main class="content page-gutter" id="content"></main>'
+    + '<nav class="bottomnav tab-bar">'
+    + '<button class="navitem tab-item' + (tab === 'today' ? ' active' : '') + '" data-tab="today">' + ic('home') + '<span class="tab-item-label">Today</span></button>'
+    + '<button class="navitem tab-item' + (tab === 'progress' ? ' active' : '') + '" data-tab="progress">' + ic('chart') + '<span class="tab-item-label">Progress</span></button>'
+    + '<button class="navitem tab-item' + (tab === 'gym' ? ' active' : '') + '" data-tab="gym">' + ic('barbell') + '<span class="tab-item-label">Gym</span></button>'
+    + '</nav>';
   renderTab();
-  document.querySelectorAll('.navitem').forEach(function(btn){
-    btn.addEventListener('click',function(){
-      if(workoutTimer.interval){clearInterval(workoutTimer.interval);workoutTimer.interval=null;}
-      if(restTimer.interval){clearInterval(restTimer.interval);restTimer.interval=null;restTimer.endAt=0;restTimer.remaining=0;}
+  document.querySelectorAll('.navitem').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (workoutTimer.interval) { clearInterval(workoutTimer.interval); workoutTimer.interval = null; }
+      if (restTimer.interval) { clearInterval(restTimer.interval); restTimer.interval = null; restTimer.endAt = 0; restTimer.remaining = 0; }
       setTab(btn.dataset.tab);
-      document.querySelectorAll('.navitem').forEach(function(b){b.classList.toggle('active',b.dataset.tab===tab);});
+      document.querySelectorAll('.navitem').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
       renderTab();
     });
   });
 }
 
 export function renderTab() {
-  if(tab==='today') renderTodaySimple();
-  else if(tab==='progress') renderProgressSimple();
-  else renderGym();
+  var content = document.getElementById('content');
+  if (content) content.innerHTML = '';
+  try {
+    if (tab === 'today') renderTodaySimple();
+    else if (tab === 'progress') renderProgressSimple();
+    else renderGym();
+  } catch (err) {
+    console.error('Error rendering tab ' + tab + ':', err);
+  }
 }
 
 // ── Boot ────────────────────────────────────────────────────────────────────────
 function bootApp() {
   console.log('BOOT: bootApp running');
-  SQLiteStorage.init(function(){
+  SQLiteStorage.init(function () {
     console.log('BOOT: SQLiteStorage init done');
     requestPersistentStorage();
     var loadedProfile = ls('rg_profile', null);
@@ -56,10 +62,10 @@ function bootApp() {
     migrateWorkoutSessions();
     migrateWorkoutRoutineSwap();
     if (typeof window.FoodDB !== 'undefined' && window.FoodDB.open) {
-      window.FoodDB.open().then(function(){
+      window.FoodDB.open().then(function () {
         console.log('BOOT: FoodDB opened');
         onStorageReady();
-      }).catch(function(err){
+      }).catch(function (err) {
         console.error('FoodDB open failed, proceeding:', err);
         onStorageReady();
       });
@@ -81,18 +87,18 @@ if (typeof window !== 'undefined') {
 function onStorageReady() {
   var p = ls('rg_profile', null);
   setProfile(p);
-  if(p) {
+  if (p) {
     migrateFoodTotals();
-    if(!p.mealPlan) {
+    if (!p.mealPlan) {
       p.mealPlan = JSON.parse(JSON.stringify(DEFAULT_MEAL_PLAN));
       sv('rg_profile', p);
       setProfile(p);
     }
   }
-  if(!p) {
+  if (!p) {
     renderOnboarding();
   } else {
-    if(p.pin) {
+    if (p.pin) {
       delete p.pin;
       sv('rg_profile', p);
       setProfile(p);
@@ -107,12 +113,17 @@ function onStorageReady() {
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if(typeof navigator !== 'undefined' && 'serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js?v=regain-v1').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=regain-v2').catch(function(){});
   });
 }
 
 // Expose key functions on window for inline HTML onclick handlers and test runner
 if (typeof window !== 'undefined') {
+  window.setTab = function(t) {
+    setTab(t);
+    document.querySelectorAll('.navitem').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === t); });
+    renderTab();
+  };
   window.openEditWorkoutSheet = openEditWorkoutSheet;
   window.openSettings = openSettings;
   window.renderApp = renderApp;
@@ -121,4 +132,16 @@ if (typeof window !== 'undefined') {
   window.openGymDateDaySheet = openGymDateDaySheet;
   window.openSwapSheet = openSwapSheet;
   window.openSplitManagerSheet = openSplitManagerSheet;
+}
+
+// Global delegated event listeners for resilient tap handling
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', function(e) {
+    var settingsBtn = e.target.closest('#settingsBtn, .settings-btn');
+    if (settingsBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      openSettings();
+    }
+  });
 }

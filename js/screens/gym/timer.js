@@ -39,7 +39,10 @@ export function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
 
   if (isIdle) {
     wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%">'
-      + '<button type="button" class="btn-text-action" id="startWorkoutBtn" style="color:var(--text);font-size:15px;font-weight:600;cursor:pointer">>Start</button>'
+      + '<div style="display:flex;align-items:center;gap:16px">'
+        + '<button type="button" class="btn-text-action" id="startWorkoutBtn" style="color:var(--text);font-size:15px;font-weight:600;cursor:pointer">Start</button>'
+        + '<button type="button" class="btn-text-action" id="enterTimeBtn" style="color:var(--text2);font-size:15px;font-weight:400;cursor:pointer">Enter time</button>'
+      + '</div>'
       + '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:48px;height:48px;color:var(--text2)">•••</button>'
       + '</div>';
   } else if (isFinished) {
@@ -88,6 +91,14 @@ export function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
   if (startBtn) {
     startBtn.onclick = function() {
       startWorkoutSession(dayKey, session, programDayIndex);
+    };
+  }
+
+  // Enter time manually button handler
+  var enterTimeBtn = document.getElementById('enterTimeBtn');
+  if (enterTimeBtn) {
+    enterTimeBtn.onclick = function() {
+      setManualSessionDuration(dayKey, session, programDayIndex);
     };
   }
 
