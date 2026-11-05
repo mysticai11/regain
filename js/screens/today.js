@@ -17,13 +17,14 @@ export * from "./today/widgets.js";
 
 export function renderTodaySimple() {
   window.renderTodaySimple = renderTodaySimple;
-  var key = todayKey(), rec = dayRecord(key), tot = getDayTotals(key), targets = getTargetsForDate(key);
+  var key = todayKey();
+  var activeDateKey = window.activeTodaySelectedDateKey || key;
+  var rec = dayRecord(activeDateKey), targetRec = rec;
+  var tot = getDayTotals(activeDateKey), targets = getTargetsForDate(activeDateKey);
   var calorieDelta = targets.kcal - tot.kcal;
   var calPct = Math.min(100, Math.round((tot.kcal / targets.kcal) * 100));
   var proteinPct = Math.min(100, Math.round((tot.protein / targets.protein) * 100));
 
-  var activeDateKey = window.activeTodaySelectedDateKey || key;
-  var targetRec = dayRecord(activeDateKey);
   var activeDateObj = new Date(activeDateKey + 'T00:00:00');
   var curWorkout = getCurrentWorkout(activeDateKey);
   var session = curWorkout.session;
@@ -43,22 +44,27 @@ export function renderTodaySimple() {
   }, 0);
   var isSessionDone = targetRec.workoutDone || (totalPlannedSets > 0 && loggedSets >= totalPlannedSets);
 
-  var dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-  var monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  var dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'], monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
   var todayHeaderDateStr = dayNames[new Date().getDay()] + ' ' + new Date().getDate() + ' ' + monthNames[new Date().getMonth()];
-
   var workoutBlockDateLabel = (activeDateKey === key)
     ? (isRest ? 'REST DAY' : "TODAY'S WORKOUT")
     : (dayNames[activeDateObj.getDay()] + ' ' + activeDateObj.getDate() + ' ' + monthNames[activeDateObj.getMonth()] + (isRest ? ' · REST DAY' : ' · WORKOUT'));
 
   var calRingHTML = buildCalRingHTML(Math.round(tot.kcal || 0), targets.kcal, Math.round(tot.protein || 0), targets.protein, Math.round(tot.carbs || 0), Math.round(tot.fat || 0));
   var weekDotHTML = buildWeekDotRowHTML(key, activeDateKey);
+  var pastDateBanner = (activeDateKey !== key)
+    ? ('<div style="display:flex;justify-content:space-between;align-items:center;background:#141416;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:15px;color:#F5F5F4">'
+        + '<span>Viewing: <b>' + activeDateObj.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + '</b></span>'
+        + '<button type="button" class="btn-text-action" id="returnTodayBtn" style="color:#C6F432;font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;padding:0">Today</button>'
+      + '</div>')
+    : '';
 
   document.getElementById('content').innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">'
     + '<span class="t-label">' + todayHeaderDateStr + '</span>'
     + '<button class="icon-btn" id="settingsBtn" aria-label="Settings">' + ic('settings') + '</button>'
     + '</div>'
+    + pastDateBanner
     + calRingHTML
     + weekDotHTML
     + '<div class="today-workout-block" style="background:#141416;border-radius:20px;padding:20px;margin-bottom:20px">'
@@ -107,7 +113,7 @@ export function renderTodaySimple() {
     + getStaplesShelfHTML()
     + '<div style="margin-top:28px;margin-bottom:40px">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-    + '<span class="t-label">Today\'s Food</span>'
+    + '<span class="t-label">' + (activeDateKey === key ? "Today's Food" : "Food Log") + '</span>'
     + '<span style="font-size:11px;color:#8A8A8E;font-variant-numeric:tabular-nums">' + (rec.extra ? rec.extra.length : 0) + (rec.extra && rec.extra.length === 1 ? ' item' : ' items') + '</span>'
     + '</div>'
     + (rec.extra && rec.extra.length
@@ -120,18 +126,24 @@ export function renderTodaySimple() {
           + '</div>';
       }).join('') + '</div>'
         + '<button type="button" class="btn-text-action" id="addFoodBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:16px 0;min-height:48px;cursor:pointer;display:inline-flex;align-items:center">+ Add food</button>')
-      : '<div style="padding:16px 0 12px;text-align:left"><div style="font-size:15px;color:#55555A;margin-bottom:12px">No food logged yet today.</div><button type="button" class="btn btn-primary" id="addFoodBtn" style="min-height:48px;height:48px;padding:0 20px;cursor:pointer">+ Add food</button></div>')
+      : '<div style="padding:16px 0 12px;text-align:left"><div style="font-size:15px;color:#55555A;margin-bottom:12px">No food logged for this day.</div><button type="button" class="btn btn-primary" id="addFoodBtn" style="min-height:48px;height:48px;padding:0 20px;cursor:pointer">+ Add food</button></div>')
     + '</div>';
 
   var settingsBtn = document.getElementById('settingsBtn');
   if (settingsBtn) settingsBtn.onclick = openSettings;
 
+  var prevWk = document.getElementById('prevWeekBtn');
+  if (prevWk) prevWk.onclick = function() { triggerHaptic(); window.todayWeekOffset = (window.todayWeekOffset || 0) - 1; renderTodaySimple(); };
+  var nextWk = document.getElementById('nextWeekBtn');
+  if (nextWk) nextWk.onclick = function() { triggerHaptic(); window.todayWeekOffset = (window.todayWeekOffset || 0) + 1; renderTodaySimple(); };
+  var retBtn = document.getElementById('returnTodayBtn');
+  if (retBtn) retBtn.onclick = function() { triggerHaptic(); window.activeTodaySelectedDateKey = null; window.todayWeekOffset = 0; renderTodaySimple(); };
+
   document.querySelectorAll('[data-pick-today-strip-date]').forEach(function (cell) {
     cell.onclick = function () {
-      var picked = cell.dataset.pickTodayStripDate;
-      window.activeTodaySelectedDateKey = picked;
+      triggerHaptic();
+      window.activeTodaySelectedDateKey = cell.dataset.pickTodayStripDate;
       renderTodaySimple();
-      openWorkoutOverrideSheet(picked);
     };
   });
 
@@ -180,9 +192,9 @@ export function renderTodaySimple() {
   var saveTodayWeight = document.getElementById('saveTodayWeight');
   var deleteTodayWeightBtn = document.getElementById('deleteTodayWeightBtn');
   var clearTodayWeight = function() {
-    if (!confirm("Clear today's weight log (" + rec.weight + " kg)?")) return;
-    rec.weight = null; saveDayRecord(key, rec);
-    if (profile.weightEntries) { profile.weightEntries = profile.weightEntries.filter(function(e){ return e.dayKey !== key; }); sv('rg_profile', profile); }
+    if (!confirm("Clear weight log (" + rec.weight + " kg)?")) return;
+    rec.weight = null; saveDayRecord(activeDateKey, rec);
+    if (profile.weightEntries) { profile.weightEntries = profile.weightEntries.filter(function(e){ return e.dayKey !== activeDateKey; }); sv('rg_profile', profile); }
     triggerHaptic(); showToast('Weight log cleared', 'ok'); renderTodaySimple();
   };
   if (deleteTodayWeightBtn) deleteTodayWeightBtn.onclick = clearTodayWeight;
@@ -201,9 +213,9 @@ export function renderTodaySimple() {
       if (!valStr || valStr === initialW) return;
       var w = parseFloat(valStr);
       if (!w || isNaN(w) || w < 20 || w > 300) { showToast('Enter a valid weight', 'warn'); return; }
-      profile.weightEntries = (profile.weightEntries || []).filter(function(e){ return e.dayKey !== key; });
-      profile.weightEntries.push({ id: 'weight_' + Date.now(), dayKey: key, weight: w, createdAt: new Date().toISOString() });
-      sv('rg_profile', profile); rec.weight = w; saveDayRecord(key, rec);
+      profile.weightEntries = (profile.weightEntries || []).filter(function(e){ return e.dayKey !== activeDateKey; });
+      profile.weightEntries.push({ id: 'weight_' + Date.now(), dayKey: activeDateKey, weight: w, createdAt: new Date().toISOString() });
+      sv('rg_profile', profile); rec.weight = w; saveDayRecord(activeDateKey, rec);
       triggerHaptic(); showToast('Weight saved', 'ok'); initialW = String(w);
       saveTodayWeight.style.display = 'none'; renderTodaySimple();
     };
@@ -219,7 +231,7 @@ export function renderTodaySimple() {
 
     var logItem = function (mult) {
       mult = mult || 1;
-      var currentRec = dayRecord(key);
+      var currentRec = dayRecord(activeDateKey);
       currentRec.extra = currentRec.extra || [];
       var insertIdx = currentRec.extra.length;
       var portionLabel = mult === 1 ? '' : (mult === 0.5 ? '½× ' : mult + '× ');
@@ -231,26 +243,22 @@ export function renderTodaySimple() {
         fat: Math.round((item.fat || 0) * mult),
         servings: 1
       });
-      saveDayRecord(key, currentRec);
+      saveDayRecord(activeDateKey, currentRec);
       addRecent(item.name, item.kcal, item.protein, item.carbs || 0, item.fat || 0);
       playSound('set_logged');
       triggerHaptic();
       renderTodaySimple();
       showUndoToast('Logged ' + portionLabel + item.name + ' (' + +(item.protein * mult).toFixed(1) + 'g P)', function () {
-        var undoRec = dayRecord(key);
+        var undoRec = dayRecord(activeDateKey);
         if (undoRec.extra && undoRec.extra.length > insertIdx) {
           undoRec.extra.splice(insertIdx, 1);
-          saveDayRecord(key, undoRec);
+          saveDayRecord(activeDateKey, undoRec);
           renderTodaySimple();
         }
       });
     };
 
-    var pressTimer = null;
-    var didLongPress = false;
-    var touchStartX = 0;
-    var touchStartY = 0;
-    var hasMoved = false;
+    var pressTimer = null, didLongPress = false, touchStartX = 0, touchStartY = 0, hasMoved = false;
 
     card.addEventListener('touchstart', function (e) {
       didLongPress = false;
@@ -299,7 +307,7 @@ export function renderTodaySimple() {
   var addFoodBtn = document.getElementById('addFoodBtn');
   if (addFoodBtn) {
     addFoodBtn.onclick = function () {
-      openFoodSearch(function (food, s) { addFoodToDay(key, food, s); });
+      openFoodSearch(function (food, s) { addFoodToDay(activeDateKey, food, s); });
     };
   }
 
@@ -307,16 +315,16 @@ export function renderTodaySimple() {
     btn.onclick = function (e) {
       if (e && e.stopPropagation) e.stopPropagation();
       var idx = parseInt(btn.dataset.foodIndex, 10);
-      var current = dayRecord(key);
+      var current = dayRecord(activeDateKey);
       if (!current.extra || isNaN(idx) || !current.extra[idx]) return;
       var removed = current.extra.splice(idx, 1)[0];
-      saveDayRecord(key, current);
+      saveDayRecord(activeDateKey, current);
       renderTodaySimple();
       showUndoToast('Food entry deleted', function () {
-        var restored = dayRecord(key);
+        var restored = dayRecord(activeDateKey);
         restored.extra = restored.extra || [];
         restored.extra.splice(Math.min(idx, restored.extra.length), 0, removed);
-        saveDayRecord(key, restored);
+        saveDayRecord(activeDateKey, restored);
         renderTodaySimple();
       });
     };
@@ -333,22 +341,20 @@ export function renderTodaySimple() {
     row.addEventListener('touchmove', function (e) {
       if (!e.changedTouches || !e.changedTouches[0]) return;
       deltaX = e.changedTouches[0].clientX - startX;
-      if (deltaX < 0) {
-        row.style.transform = 'translateX(' + Math.max(deltaX, -80) + 'px)';
-      }
+      if (deltaX < 0) row.style.transform = 'translateX(' + Math.max(deltaX, -80) + 'px)';
     }, { passive: true });
     row.addEventListener('touchend', function () {
       if (deltaX < -60) {
-        var current = dayRecord(key);
+        var current = dayRecord(activeDateKey);
         if (!current.extra || isNaN(idx) || !current.extra[idx]) return;
         var removed = current.extra.splice(idx, 1)[0];
-        saveDayRecord(key, current);
+        saveDayRecord(activeDateKey, current);
         renderTodaySimple();
         showUndoToast('Food entry deleted', function () {
-          var restored = dayRecord(key);
+          var restored = dayRecord(activeDateKey);
           restored.extra = restored.extra || [];
           restored.extra.splice(Math.min(idx, restored.extra.length), 0, removed);
-          saveDayRecord(key, restored);
+          saveDayRecord(activeDateKey, restored);
           renderTodaySimple();
         });
       } else {
@@ -358,21 +364,15 @@ export function renderTodaySimple() {
   });
 }
 
-export function renderChecklistHTML() {
-  return '';
-}
+export function renderChecklistHTML() { return ''; }
 
 export function addFoodToDay(key, food, servings) {
-  var m = foodMacros(food, servings);
-  var rec = dayRecord(key);
+  var m = foodMacros(food, servings), rec = dayRecord(key);
   rec.extra = rec.extra || [];
   rec.extra.push({ name: food.name + (servings !== 1 ? ' ×' + servings : ''), kcal: m.kcal, protein: m.protein, carbs: m.carbs, fat: m.fat, servings: 1 });
   saveDayRecord(key, rec);
   addRecent(food.name, m.kcal, m.protein, m.carbs, m.fat);
-  if (profile) {
-    profile.xp = (profile.xp || 0) + 5;
-    sv('rg_profile', profile);
-  }
+  if (profile) { profile.xp = (profile.xp || 0) + 5; sv('rg_profile', profile); }
   renderTodaySimple();
 }
 

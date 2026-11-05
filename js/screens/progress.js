@@ -1,6 +1,6 @@
 /* Progress screen: main view container, segmented tabs (Body / Lifts), and settings button */
 
-import { profile } from "../state.js";
+import { profile, setTab } from "../state.js";
 import { dayRecord, saveDayRecord, sv, allDayKeys, getWorkoutSessions } from "../storage.js";
 import { getDayTotals, calcE1RM } from "../lib/calc.js";
 import { getActiveProgram, getExerciseData, isBodyweightExercise } from "../data/plan.js";
@@ -13,6 +13,7 @@ import { getWeightHistory, getProgressRows, getRollingWeightValues, buildDotCons
 import { getEquivalentExerciseIds } from "./gym/sets.js";
 import { workoutHistoryHTML, getResumeWorkoutCardHTML, nutritionProgressHTML, weeklyVolumeChart, editWeightEntry, deleteWeightEntry, weightEntriesHTML } from "./progress/history.js";
 import { openSessionMenu, openEditWorkoutSheet } from "./progress/session-editor.js";
+import { buildMonthlyDigestHTML, buildWeeklyDigestHTML } from "./progress/digests.js";
 export * from "./progress/charts.js?v=4";
 export * from "./progress/history.js";
 export * from "./progress/session-editor.js";
@@ -279,6 +280,11 @@ export function renderProgressSimple(mode) {
     + '<div class="t-label" style="margin-bottom:12px">Weekly work · Sets last 7 days · target 10–18</div>'
     + weeklyVolumeChart()
     + '</div>';
+  var calOffset = Number(window.activeProgressMonthOffset) || 0;
+  var calD = new Date(new Date().getFullYear(), new Date().getMonth() + calOffset, 1);
+  var monthlyDigestBlock = buildMonthlyDigestHTML(calD.getFullYear(), calD.getMonth());
+  var weeklyDigestBlock = buildWeeklyDigestHTML();
+
   document.getElementById('content').innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">'
       + '<span class="t-label">Progress</span>'
@@ -289,12 +295,29 @@ export function renderProgressSimple(mode) {
       + '<button class="seg-tab-btn' + (mode === 'lifts' ? ' active' : '') + '" id="liftProgressBtn">Lifts</button>'
     + '</div>'
     + (mode === 'body'
-        ? ('<div class="app-view">' + buildDotConsistencyCalendarHTML() + bodySection + '</div>')
+        ? ('<div class="app-view">' + buildDotConsistencyCalendarHTML() + monthlyDigestBlock + bodySection + weeklyDigestBlock + '</div>')
         : ('<div class="app-view">' + getResumeWorkoutCardHTML() + workoutHistoryHTML() + liftChartBlock + weeklyWorkBlock + '</div>')
       );
   document.getElementById('settingsBtn').onclick=openSettings;
   document.getElementById('bodyProgressBtn').onclick=function(){ if (mode !== 'body') { triggerHaptic(); renderProgressSimple('body'); } };
   document.getElementById('liftProgressBtn').onclick=function(){ if (mode !== 'lifts') { triggerHaptic(); renderProgressSimple('lifts'); } };
+  var prevM = document.getElementById('prevProgressMonthBtn');
+  if (prevM) prevM.onclick = function() { triggerHaptic(); window.activeProgressMonthOffset = (window.activeProgressMonthOffset || 0) - 1; renderProgressSimple('body'); };
+  var nextM = document.getElementById('nextProgressMonthBtn');
+  if (nextM) nextM.onclick = function() { triggerHaptic(); window.activeProgressMonthOffset = (window.activeProgressMonthOffset || 0) + 1; renderProgressSimple('body'); };
+  document.querySelectorAll('[data-toggle-digest]').forEach(function(el) {
+    el.onclick = function() {
+      var target = document.getElementById(el.dataset.toggleDigest);
+      if (target) target.style.display = (target.style.display === 'none' ? 'block' : 'none');
+    };
+  });
+  document.querySelectorAll('[data-jump-day]').forEach(function(btn) {
+    btn.onclick = function() {
+      triggerHaptic();
+      window.activeTodaySelectedDateKey = btn.dataset.jumpDay;
+      setTab('today');
+    };
+  });
   var contentEl = document.getElementById('content');
   if (contentEl) {
     var touchStartX = 0, touchStartY = 0;

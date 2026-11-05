@@ -63,11 +63,26 @@ export function allDayKeys() {
   var start = (profile && profile.programStartDate) || todayKey();
   var end = todayKey();
   var count = Math.max(daysBetween(start, end) + 1, 1);
-  var keys = [];
+  var keySet = {};
   for (var i = 0; i < count; i++) {
-    keys.push(addDays(start, i));
+    keySet[addDays(start, i)] = true;
   }
-  return keys;
+  try {
+    if (typeof localStorage !== 'undefined') {
+      for (var j = 0; j < localStorage.length; j++) {
+        var k = (typeof localStorage.key === 'function') ? localStorage.key(j) : null;
+        if (k && k.indexOf('rg_day_') === 0) {
+          keySet[k.slice(7)] = true;
+        }
+      }
+      try {
+        Object.keys(localStorage).forEach(function(k) {
+          if (k && k.indexOf('rg_day_') === 0) keySet[k.slice(7)] = true;
+        });
+      } catch(e) {}
+    }
+  } catch(e) {}
+  return Object.keys(keySet).sort();
 }
 
 export function currentWeight() {

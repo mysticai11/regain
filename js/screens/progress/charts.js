@@ -224,8 +224,10 @@ export function progressPlot(values, goal, unit, isLift) {
 export function buildDotConsistencyCalendarHTML() {
   var now = new Date();
   var todayStr = todayKey();
-  var year = now.getFullYear();
-  var month = now.getMonth();
+  var offset = Number(window.activeProgressMonthOffset) || 0;
+  var dObj = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+  var year = dObj.getFullYear();
+  var month = dObj.getMonth();
   var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   var monthName = monthNames[month];
 
@@ -312,9 +314,16 @@ export function buildDotConsistencyCalendarHTML() {
     + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;border:1px solid #55555A;background:transparent;display:inline-block"></span> skipped</span>'
     + '</div>';
 
+  var canGoNext = offset < 0;
+  var navRow = '<div style="display:flex;align-items:center;gap:6px">'
+    + '<button type="button" class="btn-text-action" id="prevProgressMonthBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0 4px;cursor:pointer">&larr;</button>'
+    + '<span class="t-label">Consistency · ' + monthName + (offset !== 0 ? (' ' + year) : '') + '</span>'
+    + (canGoNext ? '<button type="button" class="btn-text-action" id="nextProgressMonthBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0 4px;cursor:pointer">&rarr;</button>' : '')
+    + '</div>';
+
   return '<div style="margin-bottom:24px">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
-      + '<span class="t-label">Consistency · ' + monthName + '</span>'
+      + navRow
       + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + trainedCount + ' of ' + plannedCount + (plannedCount === 1 ? ' workout' : ' workouts') + '</span>'
     + '</div>'
     + lettersRow

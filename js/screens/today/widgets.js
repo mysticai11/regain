@@ -120,12 +120,14 @@ export function getStaplesShelfHTML() {
 
 export function buildWeekDotRowHTML(dayKey, activeSelectedKey) {
   var letters = ['M','T','W','T','F','S','S'];
-  var now = new Date(dayKey + 'T00:00:00');
-  var dow = now.getDay(); // 0=Sun, 1=Mon...
+  var offset = Number(window.todayWeekOffset) || 0;
+  var targetDay = addDays(dayKey, offset * 7);
+  var now = new Date(targetDay + 'T00:00:00');
+  var dow = now.getDay();
   var monday = addDays(now, -(dow === 0 ? 6 : dow - 1));
+  var sunday = addDays(monday, 6);
   var cols = [];
 
-  // Build session days map for fast lookup
   var sessionDays = {};
   try {
     getWorkoutSessions().forEach(function(s) {
@@ -145,11 +147,11 @@ export function buildWeekDotRowHTML(dayKey, activeSelectedKey) {
 
     var dotHTML = '';
     if (isTrained) {
-      dotHTML = '<span style="width:6px;height:6px;border-radius:50%;background:#F5F5F4;display:inline-block"></span>';
+      dotHTML = '<span style="width:6px;height:6px;border-radius:50%;background:#C6F432;display:inline-block"></span>';
     } else if (isSelected) {
       dotHTML = '<span style="width:6px;height:6px;border-radius:50%;border:1.5px solid #F5F5F4;background:transparent;box-sizing:border-box;display:inline-block"></span>';
     } else if (isToday) {
-      dotHTML = '<span style="width:6px;height:6px;border-radius:50%;background:#F5F5F4;display:inline-block"></span>';
+      dotHTML = '<span style="width:6px;height:6px;border-radius:50%;border:1.5px solid #F5F5F4;background:transparent;display:inline-block"></span>';
     } else {
       dotHTML = '<span style="width:6px;height:6px;border-radius:50%;background:#222;display:inline-block"></span>';
     }
@@ -160,7 +162,20 @@ export function buildWeekDotRowHTML(dayKey, activeSelectedKey) {
       + '</div>');
   }
 
-  return '<div class="week-strip-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;margin-bottom:12px;border-bottom:1px solid #222">' + cols.join('') + '</div>';
+  var monObj = new Date(monday + 'T00:00:00');
+  var sunObj = new Date(sunday + 'T00:00:00');
+  var rangeStr = monObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' – ' + sunObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+  var navHeader = '<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0 6px;font-size:11px;color:#8A8A8E;font-weight:600">'
+    + '<button type="button" class="btn-text-action" id="prevWeekBtn" style="color:#8A8A8E;background:none;border:none;padding:2px 4px;cursor:pointer;font-size:15px">&larr;</button>'
+    + '<span class="t-micro" style="color:#8A8A8E">' + (offset === 0 ? 'This Week' : rangeStr) + '</span>'
+    + (offset < 0 ? '<button type="button" class="btn-text-action" id="nextWeekBtn" style="color:#8A8A8E;background:none;border:none;padding:2px 4px;cursor:pointer;font-size:15px">&rarr;</button>' : '<span style="width:20px"></span>')
+    + '</div>';
+
+  return '<div class="week-strip-container" style="margin-bottom:12px;border-bottom:1px solid #222">'
+    + navHeader
+    + '<div class="week-strip-row" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0 10px">' + cols.join('') + '</div>'
+    + '</div>';
 }
 
 export function openWorkoutOverrideSheet(dKey) {
