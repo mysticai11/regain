@@ -214,7 +214,6 @@ export function buildDotConsistencyCalendarHTML() {
     + legendHTML
     + '</div>';
 }
-}
 
 export function renderRegression(reg, baseW) {
   var slopeKg = reg.slope;

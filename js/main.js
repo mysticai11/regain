@@ -116,7 +116,7 @@ function onStorageReady() {
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('sw.js?v=tally-v2').then(function (reg) {
+    navigator.serviceWorker.register('sw.js?v=tally-v3').then(function (reg) {
       if (!reg) return;
       var showUpdateBanner = function () {
         if (document.getElementById('swUpdateBanner')) return;
