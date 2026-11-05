@@ -371,8 +371,8 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
 .day-toggle.active { background: #F5F5F4 !important; color: #0B0B0C !important; font-weight: 600 !important; }
 
 /* ── DotGrid (Consistency Calendar) ── */
-.dot-grid { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; gap: 14px !important; justify-items: center !important; align-items: center !important; box-sizing: border-box !important; }
-.dot-cell { width: 6px !important; height: 6px !important; border-radius: var(--r-full) !important; display: inline-block !important; box-sizing: border-box !important; }
+.dot-grid { display: flex !important; flex-direction: column !important; width: 100% !important; box-sizing: border-box !important; }
+.dot-cell { display: flex !important; align-items: center !important; justify-content: center !important; height: 16px !important; box-sizing: border-box !important; cursor: pointer !important; }
 .dot-cell.trained { background: #FFFFFF !important; }
 .dot-cell.today-session { background: var(--lime) !important; }
 .dot-cell.today-untrained { background: transparent !important; border: 1.5px solid var(--text) !important; }

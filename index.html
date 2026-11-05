@@ -20,13 +20,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <script src="db.js"></script>
-<link rel="stylesheet" href="css/tokens.css">
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/components.css">
-<link rel="stylesheet" href="css/today.css">
-<link rel="stylesheet" href="css/progress.css">
-<link rel="stylesheet" href="css/gym.css">
-<link rel="stylesheet" href="css/settings.css">
+<link rel="stylesheet" href="css/tokens.css?v=6">
+<link rel="stylesheet" href="css/base.css?v=6">
+<link rel="stylesheet" href="css/components.css?v=6">
+<link rel="stylesheet" href="css/today.css?v=6">
+<link rel="stylesheet" href="css/progress.css?v=6">
+<link rel="stylesheet" href="css/gym.css?v=6">
+<link rel="stylesheet" href="css/settings.css?v=6">
 </head>
 <body>
 <div id="app"><div class="loading"><div class="spinner"></div><span>Loading…</span></div></div>
@@ -41,13 +41,13 @@ if ('serviceWorker' in navigator) {
   if ('caches' in window) {
     caches.keys().then(function(keys) {
       keys.forEach(function(k) {
-        if (k !== 'tally-v5') caches.delete(k);
+        if (k !== 'tally-v6') caches.delete(k);
       });
     });
   }
 }
 </script>
-<script type="module" src="js/main.js?v=5"></script>
+<script type="module" src="js/main.js?v=6"></script>
 </body>
 </html>
 
