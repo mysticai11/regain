@@ -33,6 +33,7 @@ export function getRollingWeightValues(entries, source) {
     var avg = window.reduce(function(sum, e) { return sum + Number(e.weight); }, 0) / window.length;
     var dKey = entry.dayKey || (entry.createdAt ? entry.createdAt.slice(0, 10) : '');
     return {
+      id: entry.id || (dKey ? 'legacy_' + dKey : ''),
       value: Number(entry.weight),
       avg: +avg.toFixed(2),
       rawWeight: Number(entry.weight),
@@ -149,7 +150,7 @@ export function progressPlot(values, goal, unit, isLift) {
       extraDot = '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="5" fill="none" stroke="#F5F5F4" stroke-width="1.5"/>';
     }
 
-    return '<g class="chart-point-group" data-idx="' + idx + '" data-val="' + displayWeight + '" data-unit="' + unitLabel + '" data-date="' + esc(dateLabel) + '" data-avg="' + (p.v.avg != null ? Number(p.v.avg).toFixed(1) : '') + '">'
+    return '<g class="chart-point-group" data-idx="' + idx + '" data-id="' + esc(p.v.id || '') + '" data-val="' + displayWeight + '" data-unit="' + unitLabel + '" data-date="' + esc(dateLabel) + '" data-avg="' + (p.v.avg != null ? Number(p.v.avg).toFixed(1) : '') + '">'
       + '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="3" fill="#F5F5F4" stroke="#0B0B0C" stroke-width="1.5"/>'
       + extraDot
       + '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="16" fill="transparent" style="cursor:pointer">'

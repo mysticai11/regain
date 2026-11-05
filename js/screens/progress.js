@@ -11,7 +11,7 @@ import { showToast } from "../components/toast.js";
 import { openQuickEditSetModal } from "../components/quick-edit-modal.js";
 import { getWeightHistory, getProgressRows, getRollingWeightValues, buildDotConsistencyCalendarHTML, progressPlot, goalTrajectoryText } from "./progress/charts.js?v=4";
 import { getEquivalentExerciseIds } from "./gym/sets.js";
-import { workoutHistoryHTML, getResumeWorkoutCardHTML, nutritionProgressHTML, weeklyVolumeChart, editWeightEntry, deleteWeightEntry } from "./progress/history.js";
+import { workoutHistoryHTML, getResumeWorkoutCardHTML, nutritionProgressHTML, weeklyVolumeChart, editWeightEntry, deleteWeightEntry, weightEntriesHTML } from "./progress/history.js";
 import { openSessionMenu, openEditWorkoutSheet } from "./progress/session-editor.js";
 export * from "./progress/charts.js?v=4";
 export * from "./progress/history.js";
@@ -35,7 +35,16 @@ function setupChartInteractions(container) {
     var val = d.val || '';
     var unit = d.unit || 'kg';
     var avg = d.avg || '';
-    readout.innerHTML = esc(date) + ' · ' + esc(val) + ' ' + esc(unit) + (avg ? ' <span style="font-size:11px;color:#8A8A8E">(avg ' + esc(avg) + ')</span>' : '');
+    var entryId = d.id || '';
+    var delBtnHTML = entryId ? ' <button type="button" class="btn-text-action chart-del-btn" data-delete-chart-weight="' + esc(entryId) + '" style="color:#FF4D4F;font-size:11px;font-weight:600;margin-left:8px;background:none;border:none;padding:0;cursor:pointer">Delete</button>' : '';
+    readout.innerHTML = esc(date) + ' · ' + esc(val) + ' ' + esc(unit) + (avg ? ' <span style="font-size:11px;color:#8A8A8E">(avg ' + esc(avg) + ')</span>' : '') + delBtnHTML;
+    var delBtn = readout.querySelector('[data-delete-chart-weight]');
+    if (delBtn) {
+      delBtn.onclick = function(e) {
+        e.stopPropagation();
+        deleteWeightEntry(delBtn.dataset.deleteChartWeight);
+      };
+    }
     var circle = pt.querySelector('circle');
     if (circle && cursor) {
       cursor.setAttribute('x1', circle.getAttribute('cx'));
@@ -127,6 +136,16 @@ export function renderProgressSimple(mode) {
     if(weightPlot) {
       weightPlot.innerHTML = progressPlot(weightValues, (profile && profile.targetWeight) || null, 'kg', false);
       setupChartInteractions(weightPlot);
+    }
+    var weightEntriesContainer = document.getElementById('weightEntriesContainer');
+    if (weightEntriesContainer) {
+      weightEntriesContainer.innerHTML = weightEntriesHTML(entries);
+      weightEntriesContainer.querySelectorAll('[data-edit-weight]').forEach(function(btn){
+        btn.onclick = function(){ editWeightEntry(btn.dataset.editWeight); };
+      });
+      weightEntriesContainer.querySelectorAll('[data-delete-weight]').forEach(function(btn){
+        btn.onclick = function(){ deleteWeightEntry(btn.dataset.deleteWeight); };
+      });
     }
     var liftPlot=document.getElementById('liftPlot');
     if(liftPlot) {
@@ -244,6 +263,7 @@ export function renderProgressSimple(mode) {
       + '<input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="Log weight (kg)" inputmode="decimal" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:17px;font-family:var(--font-display);font-variant-numeric:tabular-nums;flex:1">'
       + '<button type="button" class="btn btn-primary" id="saveProgressWeight" style="height:48px;min-height:48px;padding:0 16px;cursor:pointer">Save</button>'
     + '</div>'
+    + '<div id="weightEntriesContainer"></div>'
     + '</div>'
     + '<div style="margin-top:28px">'
       + '<div class="t-label" style="margin-bottom:8px">Nutrition · Last 7 days</div>'

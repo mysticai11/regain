@@ -91,7 +91,10 @@ export function renderTodaySimple() {
       var bwPlaceholder = lastW ? lastW.toFixed(1) : '—';
       var bwValue = rec.weight ? rec.weight : '';
       return '<div style="margin-bottom:24px">'
-        + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8A8A8E;text-transform:uppercase;margin-bottom:8px">WEIGHT</div>'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+          + '<span style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8A8A8E;text-transform:uppercase">WEIGHT</span>'
+          + (bwValue ? '<button type="button" class="btn-text-action" id="deleteTodayWeightBtn" style="color:#FF4D4F;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;background:none;border:none;padding:0;cursor:pointer">Clear</button>' : '')
+        + '</div>'
         + '<div style="display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid #222;padding-bottom:12px">'
           + '<div style="display:flex;align-items:baseline;gap:8px">'
             + '<input type="number" id="todayWeight" step="0.1" inputmode="decimal" placeholder="' + bwPlaceholder + '" value="' + bwValue + '" style="font-size:48px;font-weight:600;font-variant-numeric:tabular-nums;color:#F5F5F4;background:transparent;border:none;outline:none;padding:0;width:140px;line-height:1">'
@@ -175,27 +178,34 @@ export function renderTodaySimple() {
 
   var todayWeightInput = document.getElementById('todayWeight');
   var saveTodayWeight = document.getElementById('saveTodayWeight');
+  var deleteTodayWeightBtn = document.getElementById('deleteTodayWeightBtn');
+  var clearTodayWeight = function() {
+    if (!confirm("Clear today's weight log (" + rec.weight + " kg)?")) return;
+    rec.weight = null; saveDayRecord(key, rec);
+    if (profile.weightEntries) { profile.weightEntries = profile.weightEntries.filter(function(e){ return e.dayKey !== key; }); sv('rg_profile', profile); }
+    triggerHaptic(); showToast('Weight log cleared', 'ok'); renderTodaySimple();
+  };
+  if (deleteTodayWeightBtn) deleteTodayWeightBtn.onclick = clearTodayWeight;
   if (todayWeightInput && saveTodayWeight) {
     var initialW = (todayWeightInput.value || '').trim();
     todayWeightInput.oninput = function () {
       var curW = (todayWeightInput.value || '').trim();
-      saveTodayWeight.style.display = (curW !== initialW && curW !== '') ? 'inline-flex' : 'none';
+      var changed = curW !== initialW;
+      saveTodayWeight.textContent = (curW === '' && initialW !== '') ? 'Clear' : 'Save';
+      saveTodayWeight.style.color = (curW === '' && initialW !== '') ? '#FF4D4F' : '#F5F5F4';
+      saveTodayWeight.style.display = changed ? 'inline-flex' : 'none';
     };
     var doSaveWeight = function () {
       var valStr = (todayWeightInput.value || '').trim();
+      if (valStr === '' && initialW !== '' && rec.weight != null) { clearTodayWeight(); return; }
       if (!valStr || valStr === initialW) return;
       var w = parseFloat(valStr);
       if (!w || isNaN(w) || w < 20 || w > 300) { showToast('Enter a valid weight', 'warn'); return; }
-      profile.weightEntries = profile.weightEntries || [];
+      profile.weightEntries = (profile.weightEntries || []).filter(function(e){ return e.dayKey !== key; });
       profile.weightEntries.push({ id: 'weight_' + Date.now(), dayKey: key, weight: w, createdAt: new Date().toISOString() });
-      sv('rg_profile', profile);
-      rec.weight = w;
-      saveDayRecord(key, rec);
-      triggerHaptic();
-      showToast('Weight saved', 'ok');
-      initialW = String(w);
-      saveTodayWeight.style.display = 'none';
-      renderTodaySimple();
+      sv('rg_profile', profile); rec.weight = w; saveDayRecord(key, rec);
+      triggerHaptic(); showToast('Weight saved', 'ok'); initialW = String(w);
+      saveTodayWeight.style.display = 'none'; renderTodaySimple();
     };
     saveTodayWeight.onclick = doSaveWeight;
     todayWeightInput.onblur = doSaveWeight;

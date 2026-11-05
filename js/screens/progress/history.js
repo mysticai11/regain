@@ -6,6 +6,7 @@ import { getExerciseData, isBodyweightExercise, getActiveProgram } from "../../d
 import { calcE1RM, getTargetsForDate, getLoggedWeeklyVolume, getWeeklyVolume } from "../../lib/calc.js";
 import { esc, todayKey } from "../../lib/format.js";
 import { showToast } from "../../components/toast.js";
+import { triggerHaptic } from "../../lib/dom.js";
 import { getWorkoutForDate } from "../gym/helpers.js";
 
 export function getResumeWorkoutCardHTML() {
@@ -224,48 +225,66 @@ export function workoutHistoryHTML() {
 }
 
 export function weightEntriesHTML(entries) {
-  return entries.slice().reverse().slice(0,8).map(function(e){
-    var label=new Date(e.createdAt||e.dayKey+'T12:00:00').toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
-    return '<div class="weight-entry-row"><span>'+label+' · <b>'+e.weight+' kg</b></span><span><button class="btn-ghost" data-edit-weight="'+esc(e.id)+'">Edit</button><button class="btn-ghost" data-delete-weight="'+esc(e.id)+'">Delete</button></span></div>';
+  if (!entries || !entries.length) return '<div style="padding:16px 0;font-size:15px;color:#8A8A8E;text-align:center">No weight entries logged yet</div>';
+  var rows = entries.slice().reverse().map(function(e) {
+    var d = new Date(e.createdAt || (e.dayKey + 'T12:00:00'));
+    var dateLabel = !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : (e.dayKey || '');
+    var timeLabel = (e.createdAt && e.createdAt.includes('T')) ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    var dateDisplay = dateLabel + (timeLabel ? ' · ' + timeLabel : '');
+    var wNum = Number(e.weight);
+    var wStr = !isNaN(wNum) ? wNum.toFixed(1) : String(e.weight);
+    return '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222222">'
+      + '<div><div class="tabnum" style="font-size:17px;font-weight:600;color:#F5F5F4;line-height:1.2">' + wStr + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span></div>'
+      + '<div style="font-size:11px;color:#8A8A8E;letter-spacing:0.04em;text-transform:uppercase;margin-top:2px">' + esc(dateDisplay) + '</div></div>'
+      + '<div style="display:flex;align-items:center;gap:16px">'
+        + '<button type="button" class="btn-text-action" data-edit-weight="' + esc(e.id) + '" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:8px 0;cursor:pointer">Edit</button>'
+        + '<button type="button" class="btn-text-action" data-delete-weight="' + esc(e.id) + '" style="color:#FF4D4F;font-size:15px;background:none;border:none;padding:8px 0;cursor:pointer">Delete</button>'
+      + '</div></div>';
   }).join('');
+  return '<div style="margin-top:24px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+    + '<span class="t-label">Weight logs</span><span class="t-micro tabnum" style="color:var(--text-secondary)">' + entries.length + (entries.length === 1 ? ' entry' : ' entries') + '</span></div>'
+    + '<div style="max-height:360px;overflow-y:auto;padding-right:2px">' + rows + '</div></div>';
 }
 
 export function editWeightEntry(id) {
   var entries = (profile && Array.isArray(profile.weightEntries)) ? profile.weightEntries : [];
-  var entry=entries.find(function(e){return e.id===id;}); if(!entry) return;
-  var value=prompt('Bodyweight in kg',entry.weight); if(value===null) return;
-  var weight=parseFloat(value); if(!weight||weight<20||weight>300){showToast('Enter a valid weight','warn');return;}
-  entry.weight=weight; sv('rg_profile',profile);
-  if(entry.dayKey){var rec=dayRecord(entry.dayKey);rec.weight=weight;saveDayRecord(entry.dayKey,rec);}
-  renderProgressSimple();
+  var entry = entries.find(function(e){ return String(e.id) === String(id); });
+  var curW = entry ? entry.weight : null;
+  var dKey = (entry && entry.dayKey) || (typeof id === 'string' && id.startsWith('legacy_') ? id.replace('legacy_', '') : null);
+  if (!curW && dKey) curW = (dayRecord(dKey) || {}).weight;
+  if (curW == null) return;
+  var val = prompt('Bodyweight in kg', curW); if (val === null) return;
+  var w = parseFloat(val); if (!w || isNaN(w) || w < 20 || w > 300) { showToast('Enter a valid weight', 'warn'); return; }
+  if (entry) { entry.weight = w; }
+  else if (dKey) { profile.weightEntries = profile.weightEntries || []; profile.weightEntries.push({ id: id, dayKey: dKey, weight: w, createdAt: dKey + 'T12:00:00' }); }
+  if (dKey) { var rec = dayRecord(dKey); rec.weight = w; saveDayRecord(dKey, rec); }
+  sv('rg_profile', profile); triggerHaptic(); showToast('Weight updated', 'ok');
+  if (typeof window.renderProgressSimple === 'function') window.renderProgressSimple();
 }
 
 export function deleteWeightEntry(id) {
-  if(!confirm('Delete this weight entry?')) return;
-  var entries = (profile && profile.weightEntries) || [], target = entries.find(function(e){return e.id===id;});
-  profile.weightEntries=entries.filter(function(e){return e.id!==id;});
-  if(target&&target.dayKey) {
-    var sameDay=profile.weightEntries.filter(function(e){return e.dayKey===target.dayKey;}).sort(function(a,b){return String(a.createdAt).localeCompare(String(b.createdAt));});
-    var rec=dayRecord(target.dayKey); rec.weight=sameDay.length?sameDay[sameDay.length-1].weight:null; saveDayRecord(target.dayKey,rec);
+  if (!confirm('Delete this weight entry?')) return;
+  var entries = (profile && profile.weightEntries) || [];
+  var target = entries.find(function(e){ return String(e.id) === String(id); });
+  profile.weightEntries = entries.filter(function(e){ return String(e.id) !== String(id); });
+  var dKey = (target && target.dayKey) || (typeof id === 'string' && id.startsWith('legacy_') ? id.replace('legacy_', '') : null);
+  if (dKey) {
+    var sameDay = profile.weightEntries.filter(function(e){ return e.dayKey === dKey; }).sort(function(a,b){ return String(a.createdAt).localeCompare(String(b.createdAt)); });
+    var rec = dayRecord(dKey); rec.weight = sameDay.length ? sameDay[sameDay.length - 1].weight : null; saveDayRecord(dKey, rec);
   }
-  sv('rg_profile',profile); renderProgressSimple();
+  sv('rg_profile', profile); triggerHaptic(); showToast('Weight log deleted', 'ok');
+  if (typeof window.renderProgressSimple === 'function') window.renderProgressSimple();
 }
 
 export function weeklyVolumeChart() {
   var logged = getLoggedWeeklyVolume(), planned = getWeeklyVolume(), plannedByMuscle = {};
   planned.forEach(function(v){ plannedByMuscle[v.muscle] = v.sets; });
   var targetFloor = 10;
-  
   var rows = logged.map(function(v) {
     var target = plannedByMuscle[v.muscle] || targetFloor;
     var pct = Math.min(100, Math.round(v.sets / target * 100));
-    return '<div style="margin-bottom:14px">'
-      + '<div class="list-row" style="padding:4px 0">'
-        + '<span>' + esc(v.muscle) + '</span>'
-        + '<span class="tabnum">' + v.sets + ' / ' + target + '</span>'
-      + '</div>'
-      + '<div class="prog-line"><div class="prog-line-fill' + (v.sets >= target ? ' lime' : '') + '" style="width:' + pct + '%"></div></div>'
-      + '</div>';
+    return '<div style="margin-bottom:14px"><div class="list-row" style="padding:4px 0"><span>' + esc(v.muscle) + '</span><span class="tabnum">' + v.sets + ' / ' + target + '</span></div>'
+      + '<div class="prog-line"><div class="prog-line-fill' + (v.sets >= target ? ' lime' : '') + '" style="width:' + pct + '%"></div></div></div>';
   }).join('');
 
   return '<div style="margin-top:8px">'
