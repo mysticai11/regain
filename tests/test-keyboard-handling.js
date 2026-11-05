@@ -55,3 +55,4 @@ if (simulatedEvent.key === 'Enter') {
 assert.strictEqual(elements.r1.blurred, true, 'Enter on last reps blurs keyboard');
 
 console.log('✓ All Keyboard Handling tests passed successfully!');
+

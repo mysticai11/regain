@@ -199,9 +199,12 @@ export function renderGym() {
     var sets = (rec.workout || {})[ex.id] || [];
     var drafts = (rec.workoutDraft || {})[ex.id] || [];
     var lastSets = getLastSessionSets(ex.id, rec);
-    var plannedCount = ex.sets || exOrig.sets || 2;
+    var plannedCount = (exOrig && exOrig.sets != null) ? exOrig.sets : ((ex && ex.sets != null) ? ex.sets : 2);
     var completedSets = sets.filter(Boolean);
-    var manualExtra = (drafts.length > plannedCount && drafts.some(function (d, idx) { return idx >= plannedCount && d; })) ? drafts.length : 0;
+    var manualExtra = 0;
+    for (var dI = plannedCount; dI < drafts.length; dI++) {
+      if (drafts[dI] && drafts[dI].manual) manualExtra = Math.max(manualExtra, dI + 1);
+    }
     var visibleCount = Math.max(plannedCount, completedSets.length, manualExtra);
     var targetSets = plannedCount;
     var isExCompleted = completedSets.length >= targetSets && targetSets > 0;

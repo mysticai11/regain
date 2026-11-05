@@ -97,3 +97,4 @@ pointerDownHandler({
 assert.strictEqual(anotherBtn.children.length, 0, 'No ripple created when prefers-reduced-motion is true');
 
 console.log('✓ All Material Ripple tests passed successfully!');
+

@@ -28,3 +28,4 @@ assert.ok(css.includes('.rir-cycle-text') && css.includes('min-width: 48px'), '.
 assert.ok(css.includes('.precision-circle-tap') && css.includes('width: var(--tap-min)'), '.precision-circle-tap has 48px width');
 
 console.log('✓ All Touch Targets >= 48dp verified successfully!');
+

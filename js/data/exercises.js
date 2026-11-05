@@ -165,7 +165,7 @@ export function getAllKnownExercises() {
       id: item.id || normKey,
       name: item.name,
       muscle: item.muscle || 'other',
-      sets: item.sets || 3,
+      sets: item.sets || 2,
       reps: item.reps || '8–12',
       rir: item.rir || '1–2',
       rest: item.rest != null ? item.rest : 90,

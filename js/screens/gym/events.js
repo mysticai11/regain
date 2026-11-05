@@ -125,11 +125,20 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       sessionMeta.sessionLabel=session.label;
       rec.workout[id][setIndex] = {weight:w,reps:r,rir:rirValue};
       if (rec.workoutDraft[id]) delete rec.workoutDraft[id][setIndex];
-      // Only auto-fill next set draft if within planned count (do not automatically create 3rd/4th extra sets)
-      var exPlannedSets = (exObj && exObj.sets) || 2;
+      // Only auto-fill next set draft if strictly within planned count (never auto-create extra sets)
+      var sessionEx = (session && session.exercises) ? session.exercises.find(function(item) {
+        var actualItemId = (rec.swaps && rec.swaps[item.id]) || item.id;
+        return actualItemId === id || item.id === id;
+      }) : null;
+      var exPlannedSets = (sessionEx && sessionEx.sets != null) ? sessionEx.sets : ((exObj && exObj.sets != null) ? exObj.sets : 2);
       if (setIndex + 1 < exPlannedSets && !rec.workout[id][setIndex + 1]) {
         rec.workoutDraft[id] = rec.workoutDraft[id] || [];
         rec.workoutDraft[id][setIndex + 1] = { weight: w, reps: r, rir: rirValue };
+      }
+      if (rec.workoutDraft && rec.workoutDraft[id]) {
+        for (var dI = exPlannedSets; dI < rec.workoutDraft[id].length; dI++) {
+          if (rec.workoutDraft[id][dI] && !rec.workoutDraft[id][dI].manual) delete rec.workoutDraft[id][dI];
+        }
       }
       // Auto-advance to next incomplete exercise if this exercise is now complete
       var curSetsDone = ((rec.workout || {})[id] || []).filter(Boolean).length;
@@ -269,8 +278,14 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       var draftRec=dayRecord(key), id=btn.dataset.addSet;
       draftRec.workoutDraft=draftRec.workoutDraft||{};
       draftRec.workoutDraft[id]=draftRec.workoutDraft[id]||[];
-      var count=Math.max((draftRec.workout&&draftRec.workout[id]||[]).length,draftRec.workoutDraft[id].length);
-      draftRec.workoutDraft[id][count]={weight:'',reps:'',rir:null};
+      var sessionEx = (session && session.exercises) ? session.exercises.find(function(item) {
+        var actualItemId = (draftRec.swaps && draftRec.swaps[item.id]) || item.id;
+        return actualItemId === id || item.id === id;
+      }) : null;
+      var pSets = (sessionEx && sessionEx.sets != null) ? sessionEx.sets : 2;
+      var curDone = (draftRec.workout && draftRec.workout[id] || []).filter(Boolean).length;
+      var count = Math.max(pSets, curDone, draftRec.workoutDraft[id].length);
+      draftRec.workoutDraft[id][count] = { weight: '', reps: '', rir: null, manual: true };
       saveDayRecord(key,draftRec);
       renderGym();
     });

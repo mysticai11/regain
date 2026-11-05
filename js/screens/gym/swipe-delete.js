@@ -176,3 +176,4 @@ export function attachSetRowSwipeHandlers(key) {
     row.onpointercancel = endDrag;
   });
 }
+

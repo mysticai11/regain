@@ -69,3 +69,4 @@ assert.strictEqual(currentTab, 'today', 'Returned to Today tab');
 assert.strictEqual(simulateBackButton(), false, 'Fourth back allows app exit from Today screen');
 
 console.log('✓ All Accessibility & Back Gesture tests passed successfully!');
+

@@ -269,23 +269,27 @@ export var ALTERNATES = [
   {id:'chin_ups', name:'Chin-ups', muscle:'back,biceps', sets:2, reps:'failure', rir:'0', rest:120, cue:'Bodyweight skill practice', weightIncrement:2.5, type:'compound', bodyweight:true},
   {id:'wrist_curl', name:'Wrist Curl', muscle:'forearms', sets:2, reps:'12–20', rir:'1–2', rest:60, cue:'Forearms flexors', weightIncrement:1.25, type:'isolation'},
   {id:'wrist_extension', name:'Wrist Extension', muscle:'forearms', sets:2, reps:'12–20', rir:'1–2', rest:60, cue:'Forearms extensors', weightIncrement:1.25, type:'isolation'},
-  {id:'hack_squat', name:'Hack squat', muscle:'quads,glutes', sets:4, reps:'10–12', rir:'1–2', rest:150, cue:'2.5 min rest'},
-  {id:'bulgarian_split', name:'Bulgarian split squat', muscle:'quads,glutes', sets:3, reps:'10–12', rir:'1–2', rest:90, cue:'90s rest'},
-  {id:'db_bench', name:'Dumbbell bench press', muscle:'chest,triceps', sets:4, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest'},
+  {id:'hack_squat', name:'Hack squat', muscle:'quads,glutes', sets:2, reps:'10–12', rir:'1–2', rest:150, cue:'2.5 min rest'},
+  {id:'bulgarian_split', name:'Bulgarian split squat', muscle:'quads,glutes', sets:2, reps:'10–12', rir:'1–2', rest:90, cue:'90s rest'},
+  {id:'db_bench', name:'Dumbbell bench press', muscle:'chest,triceps', sets:2, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest'},
   {id:'machine_chest', name:'Seated chest press machine', muscle:'chest', sets:2, reps:'6–10', rir:'1–2', rest:150, cue:'Chest'},
-  {id:'db_row', name:'Dumbbell row', muscle:'back,biceps', sets:4, reps:'10–12', rir:'1–2', rest:120, cue:'2 min rest'},
-  {id:'pullup', name:'Pull-up / Assisted pull-up', muscle:'back,biceps', sets:3, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest'},
-  {id:'db_shoulder', name:'Dumbbell shoulder press', muscle:'shoulders', sets:3, reps:'10–12', rir:'1–2', rest:120, cue:'2 min rest'},
-  {id:'db_curl', name:'Dumbbell bicep curl', muscle:'biceps', sets:3, reps:'12–15', rir:'1–2', rest:90, cue:'90s rest'},
-  {id:'db_lateral', name:'Dumbbell lateral raise', muscle:'shoulders', sets:3, reps:'15–20', rir:'1–2', rest:60, cue:'60s rest'},
+  {id:'db_row', name:'Dumbbell row', muscle:'back,biceps', sets:2, reps:'10–12', rir:'1–2', rest:120, cue:'2 min rest'},
+  {id:'pullup', name:'Pull-up / Assisted pull-up', muscle:'back,biceps', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'2 min rest'},
+  {id:'db_shoulder', name:'Dumbbell shoulder press', muscle:'shoulders', sets:2, reps:'10–12', rir:'1–2', rest:120, cue:'2 min rest'},
+  {id:'db_curl', name:'Dumbbell bicep curl', muscle:'biceps', sets:2, reps:'12–15', rir:'1–2', rest:90, cue:'90s rest'},
+  {id:'db_lateral', name:'Dumbbell lateral raise', muscle:'shoulders', sets:2, reps:'15–20', rir:'1–2', rest:60, cue:'60s rest'},
 ];
 
 export function getExerciseData(id) {
-  var allProg = getActiveProgram(), allEx = getAllKnownExercises().concat(ALTERNATES);
-  allProg.forEach(function(s){ allEx = allEx.concat(s.exercises || []); });
+  var allProg = getActiveProgram(), progExs = [];
+  allProg.forEach(function(s){ progExs = progExs.concat(s.exercises || []); });
+  var progMatch = progExs.find(function(e){ return e.id === id; });
+  if (progMatch) return progMatch;
+
+  var allEx = getAllKnownExercises().concat(ALTERNATES);
   var match = allEx.find(function(e){ return e.id === id; });
   if (match) return match;
-  return { id: id, name: id.replace(/_/g, ' '), muscle: '' };
+  return { id: id, name: id.replace(/_/g, ' '), muscle: '', sets: 2 };
 }
 
 export function getAllExercisesForMuscle(muscleStr) {

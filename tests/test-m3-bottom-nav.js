@@ -30,3 +30,4 @@ assert.ok(css.includes('transform: scaleX(1)'), 'Active pill has scaleX(1)');
 assert.ok(!css.includes(".tab-item.active::before, .navitem.active::before {\n  content: '';"), 'Old dot indicator removed');
 
 console.log('✓ All Material 3 Bottom Nav tests passed successfully!');
+

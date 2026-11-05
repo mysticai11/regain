@@ -148,3 +148,4 @@ const afterRollbackProfile = ls('rg_profile', null);
 assert.ok(afterRollbackProfile && afterRollbackProfile.weightEntries.length === 3, 'Data rolled back safely to snapshot');
 
 console.log('✓ All Backup & Restore tests passed successfully!');
+

@@ -84,3 +84,4 @@ assert.strictEqual(resetRec.workoutDraft.bicep_curl.length, 1, 'Draft preserved 
 assert.strictEqual(resetRec.workoutDraft.bicep_curl[0].weight, '', 'Draft weight empty');
 
 console.log('✓ All Swipe-Left to Delete tests passed successfully!');
+
