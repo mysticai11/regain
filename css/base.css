@@ -1,12 +1,15 @@
 /* Base styles: CSS reset, typography scale, body layout, and utility classes */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
 }
 
-html, body {
+html,
+body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-family);
@@ -43,8 +46,77 @@ html, body {
 .eyebrow   { font-size: var(--fs-11); font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
 .tabnum    { font-variant-numeric: tabular-nums; }
 
+.t-display {
+  font-size: var(--fs-48);
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.t-title {
+  font-size: var(--fs-28);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.t-body {
+  font-size: var(--fs-17);
+  line-height: 1.35;
+  font-weight: 400;
+}
+
+.t-sub {
+  font-size: var(--fs-15);
+  line-height: 1.4;
+  font-weight: 400;
+  color: var(--text2);
+}
+
+.t-caption {
+  font-size: var(--fs-11);
+  line-height: 1.25;
+  font-weight: 400;
+  color: var(--text3);
+}
+
+.t-micro {
+  font-size: var(--fs-11);
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.t-label {
+  font-size: var(--fs-11);
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+
+.eyebrow {
+  font-size: var(--fs-11);
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.tabnum {
+  font-variant-numeric: tabular-nums;
+}
+
 /* Numeric inputs, stats, and tables default to tabular numerals */
-input, button, select, textarea, .tabnum, .stat-num {
+input,
+button,
+select,
+textarea,
+.tabnum,
+.stat-num {
   font-family: inherit;
   font-variant-numeric: tabular-nums;
 }
@@ -88,7 +160,9 @@ input, button, select, textarea, .tabnum, .stat-num {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 ::selection {
@@ -102,4 +176,13 @@ input, button, select, textarea, .tabnum, .stat-num {
 
 :focus-visible {
   outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

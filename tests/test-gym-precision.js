@@ -62,8 +62,8 @@ assert.ok(html.includes(">+ Add set</button>"), 'White text action for + Add set
 assert.ok(html.includes(">Start</button>"), 'Text action Start button should exist');
 assert.ok(html.includes(">Keep logging</span>"), 'Plain text Keep logging should exist');
 
-// 8. Placeholders are muted text, not real-looking values
-assert.ok(html.includes("placeholderW = isBW ? 'BW' : 'kg'"), 'Placeholder weight should be muted text kg');
-assert.ok(html.includes("placeholderR = 'reps'"), 'Placeholder reps should be muted text reps');
+// 8. Placeholders are muted text, not real-looking values (supports last-time greyed placeholders)
+assert.ok(html.includes("placeholderW = isBW ? 'BW' : (last && last.weight ? (last.weight + ' kg') : 'kg')") || html.includes("placeholderW = isBW ? 'BW' : 'kg'"), 'Placeholder weight should be muted text kg or last-time weight');
+assert.ok(html.includes("placeholderR = (last && last.reps") || html.includes("placeholderR = 'reps'"), 'Placeholder reps should be reps or last-time reps');
 
 console.log('✓ All Gym Precision UI assertions passed with 100% success!');

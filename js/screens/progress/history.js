@@ -212,12 +212,9 @@ export function weightEntriesHTML(entries) {
 export function editWeightEntry(id) {
   var entries = (profile && Array.isArray(profile.weightEntries)) ? profile.weightEntries : [];
   var entry=entries.find(function(e){return e.id===id;}); if(!entry) return;
-  var value=prompt('Bodyweight in kg',entry.weight);
-  if(value===null) return;
-  var weight=parseFloat(value);
-  if(!weight||weight<20||weight>300){showToast('Enter a valid weight','warn');return;}
-  entry.weight=weight;
-  sv('rg_profile',profile);
+  var value=prompt('Bodyweight in kg',entry.weight); if(value===null) return;
+  var weight=parseFloat(value); if(!weight||weight<20||weight>300){showToast('Enter a valid weight','warn');return;}
+  entry.weight=weight; sv('rg_profile',profile);
   if(entry.dayKey){var rec=dayRecord(entry.dayKey);rec.weight=weight;saveDayRecord(entry.dayKey,rec);}
   renderProgressSimple();
 }
@@ -228,12 +225,9 @@ export function deleteWeightEntry(id) {
   profile.weightEntries=entries.filter(function(e){return e.id!==id;});
   if(target&&target.dayKey) {
     var sameDay=profile.weightEntries.filter(function(e){return e.dayKey===target.dayKey;}).sort(function(a,b){return String(a.createdAt).localeCompare(String(b.createdAt));});
-    var rec=dayRecord(target.dayKey);
-    rec.weight=sameDay.length?sameDay[sameDay.length-1].weight:null;
-    saveDayRecord(target.dayKey,rec);
+    var rec=dayRecord(target.dayKey); rec.weight=sameDay.length?sameDay[sameDay.length-1].weight:null; saveDayRecord(target.dayKey,rec);
   }
-  sv('rg_profile',profile);
-  renderProgressSimple();
+  sv('rg_profile',profile); renderProgressSimple();
 }
 
 export function weeklyVolumeChart() {
@@ -260,6 +254,51 @@ export function weeklyVolumeChart() {
 }
 
 export function nutritionProgressHTML(records) {
+  var letters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  var today = new Date();
+  var daysAgo6 = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
+
+  var dayHits = [];
+  var calHits = 0;
+  var protHits = 0;
+
+  for (var i = 0; i < 7; i++) {
+    var curD = new Date(daysAgo6.getFullYear(), daysAgo6.getMonth(), daysAgo6.getDate() + i);
+    var dKey = curD.toISOString().slice(0, 10);
+    var dDay = curD.getDay();
+    var letter = letters[(dDay + 6) % 7];
+    var targets = getTargetsForDate(dKey);
+    var totals = records.find(function(r) { return r.key === dKey; }) || { kcal: 0, protein: 0 };
+
+    var calHit = (totals.kcal >= targets.kcal * 0.9);
+    var protHit = (totals.protein >= targets.protein * 0.9);
+    if (calHit) calHits++;
+    if (protHit) protHits++;
+
+    dayHits.push({
+      key: dKey,
+      letter: letter,
+      calHit: calHit,
+      protHit: protHit,
+      isToday: (dKey === todayKey())
+    });
+  }
+
+  var dotCells = dayHits.map(function(dh) {
+    var calDot = dh.calHit
+      ? '<span style="width:8px;height:8px;border-radius:50%;background:#C6F432;display:inline-block"></span>'
+      : '<span style="width:8px;height:8px;border-radius:50%;border:1px solid #55555A;background:transparent;box-sizing:border-box;display:inline-block"></span>';
+    var protDot = dh.protHit
+      ? '<span style="width:8px;height:8px;border-radius:50%;background:#C6F432;display:inline-block"></span>'
+      : '<span style="width:8px;height:8px;border-radius:50%;border:1px solid #55555A;background:transparent;box-sizing:border-box;display:inline-block"></span>';
+
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1">'
+      + '<span style="font-size:11px;font-weight:600;color:' + (dh.isToday ? '#F5F5F4' : '#8A8A8E') + '">' + dh.letter + '</span>'
+      + calDot
+      + protDot
+      + '</div>';
+  }).join('');
+
   var recent = records.slice(-7), days = recent.filter(function(r){ return r.kcal > 0; });
   var target = 0, proteinTarget = 0;
   if (days.length) {
@@ -281,72 +320,28 @@ export function nutritionProgressHTML(records) {
   var kcalPct = Math.min(100, Math.round(kcal / Math.max(1, target) * 100));
   var protPct = Math.min(100, Math.round(protein / Math.max(1, proteinTarget) * 100));
 
-  return '<div style="margin-top:8px">'
-    + '<div class="list-row">'
-      + '<span>Avg calories</span>'
-      + '<span class="tabnum">' + kcal.toLocaleString() + ' / ' + target.toLocaleString() + '</span>'
+  return '<div style="background:#141416;border-radius:12px;padding:14px 16px;margin-top:8px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
+      + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.08em;text-transform:uppercase">7-Day Hit Rate</span>'
+      + '<span class="tabnum" style="font-size:11px;color:#8A8A8E">' + calHits + '/7 kcal · ' + protHits + '/7 protein</span>'
     + '</div>'
-    + '<div class="prog-line" style="margin-bottom:14px"><div class="prog-line-fill" style="width:' + kcalPct + '%"></div></div>'
-    + '<div class="list-row">'
-      + '<span>Avg protein</span>'
-      + '<span class="tabnum">' + protein + ' g / ' + proteinTarget + ' g</span>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:0 4px">' + dotCells + '</div>'
+    + '<div style="border-top:1px solid #1C1C1F;padding-top:12px">'
+      + '<div class="list-row">'
+        + '<span>Avg calories</span>'
+        + '<span class="tabnum">' + kcal.toLocaleString() + ' / ' + target.toLocaleString() + '</span>'
+      + '</div>'
+      + '<div class="prog-line" style="margin-bottom:14px"><div class="prog-line-fill' + (kcalPct >= 90 ? ' lime' : '') + '" style="width:' + kcalPct + '%"></div></div>'
+      + '<div class="list-row">'
+        + '<span>Avg protein</span>'
+        + '<span class="tabnum">' + protein + ' g / ' + proteinTarget + ' g</span>'
+      + '</div>'
+      + '<div class="prog-line"><div class="prog-line-fill' + (protPct >= 90 ? ' lime' : '') + '" style="width:' + protPct + '%"></div></div>'
     + '</div>'
-    + '<div class="prog-line"><div class="prog-line-fill" style="width:' + protPct + '%"></div></div>'
     + '</div>';
 }
 
-export function buildWeeklyDigestHTML() {
-  var keys = allDayKeys();
-  var records = keys.map(function(k){
-    var r = dayRecord(k); var t = getDayTotals(k);
-    var hasWorkout = (r.workoutDone || (r.workout && Object.keys(r.workout).length > 0));
-    return {key:k,weight:r.weight,kcal:t.kcal,workoutDone:hasWorkout};
-  });
-  
-  // Get records from the past 7 days (the current week)
-  var last7 = records.slice(-7);
-  if (last7.length === 0) return '';
-  
-  var sumKcal = 0, countKcal = 0;
-  var sumW = 0, countW = 0;
-  var firstW = null, lastW = null;
-  var gymDaysDone = 0, gymDaysScheduled = 0;
-  
-  last7.forEach(function(r){
-    if (r.kcal > 0) {
-      sumKcal += r.kcal;
-      countKcal++;
-    }
-    if (r.weight != null) {
-      if (firstW === null) firstW = r.weight;
-      lastW = r.weight;
-    }
-    
-    var d = new Date(r.key + 'T00:00:00');
-    var isTrain = (profile.trainingDays || [1,3,5]).includes(d.getDay());
-    if (isTrain) {
-      gymDaysScheduled++;
-      if (r.workoutDone) gymDaysDone++;
-    }
-  });
-  
-  var avgK = countKcal ? Math.round(sumKcal / countKcal) : 0;
-  var deltaW = (firstW != null && lastW != null) ? (lastW - firstW) : null;
-  
-  var digestStr = '';
-  digestStr += avgK ? 'avg ' + avgK + ' kcal' : 'no kcal';
-  if (deltaW != null) {
-    digestStr += ', ' + (deltaW >= 0 ? '+' : '') + deltaW.toFixed(2) + 'kg';
-  } else {
-    digestStr += ', -- kg';
-  }
-  digestStr += ', ' + gymDaysDone + '/' + gymDaysScheduled + ' gym';
-  
-  return '<div style="background:var(--surface-raised); border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-top:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center">'
-    +'<div><span class="eyebrow" style="margin:0">Weekly Digest</span><div style="font-weight:600;font-size:15px;color:var(--text-secondary);margin-top:2px">Closing the loop</div></div>'
-    +'<div class="tabnum" style="font-size:11px;color:var(--text);text-align:right">' + digestStr + '</div>'
-    +'</div>';
-}
+export function buildWeeklyDigestHTML() { return ''; }
 
 
 // ─── Native Web Audio Synthesizer & Wake Lock ───

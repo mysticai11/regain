@@ -12,11 +12,11 @@
   --border-strong: #222222;
 
   --text: #F5F5F4;
-  --text2: #8A8A8E;
-  --text-secondary: #8A8A8E;
-  --text3: #55555A;
-  --text-muted: #55555A;
-  --text-tertiary: #55555A;
+  --text2: #9E9EA4;
+  --text-secondary: #9E9EA4;
+  --text3: #71717A;
+  --text-muted: #71717A;
+  --text-tertiary: #71717A;
 
   /* Accent: Pure Lime with dark text #0B0B0C */
   --accent: #C6F432;
@@ -36,6 +36,13 @@
   --font-family: var(--font-grotesk);
   --font-display: var(--font-grotesk);
   --font-body: var(--font-grotesk);
+
+  /* 5 Canonical Type Sizes: hero (64), title (28), body (17), label (15), caption (11) */
+  --fs-hero: 64px;
+  --fs-title: 28px;
+  --fs-body: 17px;
+  --fs-label: 15px;
+  --fs-caption: 11px;
 
   /* Strict Type Scale: 96 / 64 / 48 / 28 / 17 / 15 / 11 (11px uppercase has +8% tracking) */
   --fs-96: 96px;
@@ -93,8 +100,8 @@
   --safe-l: env(safe-area-inset-left, 0px);
   --safe-r: env(safe-area-inset-right, 0px);
 
-  /* Motion: 150-200ms ease-out */
+  /* Motion: 150ms ease-out */
   --motion-fast: 150ms ease-out;
-  --motion-normal: 200ms ease-out;
+  --motion-normal: 150ms ease-out;
   --transition-default: 150ms ease-out;
 }

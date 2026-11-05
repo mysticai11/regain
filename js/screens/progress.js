@@ -5,7 +5,7 @@ import { dayRecord, saveDayRecord, sv, allDayKeys, getWorkoutSessions } from "..
 import { getDayTotals, calcE1RM } from "../lib/calc.js";
 import { getActiveProgram, getExerciseData, isBodyweightExercise } from "../data/plan.js";
 import { esc, todayKey, goalDirection } from "../lib/format.js";
-import { ic } from "../lib/dom.js";
+import { ic, triggerHaptic } from "../lib/dom.js";
 import { openSettings } from "./settings.js";
 import { showToast } from "../components/toast.js";
 import { openQuickEditSetModal } from "../components/quick-edit-modal.js";
@@ -82,21 +82,68 @@ export function renderProgressSimple(mode) {
     var liftPlot=document.getElementById('liftPlot'); if(liftPlot) liftPlot.innerHTML=progressPlot(liftValues, null, isBW ? 'reps' : 'kg');
     var direction=goalDirection(), latest=weightValues.length?weightValues[weightValues.length-1].value:null;
     var trend=weightValues.length>1?latest-weightValues[0].value:0;
+
+    // Bulking rate & target computations
+    var weeklyRate = null;
+    if (entries.length >= 2) {
+      var fEntry = entries[0];
+      var lEntry = entries[entries.length - 1];
+      var diffDays = (new Date(lEntry.dayKey || lEntry.createdAt) - new Date(fEntry.dayKey || fEntry.createdAt)) / 86400000;
+      var wks = Math.max(diffDays / 7, 0.5);
+      weeklyRate = (lEntry.weight - fEntry.weight) / wks;
+    } else if (weightValues.length >= 2) {
+      weeklyRate = trend;
+    }
+
+    var targetW = (profile && profile.targetWeight) || 60;
+    var toGoal = (latest != null && targetW) ? (targetW - latest) : null;
+    var rateStr = weeklyRate != null ? ((weeklyRate >= 0 ? '+' : '') + weeklyRate.toFixed(2) + ' kg/wk') : '—';
+    var isRateOnTarget = weeklyRate != null && weeklyRate >= 0.25 && weeklyRate <= 0.55;
+
+    var etaText = '—';
+    if (weeklyRate != null && weeklyRate > 0 && toGoal != null && toGoal > 0) {
+      var weeksLeft = toGoal / weeklyRate;
+      var eta = new Date(Date.now() + weeksLeft * 604800000);
+      etaText = eta.toLocaleDateString([], { month: 'short', year: 'numeric' });
+    } else if (toGoal != null && toGoal <= 0) {
+      etaText = 'Reached';
+    }
+
+    var recentRecords = records.slice(-7);
+    var avgCalories = recentRecords.length ? Math.round(recentRecords.reduce(function(s, r){ return s + (r.kcal || 0); }, 0) / recentRecords.length) : 0;
+
+    var advisorCard = '';
+    if (entries.length >= 5 && weeklyRate != null) {
+      if (avgCalories >= 2700 && weeklyRate < 0.25) {
+        advisorCard = '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;text-align:left">'
+          + '<div style="font-size:11px;font-weight:600;color:#C6F432;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Bulking Advisor</div>'
+          + '<div style="font-size:15px;color:#F5F5F4;line-height:1.35">Eating ~' + avgCalories.toLocaleString() + ' kcal and gaining slowly (' + rateStr + ')? Target is +0.25–0.50 kg/wk. Increase intake by +150–200 kcal/day to hit growth pace.</div>'
+          + '</div>';
+      } else if (isRateOnTarget) {
+        advisorCard = '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;text-align:left">'
+          + '<div style="font-size:11px;font-weight:600;color:#C6F432;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Bulking Pace: On Target</div>'
+          + '<div style="font-size:15px;color:#F5F5F4;line-height:1.35">' + rateStr + ' (target +0.25–0.50 kg/wk) · Est. ' + Math.round(targetW) + ' kg by ' + etaText + '</div>'
+          + '</div>';
+      } else if (weeklyRate > 0.55) {
+        advisorCard = '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;text-align:left">'
+          + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Bulking Pace: Fast</div>'
+          + '<div style="font-size:15px;color:#F5F5F4;line-height:1.35">Gaining ' + rateStr + ' vs +0.25–0.50 kg/wk target. Maintain a clean surplus to minimize excess fat.</div>'
+          + '</div>';
+      }
+    } else if (entries.length < 5) {
+      advisorCard = '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.04em;text-transform:uppercase">Log 5+ weigh-ins to calculate weekly rate</div>';
+    }
+
     var weightMeta=document.getElementById('weightMeta');
     if (weightMeta) {
       if (latest != null) {
-        var toGoalNum = profile && profile.targetWeight ? (profile.targetWeight - latest) : null;
-        var toGoalText = toGoalNum != null ? ((toGoalNum > 0 ? '+' : '') + toGoalNum.toFixed(1) + ' kg') : '—';
-        var trendText = weightValues.length > 1 ? ((trend > 0 ? '+' : '') + trend.toFixed(1) + ' kg') : '—';
-        var hintCard = entries.length < 7
-          ? '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.04em;text-transform:uppercase">Log 7+ weigh-ins for a trend</div>'
-          : '';
+        var toGoalText = toGoal != null ? ((toGoal > 0 ? '+' : '') + toGoal.toFixed(1) + ' kg') : '—';
         weightMeta.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:#141416;border-radius:12px;padding:12px 14px;text-align:center;margin-top:10px">'
           + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px">7-Day Avg</div><div style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + latest.toFixed(1) + ' <span style="font-size:11px;color:#8A8A8E">kg</span></div></div>'
-          + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px">To Goal</div><div style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + toGoalText + '</div></div>'
-          + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px">Trend</div><div style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + trendText + '</div></div>'
+          + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px">Rate</div><div style="font-size:17px;font-weight:600;color:' + (isRateOnTarget ? '#C6F432' : '#F5F5F4') + ';margin-top:2px">' + rateStr + '</div></div>'
+          + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px">To ' + Math.round(targetW) + ' kg</div><div style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + toGoalText + '</div></div>'
           + '</div>'
-          + hintCard;
+          + advisorCard;
       } else {
         weightMeta.innerHTML = '<div style="padding:12px 0;font-size:15px;color:#8A8A8E">No weight entries yet</div>';
       }
@@ -191,7 +238,8 @@ export function renderProgressSimple(mode) {
       profile.weightEntries.push({ id: 'weight_' + Date.now(), dayKey: todayKey(), weight: value, createdAt: new Date().toISOString() });
       sv('rg_profile', profile);
       var r = dayRecord(todayKey()); r.weight = value; saveDayRecord(todayKey(), r);
-      showToast('Bodyweight saved', 'ok');
+      triggerHaptic();
+      showToast('Weight saved', 'ok');
       renderProgressSimple('body');
     };
   }
@@ -230,166 +278,5 @@ export function renderProgressSimple(mode) {
 }
 
 export function renderProgress() {
-  var keys = allDayKeys();
-  var records = keys.map(function(k){
-    var r = dayRecord(k); var t = getDayTotals(k);
-    return {key:k,weight:r.weight,readiness:r.readiness,kcal:t.kcal,protein:t.protein,carbs:t.carbs,fat:t.fat};
-  });
-
-  // Calculate weighted average targets for the past 7 days for the dashboard
-  var last7 = records.slice(-7);
-  var sumCt = 0, sumPt = 0;
-  last7.forEach(function(r){
-    var t = getTargetsForDate(r.key);
-    sumCt += t.kcal; sumPt += t.protein;
-  });
-  var avgCt = last7.length ? Math.round(sumCt / last7.length) : CAL_TARGET_REST;
-  var avgPt = last7.length ? Math.round(sumPt / last7.length) : PROT_TARGET_REST;
-  var ct = avgCt; // for rendering
-  var pt = avgPt; // for rendering
-
-  // Weekly weight averages
-  var weeklyWeights = [];
-  for(var i=0;i<records.length;i+=7){
-    var chunk=records.slice(i,i+7).filter(function(r){return r.weight!=null;});
-    if(chunk.length) weeklyWeights.push(+(chunk.reduce(function(s,r){return s+r.weight;},0)/chunk.length).toFixed(2));
-  }
-
-  var withW = records.filter(function(r){return r.weight!=null;});
-  var curW = withW.length?withW[withW.length-1].weight:null;
-  var startW = parseFloat(ls('rg_profile',{}).startWeight||54);
-  var delta = curW!=null ? curW-startW : null;
-
-  // Regression on weekly weights
-  var reg = weeklyWeights.length>=3 ? linReg(weeklyWeights) : null;
-  var weeklyGainPct = reg ? reg.slope/weeklyWeights[0]*100 : null;
-  var inRange = weeklyGainPct!=null && weeklyGainPct>=GAIN_LOW/startW*100*0.6 && weeklyGainPct<=GAIN_HIGH/startW*100*1.4;
-
-  // Streak + avg kcal this week
-  var streak = computeStreak();
-  var last7 = records.slice(-7);
-  var avgKcal7 = last7.length ? Math.round(last7.reduce(function(s,r){return s+r.kcal;},0)/last7.length) : 0;
-
-  var measurements = profile.measurements || [];
-  var photos = profile.photos || [];
-
-  var measHTML = '<div class="section"><div class="section-head"><span class="eyebrow">body measurements (cm)</span><button class="btn-ghost" id="addMeasBtn">log new</button></div>';
-  if(measurements.length) {
-    measHTML += '<div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px">';
-    measurements.slice(-5).forEach(function(m){
-      measHTML += '<div style="background:var(--surface);padding:10px;border-radius:10px;min-width:120px;font-size:15px"><div class="eyebrow" style="margin-bottom:6px">'+new Date(m.date).toLocaleDateString([],{month:'short',day:'numeric'})+'</div>'
-        +'<div style="display:flex;justify-content:space-between;margin-bottom:2px"><span class="dim">Chest</span><span>'+(m.chest||'–')+'</span></div>'
-        +'<div style="display:flex;justify-content:space-between;margin-bottom:2px"><span class="dim">Arms</span><span>'+(m.arms||'–')+'</span></div>'
-        +'<div style="display:flex;justify-content:space-between;margin-bottom:2px"><span class="dim">Waist</span><span>'+(m.waist||'–')+'</span></div>'
-        +'<div style="display:flex;justify-content:space-between"><span class="dim">Thighs</span><span>'+(m.thighs||'–')+'</span></div></div>';
-    });
-    measHTML += '</div>';
-  } else {
-    measHTML += '<div class="chart-empty">Log measurements every 2 weeks</div>';
-  }
-  measHTML += '</div>';
-
-  var photoHTML = '<div class="section"><div class="section-head"><span class="eyebrow">progress photos</span><button class="btn-ghost" id="addPhotoBtn">upload</button></div>';
-  if(photos.length) {
-    photoHTML += '<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">';
-    photos.slice(-5).forEach(function(p){
-      photoHTML += '<div style="flex-shrink:0;width:100px"><img src="'+p.srcBase64+'" style="width:100px;height:100px;object-fit:cover;border-radius:10px;border:1px solid var(--border)"><div class="eyebrow" style="text-align:center;margin-top:4px">'+new Date(p.date).toLocaleDateString([],{month:'short',day:'numeric'})+'</div></div>';
-    });
-    photoHTML += '</div>';
-  } else {
-    photoHTML += '<div class="chart-empty">Take your first progress photo</div>';
-  }
-  photoHTML += '<input type="file" id="photoInput" accept="image/*" style="display:none"></div>';
-
-  var notesHTML = '';
-  var recentNotes = [];
-  records.forEach(function(r){
-    var dayRec = dayRecord(r.key);
-    if(dayRec.note) {
-      recentNotes.push({date: r.key, note: dayRec.note, weight: dayRec.weight});
-    }
-  });
-  if (recentNotes.length > 0) {
-    notesHTML += '<div class="section"><span class="eyebrow">daily notes log</span>'
-      +'<div style="max-height:200px;overflow-y:auto;background:var(--surface);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;border:1px solid var(--border)">';
-    recentNotes.reverse().slice(0, 10).forEach(function(n){
-      notesHTML += '<div style="font-size:11px;border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:6px">'
-        +'<div style="display:flex;justify-content:space-between;margin-bottom:2px">'
-          +'<span class="tabnum" style="color:var(--text-muted)">' + new Date(n.date + 'T00:00:00').toLocaleDateString([], {month:'short', day:'numeric'}) + '</span>'
-          +(n.weight ? '<span class="tabnum" style="color:var(--text)">' + n.weight + ' kg</span>' : '')
-        +'</div>'
-        +'<div style="color:var(--text-secondary);font-style:italic">"' + n.note + '"</div>'
-        +'</div>';
-    });
-    notesHTML += '</div></div>';
-  }
-
-  var targetW = profile.targetWeight || 60.0;
-  var goalText = 'Log weight regularly to estimate target date';
-  if(weeklyWeights.length >= 2) {
-    var slope = reg ? reg.slope : 0;
-    if(slope === 0 && weeklyWeights.length >= 2) {
-      slope = weeklyWeights[weeklyWeights.length-1] - weeklyWeights[0];
-      var wWeeks = Math.max(1, weeklyWeights.length - 1);
-      slope = slope / wWeeks;
-    }
-    
-    if(slope > 0 && curW) {
-      var weeksLeft = (targetW - curW) / slope;
-      if (weeksLeft > 0) {
-        var today = new Date();
-        var hitDate = new Date(today.getTime() + weeksLeft * 7 * 24 * 60 * 60 * 1000);
-        goalText = 'Est. ' + weeksLeft.toFixed(1) + ' wks left (around ' + hitDate.toLocaleDateString([], {month:'short', day:'numeric'}) + ')';
-      } else {
-        goalText = 'Goal reached';
-      }
-    } else {
-      goalText = goalDirection()<0 ? 'Trend is not moving toward your loss goal' : 'Trend is not moving toward your gain goal';
-    }
-  } else if (curW) {
-    goalText = 'Goal: ' + targetW + 'kg (need 2+ weeks of weight logs for estimate)';
-  }
-
-  var bannerHTML = '<div style="background:var(--surface-raised);border:1px solid var(--border-strong);border-radius:10px;padding:12px 14px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center">'
-    +'<div><span class="eyebrow" style="margin:0">'+esc(goalLabel())+' goal</span><div style="font-weight:600;font-size:15px;color:var(--text)">' + targetW + ' kg</div></div>'
-    +'<div class="tabnum" style="font-size:11px;color:var(--text);text-align:right">' + goalText + '</div>'
-    +'</div>';
-
-  document.getElementById('content').innerHTML =
-    '<div class="topbar"><div><span class="eyebrow">day '+currentDayNum()+' of program</span><div class="title">Progress</div></div></div>'
-    +bannerHTML
-    +'<div class="stat-grid">'
-      +'<div class="stat-card"><span class="eyebrow">current weight</span><div class="stat-val">'+(curW!=null?curW.toFixed(1)+'kg':'–')+'</div><div class="stat-sub">'+(delta!=null?(delta>=0?'+':'')+delta.toFixed(1)+' kg since day 1':'log weight to track')+'</div></div>'
-      +'<div class="stat-card"><span class="eyebrow">'+goalRateLabel()+'</span><div class="stat-val '+(weeklyGainPct!=null?(inRange?'sage':'rust'):'')+'">'+( weeklyGainPct!=null?weeklyGainPct.toFixed(2)+'%':'–')+'</div><div class="stat-sub">goal-aware trend</div></div>'
-      +'<div class="stat-card"><span class="eyebrow">current streak</span><div class="stat-val amber">'+streak+'</div><div class="stat-sub">days</div></div>'
-      +'<div class="stat-card"><span class="eyebrow">avg kcal (7d)</span><div class="stat-val">'+avgKcal7+'</div><div class="stat-sub">target '+ct+'</div></div>'
-    +'</div>'
-    +(reg ? renderRegression(reg, weeklyWeights[0]) : '')
-    +'<div class="section"><span class="eyebrow">weekly weight trend</span><div class="chart-wrap"><canvas id="weightChart"></canvas></div><div id="weightEmpty" class="chart-empty hidden"></div></div>'
-    +'<div class="section"><span class="eyebrow">daily calories (last 14 days)</span><div class="chart-wrap"><canvas id="kcalChart"></canvas></div><div id="kcalEmpty" class="chart-empty hidden"></div></div>'
-    +'<div class="section"><span class="eyebrow">protein trend (7-day rolling avg)</span><div class="chart-wrap"><canvas id="protChart"></canvas></div><div id="protEmpty" class="chart-empty hidden"></div></div>'
-    +measHTML
-    +photoHTML
-    +notesHTML
-    +'<div class="section ex-select-wrap"><span class="eyebrow">strength / e1RM</span><select id="exSelect" style="margin-top:8px">'+buildExOptions()+'</select><div class="chart-wrap" style="margin-top:10px"><canvas id="e1rmChart"></canvas></div><div class="e1rm-note">Estimated 1RM via Epley formula. Trend based on best set per session.</div></div>'
-    +'<div class="section"><span class="eyebrow">adherence ledger</span><div class="ledger-grid" id="ledger"></div><div class="legend"><span><span class="dot" style="background:#F5F5F4"></span>on target</span><span><span class="dot" style="background:#FF4D4F"></span>aggressive</span><span><span class="dot" style="background:#1C1C1F"></span>under/none</span></div></div>'
-    +'<div id="advisoryZone"></div>';
-
-  buildProgressCharts(records, weeklyWeights);
-  buildLedger(records);
-  runDiscovery(records, weeklyWeights, ct, reg);
-
-  var exSel = document.getElementById('exSelect');
-  if(exSel) exSel.addEventListener('change', function(){ buildE1RMChart(exSel.value, records); });
-  if(exSel && exSel.value) buildE1RMChart(exSel.value, records);
-
-  var addMeasBtn = document.getElementById('addMeasBtn');
-  if(addMeasBtn) addMeasBtn.addEventListener('click', openMeasSheet);
-
-  var photoInput = document.getElementById('photoInput');
-  var addPhotoBtn = document.getElementById('addPhotoBtn');
-  if(addPhotoBtn && photoInput) {
-    addPhotoBtn.addEventListener('click', function(){ photoInput.click(); });
-    photoInput.addEventListener('change', function(){ handlePhotoUpload(photoInput.files[0]); });
-  }
+  return renderProgressSimple();
 }

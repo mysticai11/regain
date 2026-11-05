@@ -1,7 +1,8 @@
 /* Gym timer module: workout timer dock, manual duration, and rest countdown */
 
 import { workoutTimer, restTimer } from "../../state.js";
-import { dayRecord, saveDayRecord } from "../../storage.js";
+import { dayRecord, saveDayRecord, getWorkoutSessions } from "../../storage.js";
+import { getExerciseData, isBodyweightExercise } from "../../data/plan.js";
 import { getSessionMeta } from "./helpers.js";
 import { formatDuration, pad, esc } from "../../lib/format.js";
 import { playSound, triggerHaptic, requestWakeLock, releaseWakeLock } from "../../lib/dom.js";
@@ -174,28 +175,59 @@ export function showFinishWorkoutSheet(dayKey, programDayIndex, session) {
 
   var totalSets = 0;
   var totalVolume = 0;
+  var newPRs = [];
+  var allPrior = getWorkoutSessions().filter(function(s) { return s.dayKey !== dayKey; });
+
   (session.exercises || []).forEach(function(ex) {
     var id = (rec.swaps && rec.swaps[ex.id]) || ex.id;
     var logged = ((rec.workout || {})[id] || []).filter(Boolean);
+    if (!logged.length) return;
+    var exData = getExerciseData(id) || { name: ex.name || id };
+    var isBW = isBodyweightExercise(id, exData.name);
+
     logged.forEach(function(s) {
       totalSets++;
       totalVolume += (Number(s.weight) || 0) * (Number(s.reps) || 0);
     });
+
+    var priorSets = [];
+    allPrior.forEach(function(ps) {
+      var pe = (ps.exercises || []).find(function(e) { return e.id === id; });
+      if (pe && pe.sets) pe.sets.filter(Boolean).forEach(function(s) { priorSets.push(s); });
+    });
+
+    if (priorSets.length > 0) {
+      var curM = logged.reduce(function(m, s) { return Math.max(m, Number(isBW ? s.reps : s.weight) || 0); }, 0);
+      var prevM = priorSets.reduce(function(m, s) { return Math.max(m, Number(isBW ? s.reps : s.weight) || 0); }, 0);
+      if (curM > prevM && prevM > 0) newPRs.push(exData.name + ' (' + curM + (isBW ? ' reps' : ' kg') + ')');
+    }
   });
 
-  var statsText = minutes + ' min · ' + totalSets + ' sets · ' + Math.round(totalVolume).toLocaleString() + ' kg';
+  var prBanner = newPRs.length
+    ? '<div style="background:#1C1C1F;border-radius:12px;padding:10px 14px;margin-bottom:16px"><div style="font-size:11px;font-weight:600;color:#C6F432;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">New Personal Record</div><div style="font-size:15px;color:#F5F5F4">' + esc(newPRs.join(' · ')) + '</div></div>'
+    : '';
+
+  var statCards = [
+    ['Duration', minutes + ' min'],
+    ['Total Volume', Math.round(totalVolume).toLocaleString() + ' kg'],
+    ['Completed Sets', totalSets + ' sets'],
+    ['New PRs', String(newPRs.length), newPRs.length ? '#C6F432' : '#F5F5F4']
+  ].map(function(item) {
+    return '<div style="background:#1C1C1F;border-radius:12px;padding:12px"><div class="t-micro" style="color:var(--text2);font-size:11px">' + item[0] + '</div><div style="font-size:17px;font-weight:600;color:' + (item[2] || '#F5F5F4') + ';margin-top:2px">' + item[1] + '</div></div>';
+  }).join('');
 
   var overlay = document.createElement('div');
   overlay.className = 'overlay active';
   overlay.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));width:100%;max-width:480px">'
     + '<div class="sheet-handle"></div>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
-      + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">Finish workout</div>'
+      + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">Workout Summary</div>'
       + '<button type="button" class="btn-text-action" id="cancelFinishBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0;cursor:pointer">Cancel</button>'
     + '</div>'
-    + '<div style="font-size:17px;color:#F5F5F4;margin-bottom:8px;font-weight:600">' + esc(session.label || 'Workout') + '</div>'
-    + '<div style="font-size:15px;color:#8A8A8E;margin-bottom:24px;font-variant-numeric:tabular-nums">' + statsText + '</div>'
-    + '<button type="button" class="btn btn-primary" id="saveFinishBtn" style="width:100%;height:48px;background:#C6F432;color:#0B0B0C;font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer">Save</button>'
+    + '<div style="font-size:17px;color:#F5F5F4;margin-bottom:16px;font-weight:600">' + esc(session.label || 'Workout') + '</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px">' + statCards + '</div>'
+    + prBanner
+    + '<button type="button" class="btn btn-primary" id="saveFinishBtn" style="width:100%;height:48px;background:#C6F432;color:#0B0B0C;font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer">Finish & Save</button>'
     + '</div>';
 
   document.body.appendChild(overlay);
@@ -204,8 +236,10 @@ export function showFinishWorkoutSheet(dayKey, programDayIndex, session) {
   overlay.querySelector('#saveFinishBtn').onclick = function() {
     overlay.remove();
     endWorkoutSession(dayKey, programDayIndex, session, minutes);
+    triggerHaptic();
+    playSound('fanfare');
     if (typeof window.renderGym === 'function') window.renderGym();
-    showToast('Workout finished and saved', 'ok');
+    showToast('Workout finished · ' + totalSets + ' sets logged', 'ok');
   };
 }
 
@@ -264,37 +298,17 @@ export function renderRestTimer() {
   }
 
   var addBtn = document.getElementById('addRestBtn');
-  if (addBtn) {
-    addBtn.onclick = function() {
-      restTimer.remaining += 15;
-      if (restTimer.endAt) restTimer.endAt += 15000;
-      renderRestTimer();
-    };
-  }
-
+  if (addBtn) addBtn.onclick = function() { restTimer.remaining += 15; if (restTimer.endAt) restTimer.endAt += 15000; renderRestTimer(); };
   var pauseBtn = document.getElementById('pauseRestBtn');
-  if (pauseBtn) {
-    pauseBtn.onclick = function() {
-      if (restTimer.isPaused) {
-        restTimer.isPaused = false;
-        restTimer.endAt = Date.now() + restTimer.remaining * 1000;
-      } else {
-        restTimer.isPaused = true;
-      }
-      renderRestTimer();
-    };
-  }
-
+  if (pauseBtn) pauseBtn.onclick = function() {
+    if (restTimer.isPaused) { restTimer.isPaused = false; restTimer.endAt = Date.now() + restTimer.remaining * 1000; }
+    else { restTimer.isPaused = true; }
+    renderRestTimer();
+  };
   var resetBtn = document.getElementById('resetRestBtn');
-  if (resetBtn) {
-    resetBtn.onclick = function() {
-      var defaultSec = restTimer.defaultDuration || 90;
-      restTimer.remaining = defaultSec;
-      restTimer.endAt = Date.now() + defaultSec * 1000;
-      restTimer.isPaused = false;
-      renderRestTimer();
-    };
-  }
+  if (resetBtn) resetBtn.onclick = function() {
+    var d = restTimer.defaultDuration || 90; restTimer.remaining = d; restTimer.endAt = Date.now() + d * 1000; restTimer.isPaused = false; renderRestTimer();
+  };
 }
 
 export function startRestTimer(seconds) {
@@ -321,33 +335,21 @@ export function startRestTimer(seconds) {
 }
 
 export function startWorkoutSession(dayKey, session, programDayIndex) {
-  var rec = dayRecord(dayKey);
-  var meta = getSessionMeta(rec, programDayIndex);
+  var rec = dayRecord(dayKey), meta = getSessionMeta(rec, programDayIndex);
   if (!meta.startedAt) {
-    meta.startedAt = new Date().toISOString();
-    meta.sessionLabel = session.label;
-    meta.accumulatedPausedMs = 0;
-    meta.pausedAt = null;
-    saveDayRecord(dayKey, rec);
+    meta.startedAt = new Date().toISOString(); meta.sessionLabel = session.label;
+    meta.accumulatedPausedMs = 0; meta.pausedAt = null; saveDayRecord(dayKey, rec);
   }
   if (typeof window.renderGym === 'function') window.renderGym();
 }
 
 export function endWorkoutSession(dayKey, programDayIndex, session, manualMinutes) {
-  var rec = dayRecord(dayKey);
-  var meta = getSessionMeta(rec, programDayIndex);
-  meta.completedAt = new Date().toISOString();
-  rec.workoutDone = true;
-  if (manualMinutes) {
-    meta.durationMinutes = manualMinutes;
-  } else if (meta.startedAt) {
-    var elapsedSec = getSessionElapsedSeconds(meta);
-    meta.durationMinutes = Math.max(1, Math.round(elapsedSec / 60));
-  } else {
-    meta.durationMinutes = meta.durationMinutes || 45;
-  }
-  meta.duration_sec = meta.durationMinutes * 60;
-  meta.pausedAt = null;
+  var rec = dayRecord(dayKey), meta = getSessionMeta(rec, programDayIndex);
+  meta.completedAt = new Date().toISOString(); rec.workoutDone = true;
+  if (manualMinutes) meta.durationMinutes = manualMinutes;
+  else if (meta.startedAt) meta.durationMinutes = Math.max(1, Math.round(getSessionElapsedSeconds(meta) / 60));
+  else meta.durationMinutes = meta.durationMinutes || 45;
+  meta.duration_sec = meta.durationMinutes * 60; meta.pausedAt = null;
   saveDayRecord(dayKey, rec);
   if (workoutTimer.interval) clearInterval(workoutTimer.interval);
   releaseWakeLock();

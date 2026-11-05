@@ -1,13 +1,14 @@
 /* Today screen widgets: staples shelf, week dot row, calorie ring, and workout preview */
 
 import { profile } from "../../state.js";
-import { dayRecord, saveDayRecord, getWorkoutSessions } from "../../storage.js";
-import { getActiveProgram, getWeeklySchedule } from "../../data/plan.js";
+import { ls, dayRecord, saveDayRecord, getWorkoutSessions, allDayKeys } from "../../storage.js";
+import { getActiveProgram, getWeeklySchedule, getNextProgramWorkout } from "../../data/plan.js";
 import { DEFAULT_STAPLES } from "../../data/foods.js";
 import { todayKey, dateKey, addDays, esc, currentWeight, goalDirection } from "../../lib/format.js";
-import { getTargetsForDate, getDayTotals } from "../../lib/calc.js";
+import { getTargetsForDate, getDayTotals, addRecent } from "../../lib/calc.js";
 import { showToast } from "../../components/toast.js";
 import { renderTodaySimple } from "../today.js";
+import { ic } from "../../lib/dom.js";
 
 export function addQuickFood(key) {
   var overlay=document.createElement('div'); overlay.className='overlay';
@@ -26,16 +27,78 @@ export function addQuickFood(key) {
   };
 }
 
-export function getStaplesShelfHTML() {
-  var rawStaples = (profile && profile.customStaples) || DEFAULT_STAPLES;
-  if (!rawStaples || !rawStaples.length) return '';
-  var seenIds = {};
-  var staples = rawStaples.filter(function(s){
-    var sid = s.id || s.name;
-    if (seenIds[sid]) return false;
-    seenIds[sid] = true;
-    return true;
+export function getMergedStaples() {
+  var recents = [];
+  try {
+    recents = ls('rg_recent_foods', []) || [];
+  } catch(e) {}
+  var staples = (profile && profile.customStaples) || DEFAULT_STAPLES || [];
+  var result = [];
+  var seen = {};
+
+  recents.forEach(function(r) {
+    var k = (r.name || '').trim().toLowerCase();
+    if (!k || seen[k]) return;
+    seen[k] = true;
+    result.push({
+      id: r.id || ('recent_' + k),
+      name: r.name,
+      kcal: r.kcal,
+      protein: r.protein,
+      carbs: r.carbs || 0,
+      fat: r.fat || 0,
+      isRecent: true
+    });
   });
+
+  staples.forEach(function(s) {
+    var k = (s.name || '').trim().toLowerCase();
+    if (!k || seen[k]) return;
+    seen[k] = true;
+    result.push(s);
+  });
+
+  return result.slice(0, 8);
+}
+
+export function openPortionSheet(item, onSelect) {
+  var overlay = document.createElement('div');
+  overlay.className = 'overlay active';
+  overlay.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));width:100%;max-width:480px">'
+    + '<div class="sheet-handle"></div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
+      + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">Portion Size</div>'
+      + '<button type="button" class="btn-text-action" id="cancelPortionBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0;cursor:pointer">Cancel</button>'
+    + '</div>'
+    + '<div style="font-size:17px;font-weight:600;color:#F5F5F4;margin-bottom:4px">' + esc(item.name) + '</div>'
+    + '<div style="font-size:15px;color:#8A8A8E;margin-bottom:20px">' + item.kcal + ' kcal · ' + item.protein + 'g protein (1×)</div>'
+    + '<div style="display:flex;flex-direction:column;gap:8px">'
+      + '<button type="button" class="btn" data-portion="0.5" style="width:100%;height:48px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:0 16px">'
+        + '<span>½× Portion</span><span style="color:#8A8A8E">' + Math.round(item.kcal * 0.5) + ' kcal · ' + (item.protein * 0.5).toFixed(1) + 'g</span>'
+      + '</button>'
+      + '<button type="button" class="btn" data-portion="1" style="width:100%;height:48px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:0 16px">'
+        + '<span>1× Portion (Default)</span><span style="color:#8A8A8E">' + item.kcal + ' kcal · ' + item.protein + 'g</span>'
+      + '</button>'
+      + '<button type="button" class="btn" data-portion="2" style="width:100%;height:48px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:0 16px">'
+        + '<span>2× Portion (Double)</span><span style="color:#8A8A8E">' + Math.round(item.kcal * 2) + ' kcal · ' + (item.protein * 2).toFixed(1) + 'g</span>'
+      + '</button>'
+    + '</div>'
+    + '</div>';
+
+  document.body.appendChild(overlay);
+  overlay.querySelector('#cancelPortionBtn').onclick = function() { overlay.remove(); };
+  overlay.querySelectorAll('[data-portion]').forEach(function(btn) {
+    btn.onclick = function() {
+      var p = parseFloat(btn.dataset.portion);
+      overlay.remove();
+      onSelect(p);
+    };
+  });
+}
+
+export function getStaplesShelfHTML() {
+  var staples = getMergedStaples();
+  if (!staples || !staples.length) return '';
   var chips = staples.map(function(s, idx) {
     return '<button type="button" class="staple-chip" data-quick-staple="' + idx + '">' + esc(s.name) + '</button>';
   }).join('');
@@ -190,6 +253,48 @@ export function buildCalRingHTML(kcalLogged, kcalTarget, protLogged, protTarget,
   var calPct = Math.min(100, Math.round(kcalLogged / Math.max(1, kcalTarget) * 100));
   var protPct = Math.min(100, Math.round(protLogged / Math.max(1, protTarget) * 100));
 
+  var letters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  var today = new Date();
+  var daysAgo6 = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
+  var hitCells = [];
+  var calHits = 0;
+  var protHits = 0;
+
+  for (var i = 0; i < 7; i++) {
+    var curD = new Date(daysAgo6.getFullYear(), daysAgo6.getMonth(), daysAgo6.getDate() + i);
+    var dKey = curD.toISOString().slice(0, 10);
+    var dDay = curD.getDay();
+    var letter = letters[(dDay + 6) % 7];
+    var targets = getTargetsForDate(dKey);
+    var totals = (dKey === todayKey()) ? { kcal: kcalLogged, protein: protLogged } : getDayTotals(dKey);
+
+    var cHit = (totals.kcal >= targets.kcal * 0.9);
+    var pHit = (totals.protein >= targets.protein * 0.9);
+    if (cHit) calHits++;
+    if (pHit) protHits++;
+
+    var cDot = cHit
+      ? '<span style="width:6px;height:6px;border-radius:50%;background:#C6F432;display:inline-block"></span>'
+      : '<span style="width:6px;height:6px;border-radius:50%;border:1px solid #55555A;background:transparent;box-sizing:border-box;display:inline-block"></span>';
+    var pDot = pHit
+      ? '<span style="width:6px;height:6px;border-radius:50%;background:#C6F432;display:inline-block"></span>'
+      : '<span style="width:6px;height:6px;border-radius:50%;border:1px solid #55555A;background:transparent;box-sizing:border-box;display:inline-block"></span>';
+
+    hitCells.push('<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">'
+      + '<span style="font-size:11px;font-weight:600;color:' + (dKey === todayKey() ? '#F5F5F4' : '#8A8A8E') + '">' + letter + '</span>'
+      + cDot
+      + pDot
+      + '</div>');
+  }
+
+  var hitRowHTML = '<div style="margin-top:14px;padding-top:10px;border-top:1px solid #1C1C1F">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.08em;text-transform:uppercase">7-Day Hit Rate</span>'
+      + '<span class="tabnum" style="font-size:11px;color:#8A8A8E">' + calHits + '/7 kcal · ' + protHits + '/7 protein</span>'
+    + '</div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;padding:0 2px">' + hitCells.join('') + '</div>'
+    + '</div>';
+
   return '<div style="margin-bottom:20px">'
     + '<div class="t-hero tabnum">' + (isOver ? ('+' + (kcalLogged - kcalTarget).toLocaleString()) : remaining.toLocaleString()) + '</div>'
     + '<div style="font-size:15px;color:var(--text-secondary);margin-top:4px">' + (isOver ? 'kcal over target' : ('of ' + kcalTarget.toLocaleString() + ' kcal')) + '</div>'
@@ -199,6 +304,7 @@ export function buildCalRingHTML(kcalLogged, kcalTarget, protLogged, protTarget,
       + '<span style="font-size:15px;color:var(--text-secondary)">/ ' + protTarget + ' g</span>'
     + '</div>'
     + '<div class="prog-line" style="margin-top:8px"><div class="prog-line-fill" style="width:' + protPct + '%"></div></div>'
+    + hitRowHTML
     + '</div>';
 }
 
@@ -218,177 +324,6 @@ export function buildWeightTrendChip(currentWeight) {
   return '<span class="weight-trend-chip ' + cls + '">' + arrow + ' ' + sign + delta.toFixed(1) + ' kg vs 7d ago</span>';
 }
 
-// ══ Next Workout Preview ══
-export function buildNextSessionPreviewHTML() {
-  var next = getNextProgramWorkout();
-  if (!next || !next.session) return '';
-  var session = next.session;
-  var exPills = (session.exercises || []).slice(0, 6).map(function(ex) {
-    return '<span class="next-session-ex">' + esc(ex.name) + '</span>';
-  }).join('');
-  var moreCount = Math.max(0, (session.exercises || []).length - 6);
-  if (moreCount > 0) exPills += '<span class="next-session-ex">+' + moreCount + ' more</span>';
-  return '<div class="next-session-card">'
-    + '<div class="next-session-eyebrow">Next up • Week ' + next.week + '</div>'
-    + '<div class="next-session-label">' + esc(session.label) + '</div>'
-    + '<div class="next-session-exercises">' + exPills + '</div>'
-    + '</div>';
-}
-
-export function buildWeekGlanceHTML(streak) {
-  var today = new Date();
-  var currentDay = today.getDay();
-  var distanceToMonday = currentDay === 0 ? 6 : currentDay - 1;
-  var mondayDate = addDays(today, -distanceToMonday);
-  
-  var totalKcal = 0;
-  var loggedDays = 0;
-  for(var i=0; i<=distanceToMonday; i++) {
-    var d = addDays(mondayDate, i);
-    var k = dateKey(d);
-    var tot = getDayTotals(k);
-    if (tot.kcal > 0) {
-      totalKcal += tot.kcal;
-      loggedDays++;
-    }
-  }
-  var avgKcalThisWeek = loggedDays > 0 ? Math.round(totalKcal / loggedDays) : 0;
-  
-  var completedWorkoutsThisWeek = 0;
-  for(var i=0; i<=distanceToMonday; i++) {
-    var d = addDays(mondayDate, i);
-    var k = dateKey(d);
-    var r = dayRecord(k);
-    if (r.workoutDone) {
-      completedWorkoutsThisWeek++;
-    }
-  }
-  var tdays = profile.trainingDays || [1,3,5];
-  var totalScheduledThisWeek = 0;
-  for(var i=0; i<=6; i++) {
-    var d = addDays(mondayDate, i);
-    if (tdays.includes(d.getDay())) {
-      totalScheduledThisWeek++;
-    }
-  }
-  
-  var thisWeekWeights = [];
-  for(var i=0; i<=distanceToMonday; i++) {
-    var d = addDays(mondayDate, i);
-    var r = dayRecord(dateKey(d));
-    if (r.weight != null) thisWeekWeights.push(r.weight);
-  }
-  var lastWeekWeights = [];
-  var lastMonday = addDays(mondayDate, -7);
-  for(var i=0; i<7; i++) {
-    var d = addDays(lastMonday, i);
-    var r = dayRecord(dateKey(d));
-    if (r.weight != null) lastWeekWeights.push(r.weight);
-  }
-  
-  var weightDiffText = '–';
-  var weightDiffColor = 'var(--text-secondary)';
-  if (thisWeekWeights.length > 0 && lastWeekWeights.length > 0) {
-    var avgThis = thisWeekWeights.reduce(function(a,b){return a+b;},0)/thisWeekWeights.length;
-    var avgLast = lastWeekWeights.reduce(function(a,b){return a+b;},0)/lastWeekWeights.length;
-    var diff = avgThis - avgLast;
-    weightDiffText = (diff >= 0 ? '+' : '') + diff.toFixed(1) + ' kg';
-    weightDiffColor = diff >= 0 ? 'var(--sage-light)' : 'var(--rust-light)';
-  } else {
-    var curW = currentWeight();
-    var startW = profile.startWeight || 54.0;
-    if (curW) {
-      var diff = curW - startW;
-      weightDiffText = (diff >= 0 ? '+' : '') + diff.toFixed(1) + ' kg';
-      weightDiffColor = diff >= 0 ? 'var(--sage-light)' : 'var(--rust-light)';
-    }
-  }
-  
-  return '<div style="background:var(--surface-raised);border:1px solid var(--border-strong);border-radius:12px;padding:12px 14px;margin-bottom:14px">'
-    +'<span class="eyebrow" style="margin:0 0 8px 0;display:flex;align-items:center;gap:4px;color:var(--text-muted)">' + ic('chart', 12) + ' This Week at a Glance</span>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;text-align:center">'
-      +'<div><div class="tabnum" style="font-size:15px;font-weight:600;color:var(--text)">' + (avgKcalThisWeek > 0 ? avgKcalThisWeek.toLocaleString() : '–') + '</div><div style="font-size:11px;color:var(--text-secondary)">avg kcal</div></div>'
-      +'<div><div class="tabnum" style="font-size:15px;font-weight:600;color:var(--text)">' + completedWorkoutsThisWeek + '/' + totalScheduledThisWeek + '</div><div style="font-size:11px;color:var(--text-secondary)">gym days</div></div>'
-      +'<div><div class="tabnum" style="font-size:15px;font-weight:600;color:' + weightDiffColor + '">' + weightDiffText + '</div><div style="font-size:11px;color:var(--text-secondary)">weight</div></div>'
-      +'<div><div class="tabnum" style="font-size:15px;font-weight:600;color:var(--text)">' + streak + 'd</div><div style="font-size:11px;color:var(--text-secondary)">streak</div></div>'
-    +'</div>'
-  +'</div>';
-}
-
-export function openCheckinSheet(dayKey) {
-  var rec = dayRecord(dayKey);
-  
-  // Find last logged weight for pre-fill
-  var preW = rec.weight;
-  if (!preW) {
-    var keys = allDayKeys().reverse();
-    for (var i = 0; i < keys.length; i++) {
-      var r = dayRecord(keys[i]);
-      if (r.weight) {
-        preW = r.weight;
-        break;
-      }
-    }
-  }
-  if (!preW) preW = parseFloat(profile.startWeight) || 54.0;
-
-  var sleepVal = rec.sleep != null ? rec.sleep : 8;
-  var readinessVal = rec.readiness != null ? rec.readiness : 3;
-  var noteVal = rec.note || '';
-
-  var overlay = document.createElement('div'); overlay.className = 'overlay';
-  overlay.innerHTML = '<div class="sheet">'
-    +'<div class="sheet-handle"></div>'
-    +'<div class="sheet-title">Morning Check-in</div>'
-    
-    +'<label class="eyebrow" style="margin-top:12px">Body Weight (kg)</label>'
-    +'<input type="number" step="0.1" id="recWeight" value="'+preW+'" style="width:100%" inputmode="decimal">'
-    
-    +'<label class="eyebrow" style="margin-top:16px">Sleep Duration (hours)</label>'
-    +'<input type="number" step="0.5" id="recSleep" value="'+sleepVal+'" style="width:100%" inputmode="decimal">'
-    
-    +'<label class="eyebrow" style="margin-top:16px">Readiness (1 = Poor, 5 = Great)</label>'
-    +'<div style="display:flex;gap:6px;margin-top:4px">'
-      +[1,2,3,4,5].map(function(num){
-        return '<button class="btn btn-sm ready-btn'+(readinessVal===num?' active':'')+'" data-val="'+num+'" style="flex:1">'+num+'</button>';
-      }).join('')
-    +'</div>'
-    
-    +'<label class="eyebrow" style="margin-top:16px">Daily Note (optional)</label>'
-    +'<input type="text" id="recNote" value="'+noteVal+'" placeholder="e.g. Felt strong, sore shoulders, exam stress..." style="width:100%">'
-    
-    +'<div class="modal-actions" style="margin-top:20px">'
-      +'<button class="btn" id="closeCheckinBtn" style="flex:1">Cancel</button>'
-      +'<button class="btn btn-primary" id="saveCheckinBtn" style="flex:1">Save</button>'
-    +'</div>'
-    +'</div>';
-  document.body.appendChild(overlay);
-
-  var selectedReadiness = readinessVal;
-
-  overlay.querySelectorAll('.ready-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      overlay.querySelectorAll('.ready-btn').forEach(function(b){ b.classList.remove('active'); });
-      btn.classList.add('active');
-      selectedReadiness = parseInt(btn.dataset.val, 10);
-    });
-  });
-
-  overlay.querySelector('#closeCheckinBtn').addEventListener('click',function(){overlay.remove();});
-  overlay.querySelector('#saveCheckinBtn').addEventListener('click',function(){
-    var w = parseFloat(document.getElementById('recWeight').value);
-    if(w && (w<20 || w>300)) { showToast('Enter a valid weight', 'warn'); return; }
-    var s = parseFloat(document.getElementById('recSleep').value) || 8;
-    var n = document.getElementById('recNote').value.trim();
-    
-    rec = dayRecord(dayKey);
-    rec.weight = w || null;
-    rec.sleep = s;
-    rec.readiness = selectedReadiness;
-    rec.recovery = selectedReadiness >= 3 ? 'good' : 'bad';
-    rec.note = n;
-    saveDayRecord(dayKey, rec);
-    overlay.remove();
-    renderTodaySimple();
-  });
-}
+export function buildNextSessionPreviewHTML() { return ''; }
+export function buildWeekGlanceHTML() { return ''; }
+export function openCheckinSheet() {}

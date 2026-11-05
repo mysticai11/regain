@@ -7,7 +7,7 @@ import { isBodyweightExercise } from "./sets.js";
 import { getSessionMeta, attachCommonGymHeaderEvents } from "./helpers.js";
 import { getBestRepCount, getBestE1RM } from "../../lib/calc.js";
 import { playSound, triggerHaptic } from "../../lib/dom.js";
-import { showToast } from "../../components/toast.js";
+import { showToast, showUndoToast } from "../../components/toast.js";
 import { openSheet } from "../../components/sheet.js";
 import { openQuickEditSetModal } from "../../components/quick-edit-modal.js";
 import { renderGym, buildVolumeTable } from "../gym.js";
@@ -255,14 +255,25 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
   document.querySelectorAll('[data-remove-draft],[data-remove-extra-set]').forEach(function(btn){
     btn.addEventListener('click',function(){
       var draftRec=dayRecord(key), id=btn.dataset.removeDraft || btn.dataset.removeExtraSet, index=parseInt(btn.dataset.setIndex,10);
-      if(draftRec.workoutDraft&&draftRec.workoutDraft[id]){
-        draftRec.workoutDraft[id].splice(index,1);
-      }
-      if(draftRec.workout&&draftRec.workout[id]){
-        draftRec.workout[id].splice(index,1);
-      }
+      var removedDraft = (draftRec.workoutDraft && draftRec.workoutDraft[id]) ? draftRec.workoutDraft[id].splice(index,1)[0] : null;
+      var removedSet = (draftRec.workout && draftRec.workout[id]) ? draftRec.workout[id].splice(index,1)[0] : null;
       saveDayRecord(key,draftRec);
       renderGym();
+      showUndoToast('Set removed', function() {
+        var restoreRec = dayRecord(key);
+        if (removedDraft) {
+          restoreRec.workoutDraft = restoreRec.workoutDraft || {};
+          restoreRec.workoutDraft[id] = restoreRec.workoutDraft[id] || [];
+          restoreRec.workoutDraft[id].splice(index, 0, removedDraft);
+        }
+        if (removedSet) {
+          restoreRec.workout = restoreRec.workout || {};
+          restoreRec.workout[id] = restoreRec.workout[id] || [];
+          restoreRec.workout[id].splice(index, 0, removedSet);
+        }
+        saveDayRecord(key, restoreRec);
+        renderGym();
+      });
     });
   });
 

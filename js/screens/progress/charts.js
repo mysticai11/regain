@@ -99,7 +99,18 @@ export function progressPlot(values, goal, unit) {
       + '<text x="' + (svgWidth - insetX) + '" y="' + (goalY + 4).toFixed(1) + '" fill="#C6F432" font-size="11" font-weight="600" text-anchor="end" font-family="Space Grotesk, sans-serif">' + Math.round(goalNum) + '</text>';
   }
 
-  var dots = points.map(function(p) {
+  var peakIndex = -1;
+  if ((unitLabel === 'kg' || unitLabel === 'reps') && values.length > 0) {
+    for (var pIdx = values.length - 1; pIdx >= 0; pIdx--) {
+      if (values[pIdx].value === rawMax) { peakIndex = pIdx; break; }
+    }
+  }
+
+  var dots = points.map(function(p, idx) {
+    if (idx === peakIndex) {
+      return '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="5" fill="#C6F432" stroke="#0B0B0C" stroke-width="1.5"/>'
+        + '<text x="' + p.x.toFixed(1) + '" y="' + (p.y - 8).toFixed(1) + '" fill="#C6F432" font-size="11" font-weight="600" text-anchor="middle" font-family="Space Grotesk, sans-serif">PR</text>';
+    }
     return '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="3" fill="#F5F5F4" stroke="#0B0B0C" stroke-width="1.5"/>';
   }).join('');
 
