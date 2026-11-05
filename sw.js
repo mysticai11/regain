@@ -1,5 +1,5 @@
 // sw.js — Tally service worker
-const CACHE = 'tally-v3';
+const CACHE = 'tally-v4';
 const LOCAL_ASSETS = [
   "./",
   "./index.html",
@@ -118,9 +118,9 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Same-origin JS/CSS/HTML: network-first with cache fallback
+  // Same-origin JS/CSS/HTML: network-first with cache fallback (bypasses stale HTTP cache)
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, { cache: 'no-cache' })
       .then(res => {
         if (res.ok && e.request.url.startsWith('http')) {
           const clone = res.clone();

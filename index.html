@@ -31,7 +31,23 @@
 <body>
 <div id="app"><div class="loading"><div class="spinner"></div><span>Loading…</span></div></div>
 
-<script type="module" src="js/main.js"></script>
+<script data-sw-update>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function(regs) {
+    for (var i = 0; i < regs.length; i++) {
+      regs[i].update();
+    }
+  });
+  if ('caches' in window) {
+    caches.keys().then(function(keys) {
+      keys.forEach(function(k) {
+        if (k !== 'tally-v4') caches.delete(k);
+      });
+    });
+  }
+}
+</script>
+<script type="module" src="js/main.js?v=4"></script>
 </body>
 </html>
 

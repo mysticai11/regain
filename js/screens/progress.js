@@ -9,11 +9,11 @@ import { ic, triggerHaptic } from "../lib/dom.js";
 import { openSettings } from "./settings.js";
 import { showToast } from "../components/toast.js";
 import { openQuickEditSetModal } from "../components/quick-edit-modal.js";
-import { getWeightHistory, getProgressRows, getRollingWeightValues, buildDotConsistencyCalendarHTML, progressPlot, goalTrajectoryText } from "./progress/charts.js";
+import { getWeightHistory, getProgressRows, getRollingWeightValues, buildDotConsistencyCalendarHTML, progressPlot, goalTrajectoryText } from "./progress/charts.js?v=4";
 import { getEquivalentExerciseIds } from "./gym/sets.js";
 import { workoutHistoryHTML, getResumeWorkoutCardHTML, nutritionProgressHTML, weeklyVolumeChart, editWeightEntry, deleteWeightEntry } from "./progress/history.js";
 import { openSessionMenu, openEditWorkoutSheet } from "./progress/session-editor.js";
-export * from "./progress/charts.js";
+export * from "./progress/charts.js?v=4";
 export * from "./progress/history.js";
 export * from "./progress/session-editor.js";
 
