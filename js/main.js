@@ -1,6 +1,6 @@
 /* Application entry point: initializes app, sets up router, and boots services */
 
-import { profile, setProfile, tab, setTab, workoutTimer, restTimer } from "./state.js";
+import { profile, setProfile, tab, setTab, workoutTimer, restTimer, subscribe, getState, setState, preserveUiStateDuringRender } from "./state.js";
 import { ls, sv, SQLiteStorage, migrateWorkoutSessions, requestPersistentStorage } from "./storage.js";
 import { DEFAULT_MEAL_PLAN } from "./data/foods.js";
 import { migrateWorkoutRoutineSwap, getActiveProgram } from "./data/plan.js";
@@ -104,6 +104,9 @@ function onStorageReady() {
       setProfile(p);
     }
     renderApp();
+    subscribe(function() {
+      preserveUiStateDuringRender(renderTab);
+    });
     if (location.hash === '#checkin' || location.search.indexOf('checkin') > -1) {
       openCheckinSheet(todayKey());
     }
@@ -113,7 +116,7 @@ function onStorageReady() {
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if(typeof navigator !== 'undefined' && 'serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js?v=regain-v2').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=regain-v5').catch(function(){});
   });
 }
 

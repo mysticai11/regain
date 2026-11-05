@@ -2,7 +2,7 @@
 
 import { profile, activeGymDateKey, activeExpandedExId, setActiveExpandedExId, setTab } from "../state.js";
 import { dayRecord, saveDayRecord } from "../storage.js";
-import { getActiveProgram, getExerciseData, getWeeklySchedule } from "../data/plan.js";
+import { getActiveProgram, getExerciseData, getWeeklySchedule, getCurrentWorkout } from "../data/plan.js";
 import { todayKey, dateKey, formatDuration, workoutElapsed, esc, pad } from "../lib/format.js";
 import { playSound, triggerHaptic, ic } from "../lib/dom.js";
 import { showToast } from "../components/toast.js";
@@ -39,28 +39,24 @@ export function renderGym() {
   var headerDateStr = dayNames[activeDate.getDay()] + ' ' + activeDate.getDate() + ' ' + monthNames[activeDate.getMonth()];
   var formattedSessionDate = activeDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
 
-  // Determine active schedule day (1..7)
+  // Determine active schedule day (1..7) and derived current workout
   var defaultScheduleDay = currentD === 0 ? 7 : currentD;
-  var scheduleDayNum = rec.selectedDayNumber != null ? rec.selectedDayNumber : defaultScheduleDay;
   var weeklySched = getWeeklySchedule();
-  var activeSched = weeklySched.find(function (s) { return s.dayNum === scheduleDayNum; }) || weeklySched[0];
-
-  if (rec.selectedWorkout !== undefined) {
-    if (rec.selectedWorkout === null) {
-      activeSched = { isRest: true, workoutIndex: null, label: 'Rest Day', dayNum: scheduleDayNum };
-    } else {
-      var ovSession = (prog && prog[rec.selectedWorkout]) || prog[0];
-      activeSched = { isRest: false, workoutIndex: rec.selectedWorkout, label: ovSession ? ovSession.label : 'Workout', dayNum: scheduleDayNum };
-    }
-  }
+  var curWorkout = getCurrentWorkout(key);
+  var activeSched = {
+    isRest: curWorkout.isRest,
+    workoutIndex: curWorkout.workoutIndex,
+    label: curWorkout.isRest ? 'Rest Day' : (curWorkout.session ? curWorkout.session.label : 'Workout'),
+    dayNum: rec.selectedDayNumber != null ? rec.selectedDayNumber : defaultScheduleDay
+  };
 
   // Clean workout name for the selected day
-  var activeCleanName = activeSched.isRest
+  var activeCleanName = curWorkout.isRest
     ? 'Scheduled Rest Day'
-    : (activeSched.label.replace(/^Day\s*\d+\s*[—–-]\s*/i, '') || activeSched.label);
+    : (curWorkout.cleanName || 'Workout');
 
-  var workoutIndex = activeSched.workoutIndex;
-  var session = (prog && prog[workoutIndex]) || (prog && prog[0]) || { label: 'Workout', exercises: [] };
+  var workoutIndex = curWorkout.workoutIndex;
+  var session = curWorkout.session || (prog && prog[0]) || { label: 'Workout', exercises: [] };
   var totalPlanned = (session.exercises || []).reduce(function (total, ex) { return total + (ex.sets || 0); }, 0);
   var loggedTotal = (session.exercises || []).reduce(function (total, ex) {
     var actualId = (rec.swaps && rec.swaps[ex.id]) || ex.id;

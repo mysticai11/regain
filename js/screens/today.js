@@ -2,7 +2,7 @@
 
 import { profile, setTab } from "../state.js";
 import { dayRecord, saveDayRecord, ls, sv, allDayKeys } from "../storage.js";
-import { getActiveProgram, getWeeklySchedule, getWorkoutForDate, getNextProgramWorkout, CAL_TARGET_REST, CAL_TARGET_GYM, PROT_TARGET_REST, PROT_TARGET_GYM } from "../data/plan.js";
+import { getActiveProgram, getWeeklySchedule, getWorkoutForDate, getNextProgramWorkout, getCurrentWorkout, CAL_TARGET_REST, CAL_TARGET_GYM, PROT_TARGET_REST, PROT_TARGET_GYM } from "../data/plan.js";
 import { DEFAULT_MEAL_PLAN } from "../data/foods.js";
 import { todayKey, dateKey, addDays, esc, currentWeight, formatDuration } from "../lib/format.js";
 import { getTargetsForDate, getDayTotals, getWeeklyVolume, getLoggedWeeklyVolume, computeStreak, yesterdayMissed, foodMacros, addRecent } from "../lib/calc.js";
@@ -25,25 +25,12 @@ export function renderTodaySimple() {
   var activeDateKey = window.activeTodaySelectedDateKey || key;
   var targetRec = dayRecord(activeDateKey);
   var activeDateObj = new Date(activeDateKey + 'T00:00:00');
-  var prog = getActiveProgram();
+  var curWorkout = getCurrentWorkout(activeDateKey);
+  var session = curWorkout.session;
+  var isRest = curWorkout.isRest;
+  var hasOverride = curWorkout.hasOverride;
 
-  var hasOverride = targetRec && targetRec.selectedWorkout !== undefined;
-  var session = null;
-  var isRest = false;
-
-  if (hasOverride) {
-    if (targetRec.selectedWorkout === null) {
-      isRest = true;
-    } else {
-      session = (prog && prog[targetRec.selectedWorkout]) || (prog && prog[0]);
-    }
-  } else {
-    var chosen = targetRec.workoutDone ? getNextProgramWorkout() : getWorkoutForDate(activeDateKey, targetRec);
-    session = chosen ? chosen.session : null;
-    isRest = !session || (chosen && chosen.isRest);
-  }
-
-  var rawWorkoutName = isRest ? 'Rest Day' : (session ? session.label.replace(/^Day\s*\d+\s*[—–-]\s*/i, '') : 'Workout');
+  var rawWorkoutName = curWorkout.cleanName;
   var cleanWorkoutName = rawWorkoutName;
   var lastSpace = cleanWorkoutName.lastIndexOf(' ');
   if (lastSpace > 0) cleanWorkoutName = cleanWorkoutName.substring(0, lastSpace) + '\u00A0' + cleanWorkoutName.substring(lastSpace + 1);

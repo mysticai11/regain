@@ -85,7 +85,11 @@ export function saveWorkoutSession(session) {
   if (!session || !session.id) return false;
   var store = workoutSessionStore();
   store.sessions[session.id] = session;
-  return sv(WORKOUT_SESSIONS_KEY, store);
+  var res = sv(WORKOUT_SESSIONS_KEY, store);
+  if (typeof window !== 'undefined' && typeof window.scheduleStateNotification === 'function') {
+    window.scheduleStateNotification();
+  }
+  return res;
 }
 
 export function getWorkoutSession(dayKey, programDayIndex) {

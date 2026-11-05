@@ -1,5 +1,5 @@
 // sw.js — Regain service worker
-const CACHE = 'regain-v4';
+const CACHE = 'regain-v5';
 const LOCAL_ASSETS = [
   "./",
   "./index.html",
@@ -95,17 +95,24 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Same-origin: cache-first
+  // Same-origin: network-first with cache fallback (ensures fresh JS while offline capable)
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(res => {
+    fetch(e.request)
+      .then(res => {
         if (res.ok && e.request.url.startsWith('http')) {
           const clone = res.clone();
           caches.open(CACHE).then(cache => cache.put(e.request, clone));
         }
         return res;
-      });
-    })
+      })
+      .catch(() => {
+        return caches.match(e.request).then(cached => {
+          if (cached) return cached;
+          if (e.request.mode === 'navigate') {
+            return caches.match('./index.html');
+          }
+          return new Response('Offline', { status: 503, statusText: 'Offline' });
+        });
+      })
   );
 });

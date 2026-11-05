@@ -335,6 +335,36 @@ export function getWorkoutForDate(dayKey, rec) {
   return { index: safeIndex, isRest: false, session: prog[safeIndex] || prog[0] };
 }
 
+export function getCurrentWorkout(dayKey) {
+  var k = dayKey || (typeof window !== 'undefined' && window.activeGymDateKey) || todayKey();
+  var rec = dayRecord(k);
+  var prog = getActiveProgram();
+  var d = new Date(k + 'T00:00:00').getDay();
+  var dayNum = d === 0 ? 7 : d;
+  var weeklySched = getWeeklySchedule();
+  var matched = weeklySched.find(function(s){ return s.dayNum === dayNum; });
+  var defaultIndex = (matched && !matched.isRest) ? matched.workoutIndex : null;
+
+  var index = (rec && rec.selectedWorkout !== undefined) ? rec.selectedWorkout : defaultIndex;
+  var isRest = index === null;
+  var session = null;
+  if (!isRest) {
+    var safeIdx = Math.min(Math.max(0, index), prog.length - 1);
+    session = prog[safeIdx] || prog[0];
+  }
+  var rawName = isRest ? 'Rest Day' : (session ? (session.label.replace(/^Day\s*\d+\s*[—–-]\s*/i, '') || session.label) : 'Workout');
+  return {
+    dayKey: k,
+    workoutIndex: isRest ? null : index,
+    isRest: isRest,
+    session: session,
+    cleanName: rawName,
+    hasOverride: rec && rec.selectedWorkout !== undefined,
+    isSuggestedRest: defaultIndex === null,
+    suggestedIndex: defaultIndex
+  };
+}
+
 export function getCompletedWorkoutCount() {
   var sessions=getWorkoutSessions(), seen={};
   var sessionDays={};
