@@ -212,6 +212,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
   });
 
   document.querySelectorAll('.set-weight,.set-reps,.set-rir').forEach(function(input){
+    input.addEventListener('focus', function(){ if (typeof this.select === 'function') this.select(); });
     input.addEventListener('input', function(){
       var draftRec=dayRecord(key), id=input.dataset.ex, index=parseInt(input.dataset.setIndex,10);
       var isBW = isBodyweightExercise(id);
