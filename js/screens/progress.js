@@ -13,7 +13,7 @@ import { getWeightHistory, getProgressRows, getRollingWeightValues, buildDotCons
 import { getEquivalentExerciseIds } from "./gym/sets.js";
 import { workoutHistoryHTML, getResumeWorkoutCardHTML, nutritionProgressHTML, weeklyVolumeChart, editWeightEntry, deleteWeightEntry, weightEntriesHTML } from "./progress/history.js";
 import { openSessionMenu, openEditWorkoutSheet } from "./progress/session-editor.js";
-import { buildMonthlyDigestHTML, buildWeeklyDigestHTML } from "./progress/digests.js";
+import { buildMonthlyDigestHTML, buildWeeklyDigestHTML, openHistoryArchiveModal } from "./progress/digests.js";
 export * from "./progress/charts.js?v=4";
 export * from "./progress/history.js";
 export * from "./progress/session-editor.js";
@@ -283,9 +283,16 @@ export function renderProgressSimple(mode) {
     + '</div>'
     + weeklyVolumeChart()
     + '</div>';
-  var calOffset = Number(window.activeProgressMonthOffset) || 0;
-  var calD = new Date(new Date().getFullYear(), new Date().getMonth() + calOffset, 1);
-  var monthlyDigestBlock = buildMonthlyDigestHTML(calD.getFullYear(), calD.getMonth()), weeklyDigestBlock = buildWeeklyDigestHTML();
+  var historyCardHTML = '<div id="openHistoryArchiveBtn" style="background:#141416;border-radius:14px;padding:14px 16px;margin-top:14px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;cursor:pointer">'
+    + '<div style="display:flex;align-items:center;gap:12px">'
+      + '<span style="width:8px;height:8px;border-radius:50%;background:#C6F432;display:inline-block"></span>'
+      + '<div>'
+        + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">Weekly & Monthly History</div>'
+        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">View previous weeks, daily breakdowns & monthly reviews</div>'
+      + '</div>'
+    + '</div>'
+    + '<button type="button" class="btn-text-action" style="color:#C6F432;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">View &rarr;</button>'
+    + '</div>';
 
   document.getElementById('content').innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">'
@@ -297,7 +304,7 @@ export function renderProgressSimple(mode) {
       + '<button class="seg-tab-btn' + (mode === 'lifts' ? ' active' : '') + '" id="liftProgressBtn">Lifts</button>'
     + '</div>'
     + (mode === 'body'
-        ? ('<div class="app-view">' + buildDotConsistencyCalendarHTML() + monthlyDigestBlock + bodySection + weeklyDigestBlock + '</div>')
+        ? ('<div class="app-view">' + buildDotConsistencyCalendarHTML() + historyCardHTML + bodySection + '</div>')
         : ('<div class="app-view">' + getResumeWorkoutCardHTML() + workoutHistoryHTML() + liftChartBlock + weeklyWorkBlock + '</div>')
       );
   document.getElementById('settingsBtn').onclick=openSettings;
@@ -307,19 +314,8 @@ export function renderProgressSimple(mode) {
   if (prevM) prevM.onclick = function() { triggerHaptic(); window.activeProgressMonthOffset = (window.activeProgressMonthOffset || 0) - 1; renderProgressSimple('body'); };
   var nextM = document.getElementById('nextProgressMonthBtn');
   if (nextM) nextM.onclick = function() { triggerHaptic(); window.activeProgressMonthOffset = (window.activeProgressMonthOffset || 0) + 1; renderProgressSimple('body'); };
-  document.querySelectorAll('[data-toggle-digest]').forEach(function(el) {
-    el.onclick = function() {
-      var target = document.getElementById(el.dataset.toggleDigest);
-      if (target) target.style.display = (target.style.display === 'none' ? 'block' : 'none');
-    };
-  });
-  document.querySelectorAll('[data-jump-day]').forEach(function(btn) {
-    btn.onclick = function() {
-      triggerHaptic();
-      window.activeTodaySelectedDateKey = btn.dataset.jumpDay;
-      setTab('today');
-    };
-  });
+  var archiveBtn = document.getElementById('openHistoryArchiveBtn');
+  if (archiveBtn) archiveBtn.onclick = function() { triggerHaptic(); openHistoryArchiveModal(); };
   var contentEl = document.getElementById('content');
   if (contentEl) {
     var touchStartX = 0, touchStartY = 0;

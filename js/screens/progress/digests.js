@@ -1,12 +1,13 @@
 /* Progress digests: weekly and monthly review summaries, archives, and historical data access */
 
-import { profile } from "../../state.js";
+import { profile, setTab } from "../../state.js";
 import { dayRecord, allDayKeys, getWorkoutSessions } from "../../storage.js";
 import { getDayTotals, getTargetsForDate } from "../../lib/calc.js";
 import { todayKey, dateKey, addDays, esc, daysBetween } from "../../lib/format.js";
+import { triggerHaptic } from "../../lib/dom.js";
 import { getWeightHistory } from "./charts.js";
 
-export function buildMonthlyDigestHTML(year, month) {
+export function buildMonthlyDigestHTML(year, month, bgColor) {
   var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   var monthName = monthNames[month];
   var firstDay = new Date(year, month, 1);
@@ -69,8 +70,9 @@ export function buildMonthlyDigestHTML(year, month) {
   }
 
   var consistencyPct = plannedCount > 0 ? Math.round((trainedCount / plannedCount) * 100) : 0;
+  var bg = bgColor || '#141416';
 
-  return '<div style="background:#141416;border-radius:12px;padding:12px 14px;margin-top:12px;margin-bottom:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:left">'
+  return '<div style="background:' + bg + ';border-radius:12px;padding:12px 14px;margin-top:8px;margin-bottom:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:left">'
     + '<div>'
       + '<div class="t-micro" style="color:#8A8A8E;font-size:11px;letter-spacing:0.04em">Workouts</div>'
       + '<div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15;margin-top:2px">' + trainedCount + '</div>'
@@ -89,9 +91,39 @@ export function buildMonthlyDigestHTML(year, month) {
     + '</div>';
 }
 
+export function buildAllMonthsHistoryHTML() {
+  var keys = allDayKeys();
+  var monthSet = {};
+  keys.forEach(function(k) { if (k && k.length >= 7) monthSet[k.slice(0, 7)] = true; });
+  var curYm = todayKey().slice(0, 7);
+  monthSet[curYm] = true;
+
+  var sortedYm = Object.keys(monthSet).sort().reverse();
+  var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  var monthBlocks = sortedYm.map(function(ym) {
+    var parts = ym.split('-');
+    var y = parseInt(parts[0], 10);
+    var m = parseInt(parts[1], 10) - 1;
+    var title = monthNames[m] + ' ' + y;
+    var isCurrentMonth = (ym === curYm);
+    var statsHTML = buildMonthlyDigestHTML(y, m, '#1C1C1F');
+
+    return '<div style="background:#141416;border-radius:14px;padding:14px;margin-bottom:12px;text-align:left">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+        + '<div style="font-size:17px;font-weight:600;color:#F5F5F4">' + esc(title) + '</div>'
+        + (isCurrentMonth ? '<span class="t-micro" style="color:#C6F432;font-size:11px">Current Month</span>' : '')
+      + '</div>'
+      + statsHTML
+      + '</div>';
+  });
+
+  return '<div>' + monthBlocks.join('') + '</div>';
+}
+
 export function buildWeeklyDigestHTML() {
   var keys = allDayKeys();
-  if (!keys.length) return '';
+  if (!keys.length) return '<div style="padding:24px 0;text-align:center;color:#8A8A8E;font-size:15px">No weekly data recorded yet.</div>';
 
   var earliestKey = keys[0];
   var today = todayKey();
@@ -190,9 +222,82 @@ export function buildWeeklyDigestHTML() {
       + '</div>');
   }
 
-  return '<div style="margin-top:28px">'
-    + '<div class="t-label" style="margin-bottom:12px">Weekly History · Previous weeks</div>'
-    + weekBlocks.join('')
+  return '<div>' + weekBlocks.join('') + '</div>';
+}
+
+export function openHistoryArchiveModal(defaultTab) {
+  defaultTab = defaultTab || 'weeks';
+  var existing = document.getElementById('historyArchiveOverlay');
+  if (existing && typeof existing.remove === 'function') existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.className = 'overlay active';
+  overlay.id = 'historyArchiveOverlay';
+  overlay.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:24px 24px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:520px;width:100%;max-height:88vh;display:flex;flex-direction:column;box-sizing:border-box">'
+    + '<div class="sheet-handle"></div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+      + '<div>'
+        + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">History</div>'
+        + '<div class="t-micro" style="color:#8A8A8E;margin-top:2px">Previous weeks and months archive</div>'
+      + '</div>'
+      + '<button type="button" class="btn-text-action" id="closeHistoryArchiveBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:6px 0;cursor:pointer">Done</button>'
+    + '</div>'
+    + '<div class="seg-tabs" style="margin-bottom:14px">'
+      + '<button type="button" class="seg-tab-btn' + (defaultTab === 'weeks' ? ' active' : '') + '" id="archiveTabWeeksBtn">Past Weeks</button>'
+      + '<button type="button" class="seg-tab-btn' + (defaultTab === 'months' ? ' active' : '') + '" id="archiveTabMonthsBtn">Past Months</button>'
+    + '</div>'
+    + '<div id="archiveScrollArea" style="overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding-right:2px"></div>'
     + '</div>';
+
+  document.body.appendChild(overlay);
+
+  function wireInteractions() {
+    overlay.querySelectorAll('[data-toggle-digest]').forEach(function(el) {
+      el.onclick = function() {
+        var target = document.getElementById(el.dataset.toggleDigest);
+        if (target) target.style.display = (target.style.display === 'none' ? 'block' : 'none');
+      };
+    });
+    overlay.querySelectorAll('[data-jump-day]').forEach(function(btn) {
+      btn.onclick = function() {
+        triggerHaptic();
+        overlay.remove();
+        window.activeTodaySelectedDateKey = btn.dataset.jumpDay;
+        if (typeof setTab === 'function') setTab('today');
+      };
+    });
+  }
+
+  function renderTab(tab) {
+    var area = overlay.querySelector('#archiveScrollArea');
+    if (!area) return;
+    var wBtn = overlay.querySelector('#archiveTabWeeksBtn');
+    var mBtn = overlay.querySelector('#archiveTabMonthsBtn');
+    if (wBtn) {
+      wBtn.classList.toggle('active', tab === 'weeks');
+      wBtn.style.color = (tab === 'weeks') ? '#F5F5F4' : '#8A8A8E';
+    }
+    if (mBtn) {
+      mBtn.classList.toggle('active', tab === 'months');
+      mBtn.style.color = (tab === 'months') ? '#F5F5F4' : '#8A8A8E';
+    }
+
+    if (tab === 'weeks') {
+      area.innerHTML = buildWeeklyDigestHTML();
+    } else {
+      area.innerHTML = buildAllMonthsHistoryHTML();
+    }
+    wireInteractions();
+  }
+
+  var closeBtn = overlay.querySelector('#closeHistoryArchiveBtn');
+  if (closeBtn) closeBtn.onclick = function() { triggerHaptic(); overlay.remove(); };
+  var wBtn = overlay.querySelector('#archiveTabWeeksBtn');
+  if (wBtn) wBtn.onclick = function() { triggerHaptic(); renderTab('weeks'); };
+  var mBtn = overlay.querySelector('#archiveTabMonthsBtn');
+  if (mBtn) mBtn.onclick = function() { triggerHaptic(); renderTab('months'); };
+  overlay.onclick = function(e) { if (e.target === overlay) { triggerHaptic(); overlay.remove(); } };
+
+  renderTab(defaultTab);
 }
 

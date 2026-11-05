@@ -29,17 +29,25 @@ global.window = {
 };
 global.document = {
   getElementById: function(id) {
-    return { innerHTML: '', style: {}, onclick: null };
+    return { innerHTML: '', style: {}, onclick: null, remove: function(){} };
   },
   querySelectorAll: function() { return []; },
-  createElement: function() { return { className: '', innerHTML: '', querySelector: function(){return null;} }; }
+  createElement: function() {
+    return {
+      className: '',
+      innerHTML: '',
+      remove: function(){},
+      querySelector: function(){ return { onclick: null, classList: { toggle: function(){} }, style: {} }; },
+      querySelectorAll: function(){ return []; }
+    };
+  }
 };
 
 async function run() {
   const { setProfile, profile } = await import("../js/state.js");
   const { dayRecord, saveDayRecord, sv, ls, allDayKeys, getWorkoutSessions } = await import("../js/storage.js");
   const { todayKey, dateKey, addDays } = await import("../js/lib/format.js");
-  const { buildMonthlyDigestHTML, buildWeeklyDigestHTML } = await import("../js/screens/progress/digests.js");
+  const { buildMonthlyDigestHTML, buildWeeklyDigestHTML, buildAllMonthsHistoryHTML, openHistoryArchiveModal } = await import("../js/screens/progress/digests.js");
   const { buildDotConsistencyCalendarHTML } = await import("../js/screens/progress/charts.js");
   const { buildWeekDotRowHTML } = await import("../js/screens/today/widgets.js");
 
@@ -107,10 +115,27 @@ async function run() {
 
   // 5. Weekly Digest & Archive Cards
   var weeklyDigestHTML = buildWeeklyDigestHTML();
-  assert(weeklyDigestHTML.includes("Weekly History · Previous weeks"), "Weekly digest header must be present");
   assert(weeklyDigestHTML.includes("digest_wk_"), "Weekly digest must include collapsible week containers");
   assert(weeklyDigestHTML.includes("data-jump-day="), "Weekly digest must include jump-to-day buttons");
   console.log("✓ Test 5: Weekly Digest archives each past week with day-by-day inspection");
+
+  // 6. Separate Window for Weekly & Monthly History
+  var allMonthsHTML = buildAllMonthsHistoryHTML();
+  assert(allMonthsHTML.includes("Workouts") && allMonthsHTML.includes("Avg Intake"), "All Months History must render monthly summary blocks");
+
+  var appendedOverlay = null;
+  global.document.body = {
+    appendChild: function(node) {
+      appendedOverlay = node;
+    }
+  };
+
+  openHistoryArchiveModal('weeks');
+  assert(appendedOverlay, "openHistoryArchiveModal must append overlay to body");
+  assert(appendedOverlay.innerHTML.includes("id=\"archiveTabWeeksBtn\""), "History separate window must include Past Weeks tab");
+  assert(appendedOverlay.innerHTML.includes("id=\"archiveTabMonthsBtn\""), "History separate window must include Past Months tab");
+  assert(appendedOverlay.innerHTML.includes("id=\"closeHistoryArchiveBtn\""), "History separate window must include close/done button");
+  console.log("✓ Test 6: Separate window opens with dedicated Past Weeks & Past Months tabs and controls");
 
   console.log("\n=============================================");
   console.log(" ALL WEEKLY & MONTHLY HISTORY TESTS PASSED! ");
