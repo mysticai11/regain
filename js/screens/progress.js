@@ -8,6 +8,7 @@ import { esc, todayKey, goalDirection } from "../lib/format.js";
 import { ic, triggerHaptic } from "../lib/dom.js";
 import { openSettings } from "./settings.js";
 import { showToast } from "../components/toast.js";
+import { openSheet } from "../components/sheet.js";
 import { openQuickEditSetModal } from "../components/quick-edit-modal.js";
 import { getWeightHistory, getProgressRows, getRollingWeightValues, buildDotConsistencyCalendarHTML, progressPlot, goalTrajectoryText } from "./progress/charts.js?v=4";
 import { getEquivalentExerciseIds } from "./gym/sets.js";
@@ -18,27 +19,62 @@ export * from "./progress/history.js";
 export * from "./progress/session-editor.js";
 
 export function renderProgressSimple(mode) {
-  mode=mode||'body';
-  var entries=getWeightHistory(), records=allDayKeys().map(function(k){var r=dayRecord(k),t=getDayTotals(k);return {key:k,weight:r.weight,kcal:t.kcal,protein:t.protein};});
-  var workoutSessions=getWorkoutSessions().filter(function(session){return (session.exercises||[]).some(function(exercise){return (exercise.sets||[]).some(Boolean);});});
-  var current=entries.length?entries[entries.length-1].weight:null, range='1w';
-  var exOptions=[]; getActiveProgram().forEach(function(s){s.exercises.forEach(function(e){if(!exOptions.some(function(x){return x.id===e.id;}))exOptions.push(e);});});
-  allDayKeys().forEach(function(key){Object.keys(dayRecord(key).workout||{}).forEach(function(id){var e=getExerciseData(id);if(e&&!exOptions.some(function(x){return x.id===id;}))exOptions.push(e);});});
-  var render=function(){
-    var rangeEntries=getProgressRows(range,entries), weightValues=getRollingWeightValues(rangeEntries,entries);
+  mode = mode || 'body';
+  var entries = getWeightHistory(), records = allDayKeys().map(function(k){ var r=dayRecord(k),t=getDayTotals(k); return {key:k,weight:r.weight,kcal:t.kcal,protein:t.protein}; });
+  var current = entries.length ? entries[entries.length-1].weight : null, range = '1w';
+
+  var exOptions = [];
+  getActiveProgram().forEach(function(s){ s.exercises.forEach(function(e){ if(!exOptions.some(function(x){ return x.id===e.id; })) exOptions.push(e); }); });
+  allDayKeys().forEach(function(key){ Object.keys(dayRecord(key).workout||{}).forEach(function(id){ var e=getExerciseData(id); if(e&&!exOptions.some(function(x){ return x.id===id; })) exOptions.push(e); }); });
+  getWorkoutSessions().forEach(function(session){
+    (session.exercises || []).forEach(function(ex){
+      var e = getExerciseData(ex.id) || { id: ex.id, name: ex.id };
+      if(e && !exOptions.some(function(x){ return x.id===ex.id; })) exOptions.push(e);
+    });
+  });
+
+  var selected = (typeof window !== 'undefined' && window.__selectedLiftId) || (exOptions.length ? exOptions[0].id : null);
+
+  var render = function() {
+    var rangeEntries = getProgressRows(range, entries), weightValues = getRollingWeightValues(rangeEntries, entries);
     var cutoff = range === 'all' ? 0 : Date.now() - ({'1w':7,'1m':30,'3m':90}[range]||30)*86400000;
-    var rangeRecords=records.filter(function(r){return new Date(r.key+'T23:59:59').getTime()>=cutoff;});
-    var liftControl=document.getElementById('liftSelect');
-    var selected=liftControl?liftControl.value:null, liftValues=[];
+    var rangeRecords = records.filter(function(r){ return new Date(r.key+'T23:59:59').getTime() >= cutoff; });
+
     var selectedExData = selected ? getExerciseData(selected) : null;
     var isBW = selected ? isBodyweightExercise(selected, selectedExData ? selectedExData.name : '') : false;
     var eqIds = (typeof getEquivalentExerciseIds === 'function' && selected) ? getEquivalentExerciseIds(selected) : (selected ? [selected] : []);
 
-    rangeRecords.forEach(function(r){
+    // Compute liftValues from both getWorkoutSessions() and dayRecord()
+    var liftValues = [];
+    var sessionsInRange = getWorkoutSessions().filter(function(s) {
+      if (!s.dayKey) return false;
+      return new Date(s.dayKey + 'T23:59:59').getTime() >= cutoff;
+    });
+    var datesWithLifts = {};
+    rangeRecords.forEach(function(r){ datesWithLifts[r.key] = true; });
+    sessionsInRange.forEach(function(s){ datesWithLifts[s.dayKey] = true; });
+
+    Object.keys(datesWithLifts).sort().forEach(function(dKey) {
       var best = 0;
-      var dayWo = dayRecord(r.key).workout || {};
-      eqIds.forEach(function(id){
-        (dayWo[id] || []).forEach(function(s){
+      sessionsInRange.filter(function(s){ return s.dayKey === dKey; }).forEach(function(session) {
+        (session.exercises || []).forEach(function(ex) {
+          if (eqIds.includes(ex.id)) {
+            (ex.sets || []).forEach(function(s) {
+              if (!s) return;
+              if (isBW) {
+                var reps = Number(s.reps) || 0;
+                if (reps > best) best = reps;
+              } else {
+                var e1 = calcE1RM(s.weight, s.reps);
+                if (e1 > best) best = e1;
+              }
+            });
+          }
+        });
+      });
+      var dayWo = dayRecord(dKey).workout || {};
+      eqIds.forEach(function(id) {
+        (dayWo[id] || []).forEach(function(s) {
           if (!s) return;
           if (isBW) {
             var reps = Number(s.reps) || 0;
@@ -51,45 +87,25 @@ export function renderProgressSimple(mode) {
       });
       if (best > 0) {
         liftValues.push({
-          value: best,
-          label: r.key + ' · ' + (isBW ? (best + ' reps (BW)') : (best.toFixed(1) + ' kg'))
+          value: isBW ? best : +best.toFixed(1),
+          label: dKey + ' · ' + (isBW ? (best + ' reps (BW)') : (best.toFixed(1) + ' kg'))
         });
       }
     });
 
-    var allLiftValues=[];
-    rangeRecords.forEach(function(r){
-      var total=0,count=0;
-      Object.keys(dayRecord(r.key).workout||{}).forEach(function(id){
-        var best=0;
-        var exIsBW = isBodyweightExercise(id);
-        (dayRecord(r.key).workout[id]||[]).forEach(function(s){
-          if(s){
-            if (exIsBW) {
-              var rVal = Number(s.reps) || 0;
-              if (rVal > best) best = rVal;
-            } else {
-              var e1 = calcE1RM(s.weight,s.reps);
-              if (e1 > best) best = e1;
-            }
-          }
-        });
-        if(best){total+=best;count++;}
-      });
-      if(count)allLiftValues.push({value:total/count,label:r.key});
-    });
+    // Item 10: Weight plot has no lime PR tag (isLift = false)
+    var weightPlot = document.getElementById('weightPlot');
+    if (weightPlot) weightPlot.innerHTML = progressPlot(weightValues, (profile && profile.targetWeight) || null, 'kg', false);
 
-    var first=allLiftValues.length?allLiftValues[0].value:1;
-    var weightPlot=document.getElementById('weightPlot'); if(weightPlot) weightPlot.innerHTML=progressPlot(weightValues, (profile && profile.targetWeight) || null);
-    var liftPlot=document.getElementById('liftPlot'); if(liftPlot) liftPlot.innerHTML=progressPlot(liftValues, null, isBW ? 'reps' : 'kg');
-    var direction=goalDirection(), latest=weightValues.length?weightValues[weightValues.length-1].value:null;
-    var trend=weightValues.length>1?latest-weightValues[0].value:0;
+    // Lifts plot has lime PR tag (isLift = true)
+    var liftPlot = document.getElementById('liftPlot');
+    if (liftPlot) liftPlot.innerHTML = progressPlot(liftValues, null, isBW ? 'reps' : 'kg', true);
 
-    // Bulking rate & target computations
+    var latest = weightValues.length ? weightValues[weightValues.length-1].value : null;
+    var trend = weightValues.length > 1 ? latest - weightValues[0].value : 0;
     var weeklyRate = null;
     if (entries.length >= 2) {
-      var fEntry = entries[0];
-      var lEntry = entries[entries.length - 1];
+      var fEntry = entries[0], lEntry = entries[entries.length - 1];
       var diffDays = (new Date(lEntry.dayKey || lEntry.createdAt) - new Date(fEntry.dayKey || fEntry.createdAt)) / 86400000;
       var wks = Math.max(diffDays / 7, 0.5);
       weeklyRate = (lEntry.weight - fEntry.weight) / wks;
@@ -101,69 +117,95 @@ export function renderProgressSimple(mode) {
     var toGoal = (latest != null && targetW) ? (targetW - latest) : null;
     var rateStr = weeklyRate != null ? ((weeklyRate >= 0 ? '+' : '') + weeklyRate.toFixed(2) + ' kg/wk') : '—';
     var isRateOnTarget = weeklyRate != null && weeklyRate >= 0.25 && weeklyRate <= 0.55;
-
-    var etaText = '—';
-    if (weeklyRate != null && weeklyRate > 0 && toGoal != null && toGoal > 0) {
-      var weeksLeft = toGoal / weeklyRate;
-      var eta = new Date(Date.now() + weeksLeft * 604800000);
-      etaText = eta.toLocaleDateString([], { month: 'short', year: 'numeric' });
-    } else if (toGoal != null && toGoal <= 0) {
-      etaText = 'Reached';
-    }
+    var toGoalText = toGoal != null ? ((toGoal > 0 ? '+' : '') + toGoal.toFixed(1) + ' kg') : '—';
 
     var recentRecords = records.slice(-7);
     var avgCalories = recentRecords.length ? Math.round(recentRecords.reduce(function(s, r){ return s + (r.kcal || 0); }, 0) / recentRecords.length) : 0;
-
     var advisorCard = '';
     if (entries.length >= 5 && weeklyRate != null) {
       if (avgCalories >= 2700 && weeklyRate < 0.25) {
-        advisorCard = '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;text-align:left">'
-          + '<div style="font-size:11px;font-weight:600;color:#C6F432;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Bulking Advisor</div>'
-          + '<div style="font-size:15px;color:#F5F5F4;line-height:1.35">Eating ~' + avgCalories.toLocaleString() + ' kcal and gaining slowly (' + rateStr + ')? Target is +0.25–0.50 kg/wk. Increase intake by +150–200 kcal/day to hit growth pace.</div>'
-          + '</div>';
+        advisorCard = '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;text-align:left"><div style="font-size:11px;font-weight:600;color:#C6F432;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Bulking Advisor</div><div style="font-size:15px;color:#F5F5F4;line-height:1.35">Eating ~' + avgCalories.toLocaleString() + ' kcal and gaining slowly (' + rateStr + ')? Target is +0.25–0.50 kg/wk. Increase intake by +150–200 kcal/day to hit growth pace.</div></div>';
       } else if (isRateOnTarget) {
-        advisorCard = '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;text-align:left">'
-          + '<div style="font-size:11px;font-weight:600;color:#C6F432;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Bulking Pace: On Target</div>'
-          + '<div style="font-size:15px;color:#F5F5F4;line-height:1.35">' + rateStr + ' (target +0.25–0.50 kg/wk) · Est. ' + Math.round(targetW) + ' kg by ' + etaText + '</div>'
-          + '</div>';
+        advisorCard = '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;text-align:left"><div style="font-size:11px;font-weight:600;color:#C6F432;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Bulking Pace: On Target</div><div style="font-size:15px;color:#F5F5F4;line-height:1.35">' + rateStr + ' (target +0.25–0.50 kg/wk)</div></div>';
       } else if (weeklyRate > 0.55) {
-        advisorCard = '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;text-align:left">'
-          + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Bulking Pace: Fast</div>'
-          + '<div style="font-size:15px;color:#F5F5F4;line-height:1.35">Gaining ' + rateStr + ' vs +0.25–0.50 kg/wk target. Maintain a clean surplus to minimize excess fat.</div>'
-          + '</div>';
+        advisorCard = '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;text-align:left"><div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Bulking Pace: Fast</div><div style="font-size:15px;color:#F5F5F4;line-height:1.35">Gaining ' + rateStr + ' vs +0.25–0.50 kg/wk target.</div></div>';
       }
-    } else if (entries.length < 5) {
-      advisorCard = '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.04em;text-transform:uppercase">Log 5+ weigh-ins to calculate weekly rate</div>';
     }
 
-    var weightMeta=document.getElementById('weightMeta');
+    // Item 12: Stats row: three 28px values with 11px labels above, no card, no clipping
+    var weightMeta = document.getElementById('weightMeta');
     if (weightMeta) {
       if (latest != null) {
-        var toGoalText = toGoal != null ? ((toGoal > 0 ? '+' : '') + toGoal.toFixed(1) + ' kg') : '—';
-        weightMeta.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:#141416;border-radius:12px;padding:12px 14px;text-align:center;margin-top:10px">'
-          + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px">7-Day Avg</div><div style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + latest.toFixed(1) + ' <span style="font-size:11px;color:#8A8A8E">kg</span></div></div>'
-          + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px">Rate</div><div style="font-size:17px;font-weight:600;color:' + (isRateOnTarget ? '#C6F432' : '#F5F5F4') + ';margin-top:2px">' + rateStr + '</div></div>'
-          + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px">To ' + Math.round(targetW) + ' kg</div><div style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + toGoalText + '</div></div>'
+        weightMeta.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0 16px;text-align:left">'
+          + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">7-Day Avg</div><div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15;white-space:nowrap">' + latest.toFixed(1) + '<span style="font-size:15px;color:#8A8A8E;margin-left:2px">kg</span></div></div>'
+          + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px"><div>Rate</div></div><div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15;white-space:nowrap">' + rateStr + '</div></div>'
+          + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">To Goal</div><div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15;white-space:nowrap">' + toGoalText + '</div></div>'
           + '</div>'
           + advisorCard;
       } else {
         weightMeta.innerHTML = '<div style="padding:12px 0;font-size:15px;color:#8A8A8E">No weight entries yet</div>';
       }
     }
-    var liftMeta=document.getElementById('liftMeta');
-    if(liftMeta) {
-      var firstLift=liftValues.length?liftValues[0].value:null, latestLift=liftValues.length?liftValues[liftValues.length-1].value:null;
+
+    // Lift meta line
+    var liftMeta = document.getElementById('liftMeta');
+    if (liftMeta) {
+      var firstLift = liftValues.length ? liftValues[0].value : null;
+      var latestLift = liftValues.length ? liftValues[liftValues.length - 1].value : null;
       if (latestLift != null) {
         if (isBW) {
-          liftMeta.textContent = latestLift + ' reps (BW) peak' + (firstLift!=null&&liftValues.length>1 ? ' · ' + (latestLift-firstLift>=0?'+':'') + (latestLift-firstLift) + ' reps since start' : '');
+          liftMeta.textContent = latestLift + ' reps (BW) peak' + (firstLift != null && liftValues.length > 1 ? ' · ' + (latestLift - firstLift >= 0 ? '+' : '') + (latestLift - firstLift) + ' reps since start' : '');
         } else {
-          liftMeta.textContent = latestLift.toFixed(1) + ' kg e1RM' + (firstLift!=null&&liftValues.length>1 ? ' · ' + (latestLift-firstLift>=0?'+':'') + (latestLift-firstLift).toFixed(1) + ' since start' : '');
+          liftMeta.textContent = latestLift.toFixed(1) + ' kg e1RM' + (firstLift != null && liftValues.length > 1 ? ' · ' + (latestLift - firstLift >= 0 ? '+' : '') + (latestLift - firstLift).toFixed(1) + ' since start' : '');
         }
       } else {
         liftMeta.textContent = 'No lift entries yet';
       }
     }
+
+    // Item 7: PR list as ListRows (exercise left, "40 kg × 12" right)
+    var prList = [];
+    var allSessions = getWorkoutSessions(), allDays = allDayKeys();
+    exOptions.forEach(function(ex) {
+      var exIsBW = isBodyweightExercise(ex.id, ex.name);
+      var topWeight = 0, topReps = 0, topE1 = 0;
+      var updateBest = function(w, r) {
+        var numW = Number(w) || 0, numR = Number(r) || 0;
+        if (numR <= 0) return;
+        if (exIsBW) {
+          if (numR > topReps || (numR === topReps && numW > topWeight)) { topReps = numR; topWeight = numW; }
+        } else {
+          var e1 = calcE1RM(numW, numR);
+          if (e1 > topE1) { topE1 = e1; topWeight = numW; topReps = numR; }
+        }
+      };
+      allSessions.forEach(function(session) {
+        (session.exercises || []).forEach(function(e) {
+          if (e.id === ex.id) (e.sets || []).forEach(function(s) { if (s) updateBest(s.weight, s.reps); });
+        });
+      });
+      allDays.forEach(function(k) {
+        var dWo = dayRecord(k).workout || {};
+        (dWo[ex.id] || []).forEach(function(s) { if (s) updateBest(s.weight, s.reps); });
+      });
+      if (topReps > 0) {
+        var prStr = exIsBW ? ((topWeight > 0 ? ('BW+' + topWeight + ' kg × ') : '') + topReps + ' reps') : (topWeight + ' kg × ' + topReps);
+        prList.push({ name: ex.name, pr: prStr, id: ex.id });
+      }
+    });
+
+    var prContainer = document.getElementById('prListContainer');
+    if (prContainer) {
+      prContainer.innerHTML = prList.length ? ('<div style="margin-top:28px"><div class="t-label" style="margin-bottom:8px">Personal records</div>'
+        + prList.map(function(item) {
+          return '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;min-height:56px;padding:0;border-bottom:1px solid #1C1C1F">'
+            + '<span style="font-size:15px;font-weight:500;color:#F5F5F4">' + esc(item.name) + '</span>'
+            + '<span class="tabnum" style="font-size:15px;color:#8A8A8E">' + esc(item.pr) + '</span>'
+            + '</div>';
+        }).join('') + '</div>') : '';
+    }
   };
+
   var bodySection = '<div style="margin-bottom:28px">'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'
       + '<span class="t-label">Bodyweight</span>'
@@ -186,38 +228,104 @@ export function renderProgressSimple(mode) {
       + '<div class="t-label" style="margin-bottom:8px">Nutrition · Last 7 days</div>'
       + nutritionProgressHTML(records)
     + '</div>';
+
+  var selectedExName = (exOptions.find(function(e){ return e.id === selected; }) || {}).name || (exOptions[0] ? exOptions[0].name : 'Select exercise');
+
+  // Item 7: Lifts shows exercise picker (Sheet), 120px e1RM line chart, PR list as ListRows, weekly work
   var liftSection = '<div style="margin-bottom:32px">'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'
       + '<span class="t-label">Lift progress</span>'
       + '<span id="liftMeta" class="t-micro tabnum" style="color:var(--text-secondary)"></span>'
     + '</div>'
-    + '<select id="liftSelect" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 12px;color:#F5F5F4;font-size:15px;width:100%;margin-bottom:12px">'
-      + exOptions.map(function(e){ return '<option value="' + e.id + '">' + esc(e.name) + '</option>'; }).join('')
+    + '<button type="button" id="openLiftSheetBtn" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;font-weight:500;width:100%;display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-bottom:12px">'
+      + '<span id="liftSelectedText">' + esc(selectedExName) + '</span>'
+      + '<span style="color:#8A8A8E;font-size:11px">▼</span>'
+    + '</button>'
+    + '<select id="liftSelect" style="display:none">'
+      + exOptions.map(function(e){ return '<option value="' + e.id + '"' + (e.id === selected ? ' selected' : '') + '>' + esc(e.name) + '</option>'; }).join('')
     + '</select>'
     + '<div id="liftPlot"></div>'
+    + '<div id="prListContainer"></div>'
     + '</div>'
     + '<div style="margin-top:32px">'
-      + '<div class="t-label" style="margin-bottom:12px">Weekly work · Sets last 7 days · target 10–18</div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">'
+        + '<span class="t-label">WEEKLY WORK</span>'
+        + '<span class="t-micro tabnum" style="color:var(--text-secondary);text-transform:uppercase">LAST 7 DAYS · TARGET 10–18</span>'
+      + '</div>'
       + weeklyVolumeChart()
     + '</div>';
+
+  // Item 13: Body and Lifts share only header and segmented tab control
   document.getElementById('content').innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">'
       + '<span class="t-label">Progress</span>'
       + '<button class="icon-btn" id="settingsBtn" aria-label="Settings">' + ic('settings') + '</button>'
     + '</div>'
-    + getResumeWorkoutCardHTML()
     + '<div class="seg-tabs">'
       + '<button class="seg-tab-btn' + (mode === 'body' ? ' active' : '') + '" id="bodyProgressBtn">Body</button>'
       + '<button class="seg-tab-btn' + (mode === 'lifts' ? ' active' : '') + '" id="liftProgressBtn">Lifts</button>'
     + '</div>'
-    + buildDotConsistencyCalendarHTML()
-    + (mode === 'body' ? bodySection : liftSection)
-    + '<div style="margin-top:24px">'
-      + workoutHistoryHTML()
-    + '</div>';
-  document.getElementById('settingsBtn').onclick=openSettings;
-  document.getElementById('bodyProgressBtn').onclick=function(){renderProgressSimple('body');};
-  document.getElementById('liftProgressBtn').onclick=function(){renderProgressSimple('lifts');};
+    + (mode === 'body' ? (getResumeWorkoutCardHTML() + buildDotConsistencyCalendarHTML() + bodySection + '<div style="margin-top:24px">' + workoutHistoryHTML() + '</div>') : liftSection);
+
+  document.getElementById('settingsBtn').onclick = openSettings;
+  document.getElementById('bodyProgressBtn').onclick = function(){ renderProgressSimple('body'); };
+  document.getElementById('liftProgressBtn').onclick = function(){ renderProgressSimple('lifts'); };
+
+  var openLiftBtn = document.getElementById('openLiftSheetBtn');
+  if (openLiftBtn) {
+    openLiftBtn.onclick = function() {
+      var sheetRows = exOptions.map(function(e) {
+        var isCur = (e.id === selected);
+        return '<div class="list-row" data-choose-lift="' + esc(e.id) + '" style="min-height:56px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border-bottom:1px solid #1C1C1F">'
+          + '<span style="font-size:17px;color:#F5F5F4;' + (isCur ? 'font-weight:600' : '') + '">' + esc(e.name) + '</span>'
+          + (isCur ? '<span style="color:#F5F5F4;font-size:17px">✓</span>' : '')
+          + '</div>';
+      }).join('');
+      openSheet('<div class="sheet-title" style="font-size:28px;font-weight:600;color:#F5F5F4;margin-bottom:16px">Choose Exercise</div><div style="max-height:360px;overflow-y:auto">' + sheetRows + '</div>');
+      document.querySelectorAll('[data-choose-lift]').forEach(function(row) {
+        row.onclick = function() {
+          var chosenId = row.dataset.chooseLift;
+          window.__selectedLiftId = chosenId;
+          selected = chosenId;
+          var lSel = document.getElementById('liftSelect');
+          if (lSel) lSel.value = chosenId;
+          var tEl = document.getElementById('liftSelectedText');
+          var exObj = exOptions.find(function(x){ return x.id === chosenId; });
+          if (tEl && exObj) tEl.textContent = exObj.name;
+          var cBtn = document.getElementById('closeSheetBtn');
+          if (cBtn) cBtn.click();
+          render();
+        };
+      });
+    };
+  }
+
+  // Item 6: Tapping a dot shows small readout that dismisses on next tap
+  document.querySelectorAll('.dot-cell').forEach(function(dot) {
+    dot.onclick = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      var readoutEl = document.getElementById('gridDotReadout');
+      if (!readoutEl) return;
+      var text = dot.getAttribute('data-readout');
+      if (!text) return;
+      if (readoutEl.style.display !== 'none' && readoutEl.getAttribute('data-active-key') === dot.getAttribute('data-date')) {
+        readoutEl.style.display = 'none';
+        readoutEl.removeAttribute('data-active-key');
+      } else {
+        readoutEl.textContent = text;
+        readoutEl.setAttribute('data-active-key', dot.getAttribute('data-date'));
+        readoutEl.style.display = 'block';
+      }
+    };
+  });
+  document.addEventListener('click', function() {
+    var readoutEl = document.getElementById('gridDotReadout');
+    if (readoutEl) {
+      readoutEl.style.display = 'none';
+      readoutEl.removeAttribute('data-active-key');
+    }
+  });
+
   document.querySelectorAll('[data-range]').forEach(function(btn){
     btn.onclick = function(){
       range = btn.dataset.range;
@@ -231,8 +339,9 @@ export function renderProgressSimple(mode) {
       render();
     };
   });
-  var saveWeight=document.getElementById('saveProgressWeight');
-  if(saveWeight) {
+
+  var saveWeight = document.getElementById('saveProgressWeight');
+  if (saveWeight) {
     saveWeight.onclick = function() {
       var pInp = document.getElementById('progressWeight');
       var value = pInp ? parseFloat((pInp.value || '').trim()) : NaN;
@@ -246,9 +355,11 @@ export function renderProgressSimple(mode) {
       renderProgressSimple('body');
     };
   }
-  var liftSelect=document.getElementById('liftSelect'); if(liftSelect) liftSelect.onchange=render;
-  document.querySelectorAll('[data-edit-weight]').forEach(function(btn){btn.onclick=function(){editWeightEntry(btn.dataset.editWeight);};});
-  document.querySelectorAll('[data-delete-weight]').forEach(function(btn){btn.onclick=function(){deleteWeightEntry(btn.dataset.deleteWeight);};});
+
+  var liftSelect = document.getElementById('liftSelect');
+  if (liftSelect) liftSelect.onchange = render;
+  document.querySelectorAll('[data-edit-weight]').forEach(function(btn){ btn.onclick = function(){ editWeightEntry(btn.dataset.editWeight); }; });
+  document.querySelectorAll('[data-delete-weight]').forEach(function(btn){ btn.onclick = function(){ deleteWeightEntry(btn.dataset.deleteWeight); }; });
   document.querySelectorAll('[data-edit-workout-session]').forEach(function(btn){
     btn.onclick = function(e){
       if (e && e.stopPropagation) e.stopPropagation();

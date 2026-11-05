@@ -254,22 +254,21 @@ export function deleteWeightEntry(id) {
 export function weeklyVolumeChart() {
   var logged = getLoggedWeeklyVolume(), planned = getWeeklyVolume(), plannedByMuscle = {};
   planned.forEach(function(v){ plannedByMuscle[v.muscle] = v.sets; });
-  var targetFloor = 10;
+  var targetFloor = 8;
   
   var rows = logged.map(function(v) {
     var target = plannedByMuscle[v.muscle] || targetFloor;
-    var pct = Math.min(100, Math.round(v.sets / target * 100));
+    var pct = Math.min(100, Math.round((v.sets / target) * 100));
     return '<div style="margin-bottom:14px">'
       + '<div class="list-row" style="padding:4px 0">'
         + '<span>' + esc(v.muscle) + '</span>'
         + '<span class="tabnum">' + v.sets + ' / ' + target + '</span>'
       + '</div>'
-      + '<div class="prog-line"><div class="prog-line-fill' + (v.sets >= target ? ' lime' : '') + '" style="width:' + pct + '%"></div></div>'
+      + '<div class="prog-line" style="height:4px;border-radius:2px;background:#222;overflow:hidden"><div class="prog-line-fill" style="width:' + pct + '%;height:100%;border-radius:2px;background:#F5F5F4"></div></div>'
       + '</div>';
   }).join('');
 
   return '<div style="margin-top:8px">'
-    + '<div class="t-micro" style="margin-bottom:12px">Sets, last 7 days · target 10–18</div>'
     + rows
     + '</div>';
 }

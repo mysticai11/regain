@@ -46,26 +46,29 @@ export function goalTrajectoryText(entries) {
   return 'Estimated '+eta.toLocaleDateString([], {month:'short',year:'numeric'})+' · based on logged intake and weight trend';
 }
 
-export function progressPlot(values, goal, unit) {
-  if(!values.length) return '<div class="t-micro" style="padding:16px 0;color:var(--text-secondary)">Log data to see this trend.</div>';
+export function progressPlot(values, goal, unit, isLift) {
   var unitLabel = unit || 'kg';
   var isReps = unitLabel === 'reps';
-  var nums = values.map(function(v){return Number(v.value);});
-  var rawMin = Math.min.apply(null,nums), rawMax = Math.max.apply(null,nums), rawSpan = rawMax-rawMin;
-  var pad = rawSpan ? Math.max(rawSpan*.18,.5) : Math.max(Math.abs(rawMax)*.03,.5);
-  var min = rawMin-pad, max = rawMax+pad, span = max-min||1;
 
-  var svgWidth = 340;
-  var svgHeight = 120;
-  var insetX = 20;
-  var insetY = 20;
-  var plotW = svgWidth - insetX * 2;
-  var plotH = svgHeight - insetY * 2;
+  // Item 11: With fewer than 3 points on weight chart (not lift), collapse to 48px and show message
+  if (!isLift && values.length < 3) {
+    var pts = values.map(function(v, i) { return { x: values.length === 1 ? 24 : (24 + i * 292), y: 24, v: v }; });
+    var dotsHTML = pts.map(function(p) {
+      return '<circle cx="' + p.x + '" cy="' + p.y + '" r="3" fill="#F5F5F4" stroke="#0B0B0C" stroke-width="1.5"/>'
+        + (values.length === 1 ? '<text x="' + (p.x + 10) + '" y="' + (p.y + 4) + '" fill="#8A8A8E" font-size="11" font-weight="500" font-family="Space Grotesk, sans-serif">First entry</text>' : '');
+    }).join('');
+    var lineHTML = values.length === 2 ? '<line x1="' + pts[0].x + '" y1="' + pts[0].y + '" x2="' + pts[1].x + '" y2="' + pts[1].y + '" stroke="#F5F5F4" stroke-width="1.5"/>' : '';
+    return '<div style="margin-bottom:12px"><div style="height:48px;position:relative">'
+      + (values.length > 0 ? ('<svg viewBox="0 0 340 48" style="width:100%;height:48px;overflow:hidden">' + lineHTML + dotsHTML + '</svg>') : '')
+      + '</div><div style="font-size:11px;color:var(--text2,#8A8A8E);margin-top:4px;text-align:left">Log 3+ weigh-ins to see a trend</div></div>';
+  }
 
+  if(!values.length) return '<div class="t-micro" style="padding:16px 0;color:var(--text-secondary)">Log data to see this trend.</div>';
+  var nums = values.map(function(v){return Number(v.value);}), rawMin = Math.min.apply(null,nums), rawMax = Math.max.apply(null,nums), rawSpan = rawMax-rawMin;
+  var pad = rawSpan ? Math.max(rawSpan*.18,.5) : Math.max(Math.abs(rawMax)*.03,.5), min = rawMin-pad, max = rawMax+pad, span = max-min||1;
+  var svgWidth = 340, svgHeight = 120, insetX = 20, insetY = 20, plotW = svgWidth - insetX * 2, plotH = svgHeight - insetY * 2;
   var points = values.map(function(v, i) {
-    var x = values.length > 1 ? insetX + (i / (values.length - 1)) * plotW : svgWidth / 2;
-    var y = insetY + ((max - v.value) / span) * plotH;
-    return { x: x, y: y, v: v };
+    return { x: values.length > 1 ? insetX + (i / (values.length - 1)) * plotW : svgWidth / 2, y: insetY + ((max - v.value) / span) * plotH, v: v };
   });
   var poly = points.map(function(p){ return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ');
   var first = values[0].value, last = values[values.length-1].value, delta = last-first;
@@ -73,35 +76,22 @@ export function progressPlot(values, goal, unit) {
 
   var distinctLabels = [];
   values.forEach(function(v){
-    var raw = String(v.label || '').slice(0, 10);
-    var match = raw.match(/\d{4}-\d{2}-\d{2}/);
-    var d = match ? new Date(match[0] + 'T00:00:00') : new Date(raw);
-    var dt = !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : raw.replace(/^\d{4}-/, '').replace('-', '/');
+    var raw = String(v.label || '').slice(0, 10), match = raw.match(/\d{4}-\d{2}-\d{2}/);
+    var d = match ? new Date(match[0] + 'T00:00:00') : new Date(raw), dt = !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : raw.replace(/^\d{4}-/, '').replace('-', '/');
     if (dt && !distinctLabels.includes(dt)) distinctLabels.push(dt);
   });
-  var displayLabels = [];
-  if (distinctLabels.length <= 4) {
-    displayLabels = distinctLabels;
-  } else {
-    var step = (distinctLabels.length - 1) / 3;
-    displayLabels = [
-      distinctLabels[0],
-      distinctLabels[Math.round(step)],
-      distinctLabels[Math.round(step * 2)],
-      distinctLabels[distinctLabels.length - 1]
-    ];
-  }
+  var displayLabels = distinctLabels.length <= 4 ? distinctLabels : [distinctLabels[0], distinctLabels[Math.round((distinctLabels.length - 1) / 3)], distinctLabels[Math.round(((distinctLabels.length - 1) / 3) * 2)], distinctLabels[distinctLabels.length - 1]];
 
   var goalNum = goal != null ? Number(goal) : ((profile && profile.targetWeight) ? Number(profile.targetWeight) : null);
-  var goalY = goalNum != null ? (insetY + ((max - goalNum) / span) * plotH) : -999;
-  var goalLineHTML = '';
+  var goalY = goalNum != null ? (insetY + ((max - goalNum) / span) * plotH) : -999, goalLineHTML = '';
   if (goalNum != null && goalY >= insetY && goalY <= svgHeight - insetY) {
     goalLineHTML = '<line x1="' + insetX + '" y1="' + goalY.toFixed(1) + '" x2="' + (svgWidth - insetX - 28) + '" y2="' + goalY.toFixed(1) + '" stroke="#8A8A8E" stroke-dasharray="3 3" stroke-width="1.5"/>'
       + '<text x="' + (svgWidth - insetX) + '" y="' + (goalY + 4).toFixed(1) + '" fill="#8A8A8E" font-size="11" font-weight="600" text-anchor="end" font-family="Space Grotesk, sans-serif">' + Math.round(goalNum) + '</text>';
   }
 
+  // Item 10: Remove lime "PR" tag from weight chart. PR labels exist only on lifts (isLift === true).
   var peakIndex = -1;
-  if ((unitLabel === 'kg' || unitLabel === 'reps') && values.length > 0) {
+  if (isLift && values.length > 0) {
     for (var pIdx = values.length - 1; pIdx >= 0; pIdx--) {
       if (values[pIdx].value === rawMax) { peakIndex = pIdx; break; }
     }
@@ -141,87 +131,145 @@ export function buildDotConsistencyCalendarHTML() {
   var currentWeekMonday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMon);
   var startMonday = new Date(currentWeekMonday.getFullYear(), currentWeekMonday.getMonth(), currentWeekMonday.getDate() - (11 * 7));
 
-  var tdays = (profile && profile.trainingDays) || [1,2,3,5,6];
+  var weeklyTarget = (profile && Array.isArray(profile.trainingDays) && profile.trainingDays.length > 0) ? profile.trainingDays.length : 5;
+
   var sessionDays = {};
+  var sessionDetails = {};
   try {
     getWorkoutSessions().forEach(function(s) {
       if (s.dayKey && (s.exercises || []).some(function(ex) { return (ex.sets || []).some(Boolean); })) {
         sessionDays[s.dayKey] = true;
+        if (!sessionDetails[s.dayKey]) {
+          var title = s.programLabel || s.sessionLabel || 'Workout';
+          title = title.replace(/^Day\s*\d+\s*[·•—–-]\s*/gi, '').trim() || title;
+          var dur = s.duration_sec ? Math.round(s.duration_sec / 60) + ' min' : '';
+          sessionDetails[s.dayKey] = { title: title, dur: dur };
+        }
       }
     });
   } catch (e) {}
 
-  var trainedCount = 0;
-  var plannedCount = 0;
-  var dots = [];
-
-  for (var i = 0; i < 84; i++) {
-    var d = new Date(startMonday.getFullYear(), startMonday.getMonth(), startMonday.getDate() + i);
-    var y = d.getFullYear();
-    var m = (d.getMonth() + 1 < 10 ? '0' : '') + (d.getMonth() + 1);
-    var dayNum = (d.getDate() < 10 ? '0' : '') + d.getDate();
-    var key = y + '-' + m + '-' + dayNum;
-    var dDow = d.getDay();
-    var isTrainingDay = tdays.includes(dDow);
-    if (isTrainingDay && key <= todayStr) plannedCount++;
-
-    var rec = dayRecord(key);
-    var trained = !!sessionDays[key] || (rec && (rec.workoutDone || (rec.workout && Object.keys(rec.workout).some(function(k){return (rec.workout[k]||[]).some(Boolean);}))));
-    var isToday = (key === todayStr);
-
-    if (trained) trainedCount++;
-
-    var dotStyle = 'width:6px;height:6px;border-radius:50%;display:inline-block;box-sizing:border-box;';
-    if (trained && isToday) {
-      dotStyle += 'background:#C6F432;'; // today session = lime
-    } else if (trained) {
-      dotStyle += 'background:#F5F5F4;'; // trained = white
-    } else if (isToday) {
-      dotStyle += 'background:transparent;border:1.5px solid #F5F5F4;'; // today untrained = ring
-    } else if (key > todayStr) {
-      dotStyle += 'background:#222222;'; // future = empty
-    } else if (isTrainingDay) {
-      dotStyle += 'background:transparent;border:1px solid #55555A;'; // untrained = ring
-    } else {
-      dotStyle += 'background:#222222;'; // rest day = empty
-    }
-
-    dots.push('<span class="dot-cell" style="' + dotStyle + '" title="' + key + (trained ? ' (Trained)' : '') + '"></span>');
+  // Calculate this week count (Monday to Sunday)
+  var thisWeekCount = 0;
+  for (var di = 0; di < 7; di++) {
+    var cWd = new Date(currentWeekMonday.getFullYear(), currentWeekMonday.getMonth(), currentWeekMonday.getDate() + di);
+    var cKey = cWd.toISOString().slice(0, 10);
+    var rec = dayRecord(cKey);
+    var tr = !!sessionDays[cKey] || (rec && (rec.workoutDone || (rec.workout && Object.keys(rec.workout).some(function(k){return (rec.workout[k]||[]).some(Boolean);}))));
+    if (tr) thisWeekCount++;
   }
 
+  // Calculate streak: consecutive weeks with at least 1 session
+  var streak = 0;
+  var startW = thisWeekCount > 0 ? 11 : 10;
+  for (var sw = startW; sw >= 0; sw--) {
+    var countInW = 0;
+    for (var sdi = 0; sdi < 7; sdi++) {
+      var sD = new Date(startMonday.getFullYear(), startMonday.getMonth(), startMonday.getDate() + sw * 7 + sdi);
+      var sKey = sD.toISOString().slice(0, 10);
+      var sRec = dayRecord(sKey);
+      if (sessionDays[sKey] || (sRec && (sRec.workoutDone || (sRec.workout && Object.keys(sRec.workout).some(function(k){return (sRec.workout[k]||[]).some(Boolean);}))))) {
+        countInW++;
+      }
+    }
+    if (countInW > 0) streak++;
+    else break;
+  }
+  var streakText = streak > 0 ? (streak + '-week streak') : 'No streak yet';
+
+  var dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  var lettersRow = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;justify-items:center;align-items:center;margin-bottom:6px">'
+
+  var weekRows = [];
+  for (var w = 0; w < 12; w++) {
+    var monDate = new Date(startMonday.getFullYear(), startMonday.getMonth(), startMonday.getDate() + w * 7);
+    var monLabel = monthNames[monDate.getMonth()] + ' ' + monDate.getDate();
+    var dotsHTML = '';
+
+    for (var d = 0; d < 7; d++) {
+      var curDate = new Date(startMonday.getFullYear(), startMonday.getMonth(), startMonday.getDate() + w * 7 + d);
+      var y = curDate.getFullYear();
+      var m = (curDate.getMonth() + 1 < 10 ? '0' : '') + (curDate.getMonth() + 1);
+      var dayNum = (curDate.getDate() < 10 ? '0' : '') + curDate.getDate();
+      var key = y + '-' + m + '-' + dayNum;
+      var isToday = (key === todayStr);
+      var isFuture = (key > todayStr);
+
+      var rec2 = dayRecord(key);
+      var isTrained = !!sessionDays[key] || (rec2 && (rec2.workoutDone || (rec2.workout && Object.keys(rec2.workout).some(function(k){return (rec2.workout[k]||[]).some(Boolean);}))));
+
+      var dateReadout = dayNames[curDate.getDay()] + ' ' + curDate.getDate() + ' ' + monthNames[curDate.getMonth()];
+      var readoutText = '';
+      if (isTrained) {
+        var sInfo = sessionDetails[key] || {};
+        var wTitle = sInfo.title || 'Workout';
+        var wDur = sInfo.dur ? (' · ' + sInfo.dur) : '';
+        readoutText = dateReadout + ' · ' + wTitle + wDur;
+      } else {
+        readoutText = dateReadout + ' · Rest';
+      }
+
+      // Exactly four states:
+      // trained = white 8px dot (lime fill ONLY if today has a logged session)
+      // untrained past day = 4px #222 dot
+      // today = 8px ring (or lime fill if logged session)
+      // future days = not drawn. No rings for untrained.
+      var dotInner = '';
+      if (isFuture) {
+        dotInner = '<span style="width:8px;height:8px;display:inline-block;visibility:hidden"></span>';
+      } else if (isToday) {
+        if (isTrained) {
+          dotInner = '<span style="width:8px;height:8px;border-radius:50%;background:#C6F432;display:inline-block"></span>';
+        } else {
+          dotInner = '<span style="width:8px;height:8px;border-radius:50%;border:1.5px solid #F5F5F4;background:transparent;box-sizing:border-box;display:inline-block"></span>';
+        }
+      } else if (isTrained) {
+        dotInner = '<span style="width:8px;height:8px;border-radius:50%;background:#F5F5F4;display:inline-block"></span>';
+      } else {
+        dotInner = '<span style="width:4px;height:4px;border-radius:50%;background:#222222;display:inline-block"></span>';
+      }
+
+      dotsHTML += '<span class="dot-cell" data-date="' + key + '" data-readout="' + esc(readoutText) + '" style="display:flex;align-items:center;justify-content:center;height:16px;cursor:pointer">' + dotInner + '</span>';
+    }
+
+    weekRows.push('<div style="display:grid;grid-template-columns:52px repeat(7,1fr);gap:4px;align-items:center;margin-bottom:6px">'
+      + '<span style="font-size:11px;color:var(--text2,#8A8A8E);font-family:var(--font-display);font-variant-numeric:tabular-nums;line-height:1">' + esc(monLabel) + '</span>'
+      + dotsHTML
+      + '</div>');
+  }
+
+  var lettersRow = '<div style="display:grid;grid-template-columns:52px repeat(7,1fr);gap:4px;align-items:center;margin-bottom:6px">'
+    + '<div></div>'
     + dayLetters.map(function(ch) {
-      return '<span style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1">' + ch + '</span>';
+      return '<span style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1;text-align:center">' + ch + '</span>';
     }).join('')
     + '</div>';
 
-  var legendHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:10px;font-size:11px;color:#8A8A8E">'
-    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#F5F5F4;display:inline-block"></span> logged</span>'
-    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;border:1.5px solid #F5F5F4;background:transparent;display:inline-block"></span> today</span>'
-    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;border:1px solid #55555A;background:transparent;display:inline-block"></span> untrained</span>'
+  var legendHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:10px;font-size:11px;color:var(--text2,#8A8A8E)">'
+    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#F5F5F4;display:inline-block"></span> trained</span>'
+    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;border:1.5px solid #F5F5F4;background:transparent;box-sizing:border-box;display:inline-block"></span> today</span>'
+    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:4px;height:4px;border-radius:50%;background:#222222;display:inline-block"></span> rest</span>'
     + '</div>';
 
   return '<div style="margin-bottom:24px">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
-      + '<span class="t-label">Consistency · Last 12 weeks</span>'
-      + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + trainedCount + ' of ' + plannedCount + (plannedCount === 1 ? ' workout' : ' workouts') + '</span>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
+      + '<span style="font-size:15px;color:var(--text2,#8A8A8E);font-variant-numeric:tabular-nums">This week ' + thisWeekCount + ' / ' + weeklyTarget + '</span>'
+      + '<span style="font-size:15px;color:var(--text2,#8A8A8E)">' + esc(streakText) + '</span>'
     + '</div>'
     + lettersRow
-    + '<div class="dot-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;justify-items:center;align-items:center;padding:2px 0">'
-      + dots.join('')
+    + '<div class="dot-grid" style="display:flex;flex-direction:column">'
+      + weekRows.join('')
     + '</div>'
+    + '<div id="gridDotReadout" style="display:none;margin-top:8px;text-align:center;font-size:11px;color:#F5F5F4;background:#1C1C1F;padding:6px 12px;border-radius:8px;font-variant-numeric:tabular-nums;line-height:1.4"></div>'
     + legendHTML
     + '</div>';
 }
 
 export function renderRegression(reg, baseW) {
-  var slopeKg = reg.slope;
-  var ciKg = reg.ci;
-  var inR = slopeKg >= GAIN_LOW && slopeKg <= GAIN_HIGH;
+  var slopeKg = reg.slope, ciKg = reg.ci, inR = slopeKg >= GAIN_LOW && slopeKg <= GAIN_HIGH;
   var color = inR ? 'var(--sage-light)' : slopeKg < GAIN_LOW ? 'var(--amber-light)' : 'var(--rust-light)';
-  return '<div class="regression-card">'
-    +'<span class="eyebrow">trend estimate ('+reg.n+' weeks of data)</span>'
+  return '<div class="regression-card"><span class="eyebrow">trend estimate ('+reg.n+' weeks of data)</span>'
     +'<div class="regression-val" style="color:'+color+'">'+(slopeKg>=0?'+':'')+slopeKg.toFixed(3)+' kg/week</div>'
     +'<div class="regression-ci">95% CI: '+(slopeKg-ciKg).toFixed(3)+' to '+(slopeKg+ciKg).toFixed(3)+' kg/week</div>'
     +(inR ? '<div style="font-size:11px;color:var(--sage-light);margin-top:3px">'+ic('check','14')+' Within target band ('+GAIN_LOW+'–'+GAIN_HIGH+' kg/wk)</div>'
@@ -230,18 +278,15 @@ export function renderRegression(reg, baseW) {
 }
 
 export function buildExOptions() {
-  var prog = getActiveProgram();
-  var all = [];
+  var prog = getActiveProgram(), all = [], seen = {}, out = [];
   prog.forEach(function(s){ all = all.concat(s.exercises); });
-  var seen = {}; var out = [];
   all.forEach(function(e){ if(!seen[e.id]){ seen[e.id]=true; out.push(e); } });
   return out.map(function(e){ return '<option value="'+e.id+'">'+e.name+'</option>'; }).join('');
 }
 
 export function chartDefaults() {
   return {
-    responsive:true, maintainAspectRatio:false,
-    plugins:{legend:{display:false}},
+    responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
     scales:{
       x:{ticks:{color:'#8A8A8E',font:{family:'Space Grotesk',size:11}},grid:{display:false}},
       y:{ticks:{color:'#8A8A8E',font:{family:'Space Grotesk',size:11}},grid:{color:'rgba(255,255,255,0.05)'}}
@@ -253,8 +298,6 @@ export function destroyCharts() { Object.values(charts).forEach(function(c){if(c
 export function buildProgressCharts(records, weeklyWeights) {
   if(typeof Chart === 'undefined') return;
   destroyCharts();
-
-  // Weight chart
   var wc = document.getElementById('weightChart');
   if(wc) {
     if(weeklyWeights.length >= 2) {
@@ -262,17 +305,14 @@ export function buildProgressCharts(records, weeklyWeights) {
         labels:weeklyWeights.map(function(_,i){return 'Wk '+(i+1);}),
         datasets:[
           {data:weeklyWeights,borderColor:'#F5F5F4',backgroundColor:'rgba(245,245,244,0.06)',fill:true,tension:0.3,pointBackgroundColor:'#F5F5F4',pointRadius:4,borderWidth:2},
-          {data:weeklyWeights.map(function(){return null;}), borderColor:'transparent', fill:false, pointRadius:0}, // spacer
+          {data:weeklyWeights.map(function(){return null;}), borderColor:'transparent', fill:false, pointRadius:0}
         ]
       },options:chartDefaults()});
     } else {
       wc.style.display='none';
-      document.getElementById('weightEmpty').textContent='Log weight for 2+ weeks to see trend';
-      document.getElementById('weightEmpty').classList.remove('hidden');
+      if(document.getElementById('weightEmpty')) { document.getElementById('weightEmpty').textContent='Log weight for 2+ weeks to see trend'; document.getElementById('weightEmpty').classList.remove('hidden'); }
     }
   }
-
-  // Kcal chart (last 14 days)
   var kc = document.getElementById('kcalChart');
   if(kc) {
     if(records.length >= 2) {
@@ -280,31 +320,17 @@ export function buildProgressCharts(records, weeklyWeights) {
       charts.kcal = new Chart(kc, {type:'bar',data:{
         labels:last14.map(function(r){return r.key.slice(5);}),
         datasets:[
-          {data:last14.map(function(r){return r.kcal;}),backgroundColor:last14.map(function(r){
-            var dailyCt = getTargetsForDate(r.key).kcal;
-            return r.kcal>=dailyCt*0.9&&r.kcal<=dailyCt*1.15?'#F5F5F4':r.kcal>dailyCt*1.15?'#FF4D4F':'#1C1C1F';
-          }),borderRadius:3},
+          {data:last14.map(function(r){return r.kcal;}),backgroundColor:last14.map(function(r){ var dailyCt=getTargetsForDate(r.key).kcal; return r.kcal>=dailyCt*0.9&&r.kcal<=dailyCt*1.15?'#F5F5F4':r.kcal>dailyCt*1.15?'#FF4D4F':'#1C1C1F'; }),borderRadius:3},
           {type:'line',data:last14.map(function(r){return getTargetsForDate(r.key).kcal;}),borderColor:'#55555A',borderDash:[5,4],pointRadius:0,borderWidth:1.5,fill:false}
         ]
       },options:chartDefaults()});
-    } else {
-      kc.style.display='none';
-      if(document.getElementById('kcalEmpty')) {
-        document.getElementById('kcalEmpty').textContent='Log calories for 2+ days to see trend';
-        document.getElementById('kcalEmpty').classList.remove('hidden');
-      }
-    }
+    } else if(document.getElementById('kcalEmpty')) { kc.style.display='none'; document.getElementById('kcalEmpty').textContent='Log calories for 2+ days to see trend'; document.getElementById('kcalEmpty').classList.remove('hidden'); }
   }
-
-  // Protein chart (7-day rolling avg)
   var pc = document.getElementById('protChart');
   if(pc) {
     if(records.length >= 2) {
       var protData = records.map(function(r){return r.protein;});
-      var rolling = protData.map(function(_,i){
-        var slice = protData.slice(Math.max(0,i-6),i+1).filter(function(v){return v>0;});
-        return slice.length ? +(slice.reduce(function(a,b){return a+b;},0)/slice.length).toFixed(1) : null;
-      });
+      var rolling = protData.map(function(_,i){ var slice = protData.slice(Math.max(0,i-6),i+1).filter(function(v){return v>0;}); return slice.length ? +(slice.reduce(function(a,b){return a+b;},0)/slice.length).toFixed(1) : null; });
       charts.prot = new Chart(pc, {type:'line',data:{
         labels:records.map(function(r){return r.key.slice(5);}),
         datasets:[
@@ -312,39 +338,18 @@ export function buildProgressCharts(records, weeklyWeights) {
           {type:'line',data:records.map(function(r){return getTargetsForDate(r.key).protein;}),borderColor:'#55555A',borderDash:[5,4],pointRadius:0,borderWidth:1.5,fill:false}
         ]
       },options:chartDefaults()});
-    } else {
-      pc.style.display='none';
-      if(document.getElementById('protEmpty')) {
-        document.getElementById('protEmpty').textContent='Log protein for 2+ days to see trend';
-        document.getElementById('protEmpty').classList.remove('hidden');
-      }
-    }
+    } else if(document.getElementById('protEmpty')) { pc.style.display='none'; document.getElementById('protEmpty').textContent='Log protein for 2+ days to see trend'; document.getElementById('protEmpty').classList.remove('hidden'); }
   }
 }
 
 export function buildE1RMChart(exId, records) {
   if(typeof Chart === 'undefined') return;
   if(charts.e1rm) { charts.e1rm.destroy(); charts.e1rm=null; }
-  var points = [];
-  var ids = (typeof getEquivalentExerciseIds === 'function') ? getEquivalentExerciseIds(exId) : [exId];
-  var exObj = getExerciseData(exId) || {};
-  var isBW = isBodyweightExercise(exId, exObj.name);
-
+  var points = [], ids = (typeof getEquivalentExerciseIds === 'function') ? getEquivalentExerciseIds(exId) : [exId];
+  var exObj = getExerciseData(exId) || {}, isBW = isBodyweightExercise(exId, exObj.name);
   records.forEach(function(r){
-    var dayWo = dayRecord(r.key).workout || {};
-    var best = 0;
-    ids.forEach(function(id){
-      (dayWo[id] || []).forEach(function(s){
-        if (!s) return;
-        if (isBW) {
-          var reps = Number(s.reps) || 0;
-          if (reps > best) best = reps;
-        } else {
-          var e = calcE1RM(s.weight, s.reps);
-          if (e > best) best = e;
-        }
-      });
-    });
+    var dayWo = dayRecord(r.key).workout || {}, best = 0;
+    ids.forEach(function(id){ (dayWo[id] || []).forEach(function(s){ if(!s) return; if(isBW){ var reps=Number(s.reps)||0; if(reps>best) best=reps; } else { var e=calcE1RM(s.weight,s.reps); if(e>best) best=e; } }); });
     if(best > 0) points.push({key:r.key, val: isBW ? best : +best.toFixed(1)});
   });
   var ec = document.getElementById('e1rmChart');
@@ -362,8 +367,7 @@ export function buildLedger(records) {
   var grid = document.getElementById('ledger'); if(!grid) return;
   var colorMap={none:'#1C1C1F',under:'#1C1C1F',target:'#F5F5F4',aggressive:'#FF4D4F'};
   grid.innerHTML = records.map(function(r){
-    var dailyCt = getTargetsForDate(r.key).kcal;
-    var s = dayStatus(r.kcal, dailyCt);
+    var dailyCt = getTargetsForDate(r.key).kcal, s = dayStatus(r.kcal, dailyCt);
     return '<div class="ledger-cell" style="background:'+colorMap[s]+'" title="' + r.key + ': ' + r.kcal + ' kcal (target: ' + dailyCt + '), ' + r.protein + 'g protein"></div>';
   }).join('');
 }
