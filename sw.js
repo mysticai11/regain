@@ -1,5 +1,5 @@
 // sw.js — Tally service worker
-const CACHE = 'tally-v9';
+const CACHE = 'tally-v10';
 const LOCAL_ASSETS = [
   "./",
   "./index.html",

@@ -1,74 +1,105 @@
-/* Gym exercise editor modals: add/edit exercises in plan */
+/* Gym exercise editor modals: add, edit, and swap exercises in plan */
 
 import { profile } from "../../state.js";
 import { sv } from "../../storage.js";
-import { getActiveProgram, getExerciseData, getAllExercisesForMuscle } from "../../data/plan.js";
+import { getActiveProgram, getExerciseData, getAllExercisesForMuscle, ALTERNATES } from "../../data/plan.js";
 import { esc } from "../../lib/format.js";
 import { showToast } from "../../components/toast.js";
 
-export function openAddExerciseModal(onAdd) {
-  var quickLibrary = [
-    { name: 'Flat Bench Press', muscle: 'chest', sets: 2, reps: '6–10', rir: '1–2', rest: 150, cue: 'Chest', type: 'compound' },
-    { name: 'Incline Dumbbell Press', muscle: 'chest', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Upper chest', type: 'compound' },
-    { name: 'Chest Press Machine', muscle: 'chest', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Chest', type: 'machine' },
-    { name: 'Pec Deck Fly', muscle: 'chest', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Chest stretch', type: 'isolation' },
-    { name: 'Pull-ups', muscle: 'back,biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Lats & mid back', type: 'compound' },
-    { name: 'Chin-ups', muscle: 'back,biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Lats & biceps', type: 'compound' },
-    { name: 'Lat Pulldown', muscle: 'back', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Lats', type: 'cable' },
-    { name: 'Machine Row', muscle: 'back', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Mid back', type: 'compound' },
-    { name: 'Cable Row', muscle: 'back', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Mid back squeeze', type: 'machine' },
-    { name: 'Shoulder Press Machine', muscle: 'shoulders', sets: 2, reps: '6–10', rir: '1–2', rest: 120, cue: 'Deltoids', type: 'machine' },
-    { name: 'Lateral Raise Machine', muscle: 'shoulders', sets: 3, reps: '10–15', rir: '1–2', rest: 90, cue: 'Side delts', type: 'isolation' },
-    { name: 'Rear Delt Fly', muscle: 'shoulders', sets: 2, reps: '12–15', rir: '1–2', rest: 90, cue: 'Rear delts', type: 'isolation' },
-    { name: 'Leg Press', muscle: 'quads,glutes', sets: 2, reps: '8–12', rir: '1–2', rest: 150, cue: 'Quads & glutes', type: 'compound' },
-    { name: 'Romanian Deadlift', muscle: 'hamstrings', sets: 2, reps: '8–12', rir: '1–2', rest: 150, cue: 'Hamstrings & hinge', type: 'compound' },
-    { name: 'Leg Extension', muscle: 'quads', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Quads isolation', type: 'isolation' },
-    { name: 'Hamstring Curl', muscle: 'hamstrings', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Hamstrings isolation', type: 'isolation' },
-    { name: 'Standing Calf Raise', muscle: 'calves', sets: 3, reps: '12–20', rir: '1–2', rest: 60, cue: 'Calves stretch', type: 'isolation' },
-    { name: 'EZ-Bar Curl', muscle: 'biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Biceps peak', type: 'isolation' },
-    { name: 'Incline Dumbbell Curl', muscle: 'biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Biceps stretch', type: 'isolation' },
-    { name: 'Hammer Curl', muscle: 'forearms', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Brachialis & forearms', type: 'isolation' },
-    { name: 'Wrist Curl', muscle: 'forearms', sets: 2, reps: '12–20', rir: '1–2', rest: 60, cue: 'Forearms flexors', type: 'isolation' },
-    { name: 'Wrist Extension', muscle: 'forearms', sets: 2, reps: '12–20', rir: '1–2', rest: 60, cue: 'Forearms extensors', type: 'isolation' },
-    { name: 'Triceps Pushdown', muscle: 'triceps', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Triceps lock', type: 'isolation' },
-    { name: 'Overhead Triceps Extension', muscle: 'triceps', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Triceps overhead', type: 'isolation' }
-  ];
+export var BASE_EXERCISE_LIBRARY = [
+  { id: 'flat_bench', name: 'Flat Bench Press', muscle: 'chest', sets: 2, reps: '6–10', rir: '1–2', rest: 150, cue: 'Chest', type: 'compound' },
+  { id: 'incline_db_press', name: 'Incline Dumbbell Press', muscle: 'chest', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Upper chest', type: 'compound' },
+  { id: 'machine_chest_press', name: 'Chest Press Machine', muscle: 'chest', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Chest', type: 'machine' },
+  { id: 'pec_deck_fly', name: 'Pec Deck Fly', muscle: 'chest', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Chest stretch', type: 'isolation' },
+  { id: 'pull_ups', name: 'Pull-ups', muscle: 'back,biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Lats & mid back', type: 'compound' },
+  { id: 'chin_ups', name: 'Chin-ups', muscle: 'back,biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Lats & biceps', type: 'compound' },
+  { id: 'lat_pulldown', name: 'Lat Pulldown', muscle: 'back', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Lats', type: 'cable' },
+  { id: 'machine_row', name: 'Machine Row', muscle: 'back', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Mid back', type: 'compound' },
+  { id: 'cable_row', name: 'Cable Row', muscle: 'back', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Mid back squeeze', type: 'machine' },
+  { id: 'db_row', name: 'Dumbbell Row', muscle: 'back,biceps', sets: 4, reps: '10–12', rir: '1–2', rest: 120, cue: '2 min rest', type: 'compound' },
+  { id: 'shoulder_press_machine', name: 'Shoulder Press Machine', muscle: 'shoulders', sets: 2, reps: '6–10', rir: '1–2', rest: 120, cue: 'Deltoids', type: 'machine' },
+  { id: 'lateral_raise_machine', name: 'Lateral Raise Machine', muscle: 'shoulders', sets: 3, reps: '10–15', rir: '1–2', rest: 90, cue: 'Side delts', type: 'isolation' },
+  { id: 'db_lateral', name: 'Dumbbell Lateral Raise', muscle: 'shoulders', sets: 3, reps: '15–20', rir: '1–2', rest: 60, cue: '60s rest', type: 'isolation' },
+  { id: 'rear_delt_fly', name: 'Rear Delt Fly', muscle: 'shoulders', sets: 2, reps: '12–15', rir: '1–2', rest: 90, cue: 'Rear delts', type: 'isolation' },
+  { id: 'leg_press', name: 'Leg Press', muscle: 'quads,glutes', sets: 2, reps: '8–12', rir: '1–2', rest: 150, cue: 'Quads & glutes', type: 'compound' },
+  { id: 'hack_squat', name: 'Hack Squat', muscle: 'quads,glutes', sets: 4, reps: '10–12', rir: '1–2', rest: 150, cue: '2.5 min rest', type: 'compound' },
+  { id: 'romanian_deadlift', name: 'Romanian Deadlift', muscle: 'hamstrings', sets: 2, reps: '8–12', rir: '1–2', rest: 150, cue: 'Hamstrings & hinge', type: 'compound' },
+  { id: 'leg_extension', name: 'Leg Extension', muscle: 'quads', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Quads isolation', type: 'isolation' },
+  { id: 'hamstring_curl', name: 'Hamstring Curl', muscle: 'hamstrings', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Hamstrings isolation', type: 'isolation' },
+  { id: 'standing_calf_raise', name: 'Standing Calf Raise', muscle: 'calves', sets: 3, reps: '12–20', rir: '1–2', rest: 60, cue: 'Calves stretch', type: 'isolation' },
+  { id: 'ez_bar_curl', name: 'EZ-Bar Curl', muscle: 'biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Biceps peak', type: 'isolation' },
+  { id: 'incline_db_curl', name: 'Incline Dumbbell Curl', muscle: 'biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Biceps stretch', type: 'isolation' },
+  { id: 'hammer_curl', name: 'Hammer Curl', muscle: 'forearms', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Brachialis & forearms', type: 'isolation' },
+  { id: 'wrist_curl', name: 'Wrist Curl', muscle: 'forearms', sets: 2, reps: '12–20', rir: '1–2', rest: 60, cue: 'Forearms flexors', type: 'isolation' },
+  { id: 'wrist_extension', name: 'Wrist Extension', muscle: 'forearms', sets: 2, reps: '12–20', rir: '1–2', rest: 60, cue: 'Forearms extensors', type: 'isolation' },
+  { id: 'triceps_pushdown', name: 'Triceps Pushdown', muscle: 'triceps', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Triceps lock', type: 'isolation' },
+  { id: 'overhead_triceps_extension', name: 'Overhead Triceps Extension', muscle: 'triceps', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Triceps overhead', type: 'isolation' }
+];
 
-  var quickChipsHTML = quickLibrary.map(function(item, idx) {
-    return '<button type="button" class="chip" data-quick-ex-idx="' + idx + '" style="font-size:11px;padding:4px 8px">' + item.name + '</button>';
+export function getFullExerciseCatalog() {
+  var seen = {};
+  var list = [];
+  function add(item) {
+    if (!item || !item.name) return;
+    var norm = item.name.toLowerCase().trim();
+    if (seen[norm]) return;
+    seen[norm] = true;
+    var id = item.id || norm.replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    list.push({
+      id: id,
+      name: item.name,
+      muscle: item.muscle || 'other',
+      sets: item.sets || 2,
+      reps: item.reps || '8–12',
+      rir: item.rir || '1–2',
+      rest: item.rest != null ? item.rest : 90,
+      cue: item.cue || '',
+      weightIncrement: item.weightIncrement || 2.5,
+      type: item.type || 'compound'
+    });
+  }
+  BASE_EXERCISE_LIBRARY.forEach(add);
+  if (Array.isArray(ALTERNATES)) ALTERNATES.forEach(add);
+  var prog = getActiveProgram();
+  if (Array.isArray(prog)) {
+    prog.forEach(function(day) {
+      if (Array.isArray(day.exercises)) day.exercises.forEach(add);
+    });
+  }
+  return list;
+}
+
+export function openAddExerciseModal(onAdd) {
+  var quickLibrary = BASE_EXERCISE_LIBRARY;
+  var quickChipsHTML = quickLibrary.slice(0, 16).map(function(item, idx) {
+    return '<button type="button" class="chip" data-quick-ex-idx="' + idx + '" style="font-size:11px;padding:4px 8px;border-radius:8px;background:#1C1C1F;border:none;color:#F5F5F4;cursor:pointer">' + item.name + '</button>';
   }).join('');
 
   var modal = document.createElement('div');
   modal.className = 'overlay';
   modal.style.zIndex = '9999';
-  modal.innerHTML = '<div class="sheet" style="max-height:88vh;overflow-y:auto">'
+  modal.innerHTML = '<div class="sheet" style="max-height:88vh;overflow-y:auto;background:#141416;border-radius:20px 20px 0 0;padding:20px">'
     + '<div class="sheet-handle"></div>'
-    + '<div class="sheet-title">Add Exercise</div>'
-    + '<div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">Tap a popular exercise to autofill, or type custom details below:</div>'
-    + '<div style="display:flex;gap:5px;flex-wrap:wrap;max-height:100px;overflow-y:auto;padding:6px;background:var(--surface-raised);border-radius:8px;border:1px solid var(--border);margin-bottom:12px">'
+    + '<div class="sheet-title" style="font-size:28px;font-weight:600;color:#F5F5F4;margin-bottom:8px">Add Exercise</div>'
+    + '<div style="font-size:11px;color:#8A8A8E;margin-bottom:8px">Tap a popular exercise to autofill, or type custom details:</div>'
+    + '<div style="display:flex;gap:6px;flex-wrap:wrap;max-height:80px;overflow-y:auto;padding:6px 0;margin-bottom:12px">'
       + quickChipsHTML
     + '</div>'
-    + '<label class="eyebrow">Exercise Name</label>'
-    + '<input type="text" id="newExName" placeholder="e.g. Incline Dumbbell Press">'
-    + '<label class="eyebrow" style="margin-top:10px">Target Muscle Group</label>'
-    + '<input type="text" id="newExMuscle" placeholder="e.g. chest, back, shoulders, quads, biceps, triceps">'
-    + '<div style="display:flex;gap:10px;margin-top:10px">'
-      + '<div style="flex:1"><label class="eyebrow">Sets</label><input type="number" id="newExSets" value="2" min="1" max="10"></div>'
-      + '<div style="flex:1"><label class="eyebrow">Rep Range</label><input type="text" id="newExReps" value="8–12" placeholder="e.g. 6–10, 8–12"></div>'
+    + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;margin-bottom:4px">Exercise Name</label>'
+    + '<input type="text" id="newExName" placeholder="e.g. Incline Dumbbell Press" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;margin-bottom:10px;box-sizing:border-box">'
+    + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;margin-bottom:4px">Target Muscle Group</label>'
+    + '<input type="text" id="newExMuscle" placeholder="e.g. chest, back, shoulders, quads, biceps" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;margin-bottom:10px;box-sizing:border-box">'
+    + '<div style="display:flex;gap:10px;margin-bottom:10px">'
+      + '<div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;margin-bottom:4px">Sets</label><input type="number" id="newExSets" value="2" min="1" max="10" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div>'
+      + '<div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;margin-bottom:4px">Reps</label><input type="text" id="newExReps" value="8–12" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div>'
     + '</div>'
-    + '<div style="display:flex;gap:10px;margin-top:10px">'
-      + '<div style="flex:1"><label class="eyebrow">Target RIR</label><input type="text" id="newExRir" value="1–2" placeholder="e.g. 1–2"></div>'
-      + '<div style="flex:1"><label class="eyebrow">Rest Seconds</label><input type="number" id="newExRest" value="90" min="0" step="15"></div>'
+    + '<div style="display:flex;gap:10px;margin-bottom:10px">'
+      + '<div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;margin-bottom:4px">Rest Seconds</label><input type="number" id="newExRest" value="90" min="0" step="15" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div>'
+      + '<div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;margin-bottom:4px">Type</label><select id="newExType" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 12px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"><option value="machine">Machine</option><option value="compound" selected>Compound</option><option value="isolation">Isolation</option><option value="cable">Cable</option></select></div>'
     + '</div>'
-    + '<div style="display:flex;gap:10px;margin-top:10px">'
-      + '<div style="flex:1"><label class="eyebrow">Weight +kg</label><input type="number" step="0.25" id="newExInc" value="2.5"></div>'
-      + '<div style="flex:1"><label class="eyebrow">Type</label><select id="newExType"><option value="machine">Machine</option><option value="compound" selected>Compound</option><option value="isolation">Isolation</option><option value="cable">Cable</option></select></div>'
-    + '</div>'
-    + '<label class="eyebrow" style="margin-top:10px">Notes / Cue</label>'
-    + '<input type="text" id="newExCue" placeholder="optional cue (e.g. full stretch, pause at bottom)">'
-    + '<div style="display:flex;gap:10px;margin-top:16px">'
-      + '<button class="btn" id="cancelAddExBtn" style="flex:1">Cancel</button>'
-      + '<button class="btn btn-primary" id="confirmAddExBtn" style="flex:1">Add Exercise</button>'
+    + '<div style="display:flex;gap:12px;margin-top:16px">'
+      + '<button type="button" class="btn" id="cancelAddExBtn" style="flex:1;height:48px;border-radius:12px;background:#1C1C1F;color:#8A8A8E;border:none;font-size:15px;cursor:pointer">Cancel</button>'
+      + '<button type="button" class="btn" id="confirmAddExBtn" style="flex:1;height:48px;border-radius:12px;background:#F5F5F4;color:#0B0B0C;border:none;font-size:15px;font-weight:600;cursor:pointer">Add Exercise</button>'
     + '</div>'
   + '</div>';
   document.body.appendChild(modal);
@@ -81,9 +112,7 @@ export function openAddExerciseModal(onAdd) {
         modal.querySelector('#newExMuscle').value = item.muscle;
         modal.querySelector('#newExSets').value = item.sets;
         modal.querySelector('#newExReps').value = item.reps;
-        modal.querySelector('#newExRir').value = item.rir;
         modal.querySelector('#newExRest').value = item.rest;
-        modal.querySelector('#newExCue').value = item.cue || '';
         modal.querySelector('#newExType').value = item.type || 'compound';
       }
     };
@@ -96,11 +125,8 @@ export function openAddExerciseModal(onAdd) {
     var muscle = modal.querySelector('#newExMuscle').value.trim() || 'other';
     var sets = parseInt(modal.querySelector('#newExSets').value, 10) || 2;
     var reps = modal.querySelector('#newExReps').value.trim() || '8–12';
-    var rir = modal.querySelector('#newExRir').value.trim() || '1–2';
     var rest = parseInt(modal.querySelector('#newExRest').value, 10) || 90;
-    var inc = parseFloat(modal.querySelector('#newExInc').value) || 2.5;
     var type = modal.querySelector('#newExType').value || 'compound';
-    var cue = modal.querySelector('#newExCue').value.trim();
     var id = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
     modal.remove();
     onAdd({
@@ -109,10 +135,10 @@ export function openAddExerciseModal(onAdd) {
       muscle: muscle,
       sets: sets,
       reps: reps,
-      rir: rir,
+      rir: '1–2',
       rest: rest,
-      cue: cue,
-      weightIncrement: inc,
+      cue: '',
+      weightIncrement: 2.5,
       type: type
     });
   };
@@ -122,30 +148,24 @@ export function openEditExerciseModal(ex, onSave) {
   var modal = document.createElement('div');
   modal.className = 'overlay';
   modal.style.zIndex = '9999';
-  modal.innerHTML = '<div class="sheet" style="max-height:88vh;overflow-y:auto">'
+  modal.innerHTML = '<div class="sheet" style="max-height:88vh;overflow-y:auto;background:#141416;border-radius:20px 20px 0 0;padding:20px">'
     + '<div class="sheet-handle"></div>'
-    + '<div class="sheet-title">Edit Exercise</div>'
-    + '<label class="eyebrow" style="margin-top:8px">Exercise Name</label>'
-    + '<input type="text" id="editExName" value="' + esc(ex.name) + '">'
-    + '<label class="eyebrow" style="margin-top:10px">Target Muscle Group</label>'
-    + '<input type="text" id="editExMuscle" value="' + esc(ex.muscle || '') + '">'
-    + '<div style="display:flex;gap:10px;margin-top:10px">'
-      + '<div style="flex:1"><label class="eyebrow">Sets</label><input type="number" id="editExSets" value="' + (ex.sets || 2) + '" min="1" max="10"></div>'
-      + '<div style="flex:1"><label class="eyebrow">Rep Range</label><input type="text" id="editExReps" value="' + esc(ex.reps || '8–12') + '"></div>'
+    + '<div class="sheet-title" style="font-size:28px;font-weight:600;color:#F5F5F4;margin-bottom:12px">Edit Exercise</div>'
+    + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;margin-bottom:4px">Exercise Name</label>'
+    + '<input type="text" id="editExName" value="' + esc(ex.name) + '" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;margin-bottom:10px;box-sizing:border-box">'
+    + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;margin-bottom:4px">Target Muscle Group</label>'
+    + '<input type="text" id="editExMuscle" value="' + esc(ex.muscle || '') + '" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;margin-bottom:10px;box-sizing:border-box">'
+    + '<div style="display:flex;gap:10px;margin-bottom:10px">'
+      + '<div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;margin-bottom:4px">Sets</label><input type="number" id="editExSets" value="' + (ex.sets || 2) + '" min="1" max="10" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div>'
+      + '<div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;margin-bottom:4px">Reps</label><input type="text" id="editExReps" value="' + esc(ex.reps || '8–12') + '" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div>'
     + '</div>'
-    + '<div style="display:flex;gap:10px;margin-top:10px">'
-      + '<div style="flex:1"><label class="eyebrow">Target RIR</label><input type="text" id="editExRir" value="' + esc(ex.rir || '1–2') + '"></div>'
-      + '<div style="flex:1"><label class="eyebrow">Rest Seconds</label><input type="number" id="editExRest" value="' + (ex.rest != null ? ex.rest : 90) + '" min="0" step="15"></div>'
+    + '<div style="display:flex;gap:10px;margin-bottom:10px">'
+      + '<div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;margin-bottom:4px">Rest Seconds</label><input type="number" id="editExRest" value="' + (ex.rest != null ? ex.rest : 90) + '" min="0" step="15" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div>'
+      + '<div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;margin-bottom:4px">Type</label><select id="editExType" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 12px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"><option value="machine"' + (ex.type === 'machine' ? ' selected' : '') + '>Machine</option><option value="compound"' + (ex.type === 'compound' || !ex.type ? ' selected' : '') + '>Compound</option><option value="isolation"' + (ex.type === 'isolation' ? ' selected' : '') + '>Isolation</option><option value="cable"' + (ex.type === 'cable' ? ' selected' : '') + '>Cable</option></select></div>'
     + '</div>'
-    + '<div style="display:flex;gap:10px;margin-top:10px">'
-      + '<div style="flex:1"><label class="eyebrow">Weight +kg</label><input type="number" step="0.25" id="editExInc" value="' + (ex.weightIncrement || 2.5) + '"></div>'
-      + '<div style="flex:1"><label class="eyebrow">Type</label><select id="editExType"><option value="machine"' + (ex.type === 'machine' ? ' selected' : '') + '>Machine</option><option value="compound"' + (ex.type === 'compound' || !ex.type ? ' selected' : '') + '>Compound</option><option value="isolation"' + (ex.type === 'isolation' ? ' selected' : '') + '>Isolation</option><option value="cable"' + (ex.type === 'cable' ? ' selected' : '') + '>Cable</option></select></div>'
-    + '</div>'
-    + '<label class="eyebrow" style="margin-top:10px">Notes / Cue</label>'
-    + '<input type="text" id="editExCue" value="' + esc(ex.cue || '') + '">'
-    + '<div style="display:flex;gap:10px;margin-top:16px">'
-      + '<button class="btn" id="cancelEditExBtn" style="flex:1">Cancel</button>'
-      + '<button class="btn btn-primary" id="confirmEditExBtn" style="flex:1">Save Changes</button>'
+    + '<div style="display:flex;gap:12px;margin-top:16px">'
+      + '<button type="button" class="btn" id="cancelEditExBtn" style="flex:1;height:48px;border-radius:12px;background:#1C1C1F;color:#8A8A8E;border:none;font-size:15px;cursor:pointer">Cancel</button>'
+      + '<button type="button" class="btn" id="confirmEditExBtn" style="flex:1;height:48px;border-radius:12px;background:#F5F5F4;color:#0B0B0C;border:none;font-size:15px;font-weight:600;cursor:pointer">Save Changes</button>'
     + '</div>'
   + '</div>';
   document.body.appendChild(modal);
@@ -158,12 +178,120 @@ export function openEditExerciseModal(ex, onSave) {
     ex.muscle = modal.querySelector('#editExMuscle').value.trim() || 'other';
     ex.sets = parseInt(modal.querySelector('#editExSets').value, 10) || 2;
     ex.reps = modal.querySelector('#editExReps').value.trim() || '8–12';
-    ex.rir = modal.querySelector('#editExRir').value.trim() || '1–2';
     ex.rest = parseInt(modal.querySelector('#editExRest').value, 10) || 90;
-    ex.weightIncrement = parseFloat(modal.querySelector('#editExInc').value) || 2.5;
     ex.type = modal.querySelector('#editExType').value || 'compound';
-    ex.cue = modal.querySelector('#editExCue').value.trim();
     modal.remove();
     onSave(ex);
   };
+}
+
+export function openSwapExerciseModal(currentEx, onSwap) {
+  var catalog = getFullExerciseCatalog();
+  var modal = document.createElement('div');
+  modal.className = 'overlay';
+  modal.style.zIndex = '9999';
+
+  var selectedMuscle = 'all';
+  var searchQuery = '';
+  var muscles = ['all', 'chest', 'back', 'shoulders', 'quads', 'hamstrings', 'biceps', 'triceps', 'calves', 'forearms'];
+
+  function renderList() {
+    var filtered = catalog.filter(function(item) {
+      if (selectedMuscle !== 'all' && !item.muscle.toLowerCase().includes(selectedMuscle)) return false;
+      if (searchQuery) {
+        var q = searchQuery.toLowerCase();
+        return item.name.toLowerCase().includes(q) || item.muscle.toLowerCase().includes(q);
+      }
+      return true;
+    });
+
+    var rows = filtered.map(function(item) {
+      var isCurrent = (currentEx && (currentEx.id === item.id || currentEx.name.toLowerCase() === item.name.toLowerCase()));
+      return '<div class="list-row" data-swap-pick="' + esc(item.id) + '" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #222;cursor:pointer">'
+        + '<div style="flex:1;min-width:0;padding-right:12px">'
+          + '<div style="font-size:17px;font-weight:500;color:#F5F5F4;line-height:1.25">' + esc(item.name) + '</div>'
+          + '<div style="font-size:15px;color:#8A8A8E;margin-top:2px">' + esc(item.muscle) + ' · ' + (item.type || 'compound') + '</div>'
+        + '</div>'
+        + (isCurrent
+            ? '<span style="font-size:17px;font-weight:700;color:#F5F5F4">✓</span>'
+            : '<span style="font-size:15px;color:#F5F5F4;font-weight:500">Select</span>')
+        + '</div>';
+    }).join('');
+
+    var container = modal.querySelector('#swapListContainer');
+    if (container) {
+      container.innerHTML = rows || '<div style="font-size:15px;color:#8A8A8E;padding:24px 0;text-align:center">No matching exercises found</div>';
+      attachRowEvents();
+    }
+  }
+
+  function attachRowEvents() {
+    modal.querySelectorAll('[data-swap-pick]').forEach(function(row) {
+      row.onclick = function() {
+        var exId = row.dataset.swapPick;
+        var chosen = catalog.find(function(c) { return c.id === exId; });
+        if (!chosen) return;
+        var swapped = {
+          id: chosen.id,
+          name: chosen.name,
+          muscle: chosen.muscle,
+          sets: (currentEx && currentEx.sets) || chosen.sets || 2,
+          reps: (currentEx && currentEx.reps) || chosen.reps || '8–12',
+          rir: (currentEx && currentEx.rir) || chosen.rir || '1–2',
+          rest: (currentEx && currentEx.rest != null) ? currentEx.rest : (chosen.rest || 90),
+          cue: chosen.cue || (currentEx && currentEx.cue) || '',
+          weightIncrement: chosen.weightIncrement || (currentEx && currentEx.weightIncrement) || 2.5,
+          type: chosen.type || (currentEx && currentEx.type) || 'compound'
+        };
+        modal.remove();
+        onSwap(swapped);
+        showToast('Swapped to ' + chosen.name, 'ok');
+      };
+    });
+  }
+
+  var chipsHTML = muscles.map(function(m) {
+    var label = m.charAt(0).toUpperCase() + m.slice(1);
+    var act = (m === selectedMuscle);
+    return '<button type="button" class="chip" data-muscle-chip="' + m + '" style="font-size:11px;padding:6px 10px;border-radius:12px;background:' + (act ? '#F5F5F4' : '#1C1C1F') + ';color:' + (act ? '#0B0B0C' : '#8A8A8E') + ';border:none;cursor:pointer;white-space:nowrap">' + label + '</button>';
+  }).join('');
+
+  modal.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%;max-height:85vh;overflow-y:auto">'
+    + '<div class="sheet-handle"></div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">Swap Exercise</div>'
+      + '<button type="button" class="btn-text-action" id="closeSwapModalBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">Close</button>'
+    + '</div>'
+    + '<div style="font-size:15px;color:#8A8A8E;margin-bottom:12px">Replacing: <span style="color:#F5F5F4;font-weight:500">' + esc(currentEx ? currentEx.name : 'Exercise') + '</span></div>'
+    + '<input type="text" id="swapExSearchInput" placeholder="Search exercises..." style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;margin-bottom:10px;box-sizing:border-box">'
+    + '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:10px">' + chipsHTML + '</div>'
+    + '<div id="swapListContainer" style="max-height:48vh;overflow-y:auto"></div>'
+    + '</div>';
+
+  document.body.appendChild(modal);
+
+  modal.querySelector('#closeSwapModalBtn').onclick = function() { modal.remove(); };
+  modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+
+  var searchInp = modal.querySelector('#swapExSearchInput');
+  if (searchInp) {
+    searchInp.oninput = function() {
+      searchQuery = (searchInp.value || '').trim();
+      renderList();
+    };
+  }
+
+  modal.querySelectorAll('[data-muscle-chip]').forEach(function(chip) {
+    chip.onclick = function() {
+      selectedMuscle = chip.dataset.muscleChip;
+      modal.querySelectorAll('[data-muscle-chip]').forEach(function(c) {
+        var isAct = (c.dataset.muscleChip === selectedMuscle);
+        c.style.background = isAct ? '#F5F5F4' : '#1C1C1F';
+        c.style.color = isAct ? '#0B0B0C' : '#8A8A8E';
+      });
+      renderList();
+    };
+  });
+
+  renderList();
 }

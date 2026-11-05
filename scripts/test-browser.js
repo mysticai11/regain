@@ -249,6 +249,48 @@ server.listen(8097, async () => {
   const todayLen = await evalExpr('document.getElementById("content")?.innerHTML.length');
   console.log('Today content length:', todayLen);
 
+  console.log('Testing Settings Plan Editor (Swap, Add, Reposition)...');
+  await evalExpr(`
+    (async function() {
+      const settingsMod = await import('./js/screens/settings.js');
+      settingsMod.openSettings();
+      await new Promise(r => setTimeout(r, 400));
+      document.getElementById('openPlanFromSettingsBtn')?.click();
+    })()
+  `);
+  await new Promise(r => setTimeout(r, 600));
+
+  const planEditorCheck = await evalExpr(`
+    (function() {
+      const hasPlanEditor = !!document.querySelector('.sheet');
+      const addBtns = document.querySelectorAll('[data-add-ex-day]').length;
+      const swapBtns = document.querySelectorAll('[data-ex-swap]').length;
+      const upBtns = document.querySelectorAll('[data-ex-up]').length;
+      const downBtns = document.querySelectorAll('[data-ex-down]').length;
+      const saveBtn = !!document.getElementById('saveCloseSplitBtn');
+
+      // Test repositioning: click Down on first exercise
+      const firstDown = document.querySelector('[data-ex-down="0,0"]');
+      if (firstDown) firstDown.click();
+
+      // Click save
+      const saveB = document.getElementById('saveCloseSplitBtn');
+      if (saveB) saveB.click();
+
+      const profile = JSON.parse(localStorage.getItem('rg_profile') || '{}');
+      return {
+        hasPlanEditor,
+        addBtns,
+        swapBtns,
+        upBtns,
+        downBtns,
+        saveBtn,
+        hasSavedActiveSplit: Array.isArray(profile.activeSplitData) && profile.activeSplitData.length > 0
+      };
+    })()
+  `);
+  console.log('Plan editor verification:', planEditorCheck);
+
   console.log('Console Errors:', errors);
   console.log('Recent Logs:', logs.slice(-10));
 
