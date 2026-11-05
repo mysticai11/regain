@@ -8,7 +8,7 @@ import { CAL_TARGET_REST, CAL_TARGET_GYM, PROT_TARGET_REST, PROT_TARGET_GYM, PRO
 import { showToast } from "../components/toast.js";
 import { openSplitManagerSheet } from "./gym/plan-editor.js";
 import { openCustomFoodsManager } from "./today/food-modal.js";
-import { todayKey, esc } from "../lib/format.js";
+import { todayKey, esc, currentWeight } from "../lib/format.js";
 
 export function openSettings() {
   var weekDaysMeta = [
@@ -25,6 +25,7 @@ export function openSettings() {
   var equipVal = profile.equipment || 'full';
   var dietVal = profile.dietaryPattern || 'nonveg';
   var goalVal = profile.goal || 'gain';
+  var expVal = profile.experience || 'novice';
   var shields = profile.shields || 0;
 
   var restKcal = profile.calTargetRest || CAL_TARGET_REST;
@@ -33,143 +34,184 @@ export function openSettings() {
   var gymProt = profile.protTargetGym || PROT_TARGET_GYM;
   var targetWeight = profile.targetWeight || 60.0;
 
+  var chevronSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8A8E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:12px;pointer-events:none"><path d="M6 9l6 6 6-6"/></svg>';
+
   var dayTogglesHTML = weekDaysMeta.map(function(d) {
     var active = tdays.includes(d.js);
-    return '<button type="button" class="day-toggle ' + (active ? 'active' : '') + '" data-day="' + d.js + '">' + d.name + '</button>';
+    var actStyle = active
+      ? 'background:rgba(198,244,50,0.12);border:1px solid #C6F432;color:#C6F432;font-weight:600;'
+      : 'background:transparent;border:1px solid #222;color:#8A8A8E;font-weight:500;';
+    return '<button type="button" class="day-toggle" data-day="' + d.js + '" style="' + actStyle + 'height:40px;border-radius:8px;font-size:15px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">' + d.name + '</button>';
   }).join('');
 
   overlay.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%;max-height:88vh;overflow-y:auto">'
     + '<div class="sheet-handle"></div>'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
       + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">Settings</div>'
       + '<button type="button" class="btn-text-action" id="closeSettingsBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">Close</button>'
     + '</div>'
 
-    // TARGETS
-    + '<div style="margin-top:16px"><span class="eyebrow" style="margin-bottom:10px">Targets</span></div>'
-    + '<div style="display:flex;gap:12px;margin-bottom:12px">'
-      + '<div style="flex:1">'
-        + '<label class="eyebrow">Rest-Day kcal</label>'
-        + '<div style="position:relative;display:flex;align-items:center">'
-          + '<input type="number" id="setTargetRest" value="' + restKcal + '" inputmode="numeric" style="text-align:right;padding-right:52px;width:100%">'
-          + '<span style="position:absolute;right:14px;color:#8A8A8E;font-size:15px;pointer-events:none">kcal</span>'
+    // TARGETS (Compact Card)
+    + '<div style="margin-top:20px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Targets</span></div>'
+    + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px">'
+      + '<div style="display:grid;grid-template-columns:84px 1fr 1fr;gap:8px;align-items:center;margin-bottom:10px">'
+        + '<div></div>'
+        + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;text-align:right;padding-right:8px">Rest day</div>'
+        + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;text-align:right;padding-right:8px">Gym day</div>'
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:84px 1fr 1fr;gap:8px;align-items:center;margin-bottom:8px">'
+        + '<div style="font-size:15px;color:#F5F5F4;font-weight:500">Calories</div>'
+        + '<div style="position:relative;height:40px;background:#141416;border-radius:8px;display:flex;align-items:center;padding:0 8px">'
+          + '<input type="number" id="setTargetRest" value="' + restKcal + '" inputmode="numeric" style="width:100%;height:100%;background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:right;padding-right:34px">'
+          + '<span style="position:absolute;right:8px;font-size:11px;color:#8A8A8E;pointer-events:none">kcal</span>'
+        + '</div>'
+        + '<div style="position:relative;height:40px;background:#141416;border-radius:8px;display:flex;align-items:center;padding:0 8px">'
+          + '<input type="number" id="setTargetGym" value="' + gymKcal + '" inputmode="numeric" style="width:100%;height:100%;background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:right;padding-right:34px">'
+          + '<span style="position:absolute;right:8px;font-size:11px;color:#8A8A8E;pointer-events:none">kcal</span>'
         + '</div>'
       + '</div>'
-      + '<div style="flex:1">'
-        + '<label class="eyebrow">Gym-Day kcal</label>'
-        + '<div style="position:relative;display:flex;align-items:center">'
-          + '<input type="number" id="setTargetGym" value="' + gymKcal + '" inputmode="numeric" style="text-align:right;padding-right:52px;width:100%">'
-          + '<span style="position:absolute;right:14px;color:#8A8A8E;font-size:15px;pointer-events:none">kcal</span>'
+      + '<div style="display:grid;grid-template-columns:84px 1fr 1fr;gap:8px;align-items:center;margin-bottom:12px">'
+        + '<div style="font-size:15px;color:#F5F5F4;font-weight:500">Protein</div>'
+        + '<div style="position:relative;height:40px;background:#141416;border-radius:8px;display:flex;align-items:center;padding:0 8px">'
+          + '<input type="number" id="setProtRest" value="' + restProt + '" inputmode="numeric" style="width:100%;height:100%;background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:right;padding-right:18px">'
+          + '<span style="position:absolute;right:8px;font-size:11px;color:#8A8A8E;pointer-events:none">g</span>'
+        + '</div>'
+        + '<div style="position:relative;height:40px;background:#141416;border-radius:8px;display:flex;align-items:center;padding:0 8px">'
+          + '<input type="number" id="setProtGym" value="' + gymProt + '" inputmode="numeric" style="width:100%;height:100%;background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:right;padding-right:18px">'
+          + '<span style="position:absolute;right:8px;font-size:11px;color:#8A8A8E;pointer-events:none">g</span>'
+        + '</div>'
+      + '</div>'
+      + '<div style="border-top:1px solid #222;padding-top:12px;display:flex;justify-content:space-between;align-items:center">'
+        + '<div style="font-size:15px;color:#F5F5F4;font-weight:500">Goal Weight</div>'
+        + '<div style="position:relative;height:40px;width:120px;background:#141416;border-radius:8px;display:flex;align-items:center;padding:0 8px">'
+          + '<input type="number" step="0.1" id="setTargetWeight" value="' + targetWeight + '" inputmode="decimal" style="width:100%;height:100%;background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:right;padding-right:24px">'
+          + '<span style="position:absolute;right:8px;font-size:11px;color:#8A8A8E;pointer-events:none">kg</span>'
         + '</div>'
       + '</div>'
     + '</div>'
-    + '<div style="display:flex;gap:12px;margin-bottom:12px">'
-      + '<div style="flex:1">'
-        + '<label class="eyebrow">Rest-Day Protein</label>'
-        + '<div style="position:relative;display:flex;align-items:center">'
-          + '<input type="number" id="setProtRest" value="' + restProt + '" inputmode="numeric" style="text-align:right;padding-right:32px;width:100%">'
-          + '<span style="position:absolute;right:14px;color:#8A8A8E;font-size:15px;pointer-events:none">g</span>'
-        + '</div>'
-      + '</div>'
-      + '<div style="flex:1">'
-        + '<label class="eyebrow">Gym-Day Protein</label>'
-        + '<div style="position:relative;display:flex;align-items:center">'
-          + '<input type="number" id="setProtGym" value="' + gymProt + '" inputmode="numeric" style="text-align:right;padding-right:32px;width:100%">'
-          + '<span style="position:absolute;right:14px;color:#8A8A8E;font-size:15px;pointer-events:none">g</span>'
-        + '</div>'
-      + '</div>'
-    + '</div>'
-    + '<div style="display:flex;gap:12px;margin-bottom:12px">'
-      + '<div style="flex:1">'
-        + '<label class="eyebrow">Goal Weight</label>'
-        + '<div style="position:relative;display:flex;align-items:center">'
-          + '<input type="number" step="0.1" id="setTargetWeight" value="' + targetWeight + '" inputmode="decimal" style="text-align:right;padding-right:36px;width:100%">'
-          + '<span style="position:absolute;right:14px;color:#8A8A8E;font-size:15px;pointer-events:none">kg</span>'
-        + '</div>'
-      + '</div>'
-      + '<div style="flex:1">'
-        + '<label class="eyebrow">Primary Goal</label>'
-        + '<select id="setGoal" style="width:100%">'
+
+    // TRAINING DAYS
+    + '<div style="margin-top:32px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Training days</span></div>'
+    + '<div class="day-toggles" style="display:grid;grid-template-columns:repeat(7, 1fr);gap:6px;width:100%;margin-bottom:24px">' + dayTogglesHTML + '</div>'
+
+    // PROFILE (Selects with chevron icon & same height)
+    + '<div style="margin-top:32px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Profile</span></div>'
+    + '<div style="margin-bottom:24px">'
+      + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Primary Goal</label>'
+      + '<div style="position:relative;display:flex;align-items:center;width:100%">'
+        + '<select id="setGoal" class="precision-select" style="width:100%;height:44px;background:#1C1C1F;color:#F5F5F4;border:1px solid #222;border-radius:8px;padding:0 36px 0 12px;font-size:15px;appearance:none;-webkit-appearance:none;cursor:pointer">'
           + '<option value="gain"' + (goalVal === 'gain' ? ' selected' : '') + '>Build muscle</option>'
           + '<option value="loss"' + (goalVal === 'loss' ? ' selected' : '') + '>Lose fat</option>'
           + '<option value="recomp"' + (goalVal === 'recomp' ? ' selected' : '') + '>Recomp</option>'
           + '<option value="strength"' + (goalVal === 'strength' ? ' selected' : '') + '>Strength</option>'
         + '</select>'
+        + chevronSVG
       + '</div>'
     + '</div>'
-
-    // TRAINING DAYS
-    + '<div style="margin-top:20px"><span class="eyebrow" style="margin-bottom:10px">Training days</span></div>'
-    + '<div class="day-toggles">' + dayTogglesHTML + '</div>'
+    + '<div style="margin-bottom:24px">'
+      + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Equipment Access</label>'
+      + '<div style="position:relative;display:flex;align-items:center;width:100%">'
+        + '<select id="setEquip" class="precision-select" style="width:100%;height:44px;background:#1C1C1F;color:#F5F5F4;border:1px solid #222;border-radius:8px;padding:0 36px 0 12px;font-size:15px;appearance:none;-webkit-appearance:none;cursor:pointer">'
+          + '<option value="full"' + (equipVal === 'full' ? ' selected' : '') + '>Full Gym</option>'
+          + '<option value="home"' + (equipVal === 'home' ? ' selected' : '') + '>Home Gym</option>'
+          + '<option value="db"' + (equipVal === 'db' ? ' selected' : '') + '>Dumbbells Only</option>'
+          + '<option value="body"' + (equipVal === 'body' ? ' selected' : '') + '>Bodyweight</option>'
+        + '</select>'
+        + chevronSVG
+      + '</div>'
+    + '</div>'
+    + '<div style="margin-bottom:24px">'
+      + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Dietary Pattern</label>'
+      + '<div style="position:relative;display:flex;align-items:center;width:100%">'
+        + '<select id="setDiet" class="precision-select" style="width:100%;height:44px;background:#1C1C1F;color:#F5F5F4;border:1px solid #222;border-radius:8px;padding:0 36px 0 12px;font-size:15px;appearance:none;-webkit-appearance:none;cursor:pointer">'
+          + '<option value="nonveg"' + (dietVal === 'nonveg' ? ' selected' : '') + '>Non-Vegetarian</option>'
+          + '<option value="eggitarian"' + (dietVal === 'eggitarian' ? ' selected' : '') + '>Eggitarian</option>'
+          + '<option value="veg"' + (dietVal === 'veg' ? ' selected' : '') + '>Vegetarian</option>'
+          + '<option value="vegan"' + (dietVal === 'vegan' ? ' selected' : '') + '>Vegan</option>'
+        + '</select>'
+        + chevronSVG
+      + '</div>'
+    + '</div>'
+    + '<div style="margin-bottom:24px">'
+      + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Experience tier</label>'
+      + '<div style="position:relative;display:flex;align-items:center;width:100%">'
+        + '<select id="setExp" class="precision-select" style="width:100%;height:44px;background:#1C1C1F;color:#F5F5F4;border:1px solid #222;border-radius:8px;padding:0 36px 0 12px;font-size:15px;appearance:none;-webkit-appearance:none;cursor:pointer">'
+          + '<option value="novice"' + (expVal === 'novice' ? ' selected' : '') + '>Novice / Intermediate</option>'
+          + '<option value="advanced"' + (expVal === 'advanced' ? ' selected' : '') + '>Advanced</option>'
+        + '</select>'
+        + chevronSVG
+      + '</div>'
+    + '</div>'
 
     // PLAN
-    + '<div style="margin-top:24px"><span class="eyebrow" style="margin-bottom:10px">Plan</span></div>'
-    + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #222">'
+    + '<div style="margin-top:32px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Plan</span></div>'
+    + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222">'
       + '<div>'
-        + '<div style="font-size:17px;font-weight:500;color:#F5F5F4">Workout Plan</div>'
-        + '<div style="font-size:15px;color:#8A8A8E;margin-top:2px">Custom split & exercises</div>'
+        + '<div style="font-size:15px;font-weight:500;color:#F5F5F4">Workout Plan</div>'
+        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Custom split & exercises</div>'
       + '</div>'
-      + '<button type="button" class="btn-text-action" id="openPlanFromSettingsBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Edit plan</button>'
+      + '<button type="button" class="btn" id="openPlanFromSettingsBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Edit plan</button>'
     + '</div>'
 
-    // PROFILE
-    + '<div style="margin-top:24px"><span class="eyebrow" style="margin-bottom:10px">Profile</span></div>'
-    + '<div style="margin-bottom:12px">'
-      + '<label class="eyebrow">Equipment Access</label>'
-      + '<select id="setEquip" style="width:100%">'
-        + '<option value="full"' + (equipVal === 'full' ? ' selected' : '') + '>Full Gym</option>'
-        + '<option value="home"' + (equipVal === 'home' ? ' selected' : '') + '>Home Gym</option>'
-        + '<option value="db"' + (equipVal === 'db' ? ' selected' : '') + '>Dumbbells Only</option>'
-        + '<option value="body"' + (equipVal === 'body' ? ' selected' : '') + '>Bodyweight</option>'
-      + '</select>'
-    + '</div>'
-    + '<div style="margin-bottom:12px">'
-      + '<label class="eyebrow">Dietary Pattern</label>'
-      + '<select id="setDiet" style="width:100%">'
-        + '<option value="nonveg"' + (dietVal === 'nonveg' ? ' selected' : '') + '>Non-Vegetarian</option>'
-        + '<option value="eggitarian"' + (dietVal === 'eggitarian' ? ' selected' : '') + '>Eggitarian</option>'
-        + '<option value="veg"' + (dietVal === 'veg' ? ' selected' : '') + '>Vegetarian</option>'
-        + '<option value="vegan"' + (dietVal === 'vegan' ? ' selected' : '') + '>Vegan</option>'
-      + '</select>'
-    + '</div>'
-    + '<div style="margin-bottom:12px">'
-      + '<label class="eyebrow">Experience tier</label>'
-      + '<select id="setExp" style="width:100%">'
-        + '<option value="novice"' + (profile.experience === 'novice' ? ' selected' : '') + '>Novice / Intermediate</option>'
-        + '<option value="advanced"' + (profile.experience === 'advanced' ? ' selected' : '') + '>Advanced</option>'
-      + '</select>'
-    + '</div>'
-
-    // ADVANCED (SectionLabel, not a triangle!)
-    + '<div style="margin-top:24px"><span class="eyebrow" style="margin-bottom:10px">Advanced</span></div>'
-    + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #222">'
-      + '<span style="font-size:17px;font-weight:500;color:#F5F5F4">' + shields + (shields === 1 ? ' shield' : ' shields') + '</span>'
-      + '<button type="button" class="btn-text-action" id="buyShieldBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer"' + (((profile.xp || 0) < 100) ? ' disabled' : '') + '>Buy · 100 XP</button>'
-    + '</div>'
-    + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #222">'
-      + '<span style="font-size:17px;font-weight:500;color:#F5F5F4">Data backup</span>'
+    // ADVANCED (Unified List-Rows with 36px action buttons)
+    + '<div style="margin-top:32px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Advanced</span></div>'
+    + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222">'
       + '<div>'
-        + '<button type="button" class="btn-text-action" id="exportBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Export</button>'
-        + '<span style="color:#55555A;margin:0 8px">·</span>'
-        + '<button type="button" class="btn-text-action" id="importBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Import</button>'
+        + '<div style="font-size:15px;font-weight:500;color:#F5F5F4">' + shields + (shields === 1 ? ' shield' : ' shields') + '</div>'
+        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Protects your streak if you miss a day</div>'
+      + '</div>'
+      + '<button type="button" class="btn" id="buyShieldBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#1C1C1F;color:' + (((profile.xp || 0) < 100) ? '#55555A' : '#F5F5F4') + ';font-size:15px;font-weight:600;border:1px solid #222;cursor:' + (((profile.xp || 0) < 100) ? 'not-allowed' : 'pointer') + '"' + (((profile.xp || 0) < 100) ? ' disabled' : '') + '>Buy · 100 XP</button>'
+    + '</div>'
+    + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222">'
+      + '<div>'
+        + '<div style="font-size:15px;font-weight:500;color:#F5F5F4">Custom foods</div>'
+        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Manage custom items & staples</div>'
+      + '</div>'
+      + '<button type="button" class="btn" id="editCustomFoodsBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Manage</button>'
+    + '</div>'
+    + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222">'
+      + '<div>'
+        + '<div style="font-size:15px;font-weight:500;color:#F5F5F4">Data backup</div>'
+        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Export or restore JSON data</div>'
+      + '</div>'
+      + '<div style="display:flex;gap:8px">'
+        + '<button type="button" class="btn" id="exportBtn" style="height:36px;padding:0 12px;border-radius:8px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Export</button>'
+        + '<button type="button" class="btn" id="importBtn" style="height:36px;padding:0 12px;border-radius:8px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Import</button>'
       + '</div>'
     + '</div>'
-    + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #222">'
-      + '<span style="font-size:17px;font-weight:500;color:#F5F5F4">Custom foods</span>'
-      + '<button type="button" class="btn-text-action" id="editCustomFoodsBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Manage</button>'
-    + '</div>'
-    + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #222">'
-      + '<span style="font-size:17px;font-weight:500;color:#FF4D4F">Reset all data</span>'
-      + '<button type="button" class="btn-text-action" id="resetBtn" style="color:#FF4D4F;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Reset</button>'
+
+    // DANGER ZONE
+    + '<div style="margin-top:32px">'
+      + '<div style="font-size:11px;font-weight:600;color:#FF4D4F;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Danger Zone</div>'
+      + '<div style="background:#141416;border:1px solid rgba(255,77,79,0.25);border-radius:12px;padding:14px;display:flex;justify-content:space-between;align-items:center">'
+        + '<div>'
+          + '<div style="font-size:15px;font-weight:500;color:#F5F5F4">Reset all data</div>'
+          + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Irreversibly delete all workout & nutrition logs</div>'
+        + '</div>'
+        + '<button type="button" id="resetBtn" style="height:36px;padding:0 14px;border-radius:8px;background:transparent;border:1px solid #FF4D4F;color:#FF4D4F;font-size:15px;font-weight:600;cursor:pointer">Reset</button>'
+      + '</div>'
     + '</div>'
 
-    // Bottom Save button
-    + '<div style="margin-top:24px">'
-      + '<button type="button" class="btn btn-primary" id="saveSettingsBtn" style="width:100%;height:48px;border-radius:12px;background:#C6F432;color:#0B0B0C;border:none;font-size:15px;font-weight:600;cursor:pointer">Save</button>'
+    // STICKY BOTTOM SAVE BUTTON
+    + '<div style="position:sticky;bottom:0;background:linear-gradient(to top, #141416 80%, transparent);padding-top:16px;margin-top:24px;z-index:10">'
+      + '<button type="button" class="btn btn-primary" id="saveSettingsBtn" disabled style="width:100%;height:48px;border-radius:12px;background:#C6F432;color:#0B0B0C;border:none;font-size:15px;font-weight:600;cursor:pointer;opacity:0.4;transition:all 0.2s ease">Save</button>'
     + '</div>'
     + '</div>';
 
   document.body.appendChild(overlay);
+
+  function markChanged() {
+    var saveBtn = overlay.querySelector('#saveSettingsBtn');
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.style.opacity = '1';
+    }
+  }
+
+  overlay.querySelectorAll('input, select').forEach(function(el) {
+    el.addEventListener('input', markChanged);
+    el.addEventListener('change', markChanged);
+  });
 
   overlay.querySelectorAll('.day-toggle').forEach(function(btn) {
     btn.addEventListener('click', function() {
@@ -184,7 +226,12 @@ export function openSettings() {
         tdays.push(d);
         tdays.sort(function(a,b){ return (a === 0 ? 7 : a) - (b === 0 ? 7 : b); });
       }
-      btn.classList.toggle('active', tdays.includes(d));
+      var isAct = tdays.includes(d);
+      btn.style.background = isAct ? 'rgba(198,244,50,0.12)' : 'transparent';
+      btn.style.border = isAct ? '1px solid #C6F432' : '1px solid #222';
+      btn.style.color = isAct ? '#C6F432' : '#8A8A8E';
+      btn.style.fontWeight = isAct ? '600' : '500';
+      markChanged();
     });
   });
 
@@ -210,9 +257,17 @@ export function openSettings() {
     profile.goal = nextGoal;
     profile.targetWeight = nextTarget || 60.0;
     sv('rg_profile', profile);
-    overlay.remove();
-    renderTab();
+
+    var saveBtn = overlay.querySelector('#saveSettingsBtn');
+    if (saveBtn) {
+      saveBtn.textContent = 'Saved';
+      saveBtn.disabled = true;
+    }
     showToast('Settings saved', 'ok');
+    setTimeout(function() {
+      overlay.remove();
+      renderTab();
+    }, 350);
   });
 
   overlay.querySelector('#buyShieldBtn').addEventListener('click', function() {
@@ -260,99 +315,7 @@ export function openSettings() {
   if (impBtn) impBtn.addEventListener('click', importData);
 }
 
-export function openSplitPreview() {
-  var val = document.getElementById('setSplit').value;
-  if(val === '5day' || val === '6day') {
-    openSheet('<div class="sheet-title">Custom routine</div><div style="font-size:15px;color:var(--text-secondary);line-height:1.5">This split starts empty. Choose your training days in Settings, then add each exercise, planned set count, rep range, and rest time from the Gym tab. Every set\'s weight and reps are entered manually when you train.</div>');
-    return;
-  }
-  var prog = val==='2day'?PROGRAM_2DAY:val==='4day'?PROGRAM_4DAY:PROGRAM_3DAY;
-  var overlay=document.createElement('div'); overlay.className='overlay';
-  var html = prog.map(function(s){
-    var exStr = s.exercises.map(function(e){ return '<div style="font-size:15px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between"><span>'+e.name+'</span><span style="font-size:11px;color:var(--text-muted)">'+e.muscle+'</span></div>'; }).join('');
-    return '<div style="margin-bottom:16px"><div style="font-weight:600;color:var(--text);margin-bottom:6px">'+s.label+'</div>'+exStr+'</div>';
-  }).join('');
-  overlay.innerHTML='<div class="sheet"><div class="sheet-handle"></div><div class="sheet-title" style="margin-bottom:12px">Split Preview</div>'+html+'<button class="btn" style="margin-top:16px;width:100%" id="closePreviewBtn">Close</button></div>';
-  document.body.appendChild(overlay);
-  overlay.querySelector('#closePreviewBtn').addEventListener('click',function(){overlay.remove();});
-}
-
-// ── Custom foods manager ───────────────────────────────────────────────────────
-
-export function renderOnboarding() {
-  document.getElementById('app').innerHTML =
-    '<div class="onboard">'
-    +'<div class="onboard-title">Tally</div>'
-    +'<div class="onboard-sub">One-time configuration. All data remains locally on this device.</div>'
-    
-    +'<label style="margin-top:16px">Your Name (optional)</label>'
-    +'<input type="text" id="obName" placeholder="e.g. Arjun">'
-    
-    +'<label style="margin-top:16px">Starting Weight (kg)</label>'
-    +'<input type="number" step="0.1" id="obWeight" value="54.0" placeholder="e.g. 54.0" inputmode="decimal">'
-    
-    +'<label style="margin-top:16px">Primary Goal</label>'
-    +'<select id="obGoal"><option value="gain">Build muscle / gain weight</option><option value="loss">Lose fat / lose weight</option><option value="recomp">Recomposition</option><option value="strength">Strength</option></select>'
-    +'<label style="margin-top:16px">Goal Weight (kg)</label>'
-    +'<input type="number" step="0.1" id="obTargetWeight" value="60.0" placeholder="e.g. 60.0" inputmode="decimal">'
-    
-    +'<label style="margin-top:16px">Equipment Access</label>'
-    +'<select id="obEquipment">'
-      +'<option value="full">Full Gym (Barbell, Dumbbells, Cables, Machines)</option>'
-      +'<option value="home">Home Gym (Barbell, Dumbbells, Bench)</option>'
-      +'<option value="db">Dumbbells Only</option>'
-      +'<option value="body">Bodyweight / Calisthenics</option>'
-    +'</select>'
-    
-    +'<label style="margin-top:16px">Dietary Pattern</label>'
-    +'<select id="obDiet">'
-      +'<option value="nonveg">Non-Vegetarian</option>'
-      +'<option value="eggitarian">Eggitarian</option>'
-      +'<option value="veg">Vegetarian</option>'
-      +'<option value="vegan">Vegan</option>'
-    +'</select>'
-    
-    +'<div class="small dim" style="margin-top:14px">Tally uses the preloaded 5-day split: Monday, Tuesday, Wednesday, Friday and Saturday.</div>'
-    
-    +'<button class="btn btn-primary" style="margin-top:28px" id="obStartBtn">Start tracking</button>'
-    +'</div>';
-
-  document.getElementById('obStartBtn').addEventListener('click',function(){
-    var name=(document.getElementById('obName').value.trim())||'You';
-    var w=parseFloat(document.getElementById('obWeight').value);
-    if(!w||w<30||w>250){showToast('Enter a valid starting weight','warn');return;}
-    var targetW=parseFloat(document.getElementById('obTargetWeight').value);
-    var goal=document.getElementById('obGoal').value;
-    if(!targetW||targetW<30||targetW>250||(goal==='loss'&&targetW>=w)||(goal!=='loss'&&targetW<=w)){showToast(goal==='loss'?'Loss goal must be below starting weight':'Goal weight must be above starting weight','warn');return;}
-    
-    var equip = document.getElementById('obEquipment').value;
-    var diet = document.getElementById('obDiet').value;
-    var newProfile = {
-      name: name,
-      startDate: todayKey(),
-      startWeight: w,
-      targetWeight: targetW,
-      goal: goal,
-      calTargetRest: goal === 'loss' ? 2500 : CAL_TARGET_REST,
-      calTargetGym: goal === 'loss' ? 2700 : CAL_TARGET_GYM,
-      protTargetRest: PROT_TARGET_REST,
-      protTargetGym: PROT_TARGET_GYM,
-      trainingDays: [1,2,3,5,6],
-      programSplit: 'iron5day',
-      equipment: equip,
-      dietaryPattern: diet,
-      experience: 'novice',
-      xp: 0,
-      shields: 1,
-      version: 4,
-      mealPlan: JSON.parse(JSON.stringify(DEFAULT_MEAL_PLAN))
-    };
-    setProfile(newProfile);
-    sv('rg_profile', newProfile);
-    var firstDay=dayRecord(todayKey()); firstDay.weight=w; saveDayRecord(todayKey(),firstDay);
-    renderApp();
-  });
-}
+export * from "./onboarding.js";
 
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 // HISTORY TAB
