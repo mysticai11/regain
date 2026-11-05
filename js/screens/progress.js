@@ -303,8 +303,8 @@ export function renderProgressSimple(mode, historySubTab) {
   document.getElementById('historyProgressBtn').onclick = function() { if (mode !== 'history') { triggerHaptic(); renderProgressSimple('history'); } };
 
   var aK = document.getElementById('progAvgKcalNum'), aP = document.getElementById('progAvgProtNum');
-  if (aK) animateNumber(aK, 0, parseInt(aK.dataset.value, 10) || 0, { duration: 600 });
-  if (aP) animateNumber(aP, 0, parseInt(aP.dataset.value, 10) || 0, { duration: 600 });
+  if (aK) { var vK = aK.dataset ? aK.dataset.value : (aK.getAttribute && aK.getAttribute('data-value')); animateNumber(aK, 0, parseInt(vK, 10) || 0, { duration: 600 }); }
+  if (aP) { var vP = aP.dataset ? aP.dataset.value : (aP.getAttribute && aP.getAttribute('data-value')); animateNumber(aP, 0, parseInt(vP, 10) || 0, { duration: 600 }); }
 
   if (mode === 'history') {
     wireHistoryScreenEvents(document.getElementById('content'), function(newTab) {

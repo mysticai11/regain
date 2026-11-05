@@ -270,7 +270,7 @@ export function animateNumber(el, from, to, opts) {
   }
   lastShownNumbers.set(key, to);
 
-  if (prefersReduced || duration <= 0) {
+  if (prefersReduced || duration <= 0 || typeof requestAnimationFrame === 'undefined') {
     el.textContent = to.toLocaleString();
     return;
   }

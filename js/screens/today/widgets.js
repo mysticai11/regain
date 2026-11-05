@@ -352,10 +352,12 @@ export function bindBackupNudgeEvents(exportFn) {
 export function triggerTodayAnimations() {
   var heroNumEl = document.getElementById('todayHeroCalNum');
   if (heroNumEl) {
-    animateNumber(heroNumEl, 0, parseInt(heroNumEl.dataset.value, 10) || 0, { duration: 600 });
+    var hVal = heroNumEl.dataset ? heroNumEl.dataset.value : heroNumEl.getAttribute && heroNumEl.getAttribute('data-value');
+    animateNumber(heroNumEl, 0, parseInt(hVal, 10) || 0, { duration: 600 });
   }
   var protNumEl = document.getElementById('todayProtNum');
   if (protNumEl) {
-    animateNumber(protNumEl, 0, parseInt(protNumEl.dataset.value, 10) || 0, { duration: 600 });
+    var pVal = protNumEl.dataset ? protNumEl.dataset.value : protNumEl.getAttribute && protNumEl.getAttribute('data-value');
+    animateNumber(protNumEl, 0, parseInt(pVal, 10) || 0, { duration: 600 });
   }
 }
