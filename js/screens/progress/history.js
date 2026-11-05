@@ -1,6 +1,7 @@
 /* Progress history: workout history bars, session PR badges, weight entries, and weekly digests */
 
-import { getWorkoutSessions, dayRecord, saveDayRecord } from "../../storage.js";
+import { profile } from "../../state.js";
+import { getWorkoutSessions, dayRecord, saveDayRecord, sv } from "../../storage.js";
 import { getExerciseData, isBodyweightExercise, getActiveProgram } from "../../data/plan.js";
 import { calcE1RM, getTargetsForDate, getLoggedWeeklyVolume, getWeeklyVolume } from "../../lib/calc.js";
 import { esc, todayKey } from "../../lib/format.js";
@@ -65,7 +66,7 @@ export function workoutHistoryHTML() {
   var dayNames = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
   var monthNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 
-  var html = '<div>' + todayInProgressHTML;
+  var html = '<div>';
 
   weekOrder.forEach(function(wk, wkIdx) {
     var group = weekGroups[wk];

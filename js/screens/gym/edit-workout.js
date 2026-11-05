@@ -1,8 +1,8 @@
 /* Gym edit workout sheet: edit logged sets and session details */
 
-import { dayRecord, saveDayRecord, getWorkoutSession, saveWorkoutSession, deleteWorkoutSession } from "../../storage.js";
+import { dayRecord, saveDayRecord, getWorkoutSession, saveWorkoutSession, deleteWorkoutSession, workoutSessionStore, sv, WORKOUT_SESSIONS_KEY } from "../../storage.js";
 import { getExerciseData } from "../../data/plan.js";
-import { esc } from "../../lib/format.js";
+import { esc, todayKey } from "../../lib/format.js";
 import { showToast } from "../../components/toast.js";
 
 export function openEditWorkoutSheet(sessionId) {

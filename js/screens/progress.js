@@ -11,7 +11,7 @@ import { showToast } from "../components/toast.js";
 import { openQuickEditSetModal } from "../components/quick-edit-modal.js";
 import { getWeightHistory, getProgressRows, getRollingWeightValues, buildDotConsistencyCalendarHTML, progressPlot, goalTrajectoryText } from "./progress/charts.js";
 import { getEquivalentExerciseIds } from "./gym/sets.js";
-import { workoutHistoryHTML, getResumeWorkoutCardHTML, nutritionProgressHTML, weeklyVolumeChart } from "./progress/history.js";
+import { workoutHistoryHTML, getResumeWorkoutCardHTML, nutritionProgressHTML, weeklyVolumeChart, editWeightEntry, deleteWeightEntry } from "./progress/history.js";
 import { openSessionMenu, openEditWorkoutSheet } from "./progress/session-editor.js";
 export * from "./progress/charts.js";
 export * from "./progress/history.js";
@@ -249,18 +249,6 @@ export function renderProgressSimple(mode) {
   var liftSelect=document.getElementById('liftSelect'); if(liftSelect) liftSelect.onchange=render;
   document.querySelectorAll('[data-edit-weight]').forEach(function(btn){btn.onclick=function(){editWeightEntry(btn.dataset.editWeight);};});
   document.querySelectorAll('[data-delete-weight]').forEach(function(btn){btn.onclick=function(){deleteWeightEntry(btn.dataset.deleteWeight);};});
-  document.querySelectorAll('[data-duration-session]').forEach(function(btn){
-    btn.onclick=function(){
-      var session=workoutSessions.find(function(item){return item.id===btn.dataset.durationSession;});
-      if(session) setManualSessionDuration(session.dayKey, session, session.programDay);
-    };
-  });
-  document.querySelectorAll('[data-delete-workout-session]').forEach(function(btn){
-    btn.onclick = function(){ deleteWorkoutSession(btn.dataset.deleteWorkoutSession); };
-  });
-  document.querySelectorAll('[data-edit-date-day]').forEach(function(btn){
-    btn.onclick = function(e){ if(e && e.stopPropagation) e.stopPropagation(); openEditDateAndDayModal(btn.dataset.editDateDay); };
-  });
   document.querySelectorAll('[data-edit-workout-session]').forEach(function(btn){
     btn.onclick = function(e){
       if (e && e.stopPropagation) e.stopPropagation();

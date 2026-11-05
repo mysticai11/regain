@@ -257,11 +257,20 @@ var FoodDB = (function () {
   function search(query) {
     var q = (query || '').toLowerCase().trim();
     if (!q) return Promise.resolve([]);
-    return Promise.all([
-      _cursor('foods',  function (v) { return v.name.toLowerCase().includes(q) ? Object.assign({}, v, {_type:'db'})     : null; }),
-      _cursor('custom', function (v) { return v.name.toLowerCase().includes(q) ? Object.assign({}, v, {_type:'custom'}) : null; }),
-    ]).then(function (pairs) {
-      return pairs[0].concat(pairs[1]).sort(function (a, b) {
+    var memMatches = FOODS.filter(function(v) {
+      return v.name.toLowerCase().includes(q);
+    }).map(function(v) {
+      return Object.assign({}, v, { _type: 'db' });
+    });
+    if (!_db) {
+      return Promise.resolve(memMatches.sort(function (a, b) {
+        return a.name.toLowerCase().indexOf(q) - b.name.toLowerCase().indexOf(q);
+      }).slice(0, 25));
+    }
+    return _cursor('custom', function (v) {
+      return v.name.toLowerCase().includes(q) ? Object.assign({}, v, { _type: 'custom' }) : null;
+    }).catch(function() { return []; }).then(function (customMatches) {
+      return memMatches.concat(customMatches || []).sort(function (a, b) {
         return a.name.toLowerCase().indexOf(q) - b.name.toLowerCase().indexOf(q);
       }).slice(0, 25);
     });

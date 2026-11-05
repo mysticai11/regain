@@ -1,9 +1,13 @@
 /* Gym screen helpers: schedule date resolution, workout week, and session metadata */
 
 import { profile } from "../../state.js";
-import { dayRecord, getWorkoutSessions } from "../../storage.js";
+import { dayRecord, saveDayRecord, getWorkoutSessions, getWorkoutSession, workoutSessionId } from "../../storage.js";
 import { getActiveProgram, getWeeklySchedule } from "../../data/plan.js";
-import { todayKey, dateKey, daysBetween, allDayKeys } from "../../lib/format.js";
+import { todayKey, dateKey, daysBetween, allDayKeys, esc } from "../../lib/format.js";
+import { showToast } from "../../components/toast.js";
+import { renderGym } from "../gym.js";
+import { openGymDateDaySheet } from "./session-sheet.js";
+import { openSplitManagerSheet } from "./plan-editor.js";
 
 export { getWorkoutForDate, getWorkoutWeek, getCompletedWorkoutCount, getNextProgramWorkout } from "../../data/plan.js";
 

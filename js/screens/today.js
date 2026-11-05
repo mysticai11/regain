@@ -241,35 +241,50 @@ export function renderTodaySimple() {
 
     var pressTimer = null;
     var didLongPress = false;
+    var touchStartX = 0;
+    var touchStartY = 0;
+    var hasMoved = false;
 
-    var startHold = function() {
+    card.addEventListener('touchstart', function(e) {
       didLongPress = false;
+      hasMoved = false;
+      if (e.touches && e.touches[0]) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }
       pressTimer = setTimeout(function() {
-        didLongPress = true;
-        triggerHaptic();
-        openPortionSheet(item, function(mult) { logItem(mult); });
-      }, 400);
-    };
+        if (!hasMoved) {
+          didLongPress = true;
+          triggerHaptic();
+          openPortionSheet(item, function(mult) { logItem(mult); });
+        }
+      }, 450);
+    }, { passive: true });
 
-    var endHold = function() {
+    card.addEventListener('touchmove', function(e) {
+      if (e.touches && e.touches[0]) {
+        var dx = Math.abs(e.touches[0].clientX - touchStartX);
+        var dy = Math.abs(e.touches[0].clientY - touchStartY);
+        if (dx > 10 || dy > 10) {
+          hasMoved = true;
+          if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+        }
+      }
+    }, { passive: true });
+
+    card.addEventListener('touchend', function() {
       if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
-    };
+    }, { passive: true });
 
-    card.addEventListener('touchstart', startHold, { passive: true });
-    card.addEventListener('touchend', endHold, { passive: true });
-    card.addEventListener('touchmove', endHold, { passive: true });
-    card.addEventListener('mousedown', startHold);
-    card.addEventListener('mouseup', endHold);
-    card.addEventListener('mouseleave', endHold);
     card.addEventListener('contextmenu', function(e) {
       e.preventDefault();
-      endHold();
+      if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
       triggerHaptic();
       openPortionSheet(item, function(mult) { logItem(mult); });
     });
 
     card.onclick = function() {
-      if (didLongPress) return;
+      if (didLongPress || hasMoved) return;
       logItem(1);
     };
   });
@@ -343,10 +358,14 @@ export function renderChecklistHTML() {
 export function addFoodToDay(key, food, servings) {
   var m = foodMacros(food, servings);
   var rec = dayRecord(key);
+  rec.extra = rec.extra || [];
   rec.extra.push({name:food.name+(servings!==1?' ×'+servings:''),kcal:m.kcal,protein:m.protein,carbs:m.carbs,fat:m.fat,servings:1});
   saveDayRecord(key, rec);
   addRecent(food.name, m.kcal, m.protein, m.carbs, m.fat);
-  profile.xp=(profile.xp||0)+5; sv('rg_profile',profile);
+  if (profile) {
+    profile.xp = (profile.xp || 0) + 5;
+    sv('rg_profile', profile);
+  }
   renderTodaySimple();
 }
 

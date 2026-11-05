@@ -44,8 +44,8 @@ export function openFoodSearch(callback) {
     zone.querySelectorAll('.quick-recent-sheet').forEach(function(row) {
       row.onclick = function() {
         var food = JSON.parse(decodeURIComponent(row.dataset.food));
-        callback(food, 1);
         closeSearch();
+        callback(food, 1);
       };
     });
   }

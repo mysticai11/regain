@@ -1,7 +1,7 @@
 /* Gym session sheet: choose workout day, workout override, and celebration modal */
 
 import { profile, activeGymDateKey, setActiveGymDateKey } from "../../state.js";
-import { dayRecord, saveDayRecord, getWorkoutSessions } from "../../storage.js";
+import { dayRecord, saveDayRecord, getWorkoutSessions, sv, WORKOUT_SESSIONS_KEY } from "../../storage.js";
 import { getWeeklySchedule, getActiveProgram } from "../../data/plan.js";
 import { todayKey, dateKey, addDays, esc } from "../../lib/format.js";
 import { playSound, triggerHaptic } from "../../lib/dom.js";

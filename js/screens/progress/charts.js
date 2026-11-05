@@ -4,6 +4,7 @@ import { profile } from "../../state.js";
 import { dayRecord, allDayKeys, getWorkoutSessions } from "../../storage.js";
 import { todayKey, dateKey, addDays, goalDirection, esc } from "../../lib/format.js";
 import { getExerciseData } from "../../data/plan.js";
+import { ic } from "../../lib/dom.js";
 
 export function getWeightHistory() {
   var entries = (profile && Array.isArray(profile.weightEntries)) ? profile.weightEntries.slice() : [];

@@ -1,7 +1,7 @@
 /* Calculations: e1RM formulas, volume aggregation, calorie & protein targets, and linear regression */
 
 import { profile } from "../state.js";
-import { dayRecord } from "../storage.js";
+import { dayRecord, ls, sv } from "../storage.js";
 import { getActiveProgram, getExerciseData, CAL_TARGET_REST, CAL_TARGET_GYM, PROT_TARGET_REST, PROT_TARGET_GYM } from "../data/plan.js";
 import { DEFAULT_MEAL_PLAN } from "../data/foods.js";
 import { dateKey, todayKey, addDays, allDayKeys } from "./format.js";
@@ -191,12 +191,13 @@ export function linReg(ys) {
 
 // ── Macro calculations from food + servings ───────────────────────────────────
 export function foodMacros(food, servings) {
-  var f = (food.serving_g * servings) / 100;
+  servings = Number(servings) || 1;
+  var f = (food && food.serving_g) ? (Number(food.serving_g) * servings) / 100 : servings;
   return {
-    kcal:    Math.round(food.kcal    * f),
-    protein: +((food.protein || 0) * f).toFixed(1),
-    carbs:   +((food.carbs   || 0) * f).toFixed(1),
-    fat:     +((food.fat     || 0) * f).toFixed(1),
+    kcal:    Math.round((Number(food && food.kcal) || 0) * f),
+    protein: +(((Number(food && food.protein) || 0) * f).toFixed(1)),
+    carbs:   +(((Number(food && food.carbs) || 0) * f).toFixed(1)),
+    fat:     +(((Number(food && food.fat) || 0) * f).toFixed(1)),
   };
 }
 

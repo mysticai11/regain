@@ -1,7 +1,7 @@
 /* Workout plan data: active routine resolution, exercise catalog, and routine migrations */
 
 import { profile } from "../state.js";
-import { sv, dayRecord, getWorkoutSessions } from "../storage.js";
+import { sv, dayRecord, saveDayRecord, getWorkoutSessions } from "../storage.js";
 import { allDayKeys } from "../lib/format.js";
 import { DEFAULT_5DAY_ROUTINE } from "./splits.js";
 export * from "./splits.js";

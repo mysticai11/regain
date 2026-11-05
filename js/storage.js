@@ -1,6 +1,6 @@
 /* Data persistence: localStorage, SQLiteStorage, day records, and backup export/import */
 
-import { esc, allDayKeys } from "./lib/format.js";
+import { esc, allDayKeys, todayKey } from "./lib/format.js";
 import { showToast } from "./components/toast.js";
 import { saveWorkoutSessionFromDay, workoutSessionStore } from "./storage-sessions.js";
 export * from "./storage-sessions.js";
