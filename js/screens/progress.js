@@ -11,7 +11,7 @@ import { showToast } from "../components/toast.js";
 import { openQuickEditSetModal } from "../components/quick-edit-modal.js";
 import { getWeightHistory, getProgressRows, getRollingWeightValues, buildDotConsistencyCalendarHTML, progressPlot, goalTrajectoryText } from "./progress/charts.js";
 import { getEquivalentExerciseIds } from "./gym/sets.js";
-import { workoutHistoryHTML, nutritionProgressHTML, weeklyVolumeChart } from "./progress/history.js";
+import { workoutHistoryHTML, getResumeWorkoutCardHTML, nutritionProgressHTML, weeklyVolumeChart } from "./progress/history.js";
 export * from "./progress/charts.js";
 export * from "./progress/history.js";
 
@@ -203,6 +203,7 @@ export function renderProgressSimple(mode) {
       + '<span class="t-label">Progress</span>'
       + '<button class="icon-btn" id="settingsBtn" aria-label="Settings">' + ic('settings') + '</button>'
     + '</div>'
+    + getResumeWorkoutCardHTML()
     + '<div class="seg-tabs">'
       + '<button class="seg-tab-btn' + (mode === 'body' ? ' active' : '') + '" id="bodyProgressBtn">Body</button>'
       + '<button class="seg-tab-btn' + (mode === 'lifts' ? ' active' : '') + '" id="liftProgressBtn">Lifts</button>'

@@ -9,7 +9,7 @@ import { showToast } from "../components/toast.js";
 import { openSheet } from "../components/sheet.js";
 import { getWeeklyVolume } from "../lib/calc.js";
 import { isBodyweightExercise, getLastSessionSets } from "./gym/sets.js";
-import { renderWorkoutTimer, renderRestTimer, startRestTimer } from "./gym/timer.js";
+import { renderWorkoutTimer, renderRestTimer, startRestTimer, showFinishWorkoutSheet } from "./gym/timer.js";
 import { chooseWorkoutForDate } from "./gym/session-sheet.js";
 import { getWorkoutForDate, getWorkoutWeek, getCompletedWorkoutCount, getNextProgramWorkout, getActiveWorkoutSession, getSessionMeta, attachCommonGymHeaderEvents } from "./gym/helpers.js";
 import { attachGymEvents } from "./gym/events.js";
@@ -339,15 +339,26 @@ export function renderGym() {
       + '</section>';
   }).join('');
 
+  var finishCardHTML = (loggedTotal >= totalPlanned && totalPlanned > 0 && !rec.workoutDone)
+    ? ('<div style="margin:20px 0 16px"><button type="button" class="btn btn-primary" id="finishAllSetsBtn" style="width:100%;height:48px;background:#C6F432;color:#0B0B0C;font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer">Finish workout (' + loggedTotal + '/' + totalPlanned + ' sets completed)</button></div>')
+    : '';
+
   document.getElementById('content').innerHTML =
     '<div class="gym-page">'
     + dateBannerHTML
     + gymHeaderUnifiedHTML
     + exHTML
+    + finishCardHTML
     + '</div><div id="restTimerWrap"></div>';
 
   attachGymEvents(key, rec, session, workoutIndex);
   renderWorkoutTimer(key, rec, session, workoutIndex);
+  var finishAllSetsBtn = document.getElementById('finishAllSetsBtn');
+  if (finishAllSetsBtn) {
+    finishAllSetsBtn.onclick = function() {
+      showFinishWorkoutSheet(key, workoutIndex, session);
+    };
+  }
   attachCommonGymHeaderEvents();
 }
 

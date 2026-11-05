@@ -12,11 +12,13 @@ import { showWorkoutCelebrationModal } from "./session-sheet.js";
 
 export function getSessionElapsedSeconds(meta) {
   if (!meta || !meta.startedAt) return 0;
-  var now = meta.pausedAt ? new Date(meta.pausedAt).getTime() : Date.now();
+  var endMs = meta.completedAt ? new Date(meta.completedAt).getTime() : (meta.pausedAt ? new Date(meta.pausedAt).getTime() : Date.now());
   var start = new Date(meta.startedAt).getTime();
+  if (isNaN(start) || isNaN(endMs) || endMs < start) return 0;
   var totalPaused = meta.accumulatedPausedMs || 0;
-  var diffMs = Math.max(0, now - start - totalPaused);
-  return Math.floor(diffMs / 1000);
+  var diffMs = Math.max(0, endMs - start - totalPaused);
+  var sec = Math.floor(diffMs / 1000);
+  return Math.min(180 * 60, sec);
 }
 
 export function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
@@ -60,7 +62,10 @@ export function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
         + '</button>'
         + '<span id="workoutElapsed" style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + elapsedFormatted + ' · Paused</span>'
       + '</div>'
-      + '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:48px;height:48px;color:var(--text2)">•••</button>'
+      + '<div style="display:flex;align-items:center;gap:8px">'
+        + '<button type="button" class="btn-text-action" id="timerFinishBtn" style="color:#C6F432;font-size:15px;font-weight:600;cursor:pointer">Finish</button>'
+        + '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:48px;height:48px;color:var(--text2)">•••</button>'
+      + '</div>'
       + '</div>';
   } else {
     // Running
@@ -71,7 +76,10 @@ export function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
         + '</button>'
         + '<span id="workoutElapsed" style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + elapsedFormatted + '</span>'
       + '</div>'
-      + '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:48px;height:48px;color:var(--text2)">•••</button>'
+      + '<div style="display:flex;align-items:center;gap:8px">'
+        + '<button type="button" class="btn-text-action" id="timerFinishBtn" style="color:#C6F432;font-size:15px;font-weight:600;cursor:pointer">Finish</button>'
+        + '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:48px;height:48px;color:var(--text2)">•••</button>'
+      + '</div>'
       + '</div>';
   }
 
@@ -100,6 +108,13 @@ export function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
   if (enterTimeBtn) {
     enterTimeBtn.onclick = function() {
       setManualSessionDuration(dayKey, session, programDayIndex);
+    };
+  }
+
+  var timerFinishBtn = document.getElementById('timerFinishBtn');
+  if (timerFinishBtn) {
+    timerFinishBtn.onclick = function() {
+      showFinishWorkoutSheet(dayKey, programDayIndex, session);
     };
   }
 
@@ -346,10 +361,11 @@ export function startWorkoutSession(dayKey, session, programDayIndex) {
 export function endWorkoutSession(dayKey, programDayIndex, session, manualMinutes) {
   var rec = dayRecord(dayKey), meta = getSessionMeta(rec, programDayIndex);
   meta.completedAt = new Date().toISOString(); rec.workoutDone = true;
-  if (manualMinutes) meta.durationMinutes = manualMinutes;
-  else if (meta.startedAt) meta.durationMinutes = Math.max(1, Math.round(getSessionElapsedSeconds(meta) / 60));
-  else meta.durationMinutes = meta.durationMinutes || 45;
-  meta.duration_sec = meta.durationMinutes * 60; meta.pausedAt = null;
+  if (manualMinutes) meta.durationMinutes = Math.min(180, Math.max(1, manualMinutes));
+  else if (meta.startedAt) meta.durationMinutes = Math.min(180, Math.max(1, Math.round(getSessionElapsedSeconds(meta) / 60)));
+  else meta.durationMinutes = null;
+  meta.duration_sec = meta.durationMinutes ? meta.durationMinutes * 60 : null;
+  meta.pausedAt = null;
   saveDayRecord(dayKey, rec);
   if (workoutTimer.interval) clearInterval(workoutTimer.interval);
   releaseWakeLock();

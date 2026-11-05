@@ -1,30 +1,45 @@
 /* Progress history: workout history bars, session PR badges, weight entries, and weekly digests */
 
 import { getWorkoutSessions, dayRecord, saveDayRecord } from "../../storage.js";
-import { getExerciseData, isBodyweightExercise } from "../../data/plan.js";
+import { getExerciseData, isBodyweightExercise, getActiveProgram } from "../../data/plan.js";
 import { calcE1RM, getTargetsForDate, getLoggedWeeklyVolume, getWeeklyVolume } from "../../lib/calc.js";
 import { esc, todayKey } from "../../lib/format.js";
 import { showToast } from "../../components/toast.js";
+import { getWorkoutForDate } from "../gym/helpers.js";
+
+export function getResumeWorkoutCardHTML() {
+  var todayRec = dayRecord(todayKey());
+  if (!todayRec || todayRec.workoutDone || !todayRec.workout) return '';
+  var todaySets = 0;
+  Object.keys(todayRec.workout).forEach(function(id) {
+    todaySets += (todayRec.workout[id] || []).filter(Boolean).length;
+  });
+  if (todaySets === 0) return '';
+
+  var sched = getWorkoutForDate(todayKey());
+  var prog = getActiveProgram();
+  var session = (todayRec.selectedWorkout != null && prog && prog[todayRec.selectedWorkout])
+    || (sched && sched.workoutIndex != null && prog && prog[sched.workoutIndex])
+    || (todayRec.workoutSession)
+    || (prog && prog[0]);
+  var tName = (session && session.label) || 'Workout';
+  var cleanTName = tName.replace(/^Day\s*\d+\s*[·•—–-]\s*/gi, '').trim() || tName;
+  var totalPlanned = (session && session.exercises || []).reduce(function(tot, ex) {
+    return tot + (ex.sets || 0);
+  }, 0);
+  var progressStr = totalPlanned > 0
+    ? (todaySets + '/' + totalPlanned + ' sets')
+    : (todaySets + (todaySets === 1 ? ' set' : ' sets'));
+
+  return '<div style="background:#141416;border-radius:12px;padding:12px 16px;margin-bottom:16px;min-height:64px;display:flex;justify-content:space-between;align-items:center">'
+    + '<div><div style="font-size:11px;font-weight:600;color:#C6F432;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">In progress</div>'
+    + '<div style="font-size:17px;font-weight:600;color:#F5F5F4">' + esc(cleanTName) + ' · ' + progressStr + '</div></div>'
+    + '<button type="button" class="btn-text-action" id="resumeSessionBtn" onclick="if(window.renderApp){window.setTab?window.setTab(\'gym\'):(window.tab=\'gym\');window.renderApp();}" style="color:#C6F432;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Resume</button>'
+    + '</div>';
+}
 
 export function workoutHistoryHTML() {
   var todayRec = dayRecord(todayKey());
-  var todayInProgressHTML = '';
-  var todaySets = 0;
-  if (todayRec && !todayRec.workoutDone && todayRec.workout) {
-    Object.keys(todayRec.workout).forEach(function(id) {
-      todaySets += (todayRec.workout[id] || []).filter(Boolean).length;
-    });
-    if (todaySets > 0) {
-      var tName = (todayRec.workoutSession && todayRec.workoutSession.label) || 'Active Workout';
-      var cleanTName = tName.replace(/^Day\s*\d+\s*[—–-]\s*/i, '');
-      todayInProgressHTML = '<div style="background:#141416;border-radius:12px;padding:12px 16px;margin-bottom:16px;min-height:64px;display:flex;justify-content:space-between;align-items:center">'
-        + '<div><div style="font-size:11px;font-weight:600;color:#C6F432;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">In progress</div>'
-        + '<div style="font-size:17px;font-weight:600;color:#F5F5F4">' + esc(cleanTName) + ' · ' + todaySets + (todaySets === 1 ? ' set' : ' sets') + '</div></div>'
-        + '<button type="button" class="btn-text-action" id="resumeSessionBtn" onclick="if(window.renderApp){window.setTab?window.setTab(\'gym\'):(window.tab=\'gym\');window.renderApp();}" style="color:#C6F432;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Resume</button>'
-        + '</div>';
-    }
-  }
-
   var sessions = getWorkoutSessions().filter(function(session) {
     if (session.dayKey === todayKey() && todayRec && !todayRec.workoutDone) return false;
     return (session.exercises || []).some(function(exercise) {
@@ -32,7 +47,7 @@ export function workoutHistoryHTML() {
     });
   }).reverse();
 
-  if (!sessions.length && !todayInProgressHTML) return '<div class="t-micro" style="padding:16px 0;color:var(--text-secondary)">No completed workouts yet.</div>';
+  if (!sessions.length) return '<div class="t-micro" style="padding:16px 0;color:var(--text-secondary)">No completed workouts yet.</div>';
 
   // Group sessions into calendar weeks (Mon-Sun)
   var weekGroups = {};
@@ -80,14 +95,19 @@ export function workoutHistoryHTML() {
       var storedMeta = session.dayKey ? (dayRecord(session.dayKey).workoutMetaBySession || {}) : {};
       var matchingMeta = storedMeta[String(session.programDay)] || Object.keys(storedMeta).map(function(k){ return storedMeta[k]; }).find(function(m){ return m && (m.duration_sec != null || m.durationMinutes != null); });
       var durationSec = session.duration_sec != null ? Number(session.duration_sec) : (matchingMeta && (matchingMeta.duration_sec != null ? Number(matchingMeta.duration_sec) : Number(matchingMeta.durationMinutes)*60));
-      var durStr = durationSec ? (Math.round(durationSec / 60) + ' min') : '';
+      var durMin = (durationSec && !isNaN(durationSec)) ? Math.round(durationSec / 60) : null;
+      var durStr = '-';
+      if (durMin && durMin > 0) {
+        if (durMin > 180) durMin = 180;
+        durStr = durMin + ' min';
+      }
 
       var rawTitle = session.programLabel || session.sessionLabel || 'Workout';
       var cleanTitle = rawTitle.replace(/^Day\s*\d+\s*[·•—–-]\s*/gi, '').trim();
       if (!cleanTitle) cleanTitle = rawTitle;
 
       var volStr = totalVol > 0 ? (' · ' + Math.round(totalVol).toLocaleString() + ' kg') : '';
-      var statsText = (durStr ? durStr + ' · ' : '') + totalSets + (totalSets === 1 ? ' set' : ' sets') + volStr;
+      var statsText = durStr + ' · ' + totalSets + (totalSets === 1 ? ' set' : ' sets') + volStr;
 
       var exRows = exercises.map(function(exItem, exIdx) {
         var exData = getExerciseData(exItem.id) || { name: exItem.id };
