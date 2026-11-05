@@ -44,6 +44,33 @@
   padding: 0 !important;
 }
 
+.settings-day-toggle {
+  min-width: 0 !important;
+  width: 100% !important;
+  height: 44px !important;
+  border-radius: var(--r-control) !important;
+  font-size: var(--fs-15) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+.settings-day-toggle.active {
+  background: #C6F432 !important;
+  border: 1px solid #C6F432 !important;
+  color: #0B0B0C !important;
+  font-weight: 600 !important;
+}
+.settings-day-toggle:not(.active) {
+  background: #1C1C1F !important;
+  border: 1px solid #222222 !important;
+  color: #8A8A8E !important;
+  font-weight: 500 !important;
+}
+
 /* Onboarding */
 .onboard {
   padding: 32px var(--screen-margin);

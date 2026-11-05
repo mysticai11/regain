@@ -39,9 +39,9 @@ export function openSettings() {
   var dayTogglesHTML = weekDaysMeta.map(function(d) {
     var active = tdays.includes(d.js);
     var actStyle = active
-      ? 'background:rgba(198,244,50,0.12);border:1px solid #C6F432;color:#C6F432;font-weight:600;'
-      : 'background:transparent;border:1px solid #222;color:#8A8A8E;font-weight:500;';
-    return '<button type="button" class="day-toggle" data-day="' + d.js + '" style="' + actStyle + 'height:40px;border-radius:8px;font-size:15px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">' + d.name + '</button>';
+      ? 'background:#C6F432 !important;border:1px solid #C6F432 !important;color:#0B0B0C !important;font-weight:600 !important;'
+      : 'background:#1C1C1F !important;border:1px solid #222 !important;color:#8A8A8E !important;font-weight:500 !important;';
+    return '<button type="button" class="day-toggle settings-day-toggle' + (active ? ' active' : '') + '" data-day="' + d.js + '" style="' + actStyle + 'height:44px;min-width:0;width:100%;border-radius:8px;font-size:15px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">' + d.name + '</button>';
   }).join('');
 
   overlay.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%;max-height:88vh;overflow-y:auto">'
@@ -54,38 +54,37 @@ export function openSettings() {
     // TARGETS (Compact Card)
     + '<div style="margin-top:20px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Targets</span></div>'
     + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px">'
-      + '<div style="display:grid;grid-template-columns:84px 1fr 1fr;gap:8px;align-items:center;margin-bottom:10px">'
-        + '<div></div>'
-        + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;text-align:right;padding-right:8px">Rest day</div>'
-        + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;text-align:right;padding-right:8px">Gym day</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">'
+        + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;text-align:center">Rest day</div>'
+        + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;text-align:center">Gym day</div>'
       + '</div>'
-      + '<div style="display:grid;grid-template-columns:84px 1fr 1fr;gap:8px;align-items:center;margin-bottom:8px">'
-        + '<div style="font-size:15px;color:#F5F5F4;font-weight:500">Calories</div>'
-        + '<div style="position:relative;height:40px;background:#141416;border-radius:8px;display:flex;align-items:center;padding:0 8px">'
-          + '<input type="number" id="setTargetRest" value="' + restKcal + '" inputmode="numeric" style="width:100%;height:100%;background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:right;padding-right:34px">'
-          + '<span style="position:absolute;right:8px;font-size:11px;color:#8A8A8E;pointer-events:none">kcal</span>'
+      + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Calories</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">'
+        + '<div style="height:44px;background:#141416;border:1px solid #222;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:text" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
+          + '<input type="number" id="setTargetRest" value="' + restKcal + '" inputmode="numeric" style="background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:center;width:68px;padding:0;outline:none">'
+          + '<span style="font-size:11px;color:#8A8A8E;pointer-events:none">kcal</span>'
         + '</div>'
-        + '<div style="position:relative;height:40px;background:#141416;border-radius:8px;display:flex;align-items:center;padding:0 8px">'
-          + '<input type="number" id="setTargetGym" value="' + gymKcal + '" inputmode="numeric" style="width:100%;height:100%;background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:right;padding-right:34px">'
-          + '<span style="position:absolute;right:8px;font-size:11px;color:#8A8A8E;pointer-events:none">kcal</span>'
-        + '</div>'
-      + '</div>'
-      + '<div style="display:grid;grid-template-columns:84px 1fr 1fr;gap:8px;align-items:center;margin-bottom:12px">'
-        + '<div style="font-size:15px;color:#F5F5F4;font-weight:500">Protein</div>'
-        + '<div style="position:relative;height:40px;background:#141416;border-radius:8px;display:flex;align-items:center;padding:0 8px">'
-          + '<input type="number" id="setProtRest" value="' + restProt + '" inputmode="numeric" style="width:100%;height:100%;background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:right;padding-right:18px">'
-          + '<span style="position:absolute;right:8px;font-size:11px;color:#8A8A8E;pointer-events:none">g</span>'
-        + '</div>'
-        + '<div style="position:relative;height:40px;background:#141416;border-radius:8px;display:flex;align-items:center;padding:0 8px">'
-          + '<input type="number" id="setProtGym" value="' + gymProt + '" inputmode="numeric" style="width:100%;height:100%;background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:right;padding-right:18px">'
-          + '<span style="position:absolute;right:8px;font-size:11px;color:#8A8A8E;pointer-events:none">g</span>'
+        + '<div style="height:44px;background:#141416;border:1px solid #222;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:text" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
+          + '<input type="number" id="setTargetGym" value="' + gymKcal + '" inputmode="numeric" style="background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:center;width:68px;padding:0;outline:none">'
+          + '<span style="font-size:11px;color:#8A8A8E;pointer-events:none">kcal</span>'
         + '</div>'
       + '</div>'
-      + '<div style="border-top:1px solid #222;padding-top:12px;display:flex;justify-content:space-between;align-items:center">'
+      + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Protein</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">'
+        + '<div style="height:44px;background:#141416;border:1px solid #222;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:text" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
+          + '<input type="number" id="setProtRest" value="' + restProt + '" inputmode="numeric" style="background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:center;width:48px;padding:0;outline:none">'
+          + '<span style="font-size:11px;color:#8A8A8E;pointer-events:none">g</span>'
+        + '</div>'
+        + '<div style="height:44px;background:#141416;border:1px solid #222;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:text" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
+          + '<input type="number" id="setProtGym" value="' + gymProt + '" inputmode="numeric" style="background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:center;width:48px;padding:0;outline:none">'
+          + '<span style="font-size:11px;color:#8A8A8E;pointer-events:none">g</span>'
+        + '</div>'
+      + '</div>'
+      + '<div style="border-top:1px solid #222;padding-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center">'
         + '<div style="font-size:15px;color:#F5F5F4;font-weight:500">Goal Weight</div>'
-        + '<div style="position:relative;height:40px;width:120px;background:#141416;border-radius:8px;display:flex;align-items:center;padding:0 8px">'
-          + '<input type="number" step="0.1" id="setTargetWeight" value="' + targetWeight + '" inputmode="decimal" style="width:100%;height:100%;background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:right;padding-right:24px">'
-          + '<span style="position:absolute;right:8px;font-size:11px;color:#8A8A8E;pointer-events:none">kg</span>'
+        + '<div style="height:44px;background:#141416;border:1px solid #222;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:text" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
+          + '<input type="number" step="0.1" id="setTargetWeight" value="' + targetWeight + '" inputmode="decimal" style="background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:center;width:56px;padding:0;outline:none">'
+          + '<span style="font-size:11px;color:#8A8A8E;pointer-events:none">kg</span>'
         + '</div>'
       + '</div>'
     + '</div>'
@@ -227,10 +226,11 @@ export function openSettings() {
         tdays.sort(function(a,b){ return (a === 0 ? 7 : a) - (b === 0 ? 7 : b); });
       }
       var isAct = tdays.includes(d);
-      btn.style.background = isAct ? 'rgba(198,244,50,0.12)' : 'transparent';
-      btn.style.border = isAct ? '1px solid #C6F432' : '1px solid #222';
-      btn.style.color = isAct ? '#C6F432' : '#8A8A8E';
-      btn.style.fontWeight = isAct ? '600' : '500';
+      btn.classList.toggle('active', isAct);
+      btn.style.setProperty('background', isAct ? '#C6F432' : '#1C1C1F', 'important');
+      btn.style.setProperty('border', isAct ? '1px solid #C6F432' : '1px solid #222', 'important');
+      btn.style.setProperty('color', isAct ? '#0B0B0C' : '#8A8A8E', 'important');
+      btn.style.setProperty('font-weight', isAct ? '600' : '500', 'important');
       markChanged();
     });
   });
