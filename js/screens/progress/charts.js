@@ -33,7 +33,8 @@ export function getRollingWeightValues(entries, source) {
     var avg = window.reduce(function(sum, e) { return sum + Number(e.weight); }, 0) / window.length;
     var dKey = entry.dayKey || (entry.createdAt ? entry.createdAt.slice(0, 10) : '');
     return {
-      value: +avg.toFixed(2),
+      value: Number(entry.weight),
+      avg: +avg.toFixed(2),
       rawWeight: Number(entry.weight),
       dateKey: dKey,
       label: dKey + ' · ' + Number(entry.weight).toFixed(1) + ' kg (avg ' + avg.toFixed(1) + ')'
@@ -69,9 +70,21 @@ export function progressPlot(values, goal, unit, isLift) {
   var goalNum = goal != null ? Number(goal) : ((profile && profile.targetWeight) ? Number(profile.targetWeight) : null);
 
   var pad = rawSpan ? Math.max(rawSpan * 0.15, 0.4) : 0.5;
-  var min = rawMin - pad, max = rawMax + pad;
-  if (goalNum != null && goalNum >= rawMin && goalNum <= rawMax + 2.0) {
-    max = Math.max(max, goalNum + pad);
+  var min, max;
+  if (!isLift && goalNum != null) {
+    if (goalNum >= rawMax) {
+      max = Math.max(goalNum, rawMax + 0.5);
+      min = rawMin - pad;
+    } else if (goalNum <= rawMin) {
+      min = Math.min(goalNum, rawMin - 0.5);
+      max = rawMax + pad;
+    } else {
+      min = Math.min(goalNum - pad, rawMin - pad);
+      max = Math.max(goalNum + pad, rawMax + pad);
+    }
+  } else {
+    min = rawMin - pad;
+    max = rawMax + pad;
   }
   var span = max - min || 1;
 
@@ -96,16 +109,24 @@ export function progressPlot(values, goal, unit, isLift) {
   var deltaFormatted = values.length > 1 ? (delta === 0 ? '0.0 ' + unitLabel : (deltaSign + (isReps ? Math.round(delta) : delta.toFixed(1)) + ' ' + unitLabel)) : 'First entry';
 
   var goalY = goalNum != null ? (insetY + ((max - goalNum) / span) * plotH) : -999;
+  var hasGoal = goalNum != null && goalY >= insetY - 1 && goalY <= svgHeight - insetY + 1;
   var goalLineHTML = '';
-  if (goalNum != null && goalY >= insetY && goalY <= svgHeight - insetY) {
-    goalLineHTML = '<line x1="' + insetX + '" y1="' + goalY.toFixed(1) + '" x2="' + (insetX + plotW) + '" y2="' + goalY.toFixed(1) + '" stroke="#55555A" stroke-dasharray="3 3" stroke-width="1.5"/>'
+  if (hasGoal) {
+    goalLineHTML = '<line x1="' + insetX + '" y1="' + goalY.toFixed(1) + '" x2="' + (insetX + plotW) + '" y2="' + goalY.toFixed(1) + '" stroke="#8A8A8E" stroke-dasharray="3 3" stroke-width="1.5"/>'
       + '<text x="' + (svgWidth - insetX) + '" y="' + (goalY + 4).toFixed(1) + '" fill="#8A8A8E" font-size="11" font-weight="600" text-anchor="end" font-family="Space Grotesk, sans-serif">' + Math.round(goalNum) + '</text>';
   }
 
-  var guideLinesHTML = '<line x1="' + insetX + '" y1="' + insetY + '" x2="' + (insetX + plotW) + '" y2="' + insetY + '" stroke="#222222" stroke-width="1" stroke-dasharray="2 4"/>'
-    + '<text x="' + (svgWidth - insetX) + '" y="' + (insetY + 4) + '" fill="#8A8A8E" font-size="11" text-anchor="end" font-family="Space Grotesk, sans-serif">' + max.toFixed(1) + '</text>'
-    + '<line x1="' + insetX + '" y1="' + (svgHeight - insetY) + '" x2="' + (insetX + plotW) + '" y2="' + (svgHeight - insetY) + '" stroke="#222222" stroke-width="1" stroke-dasharray="2 4"/>'
-    + '<text x="' + (svgWidth - insetX) + '" y="' + (svgHeight - insetY + 4) + '" fill="#8A8A8E" font-size="11" text-anchor="end" font-family="Space Grotesk, sans-serif">' + min.toFixed(1) + '</text>';
+  var showTopGuide = !hasGoal || Math.abs(goalY - insetY) >= 10;
+  var showBottomGuide = !hasGoal || Math.abs(goalY - (svgHeight - insetY)) >= 10;
+  var guideLinesHTML = '';
+  if (showTopGuide) {
+    guideLinesHTML += '<line x1="' + insetX + '" y1="' + insetY + '" x2="' + (insetX + plotW) + '" y2="' + insetY + '" stroke="#222222" stroke-width="1" stroke-dasharray="2 4"/>'
+      + '<text x="' + (svgWidth - insetX) + '" y="' + (insetY + 4) + '" fill="#8A8A8E" font-size="11" text-anchor="end" font-family="Space Grotesk, sans-serif">' + max.toFixed(1) + '</text>';
+  }
+  if (showBottomGuide) {
+    guideLinesHTML += '<line x1="' + insetX + '" y1="' + (svgHeight - insetY) + '" x2="' + (insetX + plotW) + '" y2="' + (svgHeight - insetY) + '" stroke="#222222" stroke-width="1" stroke-dasharray="2 4"/>'
+      + '<text x="' + (svgWidth - insetX) + '" y="' + (svgHeight - insetY + 4) + '" fill="#8A8A8E" font-size="11" text-anchor="end" font-family="Space Grotesk, sans-serif">' + min.toFixed(1) + '</text>';
+  }
 
   var peakIndex = -1;
   if (isLift && values.length > 0) {
@@ -128,7 +149,7 @@ export function progressPlot(values, goal, unit, isLift) {
       extraDot = '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="5" fill="none" stroke="#F5F5F4" stroke-width="1.5"/>';
     }
 
-    return '<g class="chart-point-group" data-idx="' + idx + '" data-val="' + displayWeight + '" data-unit="' + unitLabel + '" data-date="' + esc(dateLabel) + '" data-avg="' + p.v.value.toFixed(1) + '">'
+    return '<g class="chart-point-group" data-idx="' + idx + '" data-val="' + displayWeight + '" data-unit="' + unitLabel + '" data-date="' + esc(dateLabel) + '" data-avg="' + (p.v.avg != null ? Number(p.v.avg).toFixed(1) : '') + '">'
       + '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="3" fill="#F5F5F4" stroke="#0B0B0C" stroke-width="1.5"/>'
       + extraDot
       + '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="16" fill="transparent" style="cursor:pointer">'
@@ -169,7 +190,7 @@ export function progressPlot(values, goal, unit, isLift) {
       + '<svg viewBox="0 0 340 120" style="width:100%;height:120px;overflow:hidden">'
         + guideLinesHTML
         + goalLineHTML
-        + '<polyline points="' + poly + '" fill="none" stroke="#F5F5F4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
+        + (values.length > 1 ? '<polyline points="' + poly + '" fill="none" stroke="#F5F5F4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>' : '')
         + dots
         + '<line class="chart-scrub-line" x1="-10" y1="10" x2="-10" y2="110" stroke="#8A8A8E" stroke-width="1" stroke-dasharray="2 2" style="display:none"/>'
       + '</svg>'

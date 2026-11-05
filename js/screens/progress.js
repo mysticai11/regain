@@ -55,6 +55,9 @@ function setupChartInteractions(container) {
   });
 
   svg.addEventListener('pointerleave', resetPoint);
+  document.addEventListener('click', function(e) {
+    if (!chart.contains(e.target)) resetPoint();
+  });
 }
 
 export function renderProgressSimple(mode) {
@@ -185,13 +188,14 @@ export function renderProgressSimple(mode) {
     var weightMeta=document.getElementById('weightMeta');
     if (weightMeta) {
       if (latest != null) {
+        var latestAvg = (weightValues.length && weightValues[weightValues.length - 1].avg != null) ? weightValues[weightValues.length - 1].avg : latest;
         var toGoalText = toGoal != null ? ((toGoal > 0 ? '+' : '') + toGoal.toFixed(1) + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span>') : '—';
         var rateDisplay = weeklyRate != null ? ((weeklyRate >= 0 ? '+' : '') + weeklyRate.toFixed(2) + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg/wk</span>') : '—';
 
         weightMeta.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;text-align:left">'
           + '<div>'
             + '<div class="t-micro" style="color:#8A8A8E;font-size:11px;text-transform:uppercase;letter-spacing:0.04em">7-Day Avg</div>'
-            + '<div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.2;margin-top:2px">' + latest.toFixed(1) + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span></div>'
+            + '<div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.2;margin-top:2px">' + latestAvg.toFixed(1) + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span></div>'
           + '</div>'
           + '<div>'
             + '<div class="t-micro" style="color:#8A8A8E;font-size:11px;text-transform:uppercase;letter-spacing:0.04em">Rate</div>'
