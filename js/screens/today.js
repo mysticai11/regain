@@ -96,7 +96,7 @@ export function renderTodaySimple() {
     + '</div>'
     + (function() {
         var lastW = currentWeight();
-        var bwPlaceholder = lastW ? lastW.toFixed(1) : '54.0';
+        var bwPlaceholder = lastW ? lastW.toFixed(1) : 'No data yet';
         var bwValue = rec.weight ? rec.weight : '';
         var entries = (profile && Array.isArray(profile.weightEntries)) ? profile.weightEntries : [];
         var rateStr = '';

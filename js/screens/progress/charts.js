@@ -218,19 +218,19 @@ export function buildDotConsistencyCalendarHTML() {
   }
 
   var dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  var lettersRow = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:14px;justify-items:center;align-items:center;margin-bottom:8px">'
+  var lettersRow = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;justify-items:center;align-items:center;margin-bottom:6px">'
     + dayLetters.map(function(ch) {
-      return '<span style="font-size:11px;font-weight:600;color:#55555A;line-height:1">' + ch + '</span>';
+      return '<span style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1">' + ch + '</span>';
     }).join('')
     + '</div>';
 
-  return '<div style="margin-bottom:32px">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+  return '<div style="margin-bottom:20px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
       + '<span class="t-label">' + monthNames[month] + ' ' + year + '</span>'
       + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + trainedCount + ' of ' + plannedCount + (plannedCount === 1 ? ' workout' : ' workouts') + '</span>'
     + '</div>'
     + lettersRow
-    + '<div class="dot-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:14px;justify-items:center;align-items:center;padding:4px 0">'
+    + '<div class="dot-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;justify-items:center;align-items:center;padding:2px 0">'
       + dots.join('')
     + '</div>'
     + '</div>';

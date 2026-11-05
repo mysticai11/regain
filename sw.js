@@ -1,5 +1,5 @@
 // sw.js — Regain service worker
-const CACHE = 'regain-v2';
+const CACHE = 'regain-v3';
 const LOCAL_ASSETS = [
   "./",
   "./index.html",
@@ -50,9 +50,11 @@ const LOCAL_ASSETS = [
   "./js/screens/gym/sets.js",
   "./js/screens/gym/swap.js",
   "./js/screens/gym/timer.js",
+  "./js/screens/onboarding.js",
   "./js/screens/progress.js",
   "./js/screens/progress/charts.js",
   "./js/screens/progress/history.js",
+  "./js/screens/progress/session-editor.js",
   "./js/screens/settings.js",
   "./js/screens/today.js",
   "./js/screens/today/food-modal.js",

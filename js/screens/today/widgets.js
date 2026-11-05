@@ -253,58 +253,22 @@ export function buildCalRingHTML(kcalLogged, kcalTarget, protLogged, protTarget,
   var calPct = Math.min(100, Math.round(kcalLogged / Math.max(1, kcalTarget) * 100));
   var protPct = Math.min(100, Math.round(protLogged / Math.max(1, protTarget) * 100));
 
-  var letters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  var today = new Date();
-  var daysAgo6 = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
-  var hitCells = [];
-  var calHits = 0;
-  var protHits = 0;
-
-  for (var i = 0; i < 7; i++) {
-    var curD = new Date(daysAgo6.getFullYear(), daysAgo6.getMonth(), daysAgo6.getDate() + i);
-    var dKey = curD.toISOString().slice(0, 10);
-    var dDay = curD.getDay();
-    var letter = letters[(dDay + 6) % 7];
-    var targets = getTargetsForDate(dKey);
-    var totals = (dKey === todayKey()) ? { kcal: kcalLogged, protein: protLogged } : getDayTotals(dKey);
-
-    var cHit = (totals.kcal >= targets.kcal * 0.9);
-    var pHit = (totals.protein >= targets.protein * 0.9);
-    if (cHit) calHits++;
-    if (pHit) protHits++;
-
-    var cDot = cHit
-      ? '<span style="width:6px;height:6px;border-radius:50%;background:#C6F432;display:inline-block"></span>'
-      : '<span style="width:6px;height:6px;border-radius:50%;border:1px solid #55555A;background:transparent;box-sizing:border-box;display:inline-block"></span>';
-    var pDot = pHit
-      ? '<span style="width:6px;height:6px;border-radius:50%;background:#C6F432;display:inline-block"></span>'
-      : '<span style="width:6px;height:6px;border-radius:50%;border:1px solid #55555A;background:transparent;box-sizing:border-box;display:inline-block"></span>';
-
-    hitCells.push('<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">'
-      + '<span style="font-size:11px;font-weight:600;color:' + (dKey === todayKey() ? '#F5F5F4' : '#8A8A8E') + '">' + letter + '</span>'
-      + cDot
-      + pDot
-      + '</div>');
-  }
-
-  var hitRowHTML = '<div style="margin-top:14px;padding-top:10px;border-top:1px solid #1C1C1F">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-      + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.08em;text-transform:uppercase">7-Day Hit Rate</span>'
-      + '<span class="tabnum" style="font-size:11px;color:#8A8A8E">' + calHits + '/7 kcal · ' + protHits + '/7 protein</span>'
-    + '</div>'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;padding:0 2px">' + hitCells.join('') + '</div>'
-    + '</div>';
+  var heroNumber = isOver ? ('+' + (kcalLogged - kcalTarget).toLocaleString()) : (remaining > 0 ? remaining.toLocaleString() : kcalLogged.toLocaleString());
+  var heroSub = isOver
+    ? 'kcal over target · ' + kcalLogged.toLocaleString() + ' eaten'
+    : (remaining > 0
+      ? 'kcal remaining · of ' + kcalTarget.toLocaleString() + ' kcal'
+      : 'kcal eaten · target hit');
 
   return '<div style="margin-bottom:20px">'
-    + '<div class="t-hero tabnum">' + (isOver ? ('+' + (kcalLogged - kcalTarget).toLocaleString()) : remaining.toLocaleString()) + '</div>'
-    + '<div style="font-size:15px;color:var(--text-secondary);margin-top:4px">' + (isOver ? 'kcal over target' : ('of ' + kcalTarget.toLocaleString() + ' kcal')) + '</div>'
-    + '<div class="prog-line" style="margin-top:10px;margin-bottom:20px"><div class="prog-line-fill" style="width:' + calPct + '%"></div></div>'
+    + '<div class="t-hero tabnum">' + heroNumber + '</div>'
+    + '<div style="font-size:15px;color:var(--text-secondary);margin-top:4px">' + heroSub + '</div>'
+    + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;margin-top:8px;margin-bottom:16px;overflow:hidden"><div class="prog-line-fill' + (calPct >= 100 ? ' lime' : '') + '" style="width:' + calPct + '%;height:100%;border-radius:3px;background:#C6F432"></div></div>'
     + '<div style="display:flex;align-items:baseline;gap:6px">'
       + '<span style="font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums">' + Math.round(protLogged) + '</span>'
-      + '<span style="font-size:15px;color:var(--text-secondary)">/ ' + protTarget + ' g</span>'
+      + '<span style="font-size:15px;color:var(--text-secondary)">/ ' + protTarget + ' g protein</span>'
     + '</div>'
-    + '<div class="prog-line" style="margin-top:8px"><div class="prog-line-fill" style="width:' + protPct + '%"></div></div>'
-    + hitRowHTML
+    + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;margin-top:6px;overflow:hidden"><div class="prog-line-fill' + (protPct >= 100 ? ' lime' : '') + '" style="width:' + protPct + '%;height:100%;border-radius:3px;background:#C6F432"></div></div>'
     + '</div>';
 }
 

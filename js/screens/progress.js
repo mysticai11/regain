@@ -169,7 +169,7 @@ export function renderProgressSimple(mode) {
       + '<span class="t-label">Bodyweight</span>'
       + '<span class="t-micro">' + (profile && profile.targetWeight ? ('Target ' + profile.targetWeight + ' kg') : '') + '</span>'
     + '</div>'
-    + '<div class="t-display" style="margin-bottom:14px">' + (current != null ? current.toFixed(1) : '—') + '<span style="font-size:15px;color:var(--text-secondary);margin-left:4px">kg</span></div>'
+    + '<div class="t-display" style="margin-bottom:14px">' + (current != null ? (current.toFixed(1) + '<span style="font-size:15px;color:var(--text-secondary);margin-left:4px">kg</span>') : '<span style="font-size:17px;font-weight:500;color:#8A8A8E">No data yet</span>') + '</div>'
     + '<div class="seg-range" style="display:flex;gap:24px;align-items:center;margin-bottom:16px">'
       + '<button type="button" class="range-btn active" data-range="1w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:600;color:#F5F5F4;border-bottom:2px solid #F5F5F4;cursor:pointer">4W</button>'
       + '<button type="button" class="range-btn" data-range="1m" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">12W</button>'
