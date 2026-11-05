@@ -287,10 +287,10 @@ export function renderProgressSimple(mode, historySubTab) {
       + '<span class="t-label">Progress</span>'
       + '<button class="icon-btn" id="settingsBtn" aria-label="Settings">' + ic('settings') + '</button>'
     + '</div>'
-    + '<div class="seg-tabs" style="margin-bottom:20px">'
-      + '<button class="seg-tab-btn' + (mode === 'body' ? ' active' : '') + '" id="bodyProgressBtn">Body</button>'
-      + '<button class="seg-tab-btn' + (mode === 'lifts' ? ' active' : '') + '" id="liftProgressBtn">Lifts</button>'
-      + '<button class="seg-tab-btn' + (mode === 'history' ? ' active' : '') + '" id="historyProgressBtn">History</button>'
+    + '<div class="seg-tabs" role="tablist" style="margin-bottom:20px">'
+      + '<button class="seg-tab-btn' + (mode === 'body' ? ' active' : '') + '" id="bodyProgressBtn" role="tab" aria-selected="' + (mode === 'body' ? 'true' : 'false') + '">Body</button>'
+      + '<button class="seg-tab-btn' + (mode === 'lifts' ? ' active' : '') + '" id="liftProgressBtn" role="tab" aria-selected="' + (mode === 'lifts' ? 'true' : 'false') + '">Lifts</button>'
+      + '<button class="seg-tab-btn' + (mode === 'history' ? ' active' : '') + '" id="historyProgressBtn" role="tab" aria-selected="' + (mode === 'history' ? 'true' : 'false') + '">History</button>'
     + '</div>'
     + viewContent;
 

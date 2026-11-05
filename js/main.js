@@ -280,6 +280,11 @@ if (typeof window !== 'undefined') {
       else topOverlay.remove();
       return true;
     }
+    if (window.activeExpandedExId) {
+      window.activeExpandedExId = null;
+      renderGym();
+      return true;
+    }
     if (tab !== 'today') {
       window.setTab('today');
       return true;

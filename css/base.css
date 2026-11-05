@@ -72,6 +72,16 @@ textarea,
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Accessibility: Focus-visible outline on interactive controls */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--lime) !important;
+  outline-offset: 2px !important;
+}
+
 button:active:not(:disabled),
 .navitem:active,
 .btn-text-action:active,
