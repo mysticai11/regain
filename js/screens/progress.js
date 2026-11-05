@@ -276,14 +276,16 @@ export function renderProgressSimple(mode) {
     + '<div id="liftSummaryCard"></div>'
     + '<div id="liftPlot"></div>'
     + '</div>';
-  var weeklyWorkBlock = '<div style="margin-top:32px">'
-    + '<div class="t-label" style="margin-bottom:12px">Weekly work · Sets last 7 days · target 10–18</div>'
+  var weeklyWorkBlock = '<div style="margin-top:24px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">'
+      + '<span class="t-label">Weekly work · Sets last 7 days</span>'
+      + '<span class="t-micro tabnum" style="color:var(--text-secondary)">Target 10–18</span>'
+    + '</div>'
     + weeklyVolumeChart()
     + '</div>';
   var calOffset = Number(window.activeProgressMonthOffset) || 0;
   var calD = new Date(new Date().getFullYear(), new Date().getMonth() + calOffset, 1);
-  var monthlyDigestBlock = buildMonthlyDigestHTML(calD.getFullYear(), calD.getMonth());
-  var weeklyDigestBlock = buildWeeklyDigestHTML();
+  var monthlyDigestBlock = buildMonthlyDigestHTML(calD.getFullYear(), calD.getMonth()), weeklyDigestBlock = buildWeeklyDigestHTML();
 
   document.getElementById('content').innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">'

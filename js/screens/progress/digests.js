@@ -195,3 +195,4 @@ export function buildWeeklyDigestHTML() {
     + weekBlocks.join('')
     + '</div>';
 }
+

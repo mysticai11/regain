@@ -282,15 +282,18 @@ export function weeklyVolumeChart() {
   var targetFloor = 10;
   var rows = logged.map(function(v) {
     var target = plannedByMuscle[v.muscle] || targetFloor;
-    var pct = Math.min(100, Math.round(v.sets / target * 100));
-    return '<div style="margin-bottom:14px"><div class="list-row" style="padding:4px 0"><span>' + esc(v.muscle) + '</span><span class="tabnum">' + v.sets + ' / ' + target + '</span></div>'
-      + '<div class="prog-line"><div class="prog-line-fill' + (v.sets >= target ? ' lime' : '') + '" style="width:' + pct + '%"></div></div></div>';
+    var pct = Math.min(100, Math.round(v.sets / target * 100)), isDone = v.sets >= target;
+    return '<div style="background:#141416;border-radius:10px;padding:8px 10px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:600;margin-bottom:5px">'
+        + '<span style="color:#F5F5F4;letter-spacing:0.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(v.muscle) + '</span>'
+        + '<span class="tabnum" style="color:' + (isDone ? '#C6F432' : '#8A8A8E') + ';margin-left:6px">' + v.sets + ' / ' + target + '</span>'
+      + '</div>'
+      + '<div style="height:3px;background:#222;border-radius:2px;overflow:hidden">'
+        + '<div style="height:100%;background:' + (isDone ? '#C6F432' : '#8A8A8E') + ';width:' + pct + '%"></div>'
+      + '</div>'
+      + '</div>';
   }).join('');
-
-  return '<div style="margin-top:8px">'
-    + '<div class="t-micro" style="margin-bottom:12px">Sets, last 7 days · target 10–18</div>'
-    + rows
-    + '</div>';
+  return '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">' + rows + '</div>';
 }
 
 export function nutritionProgressHTML(records) {
