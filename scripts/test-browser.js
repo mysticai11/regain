@@ -193,6 +193,55 @@ server.listen(8097, async () => {
     })()
   `);
   console.log('Dot grid info on Progress tab:', dotGridInfo);
+  const weightChartInfo = await evalExpr(`
+    (function() {
+      const container = document.getElementById('weightPlot');
+      const meta = document.getElementById('weightMeta');
+      return {
+        hasSvg: !!container?.querySelector('svg'),
+        readout: container?.querySelector('.chart-readout')?.textContent,
+        metaText: meta?.innerText
+      };
+    })()
+  `);
+  console.log('Weight chart info on Progress tab:', weightChartInfo);
+
+  // Multi-point test
+  await evalExpr(`
+    (async function() {
+      const stateMod = await import('./js/state.js');
+      const testEntries = [
+        { dayKey: '2026-11-02', weight: 54.0, createdAt: '2026-11-02T08:00:00' },
+        { dayKey: '2026-11-03', weight: 54.2, createdAt: '2026-11-03T08:00:00' },
+        { dayKey: '2026-11-04', weight: 54.5, createdAt: '2026-11-04T08:00:00' },
+        { dayKey: '2026-11-05', weight: 54.4, createdAt: '2026-11-05T08:00:00' }
+      ];
+      stateMod.setState({ profile: Object.assign({}, stateMod.profile, { weightEntries: testEntries }) });
+      document.querySelector('[data-tab="progress"]')?.click();
+    })()
+  `);
+  await new Promise(r => setTimeout(r, 600));
+  const multiChartInfo = await evalExpr(`
+    (function() {
+      const container = document.getElementById('weightPlot');
+      const meta = document.getElementById('weightMeta');
+      const readout = container?.querySelector('.chart-readout')?.textContent;
+      // Test scrub by simulating pointerenter on 2nd point group
+      const groups = container?.querySelectorAll('.chart-point-group');
+      if (groups && groups.length >= 2) {
+        groups[1].dispatchEvent(new Event('pointerenter', { bubbles: true }));
+      }
+      const scrubbedReadout = container?.querySelector('.chart-readout')?.textContent;
+      return {
+        pointsCount: groups?.length,
+        initialReadout: readout,
+        scrubbedReadout: scrubbedReadout,
+        guideTexts: Array.from(container?.querySelectorAll('text') || []).map(t => t.textContent),
+        metaText: meta?.innerText
+      };
+    })()
+  `);
+  console.log('Multi-point weight chart info & scrub test:', multiChartInfo);
 
   console.log('Testing Today tab...');
   await evalExpr(`document.querySelector('[data-tab="today"]')?.click()`);

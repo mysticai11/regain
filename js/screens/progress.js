@@ -17,11 +17,51 @@ export * from "./progress/charts.js?v=4";
 export * from "./progress/history.js";
 export * from "./progress/session-editor.js";
 
+function setupChartInteractions(container) {
+  if (!container) return;
+  var chart = container.querySelector('.chart-container');
+  if (!chart) return;
+  var svg = chart.querySelector('svg');
+  var readout = chart.querySelector('.chart-readout');
+  var cursor = chart.querySelector('.chart-scrub-line');
+  var defaultText = readout ? readout.innerHTML : '';
+  var pointGroups = Array.from(chart.querySelectorAll('.chart-point-group'));
+  if (!pointGroups.length || !svg || !readout) return;
+
+  function updatePoint(pt) {
+    if (!pt) return;
+    var d = pt.dataset;
+    var date = d.date || '';
+    var val = d.val || '';
+    var unit = d.unit || 'kg';
+    var avg = d.avg || '';
+    readout.innerHTML = esc(date) + ' · ' + esc(val) + ' ' + esc(unit) + (avg ? ' <span style="font-size:11px;color:#8A8A8E">(avg ' + esc(avg) + ')</span>' : '');
+    var circle = pt.querySelector('circle');
+    if (circle && cursor) {
+      cursor.setAttribute('x1', circle.getAttribute('cx'));
+      cursor.setAttribute('x2', circle.getAttribute('cx'));
+      cursor.style.display = 'block';
+    }
+  }
+
+  function resetPoint() {
+    readout.innerHTML = defaultText;
+    if (cursor) cursor.style.display = 'none';
+  }
+
+  pointGroups.forEach(function(g) {
+    g.addEventListener('pointerenter', function() { updatePoint(g); });
+    g.addEventListener('click', function(e) { e.stopPropagation(); updatePoint(g); });
+  });
+
+  svg.addEventListener('pointerleave', resetPoint);
+}
+
 export function renderProgressSimple(mode) {
   mode=mode||'body';
   var entries=getWeightHistory(), records=allDayKeys().map(function(k){var r=dayRecord(k),t=getDayTotals(k);return {key:k,weight:r.weight,kcal:t.kcal,protein:t.protein};});
   var workoutSessions=getWorkoutSessions().filter(function(session){return (session.exercises||[]).some(function(exercise){return (exercise.sets||[]).some(Boolean);});});
-  var current=entries.length?entries[entries.length-1].weight:null, range='1w';
+  var current=entries.length?entries[entries.length-1].weight:null, range='4w';
   var exOptions=[]; getActiveProgram().forEach(function(s){s.exercises.forEach(function(e){if(!exOptions.some(function(x){return x.id===e.id;}))exOptions.push(e);});});
   allDayKeys().forEach(function(key){Object.keys(dayRecord(key).workout||{}).forEach(function(id){var e=getExerciseData(id);if(e&&!exOptions.some(function(x){return x.id===id;}))exOptions.push(e);});});
   var render=function(){
@@ -80,8 +120,16 @@ export function renderProgressSimple(mode) {
     });
 
     var first=allLiftValues.length?allLiftValues[0].value:1;
-    var weightPlot=document.getElementById('weightPlot'); if(weightPlot) weightPlot.innerHTML=progressPlot(weightValues, (profile && profile.targetWeight) || null);
-    var liftPlot=document.getElementById('liftPlot'); if(liftPlot) liftPlot.innerHTML=progressPlot(liftValues, null, isBW ? 'reps' : 'kg');
+    var weightPlot=document.getElementById('weightPlot');
+    if(weightPlot) {
+      weightPlot.innerHTML = progressPlot(weightValues, (profile && profile.targetWeight) || null, 'kg', false);
+      setupChartInteractions(weightPlot);
+    }
+    var liftPlot=document.getElementById('liftPlot');
+    if(liftPlot) {
+      liftPlot.innerHTML = progressPlot(liftValues, null, isBW ? 'reps' : 'kg', true);
+      setupChartInteractions(liftPlot);
+    }
     var direction=goalDirection(), latest=weightValues.length?weightValues[weightValues.length-1].value:null;
     var trend=weightValues.length>1?latest-weightValues[0].value:0;
 
@@ -117,35 +165,46 @@ export function renderProgressSimple(mode) {
     var advisorCard = '';
     if (entries.length >= 5 && weeklyRate != null) {
       if (avgCalories >= 2700 && weeklyRate < 0.25) {
-        advisorCard = '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;text-align:left">'
-          + '<div style="font-size:11px;font-weight:600;color:#C6F432;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Bulking Advisor</div>'
-          + '<div style="font-size:15px;color:#F5F5F4;line-height:1.35">Eating ~' + avgCalories.toLocaleString() + ' kcal and gaining slowly (' + rateStr + ')? Target is +0.25–0.50 kg/wk. Increase intake by +150–200 kcal/day to hit growth pace.</div>'
+        advisorCard = '<div style="font-size:15px;color:#F5F5F4;line-height:1.35;border-top:1px solid #222222;padding-top:10px">'
+          + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:2px">Bulking Pace: Slow</span>'
+          + 'Eating ~' + avgCalories.toLocaleString() + ' kcal and gaining slowly (' + rateStr + '). Target is +0.25–0.50 kg/wk. Increase intake by +150–200 kcal/day.'
           + '</div>';
       } else if (isRateOnTarget) {
-        advisorCard = '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;text-align:left">'
-          + '<div style="font-size:11px;font-weight:600;color:#C6F432;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Bulking Pace: On Target</div>'
-          + '<div style="font-size:15px;color:#F5F5F4;line-height:1.35">' + rateStr + ' (target +0.25–0.50 kg/wk) · Est. ' + Math.round(targetW) + ' kg by ' + etaText + '</div>'
+        advisorCard = '<div style="font-size:15px;color:#F5F5F4;line-height:1.35;border-top:1px solid #222222;padding-top:10px">'
+          + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:2px">Bulking Pace: On Target</span>'
+          + rateStr + ' (target +0.25–0.50 kg/wk) · Est. ' + Math.round(targetW) + ' kg by ' + etaText
           + '</div>';
       } else if (weeklyRate > 0.55) {
-        advisorCard = '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;text-align:left">'
-          + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Bulking Pace: Fast</div>'
-          + '<div style="font-size:15px;color:#F5F5F4;line-height:1.35">Gaining ' + rateStr + ' vs +0.25–0.50 kg/wk target. Maintain a clean surplus to minimize excess fat.</div>'
+        advisorCard = '<div style="font-size:15px;color:#F5F5F4;line-height:1.35;border-top:1px solid #222222;padding-top:10px">'
+          + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:2px">Bulking Pace: Fast</span>'
+          + 'Gaining ' + rateStr + ' vs +0.25–0.50 kg/wk target. Maintain a clean surplus.'
           + '</div>';
       }
-    } else if (entries.length < 5) {
-      advisorCard = '<div style="background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-top:10px;font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.04em;text-transform:uppercase">Log 5+ weigh-ins to calculate weekly rate</div>';
     }
 
     var weightMeta=document.getElementById('weightMeta');
     if (weightMeta) {
       if (latest != null) {
-        var toGoalText = toGoal != null ? ((toGoal > 0 ? '+' : '') + toGoal.toFixed(1) + ' kg') : '—';
-        weightMeta.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:#141416;border-radius:12px;padding:12px 14px;text-align:center;margin-top:10px">'
-          + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px">7-Day Avg</div><div style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + latest.toFixed(1) + ' <span style="font-size:11px;color:#8A8A8E">kg</span></div></div>'
-          + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px">Rate</div><div style="font-size:17px;font-weight:600;color:' + (isRateOnTarget ? '#C6F432' : '#F5F5F4') + ';margin-top:2px">' + rateStr + '</div></div>'
-          + '<div><div class="t-micro" style="color:#8A8A8E;font-size:11px">To ' + Math.round(targetW) + ' kg</div><div style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + toGoalText + '</div></div>'
+        var toGoalText = toGoal != null ? ((toGoal > 0 ? '+' : '') + toGoal.toFixed(1) + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span>') : '—';
+        var rateDisplay = weeklyRate != null ? ((weeklyRate >= 0 ? '+' : '') + weeklyRate.toFixed(2) + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg/wk</span>') : '—';
+
+        weightMeta.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;text-align:left">'
+          + '<div>'
+            + '<div class="t-micro" style="color:#8A8A8E;font-size:11px;text-transform:uppercase;letter-spacing:0.04em">7-Day Avg</div>'
+            + '<div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.2;margin-top:2px">' + latest.toFixed(1) + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span></div>'
           + '</div>'
-          + advisorCard;
+          + '<div>'
+            + '<div class="t-micro" style="color:#8A8A8E;font-size:11px;text-transform:uppercase;letter-spacing:0.04em">Rate</div>'
+            + '<div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.2;margin-top:2px">' + rateDisplay + '</div>'
+          + '</div>'
+          + '<div>'
+            + '<div class="t-micro" style="color:#8A8A8E;font-size:11px;text-transform:uppercase;letter-spacing:0.04em">To ' + Math.round(targetW) + ' kg</div>'
+            + '<div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.2;margin-top:2px">' + toGoalText + '</div>'
+          + '</div>'
+          + '</div>'
+          + (entries.length < 5
+              ? '<div style="font-size:15px;color:#8A8A8E;margin-top:10px">Log 5+ weigh-ins for weekly rate</div>'
+              : (advisorCard ? ('<div style="margin-top:12px">' + advisorCard + '</div>') : ''));
       } else {
         weightMeta.innerHTML = '<div style="padding:12px 0;font-size:15px;color:#8A8A8E">No weight entries yet</div>';
       }
@@ -171,8 +230,8 @@ export function renderProgressSimple(mode) {
     + '</div>'
     + '<div class="t-display" style="margin-bottom:14px">' + (current != null ? (current.toFixed(1) + '<span style="font-size:15px;color:var(--text-secondary);margin-left:4px">kg</span>') : '<span style="font-size:17px;font-weight:500;color:#8A8A8E">No data yet</span>') + '</div>'
     + '<div class="seg-range" style="display:flex;gap:24px;align-items:center;margin-bottom:16px">'
-      + '<button type="button" class="range-btn active" data-range="1w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:600;color:#F5F5F4;border-bottom:2px solid #F5F5F4;cursor:pointer">4W</button>'
-      + '<button type="button" class="range-btn" data-range="1m" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">12W</button>'
+      + '<button type="button" class="range-btn active" data-range="4w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:600;color:#F5F5F4;border-bottom:2px solid #F5F5F4;cursor:pointer">4W</button>'
+      + '<button type="button" class="range-btn" data-range="12w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">12W</button>'
       + '<button type="button" class="range-btn" data-range="all" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">All</button>'
     + '</div>'
     + '<div id="weightPlot"></div>'
