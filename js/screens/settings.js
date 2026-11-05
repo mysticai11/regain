@@ -1,7 +1,7 @@
 /* Settings screen: targets, training days, plan picker, profile, and onboarding modal */
 
 import { profile, setProfile, setTab } from "../state.js";
-import { sv, ls, dayRecord, saveDayRecord, exportData, importData } from "../storage.js";
+import { sv, ls, dayRecord, saveDayRecord, exportData, importData, resetAllData } from "../storage.js";
 import { DEFAULT_MEAL_PLAN } from "../data/foods.js";
 import { renderApp } from "../main.js";
 import { CAL_TARGET_REST, CAL_TARGET_GYM, PROT_TARGET_REST, PROT_TARGET_GYM, PROGRAM_2DAY, PROGRAM_3DAY, PROGRAM_4DAY, PROGRAM_5DAY, PROGRAM_6DAY, DEFAULT_5DAY_ROUTINE } from "../data/plan.js";
@@ -313,20 +313,22 @@ export function openSettings() {
     }
   });
 
-  overlay.querySelector('#resetBtn').addEventListener('click', function() {
-    if (confirm('This will delete all Regain data on this device. Are you sure?')) {
-      SQLiteStorage.clear().then(function() {
-        return new Promise(function(resolve) {
-          var request = indexedDB.deleteDatabase('rg_food_db');
-          request.onsuccess = request.onerror = request.onblocked = resolve;
+  var resetBtn = overlay.querySelector('#resetBtn');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function() {
+      if (confirm('This will delete all Tally data on this device. Are you sure?')) {
+        resetBtn.disabled = true;
+        resetBtn.textContent = 'Resetting…';
+        resetAllData().then(function() {
+          window.location.reload();
+        }).catch(function() {
+          showToast('Reset failed. Export a backup and try again.', 'warn');
+          resetBtn.disabled = false;
+          resetBtn.textContent = 'Reset';
         });
-      }).then(function() {
-        location.reload();
-      }).catch(function() {
-        showToast('Reset failed. Export a backup and try again.', 'warn');
-      });
-    }
-  });
+      }
+    });
+  }
 
   var openPlanBtn = overlay.querySelector('#openPlanFromSettingsBtn');
   if (openPlanBtn) {

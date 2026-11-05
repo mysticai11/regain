@@ -101,16 +101,56 @@ export var SQLiteStorage = {
   clear: function() {
     var self=this;
     Object.keys(this.cache).forEach(function(key){delete self.cache[key];});
-    localStorage.clear();
-    if(this.active && window.Capacitor) {
+    try { localStorage.clear(); } catch(e) {}
+    try { sessionStorage.clear(); } catch(e) {}
+    if(this.active && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorSQLite) {
       return window.Capacitor.Plugins.CapacitorSQLite.executeJSPS({
         database:'regain_storage',
         statements:'DELETE FROM rg_storage;'
-      }).catch(function(e){console.error('SQLite clear error:',e);throw e;});
+      }).catch(function(e){
+        console.error('SQLite clear error:',e);
+        return Promise.resolve();
+      });
     }
     return Promise.resolve();
   }
 };
+
+export function resetAllData() {
+  return new Promise(function(resolve) {
+    try {
+      if (typeof window !== 'undefined' && window.FoodDB && typeof window.FoodDB.close === 'function') {
+        window.FoodDB.close();
+      }
+    } catch(e) {}
+
+    SQLiteStorage.clear().catch(function() { return Promise.resolve(); }).then(function() {
+      try {
+        if (typeof localStorage !== 'undefined') localStorage.clear();
+        if (typeof sessionStorage !== 'undefined') sessionStorage.clear();
+      } catch(e) {}
+
+      if (typeof indexedDB !== 'undefined' && indexedDB.deleteDatabase) {
+        try {
+          var req = indexedDB.deleteDatabase('rg_food_db');
+          var resolved = false;
+          var done = function() {
+            if (!resolved) {
+              resolved = true;
+              resolve();
+            }
+          };
+          req.onsuccess = req.onerror = req.onblocked = done;
+          setTimeout(done, 800);
+        } catch(e) {
+          resolve();
+        }
+      } else {
+        resolve();
+      }
+    });
+  });
+}
 
 export function ls(k, fb) {
   try {

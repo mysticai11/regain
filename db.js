@@ -358,5 +358,12 @@ var FoodDB = (function () {
     });
   }
 
-  return { open:open, search:search, addCustom:addCustom, updateCustom:updateCustom, deleteCustom:deleteCustom, getAllCustom:getAllCustom, addRecipe:addRecipe, getAllRecipes:getAllRecipes, deleteRecipe:deleteRecipe, getCustomById:getCustomById, exportAll:exportAll, importAll:importAll };
+  function close() {
+    if (_db) {
+      try { _db.close(); } catch (e) {}
+      _db = null;
+    }
+  }
+
+  return { open:open, close:close, search:search, addCustom:addCustom, updateCustom:updateCustom, deleteCustom:deleteCustom, getAllCustom:getAllCustom, addRecipe:addRecipe, getAllRecipes:getAllRecipes, deleteRecipe:deleteRecipe, getCustomById:getCustomById, exportAll:exportAll, importAll:importAll };
 })();
