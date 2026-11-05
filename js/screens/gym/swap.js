@@ -1,7 +1,9 @@
 /* Gym exercise swap & calculators: exercise substitution, warm-up sets, and plate loading */
 
-import { dayRecord, saveDayRecord } from "../../storage.js";
-import { getExerciseData, getAllExercisesForMuscle, ALTERNATES } from "../../data/plan.js";
+import { profile } from "../../state.js";
+import { sv, dayRecord, saveDayRecord } from "../../storage.js";
+import { getExerciseData, getAllExercisesForMuscle, getActiveProgram, getCurrentWorkout, ALTERNATES } from "../../data/plan.js";
+import { openAddExerciseModal, openEditExerciseModal } from "./exercise-modal.js";
 import { getPlateBreakdown } from "../../lib/calc.js";
 import { openSheet } from "../../components/sheet.js";
 import { showToast } from "../../components/toast.js";
@@ -33,10 +35,6 @@ export function openWarmUpSheet(exName, exId) {
   overlay.querySelector('#closeWarmBtn').addEventListener('click', function(){ overlay.remove(); });
   overlay.addEventListener('click', function(e){ if (e.target === overlay) overlay.remove(); });
 }
-
-// ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-// GYM TAB
-// ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
 export function openPlateCalculator(weight) {
   var target = parseFloat(weight) || 60;
@@ -93,8 +91,10 @@ export function openPlateCalculator(weight) {
 
 export function openSwapSheet(origId, currId, muscleStr, dayKey) {
   var exList = getAllExercisesForMuscle(muscleStr);
+  if (!exList.length) exList = getAllExercisesForMuscle('all');
   var overlay = document.createElement('div');
   overlay.className = 'overlay';
+  overlay.style.zIndex = '9999';
 
   function formatMuscles(mStr) {
     if (!mStr) return '';
@@ -106,26 +106,103 @@ export function openSwapSheet(origId, currId, muscleStr, dayKey) {
     }).join(', ');
   }
 
-  var rows = exList.map(function(e) {
-    var isSel = e.id === currId;
-    var muscleText = formatMuscles(e.muscle || muscleStr);
-    return '<div class="list-row swap-pick-row" data-selectswap="' + e.id + '" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid #222;cursor:pointer">'
-      + '<div style="flex:1;min-width:0;padding-right:12px">'
-        + '<div style="font-size:17px;font-weight:500;color:#F5F5F4;line-height:1.25">' + esc(e.name) + '</div>'
-        + '<div style="font-size:15px;color:#8A8A8E;margin-top:2px">' + esc(muscleText) + '</div>'
-      + '</div>'
-      + (isSel ? '<span style="color:#F5F5F4;font-size:17px;font-weight:700">✓</span>' : '')
-      + '</div>';
-  }).join('');
+  function applySwap(sid, customData) {
+    var keepFuture = overlay.querySelector('#keepFutureWeeksToggle') ? overlay.querySelector('#keepFutureWeeksToggle').checked : true;
+    var rec = dayRecord(dayKey);
+    rec.swaps = rec.swaps || {};
+    if (sid === origId) {
+      delete rec.swaps[origId];
+    } else {
+      rec.swaps[origId] = sid;
+    }
+    saveDayRecord(dayKey, rec);
 
-  overlay.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%">'
+    if (keepFuture) {
+      var curWorkout = getCurrentWorkout(dayKey);
+      var wIdx = curWorkout ? curWorkout.workoutIndex : null;
+      var prog = JSON.parse(JSON.stringify(getActiveProgram()));
+      if (wIdx != null && prog[wIdx] && Array.isArray(prog[wIdx].exercises)) {
+        var sessionExs = prog[wIdx].exercises;
+        var targetIdx = sessionExs.findIndex(function(e) { return e.id === origId || e.id === currId; });
+        if (targetIdx >= 0) {
+          var cData = customData || getExerciseData(sid);
+          sessionExs[targetIdx] = {
+            id: cData.id,
+            name: cData.name,
+            muscle: cData.muscle || sessionExs[targetIdx].muscle || 'other',
+            sets: sessionExs[targetIdx].sets || cData.sets || 2,
+            reps: sessionExs[targetIdx].reps || cData.reps || '8–12',
+            rir: sessionExs[targetIdx].rir || cData.rir || '1–2',
+            rest: sessionExs[targetIdx].rest != null ? sessionExs[targetIdx].rest : (cData.rest != null ? cData.rest : 90),
+            cue: cData.cue || sessionExs[targetIdx].cue || '',
+            weightIncrement: cData.weightIncrement || sessionExs[targetIdx].weightIncrement || 2.5,
+            type: cData.type || sessionExs[targetIdx].type || 'compound',
+            bodyweight: cData.bodyweight === true || sessionExs[targetIdx].bodyweight === true
+          };
+          profile.activeSplitData = prog;
+          sv('rg_profile', profile);
+        }
+      }
+    }
+    overlay.remove();
+    showToast(keepFuture ? 'Swapped & saved for future weeks' : 'Swapped for this session', 'ok');
+    if (typeof window !== 'undefined' && typeof window.renderGym === 'function') window.renderGym();
+  }
+
+  function renderList(filterQuery) {
+    var q = (filterQuery || '').toLowerCase().trim();
+    var filtered = exList.filter(function(e) {
+      if (!q) return true;
+      return e.name.toLowerCase().includes(q) || (e.muscle && e.muscle.toLowerCase().includes(q));
+    });
+
+    var rows = filtered.map(function(e) {
+      var isSel = e.id === currId;
+      var muscleText = formatMuscles(e.muscle || muscleStr);
+      return '<div class="list-row swap-pick-row" data-selectswap="' + esc(e.id) + '" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid #222;cursor:pointer">'
+        + '<div style="flex:1;min-width:0;padding-right:12px">'
+          + '<div style="font-size:17px;font-weight:500;color:#F5F5F4;line-height:1.25">' + esc(e.name) + '</div>'
+          + '<div style="font-size:15px;color:#8A8A8E;margin-top:2px">' + esc(muscleText) + ' · ' + (e.type || 'compound') + '</div>'
+        + '</div>'
+        + (isSel ? '<span style="color:#F5F5F4;font-size:17px;font-weight:700">✓</span>' : '<span style="color:#8A8A8E;font-size:15px">Select</span>')
+        + '</div>';
+    }).join('');
+
+    var container = overlay.querySelector('#swapRowsContainer');
+    if (container) {
+      container.innerHTML = rows || '<div style="font-size:15px;color:#8A8A8E;padding:24px 0;text-align:center">No variations match your search</div>';
+      attachRowEvents();
+    }
+  }
+
+  function attachRowEvents() {
+    overlay.querySelectorAll('[data-selectswap]').forEach(function(row) {
+      row.onclick = function() {
+        applySwap(row.dataset.selectswap);
+      };
+    });
+  }
+
+  overlay.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%;max-height:85vh;overflow-y:auto">'
     + '<div class="sheet-handle"></div>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
       + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">Swap Exercise</div>'
       + '<button type="button" class="btn-text-action" id="closeSwapBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">Close</button>'
     + '</div>'
-    + '<div style="font-size:15px;color:#8A8A8E;margin-bottom:16px">Swaps apply to this session only.</div>'
-    + '<div style="max-height:60vh;overflow-y:auto">' + rows + '</div>'
+    + '<div style="font-size:15px;color:#8A8A8E;margin-bottom:12px">Choose a variation or custom exercise for this workout.</div>'
+    + '<label style="display:flex;align-items:center;justify-content:space-between;background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-bottom:12px;cursor:pointer">'
+      + '<div>'
+        + '<div style="font-size:15px;color:#F5F5F4;font-weight:500">Keep for future weeks</div>'
+        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Saves this exercise to your routine for upcoming weeks</div>'
+      + '</div>'
+      + '<input type="checkbox" id="keepFutureWeeksToggle" checked style="width:20px;height:20px;accent-color:#C6F432;cursor:pointer">'
+    + '</label>'
+    + '<div style="display:flex;gap:8px;margin-bottom:12px">'
+      + '<button type="button" id="swapSheetCreateCustomBtn" style="flex:1;height:44px;background:#1C1C1F;border:1px dashed #55555A;border-radius:12px;color:#C6F432;font-size:15px;font-weight:600;cursor:pointer">+ Custom Exercise</button>'
+      + '<button type="button" id="swapSheetEditCurrentBtn" style="flex:1;height:44px;background:#1C1C1F;border:1px solid #222;border-radius:12px;color:#F5F5F4;font-size:15px;cursor:pointer">Edit Routine Sets</button>'
+    + '</div>'
+    + '<input type="text" id="swapSheetSearchInput" placeholder="Filter variations..." style="background:#1C1C1F;border:none;border-radius:12px;height:44px;padding:0 14px;color:#F5F5F4;font-size:15px;width:100%;margin-bottom:12px;box-sizing:border-box">'
+    + '<div id="swapRowsContainer" style="max-height:48vh;overflow-y:auto"></div>'
     + '</div>';
 
   document.body.appendChild(overlay);
@@ -133,18 +210,45 @@ export function openSwapSheet(origId, currId, muscleStr, dayKey) {
   overlay.querySelector('#closeSwapBtn').addEventListener('click', function(){ overlay.remove(); });
   overlay.addEventListener('click', function(e){ if (e.target === overlay) overlay.remove(); });
 
-  overlay.querySelectorAll('[data-selectswap]').forEach(function(row) {
-    row.addEventListener('click', function() {
-      var sid = row.dataset.selectswap;
-      var rec = dayRecord(dayKey);
-      rec.swaps = rec.swaps || {};
-      if (sid === origId) delete rec.swaps[origId];
-      else rec.swaps[origId] = sid;
-      saveDayRecord(dayKey, rec);
-      overlay.remove();
-      renderGym();
+  overlay.querySelector('#swapSheetCreateCustomBtn').onclick = function() {
+    openAddExerciseModal(function(newEx) {
+      applySwap(newEx.id, newEx);
     });
-  });
+  };
+
+  overlay.querySelector('#swapSheetEditCurrentBtn').onclick = function() {
+    var curExData = getExerciseData(currId);
+    var curWorkout = getCurrentWorkout(dayKey);
+    var wIdx = curWorkout ? curWorkout.workoutIndex : null;
+    var prog = JSON.parse(JSON.stringify(getActiveProgram()));
+    var targetInProg = null;
+    if (wIdx != null && prog[wIdx] && Array.isArray(prog[wIdx].exercises)) {
+      targetInProg = prog[wIdx].exercises.find(function(e) { return e.id === origId || e.id === currId; });
+    }
+    var exToEdit = Object.assign({}, curExData, targetInProg || {});
+    openEditExerciseModal(exToEdit, function(updatedEx) {
+      if (wIdx != null && prog[wIdx] && Array.isArray(prog[wIdx].exercises)) {
+        var tIdx = prog[wIdx].exercises.findIndex(function(e) { return e.id === origId || e.id === currId; });
+        if (tIdx >= 0) {
+          prog[wIdx].exercises[tIdx] = updatedEx;
+          profile.activeSplitData = prog;
+          sv('rg_profile', profile);
+        }
+      }
+      overlay.remove();
+      showToast('Routine exercise updated', 'ok');
+      if (typeof window !== 'undefined' && typeof window.renderGym === 'function') window.renderGym();
+    });
+  };
+
+  var searchInp = overlay.querySelector('#swapSheetSearchInput');
+  if (searchInp) {
+    searchInp.oninput = function() {
+      renderList(searchInp.value);
+    };
+  }
+
+  renderList('');
 }
 
 export function openEffortSheet(exId, setIndex) {
@@ -180,5 +284,3 @@ export function openEffortSheet(exId, setIndex) {
     };
   });
 }
-
-// ── Toast notification ─────────────────────────────────────────────────────────

@@ -7,6 +7,7 @@ import { openActionMenuSheet } from "../../components/sheet.js";
 import { showToast } from "../../components/toast.js";
 import { esc } from "../../lib/format.js";
 import { openAddExerciseModal, openEditExerciseModal, openSwapExerciseModal } from "./exercise-modal.js";
+import { saveCustomExercise } from "../../data/exercises.js";
 export * from "./exercise-modal.js";
 export * from "./edit-workout.js";
 
@@ -28,7 +29,7 @@ export function openCustomRoutineSheet(dayKey) {
     if (!name) { showToast('Enter an exercise name', 'warn'); return; }
     profile.customRoutines = profile.customRoutines || {};
     profile.customRoutines[day] = profile.customRoutines[day] || [];
-    profile.customRoutines[day].push({
+    var newCustomEx = {
       id: 'custom_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
       name: name,
       muscle: overlay.querySelector('#customExMuscle').value.trim() || 'other',
@@ -36,7 +37,9 @@ export function openCustomRoutineSheet(dayKey) {
       reps: overlay.querySelector('#customExReps').value.trim() || '8–12',
       rir: '1–2', rest: parseInt(overlay.querySelector('#customExRest').value, 10) || 90,
       cue: '', type: overlay.querySelector('#customExType').value
-    });
+    };
+    saveCustomExercise(newCustomEx);
+    profile.customRoutines[day].push(newCustomEx);
     sv('rg_profile', profile);
     overlay.remove();
     if (typeof window !== 'undefined' && typeof window.renderGym === 'function') window.renderGym();

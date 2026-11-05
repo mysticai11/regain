@@ -3,38 +3,12 @@
 import { profile } from "../../state.js";
 import { sv } from "../../storage.js";
 import { getActiveProgram, getExerciseData, getAllExercisesForMuscle, ALTERNATES } from "../../data/plan.js";
+import { BUILTIN_EXERCISE_CATALOG, getAllKnownExercises, saveCustomExercise } from "../../data/exercises.js";
 import { esc } from "../../lib/format.js";
 import { showToast } from "../../components/toast.js";
 
-export var BASE_EXERCISE_LIBRARY = [
-  { id: 'flat_bench', name: 'Flat Bench Press', muscle: 'chest', sets: 2, reps: '6–10', rir: '1–2', rest: 150, cue: 'Chest', type: 'compound' },
-  { id: 'incline_db_press', name: 'Incline Dumbbell Press', muscle: 'chest', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Upper chest', type: 'compound' },
-  { id: 'machine_chest_press', name: 'Chest Press Machine', muscle: 'chest', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Chest', type: 'machine' },
-  { id: 'pec_deck_fly', name: 'Pec Deck Fly', muscle: 'chest', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Chest stretch', type: 'isolation' },
-  { id: 'pull_ups', name: 'Pull-ups', muscle: 'back,biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Lats & mid back', type: 'compound' },
-  { id: 'chin_ups', name: 'Chin-ups', muscle: 'back,biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Lats & biceps', type: 'compound' },
-  { id: 'lat_pulldown', name: 'Lat Pulldown', muscle: 'back', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Lats', type: 'cable' },
-  { id: 'machine_row', name: 'Machine Row', muscle: 'back', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Mid back', type: 'compound' },
-  { id: 'cable_row', name: 'Cable Row', muscle: 'back', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Mid back squeeze', type: 'machine' },
-  { id: 'db_row', name: 'Dumbbell Row', muscle: 'back,biceps', sets: 4, reps: '10–12', rir: '1–2', rest: 120, cue: '2 min rest', type: 'compound' },
-  { id: 'shoulder_press_machine', name: 'Shoulder Press Machine', muscle: 'shoulders', sets: 2, reps: '6–10', rir: '1–2', rest: 120, cue: 'Deltoids', type: 'machine' },
-  { id: 'lateral_raise_machine', name: 'Lateral Raise Machine', muscle: 'shoulders', sets: 3, reps: '10–15', rir: '1–2', rest: 90, cue: 'Side delts', type: 'isolation' },
-  { id: 'db_lateral', name: 'Dumbbell Lateral Raise', muscle: 'shoulders', sets: 3, reps: '15–20', rir: '1–2', rest: 60, cue: '60s rest', type: 'isolation' },
-  { id: 'rear_delt_fly', name: 'Rear Delt Fly', muscle: 'shoulders', sets: 2, reps: '12–15', rir: '1–2', rest: 90, cue: 'Rear delts', type: 'isolation' },
-  { id: 'leg_press', name: 'Leg Press', muscle: 'quads,glutes', sets: 2, reps: '8–12', rir: '1–2', rest: 150, cue: 'Quads & glutes', type: 'compound' },
-  { id: 'hack_squat', name: 'Hack Squat', muscle: 'quads,glutes', sets: 4, reps: '10–12', rir: '1–2', rest: 150, cue: '2.5 min rest', type: 'compound' },
-  { id: 'romanian_deadlift', name: 'Romanian Deadlift', muscle: 'hamstrings', sets: 2, reps: '8–12', rir: '1–2', rest: 150, cue: 'Hamstrings & hinge', type: 'compound' },
-  { id: 'leg_extension', name: 'Leg Extension', muscle: 'quads', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Quads isolation', type: 'isolation' },
-  { id: 'hamstring_curl', name: 'Hamstring Curl', muscle: 'hamstrings', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Hamstrings isolation', type: 'isolation' },
-  { id: 'standing_calf_raise', name: 'Standing Calf Raise', muscle: 'calves', sets: 3, reps: '12–20', rir: '1–2', rest: 60, cue: 'Calves stretch', type: 'isolation' },
-  { id: 'ez_bar_curl', name: 'EZ-Bar Curl', muscle: 'biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Biceps peak', type: 'isolation' },
-  { id: 'incline_db_curl', name: 'Incline Dumbbell Curl', muscle: 'biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Biceps stretch', type: 'isolation' },
-  { id: 'hammer_curl', name: 'Hammer Curl', muscle: 'forearms', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Brachialis & forearms', type: 'isolation' },
-  { id: 'wrist_curl', name: 'Wrist Curl', muscle: 'forearms', sets: 2, reps: '12–20', rir: '1–2', rest: 60, cue: 'Forearms flexors', type: 'isolation' },
-  { id: 'wrist_extension', name: 'Wrist Extension', muscle: 'forearms', sets: 2, reps: '12–20', rir: '1–2', rest: 60, cue: 'Forearms extensors', type: 'isolation' },
-  { id: 'triceps_pushdown', name: 'Triceps Pushdown', muscle: 'triceps', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Triceps lock', type: 'isolation' },
-  { id: 'overhead_triceps_extension', name: 'Overhead Triceps Extension', muscle: 'triceps', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Triceps overhead', type: 'isolation' }
-];
+export { BUILTIN_EXERCISE_CATALOG };
+export var BASE_EXERCISE_LIBRARY = BUILTIN_EXERCISE_CATALOG;
 
 export function getFullExerciseCatalog() {
   var seen = {};
@@ -55,10 +29,11 @@ export function getFullExerciseCatalog() {
       rest: item.rest != null ? item.rest : 90,
       cue: item.cue || '',
       weightIncrement: item.weightIncrement || 2.5,
-      type: item.type || 'compound'
+      type: item.type || 'compound',
+      bodyweight: item.bodyweight === true || item.isBW === true
     });
   }
-  BASE_EXERCISE_LIBRARY.forEach(add);
+  getAllKnownExercises().forEach(add);
   if (Array.isArray(ALTERNATES)) ALTERNATES.forEach(add);
   var prog = getActiveProgram();
   if (Array.isArray(prog)) {
@@ -70,9 +45,9 @@ export function getFullExerciseCatalog() {
 }
 
 export function openAddExerciseModal(onAdd) {
-  var quickLibrary = BASE_EXERCISE_LIBRARY;
+  var quickLibrary = BUILTIN_EXERCISE_CATALOG;
   var quickChipsHTML = quickLibrary.slice(0, 16).map(function(item, idx) {
-    return '<button type="button" class="chip" data-quick-ex-idx="' + idx + '" style="font-size:11px;padding:4px 8px;border-radius:8px;background:#1C1C1F;border:none;color:#F5F5F4;cursor:pointer">' + item.name + '</button>';
+    return '<button type="button" class="chip" data-quick-ex-idx="' + idx + '" style="font-size:11px;padding:4px 8px;border-radius:8px;background:#1C1C1F;border:none;color:#F5F5F4;cursor:pointer">' + esc(item.name) + '</button>';
   }).join('');
 
   var modal = document.createElement('div');
@@ -80,13 +55,13 @@ export function openAddExerciseModal(onAdd) {
   modal.style.zIndex = '9999';
   modal.innerHTML = '<div class="sheet" style="max-height:88vh;overflow-y:auto;background:#141416;border-radius:20px 20px 0 0;padding:20px">'
     + '<div class="sheet-handle"></div>'
-    + '<div class="sheet-title" style="font-size:28px;font-weight:600;color:#F5F5F4;margin-bottom:8px">Add Exercise</div>'
+    + '<div class="sheet-title" style="font-size:28px;font-weight:600;color:#F5F5F4;margin-bottom:8px">Create / Add Exercise</div>'
     + '<div style="font-size:11px;color:#8A8A8E;margin-bottom:8px">Tap a popular exercise to autofill, or type custom details:</div>'
     + '<div style="display:flex;gap:6px;flex-wrap:wrap;max-height:80px;overflow-y:auto;padding:6px 0;margin-bottom:12px">'
       + quickChipsHTML
     + '</div>'
     + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;margin-bottom:4px">Exercise Name</label>'
-    + '<input type="text" id="newExName" placeholder="e.g. Incline Dumbbell Press" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;margin-bottom:10px;box-sizing:border-box">'
+    + '<input type="text" id="newExName" placeholder="e.g. Close-Grip Lat Pulldown" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;margin-bottom:10px;box-sizing:border-box">'
     + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;margin-bottom:4px">Target Muscle Group</label>'
     + '<input type="text" id="newExMuscle" placeholder="e.g. chest, back, shoulders, quads, biceps" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;margin-bottom:10px;box-sizing:border-box">'
     + '<div style="display:flex;gap:10px;margin-bottom:10px">'
@@ -99,7 +74,7 @@ export function openAddExerciseModal(onAdd) {
     + '</div>'
     + '<div style="display:flex;gap:12px;margin-top:16px">'
       + '<button type="button" class="btn" id="cancelAddExBtn" style="flex:1;height:48px;border-radius:12px;background:#1C1C1F;color:#8A8A8E;border:none;font-size:15px;cursor:pointer">Cancel</button>'
-      + '<button type="button" class="btn" id="confirmAddExBtn" style="flex:1;height:48px;border-radius:12px;background:#F5F5F4;color:#0B0B0C;border:none;font-size:15px;font-weight:600;cursor:pointer">Add Exercise</button>'
+      + '<button type="button" class="btn" id="confirmAddExBtn" style="flex:1;height:48px;border-radius:12px;background:#F5F5F4;color:#0B0B0C;border:none;font-size:15px;font-weight:600;cursor:pointer">Save & Add</button>'
     + '</div>'
   + '</div>';
   document.body.appendChild(modal);
@@ -127,9 +102,8 @@ export function openAddExerciseModal(onAdd) {
     var reps = modal.querySelector('#newExReps').value.trim() || '8–12';
     var rest = parseInt(modal.querySelector('#newExRest').value, 10) || 90;
     var type = modal.querySelector('#newExType').value || 'compound';
-    var id = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-    modal.remove();
-    onAdd({
+    var id = 'custom_' + name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    var savedEx = saveCustomExercise({
       id: id,
       name: name,
       muscle: muscle,
@@ -141,6 +115,9 @@ export function openAddExerciseModal(onAdd) {
       weightIncrement: 2.5,
       type: type
     });
+    modal.remove();
+    showToast('Exercise saved to library', 'ok');
+    if (typeof onAdd === 'function') onAdd(savedEx || { id: id, name: name, muscle: muscle, sets: sets, reps: reps, rir: '1–2', rest: rest, cue: '', weightIncrement: 2.5, type: type });
   };
 }
 
@@ -263,6 +240,7 @@ export function openSwapExerciseModal(currentEx, onSwap) {
       + '<button type="button" class="btn-text-action" id="closeSwapModalBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">Close</button>'
     + '</div>'
     + '<div style="font-size:15px;color:#8A8A8E;margin-bottom:12px">Replacing: <span style="color:#F5F5F4;font-weight:500">' + esc(currentEx ? currentEx.name : 'Exercise') + '</span></div>'
+    + '<button type="button" id="swapCreateCustomBtn" style="display:flex;align-items:center;justify-content:center;width:100%;height:44px;background:#1C1C1F;border:1px dashed #55555A;border-radius:12px;color:#C6F432;font-size:15px;font-weight:600;margin-bottom:12px;cursor:pointer">+ Create Custom Exercise</button>'
     + '<input type="text" id="swapExSearchInput" placeholder="Search exercises..." style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;margin-bottom:10px;box-sizing:border-box">'
     + '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:10px">' + chipsHTML + '</div>'
     + '<div id="swapListContainer" style="max-height:48vh;overflow-y:auto"></div>'
@@ -272,6 +250,16 @@ export function openSwapExerciseModal(currentEx, onSwap) {
 
   modal.querySelector('#closeSwapModalBtn').onclick = function() { modal.remove(); };
   modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+
+  var createCustomBtn = modal.querySelector('#swapCreateCustomBtn');
+  if (createCustomBtn) {
+    createCustomBtn.onclick = function() {
+      openAddExerciseModal(function(newEx) {
+        modal.remove();
+        if (typeof onSwap === 'function') onSwap(newEx);
+      });
+    };
+  }
 
   var searchInp = modal.querySelector('#swapExSearchInput');
   if (searchInp) {

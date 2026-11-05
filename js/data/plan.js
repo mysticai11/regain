@@ -4,7 +4,9 @@ import { profile } from "../state.js";
 import { sv, dayRecord, saveDayRecord, getWorkoutSessions } from "../storage.js";
 import { allDayKeys } from "../lib/format.js";
 import { DEFAULT_5DAY_ROUTINE } from "./splits.js";
+import { getAllKnownExercises, getCustomExercises, saveCustomExercise } from "./exercises.js";
 export * from "./splits.js";
+export * from "./exercises.js";
 
 export var CAL_TARGET_REST  = 2700;
 export var CAL_TARGET_GYM   = 3000;
@@ -279,26 +281,21 @@ export var ALTERNATES = [
 ];
 
 export function getExerciseData(id) {
-  var allProg = getActiveProgram();
-  var allEx = ALTERNATES.slice();
-  allProg.forEach(function(s){ allEx = allEx.concat(s.exercises); });
-  if (typeof DEFAULT_5DAY_ROUTINE !== 'undefined') {
-    DEFAULT_5DAY_ROUTINE.forEach(function(s){ allEx = allEx.concat(s.exercises); });
-  }
+  var allProg = getActiveProgram(), allEx = getAllKnownExercises().concat(ALTERNATES);
+  allProg.forEach(function(s){ allEx = allEx.concat(s.exercises || []); });
   var match = allEx.find(function(e){ return e.id === id; });
   if (match) return match;
   return { id: id, name: id.replace(/_/g, ' '), muscle: '' };
 }
 
 export function getAllExercisesForMuscle(muscleStr) {
-  var allProg = getActiveProgram();
-  var allEx = ALTERNATES.slice();
-  allProg.forEach(function(s){ allEx = allEx.concat(s.exercises); });
-  var seen = {}; var out = [];
+  var allProg = getActiveProgram(), allEx = getAllKnownExercises().concat(ALTERNATES);
+  allProg.forEach(function(s){ allEx = allEx.concat(s.exercises || []); });
+  var seen = {}, out = [];
   var targetM = (muscleStr || '').toLowerCase().trim();
   allEx.forEach(function(e){
     var eMuscles = String(e.muscle || '').toLowerCase().split(',').map(function(m){ return m.trim(); });
-    var match = eMuscles.includes(targetM) || (targetM.includes(',') && eMuscles.some(function(m){ return targetM.includes(m); }));
+    var match = !targetM || targetM === 'all' || eMuscles.includes(targetM) || (targetM.includes(',') && eMuscles.some(function(m){ return targetM.includes(m); }));
     if(!seen[e.id] && match) {
       seen[e.id] = true; out.push(e);
     }
