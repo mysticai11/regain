@@ -21,17 +21,30 @@ export function renderApp() {
   }
   document.getElementById('app').innerHTML =
     '<main class="content page-gutter" id="content"></main>'
-    + '<nav class="bottomnav tab-bar">'
-    + '<button class="navitem tab-item' + (tab === 'today' ? ' active' : '') + '" data-tab="today">' + ic('home') + '<span class="tab-item-label">Today</span></button>'
-    + '<button class="navitem tab-item' + (tab === 'progress' ? ' active' : '') + '" data-tab="progress">' + ic('chart') + '<span class="tab-item-label">Progress</span></button>'
-    + '<button class="navitem tab-item' + (tab === 'gym' ? ' active' : '') + '" data-tab="gym">' + ic('barbell') + '<span class="tab-item-label">Gym</span></button>'
+    + '<nav class="bottomnav tab-bar" role="tablist">'
+    + '<button class="navitem tab-item' + (tab === 'today' ? ' active' : '') + '" data-tab="today" role="tab" aria-selected="' + (tab === 'today' ? 'true' : 'false') + '" aria-label="Today">'
+      + '<span class="nav-pill-wrap"><span class="nav-pill"></span><span class="nav-icon nav-icon-outline">' + ic('home') + '</span><span class="nav-icon nav-icon-filled">' + ic('home_filled') + '</span></span>'
+      + '<span class="tab-item-label">Today</span>'
+    + '</button>'
+    + '<button class="navitem tab-item' + (tab === 'progress' ? ' active' : '') + '" data-tab="progress" role="tab" aria-selected="' + (tab === 'progress' ? 'true' : 'false') + '" aria-label="Progress">'
+      + '<span class="nav-pill-wrap"><span class="nav-pill"></span><span class="nav-icon nav-icon-outline">' + ic('chart') + '</span><span class="nav-icon nav-icon-filled">' + ic('chart_filled') + '</span></span>'
+      + '<span class="tab-item-label">Progress</span>'
+    + '</button>'
+    + '<button class="navitem tab-item' + (tab === 'gym' ? ' active' : '') + '" data-tab="gym" role="tab" aria-selected="' + (tab === 'gym' ? 'true' : 'false') + '" aria-label="Gym">'
+      + '<span class="nav-pill-wrap"><span class="nav-pill"></span><span class="nav-icon nav-icon-outline">' + ic('barbell') + '</span><span class="nav-icon nav-icon-filled">' + ic('barbell_filled') + '</span></span>'
+      + '<span class="tab-item-label">Gym</span>'
+    + '</button>'
     + '</nav>';
   renderTab();
   document.querySelectorAll('.navitem').forEach(function (btn) {
     btn.addEventListener('click', function () {
       triggerHaptic();
       setTab(btn.dataset.tab);
-      document.querySelectorAll('.navitem').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
+      document.querySelectorAll('.navitem').forEach(function (b) {
+        var isAct = b.dataset.tab === tab;
+        b.classList.toggle('active', isAct);
+        b.setAttribute('aria-selected', isAct ? 'true' : 'false');
+      });
       renderTab();
     });
   });
