@@ -185,6 +185,14 @@ server.listen(8097, async () => {
   await new Promise(r => setTimeout(r, 600));
   const progLen = await evalExpr('document.getElementById("content")?.innerHTML.length');
   console.log('Progress content length:', progLen);
+  const dotGridInfo = await evalExpr(`
+    (function() {
+      const dots = document.querySelectorAll('.dot-grid .dot-cell');
+      const consistencyBlock = document.querySelector('.dot-grid')?.parentElement?.innerText;
+      return { dotsCount: dots.length, consistencyBlock };
+    })()
+  `);
+  console.log('Dot grid info on Progress tab:', dotGridInfo);
 
   console.log('Testing Today tab...');
   await evalExpr(`document.querySelector('[data-tab="today"]')?.click()`);

@@ -136,10 +136,10 @@ export function progressPlot(values, goal, unit) {
 export function buildDotConsistencyCalendarHTML() {
   var now = new Date();
   var todayStr = todayKey();
-  var dow = now.getDay();
-  var diffToMon = dow === 0 ? 6 : dow - 1;
-  var currentWeekMonday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMon);
-  var startMonday = new Date(currentWeekMonday.getFullYear(), currentWeekMonday.getMonth(), currentWeekMonday.getDate() - (11 * 7));
+  var year = now.getFullYear();
+  var month = now.getMonth();
+  var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var monthName = monthNames[month];
 
   var tdays = (profile && profile.trainingDays) || [1,2,3,5,6];
   var sessionDays = {};
@@ -155,13 +155,22 @@ export function buildDotConsistencyCalendarHTML() {
   var plannedCount = 0;
   var dots = [];
 
-  for (var i = 0; i < 84; i++) {
-    var d = new Date(startMonday.getFullYear(), startMonday.getMonth(), startMonday.getDate() + i);
-    var y = d.getFullYear();
-    var m = (d.getMonth() + 1 < 10 ? '0' : '') + (d.getMonth() + 1);
-    var dayNum = (d.getDate() < 10 ? '0' : '') + d.getDate();
-    var key = y + '-' + m + '-' + dayNum;
-    var dDow = d.getDay();
+  var firstDay = new Date(year, month, 1);
+  var lastDay = new Date(year, month + 1, 0);
+  var totalDaysInMonth = lastDay.getDate();
+  var firstDow = firstDay.getDay();
+  var leadSpaces = (firstDow === 0) ? 6 : firstDow - 1;
+
+  for (var s = 0; s < leadSpaces; s++) {
+    dots.push('<span class="dot-cell" style="width:6px;height:6px;display:inline-block;visibility:hidden"></span>');
+  }
+
+  for (var d = 1; d <= totalDaysInMonth; d++) {
+    var curD = new Date(year, month, d);
+    var mStr = (month + 1 < 10 ? '0' : '') + (month + 1);
+    var dStr = (d < 10 ? '0' : '') + d;
+    var key = year + '-' + mStr + '-' + dStr;
+    var dDow = curD.getDay();
     var isTrainingDay = tdays.includes(dDow);
     if (isTrainingDay && key <= todayStr) plannedCount++;
 
@@ -189,6 +198,11 @@ export function buildDotConsistencyCalendarHTML() {
     dots.push('<span class="dot-cell" style="' + dotStyle + '" title="' + key + (trained ? ' (Trained)' : '') + '"></span>');
   }
 
+  var trailSpaces = (7 - ((leadSpaces + totalDaysInMonth) % 7)) % 7;
+  for (var t = 0; t < trailSpaces; t++) {
+    dots.push('<span class="dot-cell" style="width:6px;height:6px;display:inline-block;visibility:hidden"></span>');
+  }
+
   var dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   var lettersRow = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;justify-items:center;align-items:center;margin-bottom:6px">'
     + dayLetters.map(function(ch) {
@@ -199,12 +213,12 @@ export function buildDotConsistencyCalendarHTML() {
   var legendHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:10px;font-size:11px;color:#8A8A8E">'
     + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#F5F5F4;display:inline-block"></span> logged</span>'
     + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;border:1.5px solid #F5F5F4;background:transparent;display:inline-block"></span> today</span>'
-    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;border:1px solid #55555A;background:transparent;display:inline-block"></span> untrained</span>'
+    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border:1px solid #55555A;background:transparent;display:inline-block"></span> untrained</span>'
     + '</div>';
 
   return '<div style="margin-bottom:24px">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
-      + '<span class="t-label">Consistency · Last 12 weeks</span>'
+      + '<span class="t-label">Consistency · ' + monthName + '</span>'
       + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + trainedCount + ' of ' + plannedCount + (plannedCount === 1 ? ' workout' : ' workouts') + '</span>'
     + '</div>'
     + lettersRow
