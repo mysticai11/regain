@@ -99,16 +99,17 @@ export var SQLiteStorage = {
   },
 
   clear: function() {
-    var self=this;
-    Object.keys(this.cache).forEach(function(key){delete self.cache[key];});
+    var self = this;
+    Object.keys(this.cache).forEach(function(key){ delete self.cache[key]; });
     try { localStorage.clear(); } catch(e) {}
     try { sessionStorage.clear(); } catch(e) {}
     if(this.active && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorSQLite) {
-      return window.Capacitor.Plugins.CapacitorSQLite.executeJSPS({
-        database:'regain_storage',
-        statements:'DELETE FROM rg_storage;'
-      }).catch(function(e){
-        console.error('SQLite clear error:',e);
+      var sqlite = window.Capacitor.Plugins.CapacitorSQLite;
+      var p = (typeof sqlite.execute === 'function')
+        ? sqlite.execute({ database: 'regain_storage', statements: 'DELETE FROM rg_storage;' })
+        : (typeof sqlite.executeJSPS === 'function' ? sqlite.executeJSPS({ database: 'regain_storage', statements: 'DELETE FROM rg_storage;', values: [] }) : Promise.resolve());
+      return p.catch(function(e){
+        console.error('SQLite clear error:', e);
         return Promise.resolve();
       });
     }

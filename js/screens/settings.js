@@ -315,8 +315,10 @@ export function openSettings() {
 
   var resetBtn = overlay.querySelector('#resetBtn');
   if (resetBtn) {
+    var armed = false;
+    var resetTimer = null;
     resetBtn.addEventListener('click', function() {
-      if (confirm('This will delete all Tally data on this device. Are you sure?')) {
+      var executeReset = function() {
         resetBtn.disabled = true;
         resetBtn.textContent = 'Resetting…';
         resetAllData().then(function() {
@@ -326,6 +328,35 @@ export function openSettings() {
           resetBtn.disabled = false;
           resetBtn.textContent = 'Reset';
         });
+      };
+
+      if (armed) {
+        if (resetTimer) clearTimeout(resetTimer);
+        executeReset();
+        return;
+      }
+
+      var confirmed = false;
+      try {
+        confirmed = confirm('This will delete all Tally data on this device. Are you sure?');
+      } catch (e) {
+        confirmed = false;
+      }
+
+      if (confirmed) {
+        executeReset();
+      } else {
+        armed = true;
+        resetBtn.textContent = 'Confirm reset';
+        resetBtn.style.background = '#FF4D4F';
+        resetBtn.style.color = '#0B0B0C';
+        showToast('Tap "Confirm reset" to wipe all data', 'warn');
+        resetTimer = setTimeout(function() {
+          armed = false;
+          resetBtn.textContent = 'Reset';
+          resetBtn.style.background = 'transparent';
+          resetBtn.style.color = '#FF4D4F';
+        }, 4500);
       }
     });
   }
