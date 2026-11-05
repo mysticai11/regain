@@ -241,6 +241,53 @@ export function triggerHaptic() {
   } catch(e) {}
 }
 
+var lastShownNumbers = new Map();
+
+export function animateNumber(el, from, to, opts) {
+  if (!el) return;
+  opts = opts || {};
+  var duration = opts.duration != null ? opts.duration : 600;
+  var key = el.id || (el.dataset && el.dataset.animKey) || el;
+
+  var prefersReduced = false;
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  from = Number(from) || 0;
+  to = Number(to) || 0;
+
+  var lastVal = lastShownNumbers.get(key);
+  if (lastVal !== undefined && lastVal === to) {
+    el.textContent = to.toLocaleString();
+    return;
+  }
+  if (lastVal !== undefined) {
+    from = lastVal;
+  }
+  lastShownNumbers.set(key, to);
+
+  if (prefersReduced || duration <= 0) {
+    el.textContent = to.toLocaleString();
+    return;
+  }
+
+  var startTime = null;
+  function step(timestamp) {
+    if (!startTime) startTime = timestamp;
+    var progress = Math.min((timestamp - startTime) / duration, 1);
+    var ease = 1 - Math.pow(1 - progress, 3);
+    var current = Math.round(from + (to - from) * ease);
+    el.textContent = current.toLocaleString();
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    } else {
+      el.textContent = to.toLocaleString();
+    }
+  }
+  requestAnimationFrame(step);
+}
+
 export function initMaterialRipple() {
   if (typeof document === 'undefined') return;
   if (document._rippleInitialized) return;

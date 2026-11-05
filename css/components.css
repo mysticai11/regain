@@ -397,9 +397,17 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
 }
 .prog-line-fill {
   height: 100%;
+  width: 100% !important;
+  transform-origin: left !important;
   background: var(--lime) !important;
   border-radius: var(--r-full);
-  transition: width var(--motion-normal);
+  transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .prog-line-fill {
+    transition: none !important;
+  }
 }
 
 /* ── Day Toggles ── */

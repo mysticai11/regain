@@ -376,14 +376,14 @@ export function nutritionProgressHTML(records) {
     + '<div style="border-top:1px solid #1C1C1F;padding-top:12px">'
       + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
         + '<span style="font-size:15px;color:#F5F5F4">Avg calories</span>'
-        + '<span class="tabnum" style="font-size:15px;color:#8A8A8E">' + kcal.toLocaleString() + ' / ' + target.toLocaleString() + ' kcal</span>'
+        + '<span class="tabnum" style="font-size:15px;color:#8A8A8E"><span id="progAvgKcalNum" data-value="' + kcal + '">' + kcal.toLocaleString() + '</span> / ' + target.toLocaleString() + ' kcal</span>'
       + '</div>'
-      + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;margin-bottom:12px;overflow:hidden"><div class="prog-line-fill" style="width:' + kcalPct + '%;height:100%;border-radius:3px;background:#F5F5F4"></div></div>'
+      + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;margin-bottom:12px;overflow:hidden"><div class="prog-line-fill" style="transform:scaleX(' + (kcalPct / 100) + ');height:100%;border-radius:3px;background:#F5F5F4"></div></div>'
       + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
         + '<span style="font-size:15px;color:#F5F5F4">Avg protein</span>'
-        + '<span class="tabnum" style="font-size:15px;color:#8A8A8E">' + protein + ' g / ' + proteinTarget + ' g</span>'
+        + '<span class="tabnum" style="font-size:15px;color:#8A8A8E"><span id="progAvgProtNum" data-value="' + protein + '">' + protein + '</span> g / ' + proteinTarget + ' g</span>'
       + '</div>'
-      + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;overflow:hidden"><div class="prog-line-fill" style="width:' + protPct + '%;height:100%;border-radius:3px;background:#F5F5F4"></div></div>'
+      + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;overflow:hidden"><div class="prog-line-fill" style="transform:scaleX(' + (protPct / 100) + ');height:100%;border-radius:3px;background:#F5F5F4"></div></div>'
     + '</div>'
     + '</div>';
 }

@@ -7,7 +7,7 @@ import { DEFAULT_STAPLES } from "../../data/foods.js";
 import { todayKey, dateKey, addDays, esc, currentWeight, goalDirection } from "../../lib/format.js";
 import { getTargetsForDate, getDayTotals, addRecent } from "../../lib/calc.js";
 import { showToast } from "../../components/toast.js";
-import { ic } from "../../lib/dom.js";
+import { ic, animateNumber } from "../../lib/dom.js";
 
 function triggerRenderScreens() {
   if (typeof window !== 'undefined') {
@@ -285,15 +285,16 @@ export function buildCalRingHTML(kcalLogged, kcalTarget, protLogged, protTarget,
     ? ('of ' + kcalTarget.toLocaleString() + ' kcal')
     : (isOver ? (kcalLogged.toLocaleString() + ' of ' + kcalTarget.toLocaleString() + ' kcal') : ('of ' + kcalTarget.toLocaleString() + ' kcal'));
 
+  var rawVal = isOver ? (kcalLogged - kcalTarget) : (remaining > 0 ? remaining : kcalLogged);
   return '<div style="margin-bottom:24px">'
-    + '<div class="t-hero tabnum">' + heroNumber + '</div>'
+    + '<div class="t-hero tabnum" id="todayHeroCal"><span id="todayHeroCalNum" data-value="' + rawVal + '">' + heroNumber + '</span></div>'
     + '<div style="font-size:15px;color:#8A8A8E;margin-top:6px">' + heroSub + '</div>'
-    + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;margin-top:10px;margin-bottom:20px;overflow:hidden"><div class="prog-line-fill" style="width:' + calPct + '%;height:100%;border-radius:3px;background:#F5F5F4"></div></div>'
+    + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;margin-top:10px;margin-bottom:20px;overflow:hidden"><div class="prog-line-fill" id="todayCalFill" style="transform:scaleX(' + (calPct / 100) + ');height:100%;border-radius:3px;background:#F5F5F4"></div></div>'
     + '<div style="display:flex;align-items:baseline;gap:6px">'
-      + '<span style="font-size:48px;font-weight:600;color:#F5F5F4;line-height:1;font-variant-numeric:tabular-nums">' + Math.round(protLogged) + '</span>'
+      + '<span id="todayProtNum" data-value="' + Math.round(protLogged) + '" style="font-size:48px;font-weight:600;color:#F5F5F4;line-height:1;font-variant-numeric:tabular-nums">' + Math.round(protLogged) + '</span>'
       + '<span style="font-size:15px;color:#8A8A8E">/ ' + protTarget + ' g</span>'
     + '</div>'
-    + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;margin-top:8px;margin-bottom:20px;overflow:hidden"><div class="prog-line-fill" style="width:' + protPct + '%;height:100%;border-radius:3px;background:#F5F5F4"></div></div>'
+    + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;margin-top:8px;margin-bottom:20px;overflow:hidden"><div class="prog-line-fill" id="todayProtFill" style="transform:scaleX(' + (protPct / 100) + ');height:100%;border-radius:3px;background:#F5F5F4"></div></div>'
     + '</div>';
 }
 
@@ -345,5 +346,16 @@ export function bindBackupNudgeEvents(exportFn) {
       var banner = document.getElementById('backupNudgeBanner');
       if (banner) banner.remove();
     };
+  }
+}
+
+export function triggerTodayAnimations() {
+  var heroNumEl = document.getElementById('todayHeroCalNum');
+  if (heroNumEl) {
+    animateNumber(heroNumEl, 0, parseInt(heroNumEl.dataset.value, 10) || 0, { duration: 600 });
+  }
+  var protNumEl = document.getElementById('todayProtNum');
+  if (protNumEl) {
+    animateNumber(protNumEl, 0, parseInt(protNumEl.dataset.value, 10) || 0, { duration: 600 });
   }
 }

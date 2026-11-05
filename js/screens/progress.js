@@ -5,7 +5,7 @@ import { dayRecord, saveDayRecord, sv, allDayKeys, getWorkoutSessions } from "..
 import { getDayTotals, calcE1RM } from "../lib/calc.js";
 import { getActiveProgram, getExerciseData, isBodyweightExercise } from "../data/plan.js";
 import { esc, todayKey, goalDirection } from "../lib/format.js";
-import { ic, triggerHaptic } from "../lib/dom.js";
+import { ic, triggerHaptic, animateNumber } from "../lib/dom.js";
 import { openSettings } from "./settings.js";
 import { showToast } from "../components/toast.js";
 import { openQuickEditSetModal } from "../components/quick-edit-modal.js";
@@ -296,15 +296,13 @@ export function renderProgressSimple(mode, historySubTab) {
   if (settingsBtn) {
     settingsBtn.onclick = function(e) { if (e && e.stopPropagation) e.stopPropagation(); openSettings(); };
   }
-  document.getElementById('bodyProgressBtn').onclick = function() {
-    if (mode !== 'body') { triggerHaptic(); renderProgressSimple('body'); }
-  };
-  document.getElementById('liftProgressBtn').onclick = function() {
-    if (mode !== 'lifts') { triggerHaptic(); renderProgressSimple('lifts'); }
-  };
-  document.getElementById('historyProgressBtn').onclick = function() {
-    if (mode !== 'history') { triggerHaptic(); renderProgressSimple('history'); }
-  };
+  document.getElementById('bodyProgressBtn').onclick = function() { if (mode !== 'body') { triggerHaptic(); renderProgressSimple('body'); } };
+  document.getElementById('liftProgressBtn').onclick = function() { if (mode !== 'lifts') { triggerHaptic(); renderProgressSimple('lifts'); } };
+  document.getElementById('historyProgressBtn').onclick = function() { if (mode !== 'history') { triggerHaptic(); renderProgressSimple('history'); } };
+
+  var aK = document.getElementById('progAvgKcalNum'), aP = document.getElementById('progAvgProtNum');
+  if (aK) animateNumber(aK, 0, parseInt(aK.dataset.value, 10) || 0, { duration: 600 });
+  if (aP) animateNumber(aP, 0, parseInt(aP.dataset.value, 10) || 0, { duration: 600 });
 
   if (mode === 'history') {
     wireHistoryScreenEvents(document.getElementById('content'), function(newTab) {
