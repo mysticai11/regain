@@ -48,13 +48,13 @@ console.log('--- Testing New 5-Day Routine & Features ---');
 // Test 1: Verify 5-Day Routine structure
 assert.strictEqual(funcs.DEFAULT_5DAY_ROUTINE.length, 5, 'Should have 5 workout sessions');
 assert.strictEqual(funcs.DEFAULT_5DAY_ROUTINE[0].label, 'Day 1 — Chest & Back A');
-assert.strictEqual(funcs.DEFAULT_5DAY_ROUTINE[0].exercises.length, 7, 'Day 1 should have 7 exercises');
+assert.strictEqual(funcs.DEFAULT_5DAY_ROUTINE[0].exercises.length, 5, 'Day 1 should have 5 exercises');
 assert.strictEqual(funcs.DEFAULT_5DAY_ROUTINE[1].label, 'Day 2 — Legs & Shoulders A');
 assert.strictEqual(funcs.DEFAULT_5DAY_ROUTINE[1].exercises.length, 6, 'Day 2 should have 6 exercises');
 assert.strictEqual(funcs.DEFAULT_5DAY_ROUTINE[2].label, 'Day 4 — Arms');
 assert.strictEqual(funcs.DEFAULT_5DAY_ROUTINE[2].exercises.length, 5, 'Day 4 should have 5 exercises');
 assert.strictEqual(funcs.DEFAULT_5DAY_ROUTINE[3].label, 'Day 5 — Chest & Back B');
-assert.strictEqual(funcs.DEFAULT_5DAY_ROUTINE[3].exercises.length, 8, 'Day 5 should have 8 exercises');
+assert.strictEqual(funcs.DEFAULT_5DAY_ROUTINE[3].exercises.length, 6, 'Day 5 should have 6 exercises');
 assert.strictEqual(funcs.DEFAULT_5DAY_ROUTINE[4].label, 'Day 6 — Legs & Shoulders B');
 assert.strictEqual(funcs.DEFAULT_5DAY_ROUTINE[4].exercises.length, 6, 'Day 6 should have 6 exercises');
 console.log('✓ Test 1: 5-Day routine structure matches user specification exactly');

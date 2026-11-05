@@ -79,6 +79,25 @@ export function migrateWorkoutRoutineSwap() {
         sv('rg_profile', profile);
       }
     }
+    if (!profile.migratedRemovedSkillExercises) {
+      if (profile.activeSplitData && Array.isArray(profile.activeSplitData)) {
+        var toRemove = { pull_ups: true, wrist_curl: true, chin_ups: true, wrist_extension: true };
+        var anyRemoved = false;
+        profile.activeSplitData.forEach(function(day) {
+          if (!day || !Array.isArray(day.exercises)) return;
+          var initialLen = day.exercises.length;
+          day.exercises = day.exercises.filter(function(e) {
+            return !toRemove[e.id];
+          });
+          if (day.exercises.length !== initialLen) anyRemoved = true;
+        });
+        if (anyRemoved) {
+          sv('rg_profile', profile);
+        }
+      }
+      profile.migratedRemovedSkillExercises = true;
+      sv('rg_profile', profile);
+    }
     migrateRearDeltAndCalves();
   }
 }
@@ -244,6 +263,10 @@ export function getActiveProgram() {
 export var IRON_LOG_PROGRAM = DEFAULT_5DAY_ROUTINE;
 
 export var ALTERNATES = [
+  {id:'pull_ups', name:'Pull-ups', muscle:'back,biceps', sets:2, reps:'failure', rir:'0', rest:120, cue:'Bodyweight skill practice', weightIncrement:2.5, type:'compound', bodyweight:true},
+  {id:'chin_ups', name:'Chin-ups', muscle:'back,biceps', sets:2, reps:'failure', rir:'0', rest:120, cue:'Bodyweight skill practice', weightIncrement:2.5, type:'compound', bodyweight:true},
+  {id:'wrist_curl', name:'Wrist Curl', muscle:'forearms', sets:2, reps:'12–20', rir:'1–2', rest:60, cue:'Forearms flexors', weightIncrement:1.25, type:'isolation'},
+  {id:'wrist_extension', name:'Wrist Extension', muscle:'forearms', sets:2, reps:'12–20', rir:'1–2', rest:60, cue:'Forearms extensors', weightIncrement:1.25, type:'isolation'},
   {id:'hack_squat', name:'Hack squat', muscle:'quads,glutes', sets:4, reps:'10–12', rir:'1–2', rest:150, cue:'2.5 min rest'},
   {id:'bulgarian_split', name:'Bulgarian split squat', muscle:'quads,glutes', sets:3, reps:'10–12', rir:'1–2', rest:90, cue:'90s rest'},
   {id:'db_bench', name:'Dumbbell bench press', muscle:'chest,triceps', sets:4, reps:'8–10', rir:'1–2', rest:150, cue:'2.5 min rest'},

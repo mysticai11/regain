@@ -142,13 +142,11 @@ export var DEFAULT_5DAY_ROUTINE = [
     dayIndex: 0,
     scheduleDay: 1,
     exercises: [
-      {id:'pull_ups', name:'Pull-ups (optional, skill practice)', muscle:'back,biceps', sets:1, reps:'failure', rir:'0', rest:120, cue:'Bodyweight skill practice / warm-up', weightIncrement:2.5, type:'compound', bodyweight:true},
       {id:'incline_bench', name:'Barbell Incline Bench Press', muscle:'chest', sets:2, reps:'6–10', rir:'1–2', rest:150, cue:'Upper chest', weightIncrement:2.5, type:'compound'},
       {id:'machine_row', name:'Machine Row', muscle:'back', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Mid back', weightIncrement:2.5, type:'compound'},
       {id:'chest_press_machine', name:'Chest Press Machine', muscle:'chest', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Chest', weightIncrement:2.5, type:'machine'},
       {id:'lat_pulldown', name:'Lat Pulldown', muscle:'back', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Lats', weightIncrement:2.5, type:'cable'},
-      {id:'pec_deck', name:'Pec Deck Fly', muscle:'chest', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Chest stretch', weightIncrement:2.5, type:'isolation'},
-      {id:'wrist_curl', name:'Wrist Curl', muscle:'forearms', sets:1, reps:'12–20', rir:'1–2', rest:60, cue:'Forearms', weightIncrement:1.25, type:'isolation'}
+      {id:'pec_deck', name:'Pec Deck Fly', muscle:'chest', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Chest stretch', weightIncrement:2.5, type:'isolation'}
     ]
   },
   {
@@ -181,14 +179,12 @@ export var DEFAULT_5DAY_ROUTINE = [
     dayIndex: 3,
     scheduleDay: 5,
     exercises: [
-      {id:'chin_ups', name:'Chin-ups (optional, skill practice)', muscle:'back,biceps', sets:1, reps:'failure', rir:'0', rest:120, cue:'Bodyweight skill practice', weightIncrement:2.5, type:'compound', bodyweight:true},
       {id:'bench', name:'Flat Bench Press', muscle:'chest', sets:2, reps:'6–10', rir:'1–2', rest:150, cue:'Chest', weightIncrement:2.5, type:'compound'},
       {id:'machine_row_b', name:'Machine Row', muscle:'back', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Mid back', weightIncrement:2.5, type:'compound'},
       {id:'incline_db_press', name:'Incline Dumbbell Press', muscle:'chest', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Upper chest', weightIncrement:2, type:'compound'},
       {id:'lat_pulldown_b', name:'Lat Pulldown', muscle:'back', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Lats', weightIncrement:2.5, type:'cable'},
       {id:'close_grip_bench', name:'Close-Grip Bench Press (flat bench)', muscle:'triceps,chest', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Triceps & chest', weightIncrement:2.5, type:'compound'},
-      {id:'pec_deck_b', name:'Pec Deck Fly', muscle:'chest', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Chest stretch', weightIncrement:2.5, type:'isolation'},
-      {id:'wrist_extension', name:'Wrist Extension', muscle:'forearms', sets:1, reps:'12–20', rir:'1–2', rest:60, cue:'Forearms', weightIncrement:1.25, type:'isolation'}
+      {id:'pec_deck_b', name:'Pec Deck Fly', muscle:'chest', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Chest stretch', weightIncrement:2.5, type:'isolation'}
     ]
   },
   {

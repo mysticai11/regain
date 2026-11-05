@@ -13,6 +13,7 @@ export function openAddExerciseModal(onAdd) {
     { name: 'Chest Press Machine', muscle: 'chest', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Chest', type: 'machine' },
     { name: 'Pec Deck Fly', muscle: 'chest', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Chest stretch', type: 'isolation' },
     { name: 'Pull-ups', muscle: 'back,biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Lats & mid back', type: 'compound' },
+    { name: 'Chin-ups', muscle: 'back,biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Lats & biceps', type: 'compound' },
     { name: 'Lat Pulldown', muscle: 'back', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Lats', type: 'cable' },
     { name: 'Machine Row', muscle: 'back', sets: 2, reps: '8–12', rir: '1–2', rest: 120, cue: 'Mid back', type: 'compound' },
     { name: 'Cable Row', muscle: 'back', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Mid back squeeze', type: 'machine' },
@@ -27,6 +28,8 @@ export function openAddExerciseModal(onAdd) {
     { name: 'EZ-Bar Curl', muscle: 'biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Biceps peak', type: 'isolation' },
     { name: 'Incline Dumbbell Curl', muscle: 'biceps', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Biceps stretch', type: 'isolation' },
     { name: 'Hammer Curl', muscle: 'forearms', sets: 2, reps: '8–12', rir: '1–2', rest: 90, cue: 'Brachialis & forearms', type: 'isolation' },
+    { name: 'Wrist Curl', muscle: 'forearms', sets: 2, reps: '12–20', rir: '1–2', rest: 60, cue: 'Forearms flexors', type: 'isolation' },
+    { name: 'Wrist Extension', muscle: 'forearms', sets: 2, reps: '12–20', rir: '1–2', rest: 60, cue: 'Forearms extensors', type: 'isolation' },
     { name: 'Triceps Pushdown', muscle: 'triceps', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Triceps lock', type: 'isolation' },
     { name: 'Overhead Triceps Extension', muscle: 'triceps', sets: 2, reps: '10–15', rir: '1–2', rest: 90, cue: 'Triceps overhead', type: 'isolation' }
   ];
