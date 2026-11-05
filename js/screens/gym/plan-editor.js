@@ -43,7 +43,7 @@ export function openCustomRoutineSheet(dayKey) {
     profile.customRoutines[day].push(exercise);
     sv('rg_profile', profile);
     overlay.remove();
-    renderGym();
+    if (typeof window !== 'undefined' && typeof window.renderGym === 'function') window.renderGym();
   });
 }
 
@@ -322,7 +322,7 @@ export function openSplitManagerSheet() {
       sv('rg_profile', profile);
       overlay.remove();
       showToast('Workout plan & schedule saved', 'ok');
-      renderTab();
+      if (typeof window !== 'undefined' && typeof window.renderTab === 'function') window.renderTab();
     };
   }
 

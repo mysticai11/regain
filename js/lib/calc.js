@@ -47,6 +47,12 @@ export function getTargetsForDate(dateStr) {
   var d = new Date(dateStr + 'T00:00:00');
   var tdays = profile.trainingDays || [1,3,5];
   var isTrain = tdays.includes(d.getDay());
+  try {
+    var rec = dayRecord(dateStr);
+    if (rec && rec.selectedWorkout !== undefined) {
+      isTrain = rec.selectedWorkout !== null;
+    }
+  } catch(e) {}
   return {
     kcal: isTrain ? (profile.calTargetGym || (profile.goal === 'loss' ? 2700 : CAL_TARGET_GYM)) : (profile.calTargetRest || (profile.goal === 'loss' ? 2500 : CAL_TARGET_REST)),
     protein: isTrain ? (profile.protTargetGym || PROT_TARGET_GYM) : (profile.protTargetRest || PROT_TARGET_REST),

@@ -321,6 +321,9 @@ export function openEditItemSheet(itemId, groupKey) {
     profile.mealPlan = plan;
     sv('rg_profile', profile);
     overlay.remove();
-    renderTodaySimple();
+    if (typeof window !== 'undefined') {
+      if (typeof window.renderTodaySimple === 'function') window.renderTodaySimple();
+      if (typeof window.renderTab === 'function') window.renderTab();
+    }
   });
 }

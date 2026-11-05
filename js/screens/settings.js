@@ -266,7 +266,7 @@ export function openSettings() {
     showToast('Settings saved', 'ok');
     setTimeout(function() {
       overlay.remove();
-      renderTab();
+      if (typeof window !== 'undefined' && typeof window.renderTab === 'function') window.renderTab();
     }, 350);
   });
 

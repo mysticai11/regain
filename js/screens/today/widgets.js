@@ -7,8 +7,15 @@ import { DEFAULT_STAPLES } from "../../data/foods.js";
 import { todayKey, dateKey, addDays, esc, currentWeight, goalDirection } from "../../lib/format.js";
 import { getTargetsForDate, getDayTotals, addRecent } from "../../lib/calc.js";
 import { showToast } from "../../components/toast.js";
-import { renderTodaySimple } from "../today.js";
 import { ic } from "../../lib/dom.js";
+
+function triggerRenderScreens() {
+  if (typeof window !== 'undefined') {
+    if (typeof window.renderTodaySimple === 'function') window.renderTodaySimple();
+    if (typeof window.renderGym === 'function') window.renderGym();
+    if (typeof window.renderTab === 'function') window.renderTab();
+  }
+}
 
 export function addQuickFood(key) {
   var overlay=document.createElement('div'); overlay.className='overlay';
@@ -23,7 +30,7 @@ export function addQuickFood(key) {
     var protein=parseFloat(document.getElementById('quickProtein').value)||0;
     if(!kcal || kcal<1 || protein<0){showToast('Enter calories and protein','warn');return;}
     var rec=dayRecord(key); rec.extra.push({name:'Quick add',kcal:kcal,protein:protein,carbs:0,fat:0,servings:1});
-    saveDayRecord(key,rec); addRecent('Quick add',kcal,protein,0,0); overlay.remove(); renderTodaySimple();
+    saveDayRecord(key,rec); addRecent('Quick add',kcal,protein,0,0); overlay.remove(); triggerRenderScreens();
   };
 }
 
@@ -224,11 +231,14 @@ export function openWorkoutOverrideSheet(dKey) {
         targetRec.selectedWorkout = null;
       } else {
         targetRec.selectedWorkout = parseInt(val, 10);
+        if (targetRec.workoutDone) {
+          targetRec.workoutDone = false;
+        }
       }
       saveDayRecord(dKey, targetRec);
+      if (typeof window !== 'undefined') window.activeExpandedExId = null;
       overlay.remove();
-      var rFn = renderTodaySimple || window.renderTodaySimple;
-      if (rFn) rFn();
+      triggerRenderScreens();
       showToast('Workout updated for ' + formatted, 'ok');
     };
   });
@@ -239,9 +249,9 @@ export function openWorkoutOverrideSheet(dKey) {
       targetRec = dayRecord(dKey);
       delete targetRec.selectedWorkout;
       saveDayRecord(dKey, targetRec);
+      if (typeof window !== 'undefined') window.activeExpandedExId = null;
       overlay.remove();
-      var rFn = renderTodaySimple || window.renderTodaySimple;
-      if (rFn) rFn();
+      triggerRenderScreens();
       showToast('Reset to suggested workout', 'ok');
     };
   }

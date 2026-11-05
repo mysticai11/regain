@@ -128,6 +128,10 @@ if (typeof window !== 'undefined') {
   window.openSettings = openSettings;
   window.renderApp = renderApp;
   window.renderTab = renderTab;
+  window.renderTodaySimple = renderTodaySimple;
+  window.renderGym = renderGym;
+  window.renderProgressSimple = renderProgressSimple;
+  window.renderProgress = renderProgressSimple;
   window.chooseWorkoutForDate = chooseWorkoutForDate;
   window.openGymDateDaySheet = openGymDateDaySheet;
   window.openSwapSheet = openSwapSheet;
