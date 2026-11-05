@@ -9,7 +9,7 @@ import { ic, triggerHaptic } from "../lib/dom.js";
 import { openSettings } from "./settings.js";
 import { showToast } from "../components/toast.js";
 import { openQuickEditSetModal } from "../components/quick-edit-modal.js";
-import { getWeightHistory, getProgressRows, getRollingWeightValues, buildDotConsistencyCalendarHTML, progressPlot, goalTrajectoryText } from "./progress/charts.js?v=4";
+import { getWeightHistory, getProgressRows, getRollingWeightValues, buildDotConsistencyCalendarHTML, progressPlot, goalTrajectoryText, getLiftHistory } from "./progress/charts.js?v=4";
 import { getEquivalentExerciseIds } from "./gym/sets.js";
 import { workoutHistoryHTML, getResumeWorkoutCardHTML, nutritionProgressHTML, weeklyVolumeChart, editWeightEntry, deleteWeightEntry, weightEntriesHTML } from "./progress/history.js";
 import { openSessionMenu, openEditWorkoutSheet } from "./progress/session-editor.js";
@@ -36,14 +36,23 @@ function setupChartInteractions(container) {
     var unit = d.unit || 'kg';
     var avg = d.avg || '';
     var entryId = d.id || '';
-    var delBtnHTML = entryId ? ' <button type="button" class="btn-text-action chart-del-btn" data-delete-chart-weight="' + esc(entryId) + '" style="color:#FF4D4F;font-size:11px;font-weight:600;margin-left:8px;background:none;border:none;padding:0;cursor:pointer">Delete</button>' : '';
-    readout.innerHTML = esc(date) + ' · ' + esc(val) + ' ' + esc(unit) + (avg ? ' <span style="font-size:11px;color:#8A8A8E">(avg ' + esc(avg) + ')</span>' : '') + delBtnHTML;
-    var delBtn = readout.querySelector('[data-delete-chart-weight]');
-    if (delBtn) {
-      delBtn.onclick = function(e) {
-        e.stopPropagation();
-        deleteWeightEntry(delBtn.dataset.deleteChartWeight);
-      };
+    var setDesc = d.setDesc || '';
+    var isPr = d.isPr === 'true';
+    var prBadge = isPr ? ' <span style="color:#C6F432;font-weight:600;font-size:11px">PR</span>' : '';
+
+    if (setDesc) {
+      var metricText = (unit === 'reps') ? '' : (' <span style="font-size:11px;color:#8A8A8E">(Est. 1RM ' + esc(val) + ' ' + esc(unit) + ')</span>');
+      readout.innerHTML = esc(date) + ' · <span style="color:#F5F5F4;font-weight:600">' + esc(setDesc) + '</span>' + metricText + prBadge;
+    } else {
+      var delBtnHTML = entryId ? ' <button type="button" class="btn-text-action chart-del-btn" data-delete-chart-weight="' + esc(entryId) + '" style="color:#FF4D4F;font-size:11px;font-weight:600;margin-left:8px;background:none;border:none;padding:0;cursor:pointer">Delete</button>' : '';
+      readout.innerHTML = esc(date) + ' · ' + esc(val) + ' ' + esc(unit) + (avg ? ' <span style="font-size:11px;color:#8A8A8E">(avg ' + esc(avg) + ')</span>' : '') + delBtnHTML;
+      var delBtn = readout.querySelector('[data-delete-chart-weight]');
+      if (delBtn) {
+        delBtn.onclick = function(e) {
+          e.stopPropagation();
+          deleteWeightEntry(delBtn.dataset.deleteChartWeight);
+        };
+      }
     }
     var circle = pt.querySelector('circle');
     if (circle && cursor) {
@@ -76,62 +85,15 @@ export function renderProgressSimple(mode) {
   var current=entries.length?entries[entries.length-1].weight:null, range='4w';
   var exOptions=[]; getActiveProgram().forEach(function(s){s.exercises.forEach(function(e){if(!exOptions.some(function(x){return x.id===e.id;}))exOptions.push(e);});});
   allDayKeys().forEach(function(key){Object.keys(dayRecord(key).workout||{}).forEach(function(id){var e=getExerciseData(id);if(e&&!exOptions.some(function(x){return x.id===id;}))exOptions.push(e);});});
+  workoutSessions.forEach(function(s){ (s.exercises||[]).forEach(function(e){ if(e&&e.id&&!exOptions.some(function(x){return x.id===e.id;})) exOptions.push({id:e.id, name:e.name||e.id}); }); });
   var render=function(){
     var rangeEntries=getProgressRows(range,entries), weightValues=getRollingWeightValues(rangeEntries,entries);
-    var cutoff = range === 'all' ? 0 : Date.now() - ({'1w':7,'1m':30,'3m':90}[range]||30)*86400000;
-    var rangeRecords=records.filter(function(r){return new Date(r.key+'T23:59:59').getTime()>=cutoff;});
     var liftControl=document.getElementById('liftSelect');
-    var selected=liftControl?liftControl.value:null, liftValues=[];
+    var selected=liftControl?liftControl.value:(exOptions.length?exOptions[0].id:null);
     var selectedExData = selected ? getExerciseData(selected) : null;
     var isBW = selected ? isBodyweightExercise(selected, selectedExData ? selectedExData.name : '') : false;
-    var eqIds = (typeof getEquivalentExerciseIds === 'function' && selected) ? getEquivalentExerciseIds(selected) : (selected ? [selected] : []);
+    var liftValues = getLiftHistory(selected);
 
-    rangeRecords.forEach(function(r){
-      var best = 0;
-      var dayWo = dayRecord(r.key).workout || {};
-      eqIds.forEach(function(id){
-        (dayWo[id] || []).forEach(function(s){
-          if (!s) return;
-          if (isBW) {
-            var reps = Number(s.reps) || 0;
-            if (reps > best) best = reps;
-          } else {
-            var e1 = calcE1RM(s.weight, s.reps);
-            if (e1 > best) best = e1;
-          }
-        });
-      });
-      if (best > 0) {
-        liftValues.push({
-          value: best,
-          label: r.key + ' · ' + (isBW ? (best + ' reps (BW)') : (best.toFixed(1) + ' kg'))
-        });
-      }
-    });
-
-    var allLiftValues=[];
-    rangeRecords.forEach(function(r){
-      var total=0,count=0;
-      Object.keys(dayRecord(r.key).workout||{}).forEach(function(id){
-        var best=0;
-        var exIsBW = isBodyweightExercise(id);
-        (dayRecord(r.key).workout[id]||[]).forEach(function(s){
-          if(s){
-            if (exIsBW) {
-              var rVal = Number(s.reps) || 0;
-              if (rVal > best) best = rVal;
-            } else {
-              var e1 = calcE1RM(s.weight,s.reps);
-              if (e1 > best) best = e1;
-            }
-          }
-        });
-        if(best){total+=best;count++;}
-      });
-      if(count)allLiftValues.push({value:total/count,label:r.key});
-    });
-
-    var first=allLiftValues.length?allLiftValues[0].value:1;
     var weightPlot=document.getElementById('weightPlot');
     if(weightPlot) {
       weightPlot.innerHTML = progressPlot(weightValues, (profile && profile.targetWeight) || null, 'kg', false);
@@ -147,10 +109,48 @@ export function renderProgressSimple(mode) {
         btn.onclick = function(){ deleteWeightEntry(btn.dataset.deleteWeight); };
       });
     }
+
+    var liftSummaryCard = document.getElementById('liftSummaryCard');
+    if (liftSummaryCard) {
+      if (liftValues.length > 0) {
+        var allTimePeak = liftValues.find(function(v){ return v.isPeak; }) || liftValues[liftValues.length - 1];
+        var latestEntry = liftValues[liftValues.length - 1];
+        var firstEntry = liftValues[0];
+        var gain = latestEntry.value - firstEntry.value;
+        var u = isBW ? 'reps' : 'kg';
+        var gainStr = (gain >= 0 ? '+' : '') + (isBW ? Math.round(gain) : gain.toFixed(1)) + ' ' + u;
+        var gainPct = (firstEntry.value > 0 && gain !== 0) ? ((gain >= 0 ? '+' : '') + ((gain / firstEntry.value) * 100).toFixed(0) + '%') : '';
+
+        liftSummaryCard.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;background:#141416;border-radius:12px;padding:12px 14px;margin-bottom:12px;text-align:left">'
+          + '<div>'
+            + '<div class="t-micro" style="color:#C6F432;font-size:11px;letter-spacing:0.04em">Best PR</div>'
+            + '<div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15;margin-top:2px">' + (isBW ? Math.round(allTimePeak.value) : allTimePeak.value.toFixed(1)) + '<span style="font-size:15px;color:#8A8A8E;font-weight:400;margin-left:2px">' + u + '</span></div>'
+            + '<div class="tabnum" style="font-size:11px;color:#8A8A8E;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(allTimePeak.setDesc || '') + '</div>'
+          + '</div>'
+          + '<div>'
+            + '<div class="t-micro" style="color:#8A8A8E;font-size:11px;letter-spacing:0.04em">Latest</div>'
+            + '<div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15;margin-top:2px">' + (isBW ? Math.round(latestEntry.value) : latestEntry.value.toFixed(1)) + '<span style="font-size:15px;color:#8A8A8E;font-weight:400;margin-left:2px">' + u + '</span></div>'
+            + '<div class="tabnum" style="font-size:11px;color:#8A8A8E;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(latestEntry.setDesc || '') + '</div>'
+          + '</div>'
+          + '<div>'
+            + '<div class="t-micro" style="color:#8A8A8E;font-size:11px;letter-spacing:0.04em">Progress</div>'
+            + '<div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15;margin-top:2px">' + gainStr + '</div>'
+            + '<div class="tabnum" style="font-size:11px;color:#8A8A8E;margin-top:2px">' + (gainPct ? (gainPct + ' gain') : 'From start') + '</div>'
+          + '</div>'
+          + '</div>';
+      } else {
+        liftSummaryCard.innerHTML = '';
+      }
+    }
+
     var liftPlot=document.getElementById('liftPlot');
     if(liftPlot) {
-      liftPlot.innerHTML = progressPlot(liftValues, null, isBW ? 'reps' : 'kg', true);
-      setupChartInteractions(liftPlot);
+      if (liftValues.length > 0) {
+        liftPlot.innerHTML = progressPlot(liftValues, null, isBW ? 'reps' : 'kg', true);
+        setupChartInteractions(liftPlot);
+      } else {
+        liftPlot.innerHTML = '<div style="background:#141416;border-radius:12px;padding:24px 16px;text-align:center;color:#8A8A8E;font-size:15px">No logged sets for this exercise yet.<div style="font-size:11px;color:#55555A;margin-top:4px">Complete workout sets in Gym tab to track PRs here.</div></div>';
+      }
     }
     var direction=goalDirection(), latest=weightValues.length?weightValues[weightValues.length-1].value:null;
     var trend=weightValues.length>1?latest-weightValues[0].value:0;
@@ -234,13 +234,8 @@ export function renderProgressSimple(mode) {
     }
     var liftMeta=document.getElementById('liftMeta');
     if(liftMeta) {
-      var firstLift=liftValues.length?liftValues[0].value:null, latestLift=liftValues.length?liftValues[liftValues.length-1].value:null;
-      if (latestLift != null) {
-        if (isBW) {
-          liftMeta.textContent = latestLift + ' reps (BW) peak' + (firstLift!=null&&liftValues.length>1 ? ' · ' + (latestLift-firstLift>=0?'+':'') + (latestLift-firstLift) + ' reps since start' : '');
-        } else {
-          liftMeta.textContent = latestLift.toFixed(1) + ' kg e1RM' + (firstLift!=null&&liftValues.length>1 ? ' · ' + (latestLift-firstLift>=0?'+':'') + (latestLift-firstLift).toFixed(1) + ' since start' : '');
-        }
+      if (liftValues.length > 0) {
+        liftMeta.textContent = isBW ? 'Peak reps' : 'Est. 1RM (Epley formula)';
       } else {
         liftMeta.textContent = 'No lift entries yet';
       }
@@ -271,12 +266,13 @@ export function renderProgressSimple(mode) {
     + '</div>';
   var liftChartBlock = '<div style="margin-top:32px;margin-bottom:32px">'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'
-      + '<span class="t-label">Lift progress</span>'
+      + '<span class="t-label">Lift & PR progress</span>'
       + '<span id="liftMeta" class="t-micro tabnum" style="color:var(--text-secondary)"></span>'
     + '</div>'
     + '<select id="liftSelect" style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 12px;color:#F5F5F4;font-size:15px;width:100%;margin-bottom:12px">'
       + exOptions.map(function(e){ return '<option value="' + e.id + '">' + esc(e.name) + '</option>'; }).join('')
     + '</select>'
+    + '<div id="liftSummaryCard"></div>'
     + '<div id="liftPlot"></div>'
     + '</div>';
   var weeklyWorkBlock = '<div style="margin-top:32px">'

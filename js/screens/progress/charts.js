@@ -3,7 +3,9 @@
 import { profile } from "../../state.js";
 import { dayRecord, allDayKeys, getWorkoutSessions } from "../../storage.js";
 import { todayKey, dateKey, addDays, goalDirection, esc } from "../../lib/format.js";
-import { getExerciseData } from "../../data/plan.js";
+import { getExerciseData, isBodyweightExercise } from "../../data/plan.js";
+import { calcE1RM } from "../../lib/calc.js";
+import { getEquivalentExerciseIds } from "../gym/sets.js";
 import { ic } from "../../lib/dom.js";
 
 export function getWeightHistory() {
@@ -132,26 +134,38 @@ export function progressPlot(values, goal, unit, isLift) {
   var peakIndex = -1;
   if (isLift && values.length > 0) {
     for (var pIdx = values.length - 1; pIdx >= 0; pIdx--) {
-      if (values[pIdx].value === rawMax) { peakIndex = pIdx; break; }
+      if (values[pIdx].isPeak || values[pIdx].value === rawMax) { peakIndex = pIdx; break; }
     }
   }
 
   var dots = points.map(function(p, idx) {
     var isLatest = (idx === points.length - 1);
     var dateLabel = p.v.dateKey || (p.v.label ? p.v.label.slice(0, 10) : '');
-    var displayWeight = Number(p.v.rawWeight || p.v.value).toFixed(1);
-    var tooltip = dateLabel + ': ' + displayWeight + ' ' + unitLabel;
+    var displayWeight = Number(p.v.rawWeight != null ? p.v.rawWeight : p.v.value).toFixed(1);
+    var tooltip = p.v.setDesc
+      ? (dateLabel + ': ' + p.v.setDesc + (isReps ? '' : (' · Est. 1RM ' + Number(p.v.value).toFixed(1) + ' ' + unitLabel)))
+      : (dateLabel + ': ' + displayWeight + ' ' + unitLabel);
 
     var extraDot = '';
-    if (idx === peakIndex && isLift) {
-      extraDot = '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="5" fill="#C6F432" stroke="#0B0B0C" stroke-width="1.5"/>'
-        + '<text x="' + p.x.toFixed(1) + '" y="' + (p.y - 8).toFixed(1) + '" fill="#C6F432" font-size="11" font-weight="600" text-anchor="middle" font-family="Space Grotesk, sans-serif">PR</text>';
+    var baseFill = '#F5F5F4';
+
+    if (isLift) {
+      if (idx === peakIndex || p.v.isPeak) {
+        baseFill = '#C6F432';
+        extraDot = '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="6" fill="none" stroke="#C6F432" stroke-width="1.5"/>'
+          + '<text x="' + p.x.toFixed(1) + '" y="' + (p.y - 10).toFixed(1) + '" fill="#C6F432" font-size="11" font-weight="600" text-anchor="middle" font-family="Space Grotesk, sans-serif">PR</text>';
+      } else if (p.v.isPR) {
+        baseFill = '#C6F432';
+        extraDot = '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="5" fill="none" stroke="#C6F432" stroke-width="1.2"/>';
+      } else if (isLatest && values.length > 1) {
+        extraDot = '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="5" fill="none" stroke="#F5F5F4" stroke-width="1.5"/>';
+      }
     } else if (isLatest && values.length > 1) {
       extraDot = '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="5" fill="none" stroke="#F5F5F4" stroke-width="1.5"/>';
     }
 
-    return '<g class="chart-point-group" data-idx="' + idx + '" data-id="' + esc(p.v.id || '') + '" data-val="' + displayWeight + '" data-unit="' + unitLabel + '" data-date="' + esc(dateLabel) + '" data-avg="' + (p.v.avg != null ? Number(p.v.avg).toFixed(1) : '') + '">'
-      + '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="3" fill="#F5F5F4" stroke="#0B0B0C" stroke-width="1.5"/>'
+    return '<g class="chart-point-group" data-idx="' + idx + '" data-id="' + esc(p.v.id || '') + '" data-val="' + Number(p.v.value).toFixed(1) + '" data-raw-val="' + displayWeight + '" data-unit="' + unitLabel + '" data-date="' + esc(dateLabel) + '" data-set-desc="' + esc(p.v.setDesc || '') + '" data-is-pr="' + (p.v.isPR ? 'true' : 'false') + '" data-avg="' + (p.v.avg != null ? Number(p.v.avg).toFixed(1) : '') + '">'
+      + '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="3" fill="' + baseFill + '" stroke="#0B0B0C" stroke-width="1.5"/>'
       + extraDot
       + '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="16" fill="transparent" style="cursor:pointer">'
         + '<title>' + esc(tooltip) + '</title>'
@@ -167,25 +181,30 @@ export function progressPlot(values, goal, unit, isLift) {
     var dt = !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : raw.replace(/^\d{4}-/, '').replace('-', '/');
     if (dt && !distinctLabels.includes(dt)) distinctLabels.push(dt);
   });
-  var displayLabels = [];
-  if (distinctLabels.length <= 4) {
-    displayLabels = distinctLabels;
-  } else {
-    var step = (distinctLabels.length - 1) / 3;
-    displayLabels = [
-      distinctLabels[0],
-      distinctLabels[Math.round(step)],
-      distinctLabels[Math.round(step * 2)],
-      distinctLabels[distinctLabels.length - 1]
-    ];
-  }
+  var displayLabels = (distinctLabels.length <= 4) ? distinctLabels : [
+    distinctLabels[0], distinctLabels[Math.round((distinctLabels.length - 1) / 3)],
+    distinctLabels[Math.round(((distinctLabels.length - 1) / 3) * 2)], distinctLabels[distinctLabels.length - 1]
+  ];
 
   var chartId = 'plot_' + Math.random().toString(36).slice(2, 8);
+  var headerLeftHTML = '';
+  if (isLift) {
+    var peakEntry = values.find(function(v){ return v.isPeak; }) || values[values.length - 1];
+    var peakVal = isReps ? Math.round(peakEntry.value) : Number(peakEntry.value).toFixed(1);
+    var peakDesc = peakEntry.setDesc ? (' (' + peakEntry.setDesc + ')') : '';
+    headerLeftHTML = '<span class="chart-readout tabnum" style="font-size:15px;color:#F5F5F4"><span style="color:#C6F432;font-weight:600">PR:</span> ' + peakVal + ' ' + unitLabel + '<span style="font-size:11px;color:#8A8A8E;margin-left:4px">' + esc(peakDesc) + '</span></span>';
+  } else {
+    headerLeftHTML = '<span class="chart-readout tabnum" style="font-size:15px;color:#F5F5F4">' + esc(deltaFormatted) + ' <span style="font-size:11px;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.04em">' + (values.length > 1 ? 'overall' : '') + '</span></span>';
+  }
+
+  var headerRightHTML = isLift
+    ? ('<span class="t-micro tabnum" style="color:var(--text-secondary)">' + values.length + ' ' + (values.length === 1 ? 'session' : 'sessions') + ' · ' + esc(deltaFormatted) + '</span>')
+    : ('<span class="t-micro tabnum" style="color:var(--text-secondary)">' + values.length + ' ' + (values.length === 1 ? 'entry' : 'entries') + (goalNum != null ? (' · Target ' + Math.round(goalNum) + ' ' + unitLabel) : '') + '</span>');
 
   return '<div class="chart-container" id="' + chartId + '" style="margin-top:0;margin-bottom:12px;user-select:none">'
     + '<div class="chart-header" style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'
-      + '<span class="chart-readout tabnum" style="font-size:15px;color:#F5F5F4">' + esc(deltaFormatted) + ' <span style="font-size:11px;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.04em">' + (values.length > 1 ? 'overall' : '') + '</span></span>'
-      + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + values.length + ' ' + (values.length === 1 ? 'entry' : 'entries') + (goalNum != null ? (' · Target ' + Math.round(goalNum) + ' ' + unitLabel) : '') + '</span>'
+      + headerLeftHTML
+      + headerRightHTML
     + '</div>'
     + '<div style="position:relative;width:100%;height:120px;background:none">'
       + '<svg viewBox="0 0 340 120" style="width:100%;height:120px;overflow:hidden">'
@@ -250,21 +269,29 @@ export function buildDotConsistencyCalendarHTML() {
     if (trained) trainedCount++;
 
     var dotStyle = 'width:6px;height:6px;border-radius:50%;display:inline-block;box-sizing:border-box;';
-    if (trained && isToday) {
-      dotStyle += 'background:#C6F432;'; // today session = lime
-    } else if (trained) {
-      dotStyle += 'background:#F5F5F4;'; // trained = white
+    var dayTitle = key;
+    if (trained) {
+      dotStyle += 'background:#C6F432;'; // all logged sessions = lime green
+      dayTitle += ' (Logged)';
     } else if (isToday) {
-      dotStyle += 'background:transparent;border:1.5px solid #F5F5F4;'; // today untrained = ring
+      if (isTrainingDay) {
+        dotStyle += 'background:transparent;border:1.5px solid #F5F5F4;'; // today training day = ring
+        dayTitle += ' (Today · Training)';
+      } else {
+        dotStyle += 'background:#55555A;border:1.5px solid #F5F5F4;'; // today rest day = gray with ring
+        dayTitle += ' (Today · Rest)';
+      }
     } else if (key > todayStr) {
-      dotStyle += 'background:#222222;'; // future = empty
+      dotStyle += 'background:#222222;'; // future = dim slot
     } else if (isTrainingDay) {
-      dotStyle += 'background:transparent;border:1px solid #55555A;'; // untrained = ring
+      dotStyle += 'background:transparent;border:1px solid #55555A;'; // untrained / skipped = ring
+      dayTitle += ' (Skipped)';
     } else {
-      dotStyle += 'background:#222222;'; // rest day = empty
+      dotStyle += 'background:#55555A;'; // rest day = solid gray
+      dayTitle += ' (Rest)';
     }
 
-    dots.push('<span class="dot-cell" style="' + dotStyle + '" title="' + key + (trained ? ' (Trained)' : '') + '"></span>');
+    dots.push('<span class="dot-cell" style="' + dotStyle + '" title="' + esc(dayTitle) + '"></span>');
   }
 
   var trailSpaces = (7 - ((leadSpaces + totalDaysInMonth) % 7)) % 7;
@@ -279,10 +306,10 @@ export function buildDotConsistencyCalendarHTML() {
     }).join('')
     + '</div>';
 
-  var legendHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:10px;font-size:11px;color:#8A8A8E">'
-    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#F5F5F4;display:inline-block"></span> logged</span>'
-    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;border:1.5px solid #F5F5F4;background:transparent;display:inline-block"></span> today</span>'
-    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border:1px solid #55555A;background:transparent;display:inline-block"></span> untrained</span>'
+  var legendHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:12px;font-size:11px;color:#8A8A8E">'
+    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#C6F432;display:inline-block"></span> logged</span>'
+    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#55555A;display:inline-block"></span> rest</span>'
+    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;border:1px solid #55555A;background:transparent;display:inline-block"></span> skipped</span>'
     + '</div>';
 
   return '<div style="margin-bottom:24px">'
@@ -298,10 +325,61 @@ export function buildDotConsistencyCalendarHTML() {
     + '</div>';
 }
 
-export function renderRegression() { return ''; }
-export function buildExOptions() { return ''; }
-export function chartDefaults() { return {}; }
-export function destroyCharts() {}
-export function buildProgressCharts() {}
-export function buildE1RMChart() {}
-export function buildLedger() {}
+export function getLiftHistory(selectedExId) {
+  if (!selectedExId) return [];
+  var selectedExData = (typeof getExerciseData === 'function') ? getExerciseData(selectedExId) : null;
+  var isBW = isBodyweightExercise(selectedExId, selectedExData ? selectedExData.name : '');
+  var eqIds = (typeof getEquivalentExerciseIds === 'function') ? getEquivalentExerciseIds(selectedExId) : [selectedExId];
+  if (!eqIds.includes(selectedExId)) eqIds.push(selectedExId);
+
+  var dateMap = {};
+  function updateDateMap(k, sets) {
+    (sets || []).forEach(function(s) {
+      if (!s) return;
+      var w = Number(s.weight) || 0, r = Number(s.reps) || 0;
+      if (r <= 0 && w <= 0) return;
+      var score = isBW ? r : calcE1RM(w, r);
+      if (score > 0 && (!dateMap[k] || score > dateMap[k].score)) {
+        dateMap[k] = { score: score, weight: w, reps: r, dayKey: k };
+      }
+    });
+  }
+
+  allDayKeys().forEach(function(k) {
+    var rec = dayRecord(k);
+    if (!rec || !rec.workout) return;
+    eqIds.forEach(function(id) { updateDateMap(k, rec.workout[id]); });
+  });
+
+  try {
+    getWorkoutSessions().forEach(function(session) {
+      if (!session || !session.dayKey || !Array.isArray(session.exercises)) return;
+      session.exercises.forEach(function(ex) {
+        if (ex && eqIds.includes(ex.id)) updateDateMap(session.dayKey, ex.sets);
+      });
+    });
+  } catch(e) {}
+
+  var sortedDates = Object.keys(dateMap).sort();
+  var runningMax = 0, allTimeMax = 0;
+  sortedDates.forEach(function(k) {
+    if (dateMap[k].score > allTimeMax) allTimeMax = dateMap[k].score;
+  });
+
+  return sortedDates.map(function(k) {
+    var item = dateMap[k];
+    var isPR = item.score > runningMax;
+    if (isPR) runningMax = item.score;
+    var isPeak = (item.score === allTimeMax && allTimeMax > 0);
+    var setDesc = isBW ? (item.reps + ' reps') : (item.weight + ' kg × ' + item.reps + ' reps');
+    return {
+      value: Number(item.score.toFixed(1)), e1rm: Number(item.score.toFixed(1)),
+      weight: item.weight, reps: item.reps, rawWeight: item.weight,
+      dateKey: k, label: k + ' · ' + setDesc, setDesc: setDesc,
+      isPR: isPR, isPeak: isPeak, isBW: isBW
+    };
+  });
+}
+
+export function renderRegression() { return ''; } export function buildExOptions() { return ''; } export function chartDefaults() { return {}; }
+export function destroyCharts() {} export function buildProgressCharts() {} export function buildE1RMChart() {} export function buildLedger() {}
