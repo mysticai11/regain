@@ -23,6 +23,8 @@ body {
   overscroll-behavior: none;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 * {
   scrollbar-width: none;
@@ -47,6 +49,12 @@ body {
 .tabnum    { font-variant-numeric: tabular-nums; }
 
 /* Numeric inputs, stats, and tables default to tabular numerals */
+input,
+textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 input,
 button,
 select,

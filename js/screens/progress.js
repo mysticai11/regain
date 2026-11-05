@@ -269,7 +269,7 @@ export function renderProgressSimple(mode) {
       + '<div class="t-label" style="margin-bottom:8px">Nutrition · Last 7 days</div>'
       + nutritionProgressHTML(records)
     + '</div>';
-  var liftSection = '<div style="margin-bottom:32px">'
+  var liftChartBlock = '<div style="margin-top:32px;margin-bottom:32px">'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'
       + '<span class="t-label">Lift progress</span>'
       + '<span id="liftMeta" class="t-micro tabnum" style="color:var(--text-secondary)"></span>'
@@ -278,10 +278,10 @@ export function renderProgressSimple(mode) {
       + exOptions.map(function(e){ return '<option value="' + e.id + '">' + esc(e.name) + '</option>'; }).join('')
     + '</select>'
     + '<div id="liftPlot"></div>'
-    + '</div>'
-    + '<div style="margin-top:32px">'
-      + '<div class="t-label" style="margin-bottom:12px">Weekly work · Sets last 7 days · target 10–18</div>'
-      + weeklyVolumeChart()
+    + '</div>';
+  var weeklyWorkBlock = '<div style="margin-top:32px">'
+    + '<div class="t-label" style="margin-bottom:12px">Weekly work · Sets last 7 days · target 10–18</div>'
+    + weeklyVolumeChart()
     + '</div>';
   document.getElementById('content').innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">'
@@ -294,13 +294,29 @@ export function renderProgressSimple(mode) {
     + '</div>'
     + (mode === 'body'
         ? ('<div class="app-view">' + buildDotConsistencyCalendarHTML() + bodySection + '</div>')
-        : ('<div class="app-view">' + getResumeWorkoutCardHTML() + liftSection + '<div style="margin-top:24px">' + workoutHistoryHTML() + '</div></div>')
+        : ('<div class="app-view">' + getResumeWorkoutCardHTML() + workoutHistoryHTML() + liftChartBlock + weeklyWorkBlock + '</div>')
       );
   document.getElementById('settingsBtn').onclick=openSettings;
-  document.getElementById('bodyProgressBtn').onclick=function(){ if (mode !== 'body') renderProgressSimple('body'); };
-  document.getElementById('liftProgressBtn').onclick=function(){ if (mode !== 'lifts') renderProgressSimple('lifts'); };
+  document.getElementById('bodyProgressBtn').onclick=function(){ if (mode !== 'body') { triggerHaptic(); renderProgressSimple('body'); } };
+  document.getElementById('liftProgressBtn').onclick=function(){ if (mode !== 'lifts') { triggerHaptic(); renderProgressSimple('lifts'); } };
+  var contentEl = document.getElementById('content');
+  if (contentEl) {
+    var touchStartX = 0, touchStartY = 0;
+    contentEl.ontouchstart = function(e) {
+      if (e.touches && e.touches[0]) { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }
+    };
+    contentEl.ontouchend = function(e) {
+      if (!e.changedTouches || !e.changedTouches[0]) return;
+      var dx = e.changedTouches[0].clientX - touchStartX, dy = e.changedTouches[0].clientY - touchStartY;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        if (dx < 0 && mode === 'body') { triggerHaptic(); renderProgressSimple('lifts'); }
+        else if (dx > 0 && mode === 'lifts') { triggerHaptic(); renderProgressSimple('body'); }
+      }
+    };
+  }
   document.querySelectorAll('[data-range]').forEach(function(btn){
     btn.onclick = function(){
+      triggerHaptic();
       range = btn.dataset.range;
       document.querySelectorAll('[data-range]').forEach(function(b){
         var isAct = (b === btn);

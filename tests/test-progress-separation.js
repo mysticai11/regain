@@ -93,7 +93,20 @@ async function run() {
   assert.ok(!liftsScreen.includes('id="progressWeight"'), 'Lifts screen must NOT contain progressWeight input');
   assert.ok(!liftsScreen.includes('Nutrition · Last 7 days'), 'Lifts screen must NOT contain Nutrition');
 
-  console.log('✓ Progress Screen Separation verified with 100% success!');
+  // Verify Lifts screen section ordering: History at top, Lift plot middle, Weekly work at bottom
+  const historyIdx = liftsScreen.indexOf('No completed workouts yet') !== -1
+    ? liftsScreen.indexOf('No completed workouts yet')
+    : liftsScreen.indexOf('WEEK ');
+  const liftPlotIdx = liftsScreen.indexOf('id="liftPlot"');
+  const weeklyWorkIdx = liftsScreen.indexOf('Weekly work · Sets last 7 days');
+
+  assert.ok(historyIdx !== -1, 'Workout history must be rendered on Lifts screen');
+  assert.ok(liftPlotIdx !== -1, 'Lift plot must be rendered on Lifts screen');
+  assert.ok(weeklyWorkIdx !== -1, 'Weekly work must be rendered on Lifts screen');
+  assert.ok(historyIdx < liftPlotIdx, 'Workout history must be positioned above Lift progress chart');
+  assert.ok(liftPlotIdx < weeklyWorkIdx, 'Weekly work must be positioned at the bottom below Lift progress chart');
+
+  console.log('✓ Progress Screen Separation and Lifts Reordering verified with 100% success!');
 }
 
 run().catch(err => {

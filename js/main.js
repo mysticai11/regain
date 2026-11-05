@@ -5,7 +5,7 @@ import { ls, sv, SQLiteStorage, migrateWorkoutSessions, requestPersistentStorage
 import { DEFAULT_MEAL_PLAN } from "./data/foods.js";
 import { migrateWorkoutRoutineSwap, getActiveProgram } from "./data/plan.js";
 import { todayKey, esc } from "./lib/format.js";
-import { ic } from "./lib/dom.js";
+import { ic, triggerHaptic } from "./lib/dom.js";
 import { renderTodaySimple, migrateFoodTotals, openCheckinSheet } from "./screens/today.js";
 import { renderProgressSimple } from "./screens/progress.js?v=4";
 import { renderGym } from "./screens/gym.js";
@@ -29,6 +29,7 @@ export function renderApp() {
   renderTab();
   document.querySelectorAll('.navitem').forEach(function (btn) {
     btn.addEventListener('click', function () {
+      triggerHaptic();
       if (workoutTimer.interval) { clearInterval(workoutTimer.interval); workoutTimer.interval = null; }
       if (restTimer.interval) { clearInterval(restTimer.interval); restTimer.interval = null; restTimer.endAt = 0; restTimer.remaining = 0; }
       setTab(btn.dataset.tab);
@@ -121,7 +122,7 @@ function onStorageReady() {
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('sw.js?v=tally-v4').then(function (reg) {
+    navigator.serviceWorker.register('sw.js?v=tally-v14').then(function (reg) {
       if (!reg) return;
       var showUpdateBanner = function () {
         if (document.getElementById('swUpdateBanner')) return;
@@ -151,6 +152,7 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
 // Expose key functions on window for inline HTML onclick handlers and test runner
 if (typeof window !== 'undefined') {
   window.setTab = function(t) {
+    triggerHaptic();
     setTab(t);
     document.querySelectorAll('.navitem').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === t); });
     renderTab();
@@ -167,6 +169,39 @@ if (typeof window !== 'undefined') {
   window.openGymDateDaySheet = openGymDateDaySheet;
   window.openSwapSheet = openSwapSheet;
   window.openSplitManagerSheet = openSplitManagerSheet;
+}
+
+// Hardware and gesture back button handling
+if (typeof window !== 'undefined') {
+  var handleBackButtonDismiss = function() {
+    var overlays = document.querySelectorAll('.overlay');
+    if (overlays && overlays.length > 0) {
+      var topOverlay = overlays[overlays.length - 1];
+      var closeBtn = topOverlay.querySelector('#closeSettingsBtn, #closeFoodSearch, #closeExerciseModal, #closeSheetBtn, #closeActionMenuBtn');
+      if (closeBtn) closeBtn.click();
+      else topOverlay.remove();
+      return true;
+    }
+    if (tab !== 'today') {
+      window.setTab('today');
+      return true;
+    }
+    return false;
+  };
+
+  window.addEventListener('popstate', function() {
+    handleBackButtonDismiss();
+  });
+
+  if (window.Capacitor && window.Capacitor.isPluginAvailable && window.Capacitor.isPluginAvailable('App')) {
+    try {
+      window.Capacitor.Plugins.App.addListener('backButton', function() {
+        if (!handleBackButtonDismiss()) {
+          window.Capacitor.Plugins.App.exitApp();
+        }
+      });
+    } catch(e) {}
+  }
 }
 
 // Global delegated event listeners for resilient tap handling
