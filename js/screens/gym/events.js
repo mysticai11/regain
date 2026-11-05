@@ -242,6 +242,28 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
     });
   });
 
+  document.querySelectorAll('.set-weight').forEach(function(input) {
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        var id = input.dataset.ex, idx = parseInt(input.dataset.setIndex, 10);
+        var r = document.querySelector('.set-reps[data-ex="' + id + '"][data-set-index="' + idx + '"]');
+        if (r) { r.focus(); if (r.select) r.select(); }
+      }
+    });
+  });
+  document.querySelectorAll('.set-reps').forEach(function(input) {
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        var id = input.dataset.ex, idx = parseInt(input.dataset.setIndex, 10);
+        var nextW = document.querySelector('.set-weight[data-ex="' + id + '"][data-set-index="' + (idx + 1) + '"]');
+        if (nextW) { nextW.focus(); if (nextW.select) nextW.select(); }
+        else { input.blur(); }
+      }
+    });
+  });
+
   document.querySelectorAll('[data-add-set]').forEach(function(btn){
     btn.addEventListener('click',function(){
       var draftRec=dayRecord(key), id=btn.dataset.addSet;

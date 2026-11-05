@@ -354,6 +354,18 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   max-width: 480px;
   margin: 0 auto;
   box-sizing: border-box;
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+body.kb-open .bottomnav,
+body.kb-open .tab-bar {
+  transform: translateY(100%);
+  pointer-events: none;
+}
+body.kb-open .sheet {
+  max-height: calc(100dvh - 20px) !important;
+  overflow-y: auto !important;
+  padding-bottom: 20px !important;
 }
 .tab-item, .navitem {
   display: flex;

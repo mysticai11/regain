@@ -75,10 +75,57 @@ export function renderTab() {
   }
 }
 
+export function initKeyboardHandling() {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (window._keyboardInitialized) return;
+  window._keyboardInitialized = true;
+
+  if (window.Capacitor && window.Capacitor.isPluginAvailable && window.Capacitor.isPluginAvailable('Keyboard')) {
+    try {
+      var Keyboard = window.Capacitor.Plugins.Keyboard;
+      Keyboard.addListener('keyboardWillShow', function() {
+        document.body.classList.add('kb-open');
+        setTimeout(function() {
+          var active = document.activeElement;
+          if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA') && active.scrollIntoView) {
+            active.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 50);
+      });
+      Keyboard.addListener('keyboardWillHide', function() {
+        document.body.classList.remove('kb-open');
+      });
+    } catch(err) {
+      console.warn('Capacitor Keyboard listener error:', err);
+    }
+  }
+
+  document.addEventListener('focusin', function(e) {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+      document.body.classList.add('kb-open');
+      setTimeout(function() {
+        if (e.target && e.target.scrollIntoView) {
+          e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 50);
+    }
+  });
+
+  document.addEventListener('focusout', function() {
+    setTimeout(function() {
+      var active = document.activeElement;
+      if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA')) {
+        document.body.classList.remove('kb-open');
+      }
+    }, 100);
+  });
+}
+
 // ── Boot ────────────────────────────────────────────────────────────────────────
 function bootApp() {
   console.log('BOOT: bootApp running');
   initMaterialRipple();
+  initKeyboardHandling();
   SQLiteStorage.init(function () {
     console.log('BOOT: SQLiteStorage init done');
     requestPersistentStorage();
