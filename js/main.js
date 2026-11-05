@@ -121,6 +121,36 @@ export function initKeyboardHandling() {
   });
 }
 
+export function initEdgeToEdgeAndSplash() {
+  if (typeof window === 'undefined') return;
+
+  if (window.Capacitor && window.Capacitor.isPluginAvailable) {
+    if (window.Capacitor.isPluginAvailable('StatusBar')) {
+      try {
+        var StatusBar = window.Capacitor.Plugins.StatusBar;
+        if (StatusBar.setOverlaysWebView) StatusBar.setOverlaysWebView({ overlay: true });
+        if (StatusBar.setStyle) StatusBar.setStyle({ style: 'DARK' });
+        if (StatusBar.setBackgroundColor) StatusBar.setBackgroundColor({ color: '#0B0B0C' });
+      } catch (err) {
+        console.warn('StatusBar init error:', err);
+      }
+    }
+
+    if (window.Capacitor.isPluginAvailable('SplashScreen')) {
+      try {
+        var SplashScreen = window.Capacitor.Plugins.SplashScreen;
+        if (SplashScreen.hide) {
+          setTimeout(function() {
+            SplashScreen.hide({ fadeOutDuration: 150 });
+          }, 60);
+        }
+      } catch (err) {
+        console.warn('SplashScreen hide error:', err);
+      }
+    }
+  }
+}
+
 // ── Boot ────────────────────────────────────────────────────────────────────────
 function bootApp() {
   console.log('BOOT: bootApp running');
@@ -184,6 +214,7 @@ function onStorageReady() {
       openCheckinSheet(todayKey());
     }
   }
+  initEdgeToEdgeAndSplash();
 }
 
 // ── Service Worker ──────────────────────────────────────────────────────────────

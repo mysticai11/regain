@@ -4,12 +4,17 @@
   "webDir": "www",
   "plugins": {
     "SplashScreen": {
-      "launchShowDuration": 1500,
-      "launchAutoHide": true,
+      "launchShowDuration": 2000,
+      "launchAutoHide": false,
       "backgroundColor": "#0B0B0C",
       "androidSplashResourceName": "splash",
       "androidScaleType": "CENTER_CROP",
       "showSpinner": false
+    },
+    "StatusBar": {
+      "overlaysWebView": true,
+      "style": "DARK",
+      "backgroundColor": "#00000000"
     },
     "Keyboard": {
       "resize": "native",
