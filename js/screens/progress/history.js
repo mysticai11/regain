@@ -75,7 +75,7 @@ export function workoutHistoryHTML() {
     var weekNum = wkIdx + 1;
 
     html += '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin:' + (wkIdx === 0 ? '4' : '24') + 'px 0 4px">WEEK ' + weekNum + ' · ' + group.sessions.length + (group.sessions.length === 1 ? ' SESSION' : ' SESSIONS') + ' · ' + totalSetsInWeek + ' SETS</div>'
-      + '<div style="font-size:11px;color:#55555A;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:12px">RIR: F = failure · 1 · 2 · 3 · + = 4 or more</div>';
+      + '<div style="font-size:11px;color:#8A8A8E;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:12px">RIR: F = failure · 1 · 2 · 3 · + = 4 or more</div>';
 
     group.sessions.forEach(function(session, sIdx) {
       var allSessionIdx = sessions.indexOf(session);
@@ -171,15 +171,13 @@ export function workoutHistoryHTML() {
           }
         }
 
-        var chips = sets.map(function(s) {
+        var chips = sets.map(function(s, sIdx2) {
           var wDisp = isBW ? ((!s.weight || Number(s.weight) === 0) ? 'BW' : ('BW+' + s.weight)) : s.weight;
           var chipText = wDisp + '×' + s.reps;
           var rir = s.rir;
           var rirVal = (rir === 0 || rir === '0') ? 'F' : ((rir != null && rir !== '') ? (Number(rir) >= 4 ? '+' : String(rir)) : '');
-          var dotColor = (rir === 0 || rir === '0') ? '#C6F432' : ((rir != null && rir !== '') ? '#8A8A8E' : '#55555A');
-          var dot = '<span style="width:4px;height:4px;border-radius:50%;background:' + dotColor + ';display:inline-block;margin-left:4px;flex-shrink:0;vertical-align:middle"></span>';
-          var rirBadge = rirVal ? '<span style="font-size:11px;color:' + (rirVal === 'F' ? '#C6F432' : '#8A8A8E') + ';margin-left:3px">' + rirVal + '</span>' : '';
-          return '<span style="display:inline-flex;align-items:center;background:#1C1C1F;border-radius:8px;padding:3px 8px;font-size:11px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;white-space:nowrap">' + esc(chipText) + dot + rirBadge + '</span>';
+          var rirBadge = rirVal ? '<span style="font-size:11px;font-weight:600;color:' + (rirVal === 'F' ? '#C6F432' : '#8A8A8E') + ';margin-left:4px">' + rirVal + '</span>' : '';
+          return '<button type="button" class="btn-ghost history-set-chip" data-quick-edit-set="1" data-session-id="' + esc(session.id) + '" data-ex-id="' + esc(exItem.id) + '" data-ex-name="' + esc(exData.name) + '" data-set-idx="' + sIdx2 + '" data-weight="' + (s.weight || 0) + '" data-reps="' + (s.reps || 0) + '" data-rir="' + (s.rir == null ? '' : s.rir) + '" style="display:inline-flex;align-items:center;background:#1C1C1F;border:none;border-radius:8px;padding:3px 8px;font-size:11px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;white-space:nowrap;cursor:pointer">' + esc(chipText) + rirBadge + '</button>';
         }).join('');
 
         var isLast = exIdx === exercises.length - 1;
@@ -199,18 +197,18 @@ export function workoutHistoryHTML() {
       var isFirstInWeek = (sIdx === 0 && wkIdx === 0);
 
       html += '<details class="history-session-details" ' + (isFirstInWeek ? 'open' : '') + ' style="margin-bottom:12px;background:#141416;border-radius:16px;overflow:hidden">'
-        + '<summary class="history-session-header" style="min-height:72px;height:auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;list-style:none;user-select:none;box-sizing:border-box;gap:12px">'
+        + '<summary class="history-session-header" style="min-height:72px;height:auto;padding:16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;list-style:none;user-select:none;box-sizing:border-box;gap:12px">'
           + '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;min-width:36px">'
             + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1.1;letter-spacing:0.04em">' + esc(dayLabel) + ' ' + esc(monLabel) + '</div>'
             + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1;font-variant-numeric:tabular-nums">' + String(dObj.getDate()) + '</div>'
           + '</div>'
-          + '<div style="flex:1;min-width:0">'
+          + '<div style="flex:1;min-width:0;overflow:hidden">'
             + '<div style="font-size:17px;font-weight:600;color:#F5F5F4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(cleanTitle) + '</div>'
-            + '<div style="font-size:15px;color:#8A8A8E;margin-top:2px;font-variant-numeric:tabular-nums">' + esc(statsText) + '</div>'
+            + '<div style="font-size:15px;color:#8A8A8E;margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(statsText) + '</div>'
           + '</div>'
           + '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0">'
             + '<span class="history-chevron" style="display:inline-flex;align-items:center;color:#8A8A8E;transition:transform 0.2s ease">' + chevronSVG + '</span>'
-            + '<button type="button" class="btn-ghost history-menu-btn" data-edit-workout-session="' + esc(session.id) + '" onclick="event.stopPropagation();event.preventDefault();openEditWorkoutSheet(\'' + esc(session.id) + '\');" style="background:none;border:none;font-size:17px;line-height:1;padding:4px 6px;color:#8A8A8E;cursor:pointer;min-width:44px;text-align:center" aria-label="Session options">···</button>'
+            + '<button type="button" class="btn-ghost history-menu-btn" data-session-menu="' + esc(session.id) + '" style="background:none;border:none;font-size:17px;line-height:1;padding:8px 12px;color:#8A8A8E;cursor:pointer;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center" aria-label="Session options">···</button>'
           + '</div>'
         + '</summary>'
         + '<div class="history-session-body" style="padding:0 16px 12px;border-top:1px solid #1C1C1F">' + exRows + '</div>'

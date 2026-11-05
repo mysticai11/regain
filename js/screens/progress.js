@@ -12,8 +12,10 @@ import { openQuickEditSetModal } from "../components/quick-edit-modal.js";
 import { getWeightHistory, getProgressRows, getRollingWeightValues, buildDotConsistencyCalendarHTML, progressPlot, goalTrajectoryText } from "./progress/charts.js";
 import { getEquivalentExerciseIds } from "./gym/sets.js";
 import { workoutHistoryHTML, getResumeWorkoutCardHTML, nutritionProgressHTML, weeklyVolumeChart } from "./progress/history.js";
+import { openSessionMenu, openEditWorkoutSheet } from "./progress/session-editor.js";
 export * from "./progress/charts.js";
 export * from "./progress/history.js";
+export * from "./progress/session-editor.js";
 
 export function renderProgressSimple(mode) {
   mode=mode||'body';
@@ -264,6 +266,13 @@ export function renderProgressSimple(mode) {
       if (e && e.stopPropagation) e.stopPropagation();
       if (e && e.preventDefault) e.preventDefault();
       openEditWorkoutSheet(btn.dataset.editWorkoutSession);
+    };
+  });
+  document.querySelectorAll('[data-session-menu]').forEach(function(btn){
+    btn.onclick = function(e){
+      if (e && e.stopPropagation) e.stopPropagation();
+      if (e && e.preventDefault) e.preventDefault();
+      openSessionMenu(btn.dataset.sessionMenu);
     };
   });
   document.querySelectorAll('[data-quick-edit-set]').forEach(function(btn){
