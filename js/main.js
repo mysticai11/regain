@@ -114,9 +114,32 @@ function onStorageReady() {
 }
 
 // ── Service Worker ──────────────────────────────────────────────────────────────
-if(typeof navigator !== 'undefined' && 'serviceWorker' in navigator){
-  window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js?v=regain-v5').catch(function(){});
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js?v=tally-v1').then(function (reg) {
+      if (!reg) return;
+      var showUpdateBanner = function () {
+        if (document.getElementById('swUpdateBanner')) return;
+        var banner = document.createElement('div');
+        banner.id = 'swUpdateBanner';
+        banner.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#1C1C1F;border:1px solid #222;border-radius:12px;padding:8px 16px;z-index:9999;display:flex;align-items:center;gap:12px;font-size:15px;color:#F5F5F4';
+        banner.innerHTML = '<span>Update available</span><button type="button" class="btn-text-action" style="color:#C6F432;font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;padding:0" onclick="location.reload()">Reload</button>';
+        document.body.appendChild(banner);
+      };
+
+      if (reg.waiting) {
+        showUpdateBanner();
+      }
+      reg.addEventListener('updatefound', function () {
+        var newWorker = reg.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener('statechange', function () {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            showUpdateBanner();
+          }
+        });
+      });
+    }).catch(function () {});
   });
 }
 

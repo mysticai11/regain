@@ -92,7 +92,7 @@ export function openSplitManagerSheet() {
 
       var totalSets = (day.exercises || []).reduce(function (acc, item) { return acc + (Number(item.sets) || 0); }, 0);
 
-      return '<div class="split-day-card" style="background:#141416;border:1px solid #222;border-radius:20px;padding:16px;margin-bottom:16px">'
+      return '<div class="split-day-card" style="padding:16px 0;border-bottom:1px solid #222;margin-bottom:8px">'
         + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:8px">'
         + '<div style="flex:1;min-width:0">'
         + '<div style="font-size:17px;font-weight:600;color:#F5F5F4;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word">' + esc(day.label) + '</div>'
@@ -133,7 +133,7 @@ export function openSplitManagerSheet() {
 
       // Bottom Save button
       + '<div style="margin-top:20px">'
-      + '<button type="button" class="btn btn-primary" id="saveCloseSplitBtn" style="width:100%;height:48px;border-radius:12px;background:#C6F432;color:#0B0B0C;border:none;font-size:15px;font-weight:600;cursor:pointer">Save & Apply Plan</button>'
+      + '<button type="button" class="btn" id="saveCloseSplitBtn" style="width:100%;height:48px;border-radius:12px;background:#F5F5F4;color:#0B0B0C;border:none;font-size:15px;font-weight:600;cursor:pointer">Save & Apply Plan</button>'
       + '</div>'
       + '</div>';
 

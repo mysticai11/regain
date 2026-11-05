@@ -182,11 +182,13 @@ export function openWorkoutOverrideSheet(dKey) {
   var currentSelection = hasOverride ? targetRec.selectedWorkout : suggestedWorkoutIdx;
 
   var workoutRows = prog.map(function(s, idx) {
-    var cleanLabel = s.label.replace(/^Day\s*\d+\s*[—–-]\s*/i, '');
+    var cleanLabel = (s.label || '').replace(/^Day\s*\d+\s*[·•—–-]\s*/i, '').trim();
+    if (/^Day\s*\d+$/i.test(cleanLabel)) cleanLabel = '';
+    var labelText = cleanLabel ? ('Day ' + (idx + 1) + ' · ' + esc(cleanLabel)) : ('Day ' + (idx + 1));
     var isSuggested = (suggestedWorkoutIdx === idx);
     var isSelected = (currentSelection === idx);
     return '<div class="list-row" data-choose-plan-idx="' + idx + '" style="height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;cursor:pointer;padding:0">'
-      + '<span style="font-size:17px;font-weight:600;color:' + (isSelected ? '#F5F5F4' : '#8A8A8E') + '">Day ' + (idx + 1) + ' · ' + esc(cleanLabel) + '</span>'
+      + '<span style="font-size:17px;font-weight:600;color:' + (isSelected ? '#F5F5F4' : '#8A8A8E') + '">' + labelText + '</span>'
       + '<div style="display:flex;align-items:center;gap:8px">'
         + (isSuggested ? '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Suggested</span>' : '')
         + (isSelected ? '<span style="color:#F5F5F4;font-weight:700">✓</span>' : '')
@@ -264,21 +266,19 @@ export function buildCalRingHTML(kcalLogged, kcalTarget, protLogged, protTarget,
   var protPct = Math.min(100, Math.round(protLogged / Math.max(1, protTarget) * 100));
 
   var heroNumber = isOver ? ('+' + (kcalLogged - kcalTarget).toLocaleString()) : (remaining > 0 ? remaining.toLocaleString() : kcalLogged.toLocaleString());
-  var heroSub = isOver
-    ? 'kcal over target · ' + kcalLogged.toLocaleString() + ' eaten'
-    : (remaining > 0
-      ? 'kcal remaining · of ' + kcalTarget.toLocaleString() + ' kcal'
-      : 'kcal eaten · target hit');
+  var heroSub = remaining > 0
+    ? ('of ' + kcalTarget.toLocaleString() + ' kcal')
+    : (isOver ? (kcalLogged.toLocaleString() + ' of ' + kcalTarget.toLocaleString() + ' kcal') : ('of ' + kcalTarget.toLocaleString() + ' kcal'));
 
-  return '<div style="margin-bottom:20px">'
+  return '<div style="margin-bottom:24px">'
     + '<div class="t-hero tabnum">' + heroNumber + '</div>'
-    + '<div style="font-size:15px;color:var(--text-secondary);margin-top:4px">' + heroSub + '</div>'
-    + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;margin-top:8px;margin-bottom:16px;overflow:hidden"><div class="prog-line-fill' + (calPct >= 100 ? ' lime' : '') + '" style="width:' + calPct + '%;height:100%;border-radius:3px;background:#C6F432"></div></div>'
+    + '<div style="font-size:15px;color:#8A8A8E;margin-top:6px">' + heroSub + '</div>'
+    + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;margin-top:10px;margin-bottom:20px;overflow:hidden"><div class="prog-line-fill" style="width:' + calPct + '%;height:100%;border-radius:3px;background:#F5F5F4"></div></div>'
     + '<div style="display:flex;align-items:baseline;gap:6px">'
-      + '<span style="font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums">' + Math.round(protLogged) + '</span>'
-      + '<span style="font-size:15px;color:var(--text-secondary)">/ ' + protTarget + ' g protein</span>'
+      + '<span style="font-size:48px;font-weight:600;color:#F5F5F4;line-height:1;font-variant-numeric:tabular-nums">' + Math.round(protLogged) + '</span>'
+      + '<span style="font-size:15px;color:#8A8A8E">/ ' + protTarget + ' g</span>'
     + '</div>'
-    + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;margin-top:6px;overflow:hidden"><div class="prog-line-fill' + (protPct >= 100 ? ' lime' : '') + '" style="width:' + protPct + '%;height:100%;border-radius:3px;background:#C6F432"></div></div>'
+    + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;margin-top:8px;margin-bottom:20px;overflow:hidden"><div class="prog-line-fill" style="width:' + protPct + '%;height:100%;border-radius:3px;background:#F5F5F4"></div></div>'
     + '</div>';
 }
 

@@ -1,9 +1,8 @@
-// sw.js — Regain service worker
-const CACHE = 'regain-v5';
+// sw.js — Tally service worker
+const CACHE = 'tally-v1';
 const LOCAL_ASSETS = [
   "./",
   "./index.html",
-  "./tokens.css",
   "./db.js",
   "./manifest.json",
   "./icon-192.svg",
@@ -65,6 +64,13 @@ const LOCAL_ASSETS = [
 ];
 
 self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(cache => {
+      return cache.addAll(LOCAL_ASSETS).catch(err => {
+        console.warn('Precache partial fallback:', err);
+      });
+    })
+  );
   self.skipWaiting();
 });
 
@@ -79,7 +85,24 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
 
-  // Cross-origin CDN: stale-while-revalidate
+  // Cache-first for icons and static assets
+  if (url.pathname.includes('/assets/icons/') || url.pathname.endsWith('.svg') || url.pathname.endsWith('.png')) {
+    e.respondWith(
+      caches.match(e.request).then(cached => {
+        if (cached) return cached;
+        return fetch(e.request).then(res => {
+          if (res.ok) {
+            const clone = res.clone();
+            caches.open(CACHE).then(c => c.put(e.request, clone));
+          }
+          return res;
+        });
+      })
+    );
+    return;
+  }
+
+  // Cross-origin CDN (fonts): stale-while-revalidate
   if (url.origin !== location.origin) {
     e.respondWith(
       caches.open(CACHE).then(cache =>
@@ -95,8 +118,27 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Same-origin: network-first with cache fallback (ensures fresh JS while offline capable)
+  // Same-origin JS/CSS/HTML: network-first with cache fallback
   e.respondWith(
+    fetch(e.request)
+      .then(res => {
+        if (res.ok && e.request.url.startsWith('http')) {
+          const clone = res.clone();
+          caches.open(CACHE).then(cache => cache.put(e.request, clone));
+        }
+        return res;
+      })
+      .catch(() => {
+        return caches.match(e.request).then(cached => {
+          if (cached) return cached;
+          if (e.request.mode === 'navigate') {
+            return caches.match('./index.html');
+          }
+          return new Response('Offline', { status: 503, statusText: 'Offline' });
+        });
+      })
+  );
+});
     fetch(e.request)
       .then(res => {
         if (res.ok && e.request.url.startsWith('http')) {

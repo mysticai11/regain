@@ -1,7 +1,7 @@
 /* Settings screen: targets, training days, plan picker, profile, and onboarding modal */
 
 import { profile, setProfile, setTab } from "../state.js";
-import { sv, dayRecord, saveDayRecord, exportData, importData } from "../storage.js";
+import { sv, ls, dayRecord, saveDayRecord, exportData, importData } from "../storage.js";
 import { DEFAULT_MEAL_PLAN } from "../data/foods.js";
 import { renderApp } from "../main.js";
 import { CAL_TARGET_REST, CAL_TARGET_GYM, PROT_TARGET_REST, PROT_TARGET_GYM, PROGRAM_2DAY, PROGRAM_3DAY, PROGRAM_4DAY, PROGRAM_5DAY, PROGRAM_6DAY, DEFAULT_5DAY_ROUTINE } from "../data/plan.js";
@@ -39,8 +39,8 @@ export function openSettings() {
   var dayTogglesHTML = weekDaysMeta.map(function(d) {
     var active = tdays.includes(d.js);
     var actStyle = active
-      ? 'background:#C6F432 !important;border:1px solid #C6F432 !important;color:#0B0B0C !important;font-weight:600 !important;'
-      : 'background:#1C1C1F !important;border:1px solid #222 !important;color:#8A8A8E !important;font-weight:500 !important;';
+      ? 'background:#F5F5F4 !important;border:none !important;color:#0B0B0C !important;font-weight:600 !important;'
+      : 'background:#1C1C1F !important;border:none !important;color:#55555A !important;font-weight:500 !important;';
     return '<button type="button" class="day-toggle settings-day-toggle' + (active ? ' active' : '') + '" data-day="' + d.js + '" style="' + actStyle + 'height:44px;min-width:0;width:100%;border-radius:8px;font-size:15px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">' + d.name + '</button>';
   }).join('');
 
@@ -168,16 +168,25 @@ export function openSettings() {
       + '</div>'
       + '<button type="button" class="btn" id="editCustomFoodsBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Manage</button>'
     + '</div>'
-    + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222">'
-      + '<div>'
-        + '<div style="font-size:15px;font-weight:500;color:#F5F5F4">Data backup</div>'
-        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Export or restore JSON data</div>'
-      + '</div>'
-      + '<div style="display:flex;gap:8px">'
-        + '<button type="button" class="btn" id="exportBtn" style="height:36px;padding:0 12px;border-radius:8px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Export</button>'
-        + '<button type="button" class="btn" id="importBtn" style="height:36px;padding:0 12px;border-radius:8px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Import</button>'
-      + '</div>'
-    + '</div>'
+    + (function() {
+      var lastBackupStr = 'Never';
+      var lastBackupTime = ls('tally_last_backup') || ls('rg_last_backup');
+      var backupDiffDays = null;
+      if (lastBackupTime) {
+        backupDiffDays = Math.floor((Date.now() - new Date(lastBackupTime).getTime()) / (1000 * 60 * 60 * 24));
+        lastBackupStr = (backupDiffDays === 0) ? 'Today' : (backupDiffDays + (backupDiffDays === 1 ? ' day ago' : ' days ago'));
+      }
+      return '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222">'
+        + '<div>'
+          + '<div style="font-size:15px;font-weight:500;color:#F5F5F4">Data backup</div>'
+          + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Last backup: ' + lastBackupStr + ((backupDiffDays != null && backupDiffDays > 7) ? ' · Backup recommended' : '') + '</div>'
+        + '</div>'
+        + '<div style="display:flex;gap:8px">'
+          + '<button type="button" class="btn" id="exportBtn" style="height:36px;padding:0 12px;border-radius:8px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Export</button>'
+          + '<button type="button" class="btn" id="importBtn" style="height:36px;padding:0 12px;border-radius:8px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Import</button>'
+        + '</div>'
+        + '</div>';
+    })()
 
     // DANGER ZONE
     + '<div style="margin-top:32px">'
@@ -191,25 +200,60 @@ export function openSettings() {
       + '</div>'
     + '</div>'
 
-    // STICKY BOTTOM SAVE BUTTON
-    + '<div style="position:sticky;bottom:0;background:linear-gradient(to top, #141416 80%, transparent);padding-top:16px;margin-top:24px;z-index:10">'
-      + '<button type="button" class="btn btn-primary" id="saveSettingsBtn" disabled style="width:100%;height:48px;border-radius:12px;background:#C6F432;color:#0B0B0C;border:none;font-size:15px;font-weight:600;cursor:pointer;opacity:0.4;transition:all 0.2s ease">Save</button>'
+    // BOTTOM CLOSE / DONE BUTTON
+    + '<div style="padding-top:16px;margin-top:24px">'
+      + '<button type="button" class="btn" id="closeSettingsBottomBtn" style="width:100%;height:48px;border-radius:12px;background:#1C1C1F;color:#F5F5F4;border:1px solid #222;font-size:15px;font-weight:600;cursor:pointer">Done</button>'
+      + '<button type="button" id="saveSettingsBtn" style="display:none"></button>'
     + '</div>'
     + '</div>';
 
   document.body.appendChild(overlay);
 
-  function markChanged() {
-    var saveBtn = overlay.querySelector('#saveSettingsBtn');
-    if (saveBtn) {
-      saveBtn.disabled = false;
-      saveBtn.style.opacity = '1';
-    }
+  function saveTargetsOnBlur() {
+    var rK = parseInt(document.getElementById('setTargetRest').value, 10);
+    var gK = parseInt(document.getElementById('setTargetGym').value, 10);
+    var rP = parseInt(document.getElementById('setProtRest').value, 10);
+    var gP = parseInt(document.getElementById('setProtGym').value, 10);
+    var tW = parseFloat(document.getElementById('setTargetWeight').value);
+
+    if (rK && (rK < 1000 || rK > 6000)) { showToast('Calories must be 1,000–6,000', 'warn'); return false; }
+    if (gK && (gK < 1000 || gK > 6000)) { showToast('Calories must be 1,000–6,000', 'warn'); return false; }
+    if (rP && (rP < 20 || rP > 400)) { showToast('Protein must be 20–400 g', 'warn'); return false; }
+    if (gP && (gP < 20 || gP > 400)) { showToast('Protein must be 20–400 g', 'warn'); return false; }
+    if (tW && (tW < 30 || tW > 200)) { showToast('Weight must be 30–200 kg', 'warn'); return false; }
+
+    if (rK) profile.calTargetRest = rK;
+    if (gK) profile.calTargetGym = gK;
+    if (rP) profile.protTargetRest = rP;
+    if (gP) profile.protTargetGym = gP;
+    if (tW) profile.targetWeight = tW;
+    sv('rg_profile', profile);
+    return true;
   }
 
-  overlay.querySelectorAll('input, select').forEach(function(el) {
-    el.addEventListener('input', markChanged);
-    el.addEventListener('change', markChanged);
+  ['setTargetRest', 'setTargetGym', 'setProtRest', 'setProtGym', 'setTargetWeight'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('blur', function() {
+        if (saveTargetsOnBlur()) {
+          showToast('Saved', 'ok');
+        }
+      });
+    }
+  });
+
+  ['setGoal', 'setEquip', 'setDiet', 'setExp'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('change', function() {
+        profile.goal = document.getElementById('setGoal').value;
+        profile.equipment = document.getElementById('setEquip').value;
+        profile.dietaryPattern = document.getElementById('setDiet').value;
+        profile.experience = document.getElementById('setExp').value;
+        sv('rg_profile', profile);
+        showToast('Saved', 'ok');
+      });
+    }
   });
 
   overlay.querySelectorAll('.day-toggle').forEach(function(btn) {
@@ -227,48 +271,36 @@ export function openSettings() {
       }
       var isAct = tdays.includes(d);
       btn.classList.toggle('active', isAct);
-      btn.style.setProperty('background', isAct ? '#C6F432' : '#1C1C1F', 'important');
-      btn.style.setProperty('border', isAct ? '1px solid #C6F432' : '1px solid #222', 'important');
-      btn.style.setProperty('color', isAct ? '#0B0B0C' : '#8A8A8E', 'important');
+      btn.style.setProperty('background', isAct ? '#F5F5F4' : '#1C1C1F', 'important');
+      btn.style.setProperty('border', 'none', 'important');
+      btn.style.setProperty('color', isAct ? '#0B0B0C' : '#55555A', 'important');
       btn.style.setProperty('font-weight', isAct ? '600' : '500', 'important');
-      markChanged();
+      profile.trainingDays = tdays.length ? tdays : [1, 2, 4, 5, 6];
+      sv('rg_profile', profile);
+      showToast('Saved', 'ok');
     });
   });
 
-  overlay.querySelector('#closeSettingsBtn').addEventListener('click', function(){ overlay.remove(); });
-  overlay.addEventListener('click', function(e){ if (e.target === overlay) overlay.remove(); });
+  var closeSheetFn = function() {
+    saveTargetsOnBlur();
+    overlay.remove();
+    if (typeof window !== 'undefined' && typeof window.renderApp === 'function') window.renderApp();
+  };
 
-  overlay.querySelector('#saveSettingsBtn').addEventListener('click', function() {
-    var nextGoal = document.getElementById('setGoal').value;
-    var nextTarget = parseFloat(document.getElementById('setTargetWeight').value);
-    var current = parseFloat(profile.startWeight) || parseFloat(currentWeight());
-    if (!nextTarget || ((nextGoal === 'loss') && current && nextTarget >= current) || ((nextGoal !== 'loss') && current && nextTarget <= current)) {
-      showToast(nextGoal === 'loss' ? 'Loss goal must be below current weight' : 'Gain/strength goal must be above current weight', 'warn');
-      return;
-    }
-    profile.calTargetRest = parseInt(document.getElementById('setTargetRest').value, 10) || CAL_TARGET_REST;
-    profile.calTargetGym = parseInt(document.getElementById('setTargetGym').value, 10) || CAL_TARGET_GYM;
-    profile.protTargetRest = parseInt(document.getElementById('setProtRest').value, 10) || PROT_TARGET_REST;
-    profile.protTargetGym = parseInt(document.getElementById('setProtGym').value, 10) || PROT_TARGET_GYM;
-    profile.trainingDays = tdays.length ? tdays : [1, 2, 4, 5, 6];
-    profile.equipment = document.getElementById('setEquip').value;
-    profile.dietaryPattern = document.getElementById('setDiet').value;
-    profile.experience = document.getElementById('setExp').value;
-    profile.goal = nextGoal;
-    profile.targetWeight = nextTarget || 60.0;
-    sv('rg_profile', profile);
+  overlay.querySelector('#closeSettingsBtn').addEventListener('click', closeSheetFn);
+  var bottomDoneBtn = overlay.querySelector('#closeSettingsBottomBtn');
+  if (bottomDoneBtn) bottomDoneBtn.addEventListener('click', closeSheetFn);
+  overlay.addEventListener('click', function(e){ if (e.target === overlay) closeSheetFn(); });
 
-    var saveBtn = overlay.querySelector('#saveSettingsBtn');
-    if (saveBtn) {
-      saveBtn.textContent = 'Saved';
-      saveBtn.disabled = true;
-    }
-    showToast('Settings saved', 'ok');
-    setTimeout(function() {
-      overlay.remove();
-      if (typeof window !== 'undefined' && typeof window.renderTab === 'function') window.renderTab();
-    }, 350);
-  });
+  var saveBtn = overlay.querySelector('#saveSettingsBtn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function() {
+      if (saveTargetsOnBlur()) {
+        showToast('Saved', 'ok');
+        closeSheetFn();
+      }
+    });
+  }
 
   overlay.querySelector('#buyShieldBtn').addEventListener('click', function() {
     if ((profile.xp || 0) >= 100) {

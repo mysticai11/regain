@@ -63,7 +63,7 @@ export function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
         + '<span id="workoutElapsed" style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + elapsedFormatted + ' · Paused</span>'
       + '</div>'
       + '<div style="display:flex;align-items:center;gap:8px">'
-        + '<button type="button" class="btn-text-action" id="timerFinishBtn" style="color:#C6F432;font-size:15px;font-weight:600;cursor:pointer">Finish</button>'
+        + '<button type="button" class="btn-text-action" id="timerFinishBtn" style="color:var(--text);font-size:15px;font-weight:600;cursor:pointer">Finish</button>'
         + '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:48px;height:48px;color:var(--text2)">•••</button>'
       + '</div>'
       + '</div>';
@@ -77,7 +77,7 @@ export function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
         + '<span id="workoutElapsed" style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + elapsedFormatted + '</span>'
       + '</div>'
       + '<div style="display:flex;align-items:center;gap:8px">'
-        + '<button type="button" class="btn-text-action" id="timerFinishBtn" style="color:#C6F432;font-size:15px;font-weight:600;cursor:pointer">Finish</button>'
+        + '<button type="button" class="btn-text-action" id="timerFinishBtn" style="color:var(--text);font-size:15px;font-weight:600;cursor:pointer">Finish</button>'
         + '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:48px;height:48px;color:var(--text2)">•••</button>'
       + '</div>'
       + '</div>';
@@ -242,7 +242,7 @@ export function showFinishWorkoutSheet(dayKey, programDayIndex, session) {
     + '<div style="font-size:17px;color:#F5F5F4;margin-bottom:16px;font-weight:600">' + esc(session.label || 'Workout') + '</div>'
     + '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px">' + statCards + '</div>'
     + prBanner
-    + '<button type="button" class="btn btn-primary" id="saveFinishBtn" style="width:100%;height:48px;background:#C6F432;color:#0B0B0C;font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer">Finish & Save</button>'
+    + '<button type="button" class="btn" id="saveFinishBtn" style="width:100%;height:48px;background:#F5F5F4;color:#0B0B0C;font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer">Finish & Save</button>'
     + '</div>';
 
   document.body.appendChild(overlay);
@@ -274,18 +274,16 @@ export function renderRestTimer() {
   var secs = restTimer.remaining % 60;
   var timeStr = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
 
-  wrap.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;z-index:150">'
+  wrap.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:16px 20px calc(16px + var(--safe-b));position:fixed;bottom:calc(var(--nav-h) + var(--safe-b));left:0;right:0;max-width:480px;margin:0 auto;z-index:150">'
     + '<div class="sheet-handle"></div>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-      + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">Rest Timer</div>'
-      + '<button type="button" class="btn-text-action" id="skipRestBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">Close</button>'
+      + '<div style="font-size:17px;font-weight:600;color:#F5F5F4">Rest Timer</div>'
+      + '<button type="button" class="btn-text-action" id="skipRestBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">Skip</button>'
     + '</div>'
-    + '<div style="font-size:48px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:center;padding:16px 0;line-height:1">' + timeStr + '</div>'
-    + '<div style="display:flex;justify-content:space-around;align-items:center;margin-top:16px">'
-      + '<button type="button" class="btn-text-action" id="subRestBtn" style="font-size:15px;font-weight:600;color:#F5F5F4;cursor:pointer">-15 s</button>'
+    + '<div style="font-size:48px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:center;padding:8px 0;line-height:1">' + timeStr + '</div>'
+    + '<div style="display:flex;justify-content:center;gap:24px;align-items:center;margin-top:12px">'
+      + '<button type="button" class="btn-text-action" id="addRest30Btn" style="font-size:15px;font-weight:600;color:#F5F5F4;cursor:pointer">+30s</button>'
       + '<button type="button" class="btn-text-action" id="pauseRestBtn" style="font-size:15px;font-weight:600;color:#F5F5F4;cursor:pointer">' + (restTimer.isPaused ? 'Resume' : 'Pause') + '</button>'
-      + '<button type="button" class="btn-text-action" id="addRestBtn" style="font-size:15px;font-weight:600;color:#F5F5F4;cursor:pointer">+15 s</button>'
-      + '<button type="button" class="btn-text-action" id="resetRestBtn" style="font-size:15px;font-weight:600;color:#8A8A8E;cursor:pointer">Reset</button>'
       + '<button type="button" class="btn-text-action" id="skipRestBtn2" style="font-size:15px;font-weight:600;color:#8A8A8E;cursor:pointer">Skip</button>'
     + '</div>'
     + '</div>';
@@ -303,17 +301,12 @@ export function renderRestTimer() {
   var skip2 = document.getElementById('skipRestBtn2');
   if (skip2) skip2.onclick = closeTimer;
 
-  var subBtn = document.getElementById('subRestBtn');
-  if (subBtn) {
-    subBtn.onclick = function() {
-      restTimer.remaining = Math.max(0, restTimer.remaining - 15);
-      if (restTimer.endAt) restTimer.endAt = Math.max(Date.now(), restTimer.endAt - 15000);
-      renderRestTimer();
-    };
-  }
-
-  var addBtn = document.getElementById('addRestBtn');
-  if (addBtn) addBtn.onclick = function() { restTimer.remaining += 15; if (restTimer.endAt) restTimer.endAt += 15000; renderRestTimer(); };
+  var add30Btn = document.getElementById('addRest30Btn');
+  if (add30Btn) add30Btn.onclick = function() {
+    restTimer.remaining += 30;
+    if (restTimer.endAt) restTimer.endAt += 30000;
+    renderRestTimer();
+  };
   var pauseBtn = document.getElementById('pauseRestBtn');
   if (pauseBtn) pauseBtn.onclick = function() {
     if (restTimer.isPaused) { restTimer.isPaused = false; restTimer.endAt = Date.now() + restTimer.remaining * 1000; }

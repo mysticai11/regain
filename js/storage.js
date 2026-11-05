@@ -2,7 +2,8 @@
 
 import { esc, allDayKeys, todayKey } from "./lib/format.js";
 import { showToast } from "./components/toast.js";
-import { saveWorkoutSessionFromDay, workoutSessionStore } from "./storage-sessions.js";
+import { DEFAULT_MEAL_PLAN } from "./data/foods.js";
+import { saveWorkoutSessionFromDay, workoutSessionStore, WORKOUT_SESSIONS_KEY, WORKOUT_SESSIONS_VERSION } from "./storage-sessions.js";
 export * from "./storage-sessions.js";
 export { allDayKeys };
 
@@ -38,23 +39,27 @@ export var SQLiteStorage = {
             }
             self.active = true;
             console.log('SQLite database pre-loaded successfully!');
+            createMigrationGuardBackup();
             migrateLegacyKeys();
             if (callback) callback();
           })
           .catch(function(err) {
             console.error('SQLite init error, falling back to LocalStorage:', err);
             self.active = false;
+            createMigrationGuardBackup();
             migrateLegacyKeys();
             if (callback) callback();
           });
       } catch(e) {
         console.error('Capacitor SQLite plugin error:', e);
         self.active = false;
+        createMigrationGuardBackup();
         migrateLegacyKeys();
         if (callback) callback();
       }
     } else {
       self.active = false;
+      createMigrationGuardBackup();
       migrateLegacyKeys();
       if (callback) callback();
     }
@@ -129,7 +134,35 @@ export function sv(k, v) {
   }
 }
 
+export function createMigrationGuardBackup() {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    if (localStorage.getItem('backup-before-migration')) return;
+    var snapshot = {
+      timestamp: new Date().toISOString(),
+      keys: {}
+    };
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k) snapshot.keys[k] = localStorage.getItem(k);
+    }
+    if (SQLiteStorage.cache) {
+      Object.keys(SQLiteStorage.cache).forEach(function(k) {
+        if (!snapshot.keys[k]) snapshot.keys[k] = SQLiteStorage.cache[k];
+      });
+    }
+    var jsonStr = JSON.stringify(snapshot);
+    localStorage.setItem('backup-before-migration', jsonStr);
+    if (SQLiteStorage.active) {
+      SQLiteStorage.set('backup-before-migration', jsonStr);
+    }
+  } catch(e) {
+    console.warn('Migration guard backup failed:', e);
+  }
+}
+
 export function migrateLegacyKeys() {
+  createMigrationGuardBackup();
   try {
     var prefixMap = {
       'tally_profile': 'rg_profile',
@@ -189,7 +222,12 @@ export function saveDayRecord(key,rec){
 }
 
 export function exportData() {
-  FoodDB.exportAll().then(function(dbData){
+  var dbExportPromise = Promise.resolve({});
+  var dbObj = (typeof window !== 'undefined' && window.FoodDB) ? window.FoodDB : (typeof FoodDB !== 'undefined' ? FoodDB : null);
+  if (dbObj && typeof dbObj.exportAll === 'function') {
+    dbExportPromise = dbObj.exportAll();
+  }
+  dbExportPromise.then(function(dbData){
     var keys = allDayKeys();
     var keySet = {};
     keys.forEach(function(k){ keySet[k] = true; });
@@ -197,11 +235,11 @@ export function exportData() {
     Object.keys(SQLiteStorage.cache || {}).forEach(function(k){ if(k.indexOf('rg_day_') === 0) keySet[k.slice(7)] = true; });
     keys = Object.keys(keySet).sort();
     var data = {
-      app:'Regain',
+      app:'Tally',
       version:3,
       exported: new Date().toISOString(),
       profile:ls('rg_profile',null),
-      meals:ls('rg_meals',DEFAULT_MEALS),
+      meals:ls('rg_meals',DEFAULT_MEAL_PLAN),
       recentFoods:ls('rg_recent_foods',[]),
       lastBackup:ls('rg_last_backup',null),
       workoutSessions:ls(WORKOUT_SESSIONS_KEY,{version:WORKOUT_SESSIONS_VERSION,sessions:{},migrated:false}),
@@ -211,15 +249,15 @@ export function exportData() {
     };
     keys.forEach(function(k){ data.days[k]=dayRecord(k); });
     var jsonStr = JSON.stringify(data, null, 2);
-    var fileName = 'regain-backup-' + todayKey() + '.json';
+    var fileName = 'tally-backup-' + todayKey() + '.json';
 
     if (navigator.share && navigator.canShare) {
       try {
         var file = new File([jsonStr], fileName, { type: 'application/json' });
         if (navigator.canShare({ files: [file] })) {
           navigator.share({
-            title: 'Regain Backup ' + todayKey(),
-            text: 'Regain workout and nutrition backup',
+            title: 'Tally Backup ' + todayKey(),
+            text: 'Tally workout and nutrition backup',
             files: [file]
           }).then(function(){
             sv('rg_last_backup', Date.now());
@@ -262,11 +300,19 @@ export function importData() {
         Object.keys(SQLiteStorage.cache||{}).forEach(function(k){if(k.indexOf('rg_day_')===0&&existingKeys.indexOf(k.slice(7))<0) existingKeys.push(k.slice(7));});
         existingKeys.forEach(function(k){if(importedKeys.indexOf(k)<0) SQLiteStorage.delete('rg_day_'+k);});
         sv('rg_profile',data.profile);
-        sv('rg_meals',data.meals||DEFAULT_MEALS);
+        sv('rg_meals',data.meals||DEFAULT_MEAL_PLAN);
         sv('rg_recent_foods',data.recentFoods||[]);
         Object.keys(data.days||{}).forEach(function(k){sv('rg_day_'+k,data.days[k]);});
         if(data.workoutSessions) sv(WORKOUT_SESSIONS_KEY,data.workoutSessions);
-        FoodDB.importAll(data.idb||{}).then(function(){ profile=data.profile; sv('rg_last_backup', Date.now()); showToast('Profile, progress, meals, and workouts restored','ok'); setTimeout(function(){location.reload();},800); }).catch(function(){ showToast('Food database restore failed','warn'); });
+        var dbObj = (typeof window !== 'undefined' && window.FoodDB) ? window.FoodDB : (typeof FoodDB !== 'undefined' ? FoodDB : null);
+        var dbImportPromise = (dbObj && typeof dbObj.importAll === 'function') ? dbObj.importAll(data.idb||{}) : Promise.resolve();
+        dbImportPromise.then(function(){
+          sv('rg_last_backup', Date.now());
+          showToast('Profile, progress, meals, and workouts restored','ok');
+          setTimeout(function(){location.reload();},800);
+        }).catch(function(){
+          showToast('Food database restore failed','warn');
+        });
       } catch(err) { console.error('Import failed:', err); showToast('Invalid or corrupted backup file','warn'); }
     };
     reader.readAsText(file);

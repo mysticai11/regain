@@ -96,8 +96,8 @@ export function progressPlot(values, goal, unit) {
   var goalY = goalNum != null ? (insetY + ((max - goalNum) / span) * plotH) : -999;
   var goalLineHTML = '';
   if (goalNum != null && goalY >= insetY && goalY <= svgHeight - insetY) {
-    goalLineHTML = '<line x1="' + insetX + '" y1="' + goalY.toFixed(1) + '" x2="' + (svgWidth - insetX - 28) + '" y2="' + goalY.toFixed(1) + '" stroke="#C6F432" stroke-dasharray="3 3" stroke-width="1.5" stroke-opacity="0.8"/>'
-      + '<text x="' + (svgWidth - insetX) + '" y="' + (goalY + 4).toFixed(1) + '" fill="#C6F432" font-size="11" font-weight="600" text-anchor="end" font-family="Space Grotesk, sans-serif">' + Math.round(goalNum) + '</text>';
+    goalLineHTML = '<line x1="' + insetX + '" y1="' + goalY.toFixed(1) + '" x2="' + (svgWidth - insetX - 28) + '" y2="' + goalY.toFixed(1) + '" stroke="#8A8A8E" stroke-dasharray="3 3" stroke-width="1.5"/>'
+      + '<text x="' + (svgWidth - insetX) + '" y="' + (goalY + 4).toFixed(1) + '" fill="#8A8A8E" font-size="11" font-weight="600" text-anchor="end" font-family="Space Grotesk, sans-serif">' + Math.round(goalNum) + '</text>';
   }
 
   var peakIndex = -1;
@@ -115,25 +115,6 @@ export function progressPlot(values, goal, unit) {
     return '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="3" fill="#F5F5F4" stroke="#0B0B0C" stroke-width="1.5"/>';
   }).join('');
 
-  var fillPolyHTML = '';
-  var defsHTML = '';
-  if (points.length > 1) {
-    var gradId = 'plotGrad_' + Math.floor(Math.random() * 100000);
-    defsHTML = '<defs>'
-      + '<linearGradient id="' + gradId + '" x1="0" y1="0" x2="0" y2="1">'
-      + '<stop offset="0%" stop-color="#C6F432" stop-opacity="0.22"/>'
-      + '<stop offset="100%" stop-color="#C6F432" stop-opacity="0.0"/>'
-      + '</linearGradient>'
-      + '</defs>';
-    var bottomY = svgHeight - insetY;
-    var firstPt = points[0];
-    var lastPt = points[points.length - 1];
-    var areaPoly = points.map(function(p){ return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ')
-      + ' ' + lastPt.x.toFixed(1) + ',' + bottomY.toFixed(1)
-      + ' ' + firstPt.x.toFixed(1) + ',' + bottomY.toFixed(1);
-    fillPolyHTML = '<polygon points="' + areaPoly + '" fill="url(#' + gradId + ')"/>';
-  }
-
   return '<div style="margin-top:0;margin-bottom:12px">'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'
       + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + values.length + ' point' + (values.length === 1 ? '' : 's') + (goalNum != null ? (' · Target ' + Math.round(goalNum) + ' ' + unitLabel) : '') + '</span>'
@@ -141,10 +122,8 @@ export function progressPlot(values, goal, unit) {
     + '</div>'
     + '<div style="position:relative;width:100%;height:120px;background:none">'
       + '<svg viewBox="0 0 340 120" style="width:100%;height:120px;overflow:hidden">'
-        + defsHTML
         + goalLineHTML
-        + fillPolyHTML
-        + '<polyline points="' + poly + '" fill="none" stroke="#F5F5F4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+        + '<polyline points="' + poly + '" fill="none" stroke="#F5F5F4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
         + dots
       + '</svg>'
     + '</div>'
@@ -156,22 +135,13 @@ export function progressPlot(values, goal, unit) {
 
 export function buildDotConsistencyCalendarHTML() {
   var now = new Date();
-  var year = now.getFullYear();
-  var month = now.getMonth();
-  var monthNames = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
   var todayStr = todayKey();
-  var todayDate = now.getDate();
+  var dow = now.getDay();
+  var diffToMon = dow === 0 ? 6 : dow - 1;
+  var currentWeekMonday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMon);
+  var startMonday = new Date(currentWeekMonday.getFullYear(), currentWeekMonday.getMonth(), currentWeekMonday.getDate() - (11 * 7));
+
   var tdays = (profile && profile.trainingDays) || [1,2,3,5,6];
-
-  var firstDay = new Date(year, month, 1);
-  var lastDay = new Date(year, month + 1, 0);
-  var daysInMonth = lastDay.getDate();
-  var startOffset = (firstDay.getDay() + 6) % 7; // Monday = 0
-
-  var trainedCount = 0;
-  var plannedCount = 0;
-  var dots = [];
-
   var sessionDays = {};
   try {
     getWorkoutSessions().forEach(function(s) {
@@ -181,19 +151,20 @@ export function buildDotConsistencyCalendarHTML() {
     });
   } catch (e) {}
 
-  for (var o = 0; o < startOffset; o++) {
-    dots.push('<span class="dot-cell empty" style="width:6px;height:6px;border-radius:50%;background:#222222;display:inline-block"></span>');
-  }
+  var trainedCount = 0;
+  var plannedCount = 0;
+  var dots = [];
 
-  for (var day = 1; day <= daysInMonth; day++) {
-    var curDate = new Date(year, month, day);
-    var dow = curDate.getDay();
-    var isTrainingDay = tdays.includes(dow);
-    if (isTrainingDay) plannedCount++;
+  for (var i = 0; i < 84; i++) {
+    var d = new Date(startMonday.getFullYear(), startMonday.getMonth(), startMonday.getDate() + i);
+    var y = d.getFullYear();
+    var m = (d.getMonth() + 1 < 10 ? '0' : '') + (d.getMonth() + 1);
+    var dayNum = (d.getDate() < 10 ? '0' : '') + d.getDate();
+    var key = y + '-' + m + '-' + dayNum;
+    var dDow = d.getDay();
+    var isTrainingDay = tdays.includes(dDow);
+    if (isTrainingDay && key <= todayStr) plannedCount++;
 
-    var mm = (month + 1 < 10 ? '0' : '') + (month + 1);
-    var dd = (day < 10 ? '0' : '') + day;
-    var key = year + '-' + mm + '-' + dd;
     var rec = dayRecord(key);
     var trained = !!sessionDays[key] || (rec && (rec.workoutDone || (rec.workout && Object.keys(rec.workout).some(function(k){return (rec.workout[k]||[]).some(Boolean);}))));
     var isToday = (key === todayStr);
@@ -207,15 +178,15 @@ export function buildDotConsistencyCalendarHTML() {
       dotStyle += 'background:#F5F5F4;'; // trained = white
     } else if (isToday) {
       dotStyle += 'background:transparent;border:1.5px solid #F5F5F4;'; // today untrained = ring
+    } else if (key > todayStr) {
+      dotStyle += 'background:#222222;'; // future = empty
+    } else if (isTrainingDay) {
+      dotStyle += 'background:transparent;border:1px solid #55555A;'; // untrained = ring
     } else {
-      dotStyle += 'background:#222222;'; // empty = #222
+      dotStyle += 'background:#222222;'; // rest day = empty
     }
 
     dots.push('<span class="dot-cell" style="' + dotStyle + '" title="' + key + (trained ? ' (Trained)' : '') + '"></span>');
-  }
-
-  while (dots.length % 7 !== 0) {
-    dots.push('<span class="dot-cell empty" style="width:6px;height:6px;border-radius:50%;background:#222222;display:inline-block"></span>');
   }
 
   var dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -225,16 +196,24 @@ export function buildDotConsistencyCalendarHTML() {
     }).join('')
     + '</div>';
 
-  return '<div style="margin-bottom:20px">'
+  var legendHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:10px;font-size:11px;color:#8A8A8E">'
+    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#F5F5F4;display:inline-block"></span> logged</span>'
+    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;border:1.5px solid #F5F5F4;background:transparent;display:inline-block"></span> today</span>'
+    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;border:1px solid #55555A;background:transparent;display:inline-block"></span> untrained</span>'
+    + '</div>';
+
+  return '<div style="margin-bottom:24px">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
-      + '<span class="t-label">' + monthNames[month] + ' ' + year + '</span>'
+      + '<span class="t-label">Consistency · Last 12 weeks</span>'
       + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + trainedCount + ' of ' + plannedCount + (plannedCount === 1 ? ' workout' : ' workouts') + '</span>'
     + '</div>'
     + lettersRow
     + '<div class="dot-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;justify-items:center;align-items:center;padding:2px 0">'
       + dots.join('')
     + '</div>'
+    + legendHTML
     + '</div>';
+}
 }
 
 export function renderRegression(reg, baseW) {

@@ -225,13 +225,15 @@ if (typeof window !== 'undefined') {
   window.subscribe = subscribe;
   window.scheduleStateNotification = scheduleNotification;
 
-  window.addEventListener('storage', function(e) {
-    if (e.key && e.key.indexOf('rg_') === 0) {
-      if (e.key === 'rg_profile') {
-        profile = ls('rg_profile', profile);
-        if (typeof window !== 'undefined') window.profile = profile;
+  if (typeof window.addEventListener === 'function') {
+    window.addEventListener('storage', function(e) {
+      if (e.key && e.key.indexOf('rg_') === 0) {
+        if (e.key === 'rg_profile') {
+          profile = ls('rg_profile', profile);
+          if (typeof window !== 'undefined') window.profile = profile;
+        }
+        scheduleNotification();
       }
-      scheduleNotification();
-    }
-  });
+    });
+  }
 }

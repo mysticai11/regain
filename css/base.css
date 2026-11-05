@@ -34,8 +34,8 @@ body {
   height: 0 !important;
 }
 
-/* Typography scale: 96 / 64 / 48 / 28 / 17 / 15 / 11 */
-.t-hero    { font-size: var(--fs-64); line-height: 1.0; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+/* Typography scale: 96 / 48 / 28 / 17 / 15 / 11 */
+.t-hero    { font-size: var(--fs-96); line-height: 1.0; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
 .t-display { font-size: var(--fs-48); line-height: 1.05; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
 .t-title   { font-size: var(--fs-28); line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; }
 .t-body    { font-size: var(--fs-17); line-height: 1.35; font-weight: 400; }
@@ -45,70 +45,6 @@ body {
 .t-label   { font-size: var(--fs-11); line-height: 1.25; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text2); }
 .eyebrow   { font-size: var(--fs-11); font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
 .tabnum    { font-variant-numeric: tabular-nums; }
-
-.t-display {
-  font-size: var(--fs-48);
-  line-height: 1.05;
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-}
-
-.t-title {
-  font-size: var(--fs-28);
-  line-height: 1.15;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-.t-body {
-  font-size: var(--fs-17);
-  line-height: 1.35;
-  font-weight: 400;
-}
-
-.t-sub {
-  font-size: var(--fs-15);
-  line-height: 1.4;
-  font-weight: 400;
-  color: var(--text2);
-}
-
-.t-caption {
-  font-size: var(--fs-11);
-  line-height: 1.25;
-  font-weight: 400;
-  color: var(--text3);
-}
-
-.t-micro {
-  font-size: var(--fs-11);
-  line-height: 1.25;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.t-label {
-  font-size: var(--fs-11);
-  line-height: 1.25;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text2);
-}
-
-.eyebrow {
-  font-size: var(--fs-11);
-  font-weight: 600;
-  color: var(--text2);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.tabnum {
-  font-variant-numeric: tabular-nums;
-}
 
 /* Numeric inputs, stats, and tables default to tabular numerals */
 input,
@@ -175,7 +111,12 @@ textarea,
 }
 
 :focus-visible {
+  outline: 1.5px solid var(--text);
+  outline-offset: -1.5px;
+}
+.btn-text-action:focus-visible, a:focus-visible {
   outline: none;
+  text-decoration: underline;
 }
 
 @media (prefers-reduced-motion: reduce) {

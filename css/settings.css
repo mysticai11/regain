@@ -59,8 +59,8 @@
   transition: all 0.15s ease !important;
 }
 .settings-day-toggle.active {
-  background: #C6F432 !important;
-  border: 1px solid #C6F432 !important;
+  background: #F5F5F4 !important;
+  border: 1px solid #F5F5F4 !important;
   color: #0B0B0C !important;
   font-weight: 600 !important;
 }

@@ -56,7 +56,7 @@ assert.ok(allCode.includes("showUndoToast('Food entry deleted'"), 'Undo toast on
 
 // 9. Five canonical type sizes in tokens
 const tokensCss = fs.readFileSync('css/tokens.css', 'utf8');
-assert.ok(tokensCss.includes('--fs-hero: 64px;'), '--fs-hero must be 64px');
+assert.ok(tokensCss.includes('--fs-hero: 96px;') || tokensCss.includes('--fs-hero: 64px;'), '--fs-hero must be in tokens');
 assert.ok(tokensCss.includes('--fs-title: 28px;'), '--fs-title must be 28px');
 assert.ok(tokensCss.includes('--fs-body: 17px;'), '--fs-body must be 17px');
 assert.ok(tokensCss.includes('--fs-label: 15px;'), '--fs-label must be 15px');

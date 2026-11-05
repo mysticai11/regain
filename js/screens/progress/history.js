@@ -32,10 +32,10 @@ export function getResumeWorkoutCardHTML() {
     ? (todaySets + '/' + totalPlanned + ' sets')
     : (todaySets + (todaySets === 1 ? ' set' : ' sets'));
 
-  return '<div style="background:#141416;border-radius:12px;padding:12px 16px;margin-bottom:16px;min-height:64px;display:flex;justify-content:space-between;align-items:center">'
-    + '<div><div style="font-size:11px;font-weight:600;color:#C6F432;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">In progress</div>'
+  return '<div style="background:#1C1C1F;border-radius:12px;padding:12px 16px;margin-bottom:16px;min-height:64px;display:flex;justify-content:space-between;align-items:center">'
+    + '<div><div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">In progress</div>'
     + '<div style="font-size:17px;font-weight:600;color:#F5F5F4">' + esc(cleanTName) + ' · ' + progressStr + '</div></div>'
-    + '<button type="button" class="btn-text-action" id="resumeSessionBtn" onclick="if(window.renderApp){window.setTab?window.setTab(\'gym\'):(window.tab=\'gym\');window.renderApp();}" style="color:#C6F432;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Resume</button>'
+    + '<button type="button" class="btn-text-action" id="resumeSessionBtn" onclick="if(window.renderApp){window.setTab?window.setTab(\'gym\'):(window.tab=\'gym\');window.renderApp();}" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Resume</button>'
     + '</div>';
 }
 
@@ -75,8 +75,7 @@ export function workoutHistoryHTML() {
     }, 0);
     var weekNum = wkIdx + 1;
 
-    html += '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin:' + (wkIdx === 0 ? '4' : '24') + 'px 0 4px">WEEK ' + weekNum + ' · ' + group.sessions.length + (group.sessions.length === 1 ? ' SESSION' : ' SESSIONS') + ' · ' + totalSetsInWeek + ' SETS</div>'
-      + '<div style="font-size:11px;color:#8A8A8E;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:12px">RIR: F = failure · 1 · 2 · 3 · + = 4 or more</div>';
+    html += '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin:' + (wkIdx === 0 ? '4' : '24') + 'px 0 12px">WEEK ' + weekNum + ' · ' + group.sessions.length + (group.sessions.length === 1 ? ' SESSION' : ' SESSIONS') + ' · ' + totalSetsInWeek + ' SETS</div>';
 
     group.sessions.forEach(function(session, sIdx) {
       var allSessionIdx = sessions.indexOf(session);
@@ -172,13 +171,16 @@ export function workoutHistoryHTML() {
           }
         }
 
-        var chips = sets.map(function(s, sIdx2) {
-          var wDisp = isBW ? ((!s.weight || Number(s.weight) === 0) ? 'BW' : ('BW+' + s.weight)) : s.weight;
-          var chipText = wDisp + '×' + s.reps;
+        var setLines = sets.map(function(s, sIdx2) {
+          var wDisp = isBW ? ((!s.weight || Number(s.weight) === 0) ? 'BW' : ('BW+' + s.weight)) : s.weight + ' kg';
           var rir = s.rir;
           var rirVal = (rir === 0 || rir === '0') ? 'F' : ((rir != null && rir !== '') ? (Number(rir) >= 4 ? '+' : String(rir)) : '');
-          var rirBadge = rirVal ? '<span style="font-size:11px;font-weight:600;color:' + (rirVal === 'F' ? '#C6F432' : '#8A8A8E') + ';margin-left:4px">' + rirVal + '</span>' : '';
-          return '<button type="button" class="btn-ghost history-set-chip" data-quick-edit-set="1" data-session-id="' + esc(session.id) + '" data-ex-id="' + esc(exItem.id) + '" data-ex-name="' + esc(exData.name) + '" data-set-idx="' + sIdx2 + '" data-weight="' + (s.weight || 0) + '" data-reps="' + (s.reps || 0) + '" data-rir="' + (s.rir == null ? '' : s.rir) + '" style="display:inline-flex;align-items:center;background:#1C1C1F;border:none;border-radius:8px;padding:3px 8px;font-size:11px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;white-space:nowrap;cursor:pointer">' + esc(chipText) + rirBadge + '</button>';
+          var rirDisp = rirVal ? ('RIR ' + rirVal) : '';
+          return '<div class="history-set-row" data-quick-edit-set="1" data-session-id="' + esc(session.id) + '" data-ex-id="' + esc(exItem.id) + '" data-ex-name="' + esc(exData.name) + '" data-set-idx="' + sIdx2 + '" data-weight="' + (s.weight || 0) + '" data-reps="' + (s.reps || 0) + '" data-rir="' + (s.rir == null ? '' : s.rir) + '" style="display:grid;grid-template-columns:28px 1fr 60px;align-items:center;padding:6px 0;font-size:15px;color:#F5F5F4;font-variant-numeric:tabular-nums;cursor:pointer">'
+            + '<span style="color:#8A8A8E;font-size:11px">' + (sIdx2 + 1) + '</span>'
+            + '<span>' + esc(wDisp) + ' × ' + s.reps + '</span>'
+            + '<span style="text-align:right;color:' + (rirVal === 'F' ? '#C6F432' : '#8A8A8E') + ';font-size:11px;font-weight:600">' + esc(rirDisp) + '</span>'
+            + '</div>';
         }).join('');
 
         var isLast = exIdx === exercises.length - 1;
@@ -190,7 +192,7 @@ export function workoutHistoryHTML() {
             + '</div>'
             + (isPrInSession ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#C6F432;letter-spacing:0.08em;text-transform:uppercase"><span style="width:5px;height:5px;border-radius:50%;background:#C6F432;display:inline-block"></span>PR</span>' : '')
           + '</div>'
-          + '<div style="display:flex;flex-wrap:wrap;gap:4px">' + chips + '</div>'
+          + '<div>' + setLines + '</div>'
           + '</div>';
       }).join('');
 
@@ -305,10 +307,10 @@ export function nutritionProgressHTML(records) {
 
   var dotCells = dayHits.map(function(dh) {
     var calDot = dh.calHit
-      ? '<span style="width:8px;height:8px;border-radius:50%;background:#C6F432;display:inline-block"></span>'
+      ? '<span style="width:8px;height:8px;border-radius:50%;background:#F5F5F4;display:inline-block"></span>'
       : '<span style="width:8px;height:8px;border-radius:50%;border:1px solid #55555A;background:transparent;box-sizing:border-box;display:inline-block"></span>';
     var protDot = dh.protHit
-      ? '<span style="width:8px;height:8px;border-radius:50%;background:#C6F432;display:inline-block"></span>'
+      ? '<span style="width:8px;height:8px;border-radius:50%;background:#F5F5F4;display:inline-block"></span>'
       : '<span style="width:8px;height:8px;border-radius:50%;border:1px solid #55555A;background:transparent;box-sizing:border-box;display:inline-block"></span>';
 
     return '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1">'
@@ -339,14 +341,14 @@ export function nutritionProgressHTML(records) {
   var kcalPct = Math.min(100, Math.round(kcal / Math.max(1, target) * 100));
   var protPct = Math.min(100, Math.round(protein / Math.max(1, proteinTarget) * 100));
 
-  return '<div style="background:#141416;border-radius:12px;padding:14px 16px;margin-top:8px">'
+  return '<div style="margin-top:8px">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
       + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.08em;text-transform:uppercase">7-Day Hit Rate</span>'
       + '<span class="tabnum" style="font-size:11px;color:#8A8A8E">' + calHits + '/7 kcal · ' + protHits + '/7 protein</span>'
     + '</div>'
     + '<div style="display:flex;align-items:center;gap:12px;font-size:11px;color:#8A8A8E;margin-bottom:10px">'
-      + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#C6F432;display:inline-block"></span> kcal</span>'
-      + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#C6F432;display:inline-block"></span> protein</span>'
+      + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#F5F5F4;display:inline-block"></span> kcal</span>'
+      + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#F5F5F4;display:inline-block"></span> protein</span>'
     + '</div>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:0 4px">' + dotCells + '</div>'
     + '<div style="border-top:1px solid #1C1C1F;padding-top:12px">'
@@ -354,12 +356,12 @@ export function nutritionProgressHTML(records) {
         + '<span style="font-size:15px;color:#F5F5F4">Avg calories</span>'
         + '<span class="tabnum" style="font-size:15px;color:#8A8A8E">' + kcal.toLocaleString() + ' / ' + target.toLocaleString() + ' kcal</span>'
       + '</div>'
-      + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;margin-bottom:12px;overflow:hidden"><div class="prog-line-fill' + (kcalPct >= 90 ? ' lime' : '') + '" style="width:' + kcalPct + '%;height:100%;border-radius:3px;background:#C6F432"></div></div>'
+      + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;margin-bottom:12px;overflow:hidden"><div class="prog-line-fill" style="width:' + kcalPct + '%;height:100%;border-radius:3px;background:#F5F5F4"></div></div>'
       + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
         + '<span style="font-size:15px;color:#F5F5F4">Avg protein</span>'
         + '<span class="tabnum" style="font-size:15px;color:#8A8A8E">' + protein + ' g / ' + proteinTarget + ' g</span>'
       + '</div>'
-      + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;overflow:hidden"><div class="prog-line-fill' + (protPct >= 90 ? ' lime' : '') + '" style="width:' + protPct + '%;height:100%;border-radius:3px;background:#C6F432"></div></div>'
+      + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;overflow:hidden"><div class="prog-line-fill" style="width:' + protPct + '%;height:100%;border-radius:3px;background:#F5F5F4"></div></div>'
     + '</div>'
     + '</div>';
 }

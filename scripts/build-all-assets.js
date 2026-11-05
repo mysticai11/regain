@@ -9,46 +9,51 @@ const chromePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 
 if (!fs.existsSync(assetsDir)) fs.mkdirSync(assetsDir, { recursive: true });
 
-// 1. Master SVG Definitions
-// Regain R Emblem: Deep dark #0B0B0C background, crisp off-white #F5F5F4 stem and upper bowl, electric lime #C6F432 dynamic upward kick
+// 1. Master SVG Definitions: 5-Bar Tally Mark Icon
+// Deep dark #0B0B0C background, 4 crisp off-white #F5F5F4 vertical tally bars, 1 electric lime #C6F432 diagonal slash
 const masterSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <rect width="1024" height="1024" fill="#0B0B0C"/>
-  <g>
-    <!-- Solid Left Pillar -->
-    <line x1="342" y1="288" x2="342" y2="736" stroke="#F5F5F4" stroke-width="96" stroke-linecap="round"/>
-    <!-- Upper Loop / Bowl -->
-    <path d="M 342 288 H 546 C 656 288 656 512 546 512 H 342" fill="none" stroke="#F5F5F4" stroke-width="96" stroke-linecap="round" stroke-linejoin="round"/>
-    <!-- Momentum Kick (Lime Accent) -->
-    <path d="M 480 502 L 682 736" fill="none" stroke="#C6F432" stroke-width="96" stroke-linecap="round"/>
+  <g stroke-linecap="round">
+    <line x1="310" y1="280" x2="310" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="424" y1="280" x2="424" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="538" y1="280" x2="538" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="652" y1="280" x2="652" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="220" y1="670" x2="740" y2="354" stroke="#C6F432" stroke-width="64"/>
   </g>
 </svg>`;
 
 // Maskable Icon (Centered with 15% safe-zone margin)
 const maskableSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <rect width="1024" height="1024" fill="#0B0B0C"/>
-  <g transform="translate(102.4, 102.4) scale(0.8)">
-    <line x1="342" y1="288" x2="342" y2="736" stroke="#F5F5F4" stroke-width="96" stroke-linecap="round"/>
-    <path d="M 342 288 H 546 C 656 288 656 512 546 512 H 342" fill="none" stroke="#F5F5F4" stroke-width="96" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M 480 502 L 682 736" fill="none" stroke="#C6F432" stroke-width="96" stroke-linecap="round"/>
+  <g transform="translate(102.4, 102.4) scale(0.8)" stroke-linecap="round">
+    <line x1="310" y1="280" x2="310" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="424" y1="280" x2="424" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="538" y1="280" x2="538" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="652" y1="280" x2="652" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="220" y1="670" x2="740" y2="354" stroke="#C6F432" stroke-width="64"/>
   </g>
 </svg>`;
 
 // Foreground Only (for Android adaptive icons, transparent background)
 const foregroundSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-  <g transform="translate(153.6, 153.6) scale(0.7)">
-    <line x1="342" y1="288" x2="342" y2="736" stroke="#F5F5F4" stroke-width="96" stroke-linecap="round"/>
-    <path d="M 342 288 H 546 C 656 288 656 512 546 512 H 342" fill="none" stroke="#F5F5F4" stroke-width="96" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M 480 502 L 682 736" fill="none" stroke="#C6F432" stroke-width="96" stroke-linecap="round"/>
+  <g transform="translate(153.6, 153.6) scale(0.7)" stroke-linecap="round">
+    <line x1="310" y1="280" x2="310" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="424" y1="280" x2="424" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="538" y1="280" x2="538" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="652" y1="280" x2="652" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="220" y1="670" x2="740" y2="354" stroke="#C6F432" stroke-width="64"/>
   </g>
 </svg>`;
 
 // Monochrome Icon (Android 13+ themed icons)
 const monochromeSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <rect width="1024" height="1024" fill="#0B0B0C"/>
-  <g transform="translate(102.4, 102.4) scale(0.8)">
-    <line x1="342" y1="288" x2="342" y2="736" stroke="#F5F5F4" stroke-width="96" stroke-linecap="round"/>
-    <path d="M 342 288 H 546 C 656 288 656 512 546 512 H 342" fill="none" stroke="#F5F5F4" stroke-width="96" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M 480 502 L 682 736" fill="none" stroke="#F5F5F4" stroke-width="96" stroke-linecap="round"/>
+  <g transform="translate(102.4, 102.4) scale(0.8)" stroke-linecap="round">
+    <line x1="310" y1="280" x2="310" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="424" y1="280" x2="424" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="538" y1="280" x2="538" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="652" y1="280" x2="652" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="220" y1="670" x2="740" y2="354" stroke="#F5F5F4" stroke-width="64"/>
   </g>
 </svg>`;
 
@@ -144,17 +149,19 @@ densities.forEach(d => {
 
 // 4. Generate Android Splash Screens (#0B0B0C with centered logo)
 console.log('\n--- Generating Android Splash Screens ---');
-// Splash SVG: full viewport with centered Regain logo
+// Splash SVG: full viewport with centered Tally mark logo
 function createSplashSvg(w, h) {
   const logoSize = Math.min(w, h) * 0.36;
   const x = (w - logoSize) / 2;
   const y = (h - logoSize) / 2;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}">
   <rect width="${w}" height="${h}" fill="#0B0B0C"/>
-  <g transform="translate(${x}, ${y}) scale(${logoSize / 1024})">
-    <line x1="342" y1="288" x2="342" y2="736" stroke="#F5F5F4" stroke-width="96" stroke-linecap="round"/>
-    <path d="M 342 288 H 546 C 656 288 656 512 546 512 H 342" fill="none" stroke="#F5F5F4" stroke-width="96" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M 480 502 L 682 736" fill="none" stroke="#C6F432" stroke-width="96" stroke-linecap="round"/>
+  <g transform="translate(${x}, ${y}) scale(${logoSize / 1024})" stroke-linecap="round">
+    <line x1="310" y1="280" x2="310" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="424" y1="280" x2="424" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="538" y1="280" x2="538" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="652" y1="280" x2="652" y2="744" stroke="#F5F5F4" stroke-width="64"/>
+    <line x1="220" y1="670" x2="740" y2="354" stroke="#C6F432" stroke-width="64"/>
   </g>
 </svg>`;
 }

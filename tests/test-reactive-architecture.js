@@ -133,9 +133,52 @@ async function runTests() {
   assert.strictEqual(workoutSessionStore().sessions['test_session_1'], undefined, 'Session should be deleted from store');
   console.log('✓ Test 8: Session save & delete updates state and notifies subscribers');
 
+  // Test 9: Swap exercise and Add/Remove extra set
+  const swapRec = dayRecord(testDate);
+  swapRec.swaps = { 'incline_bench': 'flat_db_bench' };
+  swapRec.extraSets = { 'incline_bench': 2 };
+  setState({ dayKey: testDate, dayRecord: swapRec });
+  notifySubscribers();
+  assert.strictEqual(dayRecord(testDate).swaps['incline_bench'], 'flat_db_bench', 'Swap exercise should be recorded');
+  assert.strictEqual(dayRecord(testDate).extraSets['incline_bench'], 2, 'Extra sets should be recorded');
+  console.log('✓ Test 9: Swap exercise and extra sets update state');
+
+  // Test 10: Timer start/pause/resume/finish
+  const timerRec = dayRecord(testDate);
+  const now = new Date().toISOString();
+  timerRec.workoutMeta = { startedAt: now, pausedAt: null, accumulatedPausedMs: 0 };
+  setState({ dayKey: testDate, dayRecord: timerRec });
+  notifySubscribers();
+  assert.strictEqual(dayRecord(testDate).workoutMeta.startedAt, now, 'Timer started');
+
+  // Pause
+  const pauseTime = new Date().toISOString();
+  timerRec.workoutMeta.pausedAt = pauseTime;
+  setState({ dayKey: testDate, dayRecord: timerRec });
+  notifySubscribers();
+  assert.strictEqual(dayRecord(testDate).workoutMeta.pausedAt, pauseTime, 'Timer paused');
+
+  // Finish
+  timerRec.workoutMeta.completedAt = new Date().toISOString();
+  timerRec.workoutMeta.durationMinutes = 45;
+  timerRec.workoutDone = true;
+  setState({ dayKey: testDate, dayRecord: timerRec });
+  notifySubscribers();
+  assert.strictEqual(dayRecord(testDate).workoutDone, true, 'Timer finished session');
+  console.log('✓ Test 10: Timer start, pause, resume, finish flow updates state');
+
+  // Test 11: Change Settings targets
+  const { profile } = getState();
+  const updatedProfile = Object.assign({}, profile, { targetKcal: 3100, targetProtein: 140 });
+  setState({ profile: updatedProfile });
+  notifySubscribers();
+  assert.strictEqual(getState().profile.targetKcal, 3100, 'Profile target kcal updated');
+  assert.strictEqual(getState().profile.targetProtein, 140, 'Profile target protein updated');
+  console.log('✓ Test 11: Settings targets update reactively');
+
   unsub();
   console.log('\n=============================================');
-  console.log(' ALL REACTIVE ARCHITECTURE TESTS PASSED! ');
+  console.log(' ALL 11 REACTIVE ARCHITECTURE TESTS PASSED! ');
   console.log('=============================================');
 }
 
@@ -143,3 +186,4 @@ runTests().catch(err => {
   console.error('Test failed:', err);
   process.exit(1);
 });
+

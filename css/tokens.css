@@ -37,16 +37,15 @@
   --font-display: var(--font-grotesk);
   --font-body: var(--font-grotesk);
 
-  /* 5 Canonical Type Sizes: hero (64), title (28), body (17), label (15), caption (11) */
-  --fs-hero: 64px;
+  /* 5 Canonical Type Sizes: hero (96), title (28), body (17), label (15), caption (11) */
+  --fs-hero: 96px;
   --fs-title: 28px;
   --fs-body: 17px;
   --fs-label: 15px;
   --fs-caption: 11px;
 
-  /* Strict Type Scale: 96 / 64 / 48 / 28 / 17 / 15 / 11 (11px uppercase has +8% tracking) */
+  /* Strict Type Scale: 96 / 48 / 28 / 17 / 15 / 11 (11px uppercase has +8% tracking) */
   --fs-96: 96px;
-  --fs-64: 64px;
   --fs-48: 48px;
   --fs-28: 28px;
   --fs-17: 17px;

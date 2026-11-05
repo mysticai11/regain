@@ -80,7 +80,7 @@ export function renderGym() {
     + '</div>';
 
   var dateBannerHTML = !isActualToday
-    ? ('<div class="gym-date-banner" style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#141416;border-radius:12px"><span style="font-size:11px;color:#8A8A8E">Logging for <strong style="color:#F5F5F4">' + esc(formattedSessionDate) + '</strong></span><button type="button" class="btn-ghost" id="gymDateResetBtn" style="background:none;border:none;font-size:11px;color:#C6F432;font-weight:600;cursor:pointer">Jump to Today</button></div>')
+    ? ('<div class="gym-date-banner" style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#1C1C1F;border-radius:12px"><span style="font-size:11px;color:#8A8A8E">Logging for <strong style="color:#F5F5F4">' + esc(formattedSessionDate) + '</strong></span><button type="button" class="btn-ghost" id="gymDateResetBtn" style="background:none;border:none;font-size:11px;color:#F5F5F4;font-weight:600;cursor:pointer">Jump to Today</button></div>')
     : '';
 
   // 1. If active schedule is a Rest Day
@@ -90,11 +90,11 @@ export function renderGym() {
       '<div class="gym-page">'
       + dateBannerHTML
       + gymHeaderUnifiedHTML
-      + '<div style="background:#141416;border-radius:20px;padding:24px 20px;margin-top:16px">'
+      + '<div style="padding:16px 0 24px;border-bottom:1px solid #222">'
       + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Rest Day</div>'
       + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;margin-bottom:8px">Recovery & Adaptation</div>'
       + '<div style="font-size:15px;color:#8A8A8E;line-height:1.4;margin-bottom:20px">Muscles adapt during rest. Hit your protein targets and get quality recovery.</div>'
-      + '<button type="button" class="btn-text-action" id="previewNextWorkoutBtn" style="color:#C6F432;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Start Next: ' + esc(nextWorkoutSched.label.replace(/^Day\s*\d+\s*[—–-]\s*/i, '')) + ' →</button>'
+      + '<button type="button" class="btn-text-action" id="previewNextWorkoutBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Start Next: ' + esc(nextWorkoutSched.label.replace(/^Day\s*\d+\s*[—–-]\s*/i, '')) + ' →</button>'
       + '</div>'
       + '<div style="margin-top:32px"><div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px">Weekly volume targets</div>' + buildVolumeTable() + '</div>'
       + '</div>';
@@ -121,12 +121,12 @@ export function renderGym() {
       '<div class="gym-page">'
       + dateBannerHTML
       + gymHeaderUnifiedHTML
-      + '<div style="background:#141416;border-radius:20px;padding:24px 20px;margin-top:16px">'
+      + '<div style="padding:16px 0 24px;border-bottom:1px solid #222">'
       + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;margin-bottom:6px">Session Complete</div>'
       + '<div style="font-size:15px;color:#8A8A8E;margin-bottom:16px">' + esc(activeCleanName) + ' · ' + loggedTotal + ' sets logged</div>'
       + '<div style="font-size:15px;color:#8A8A8E;line-height:1.4;margin-bottom:20px">Logged and archived in History. View or edit sets in <strong>Progress → History</strong>.</div>'
       + '<div style="display:flex;align-items:center;gap:20px">'
-      + '<button type="button" class="btn-text-action" id="openHistoryFromGymBtn" style="color:#C6F432;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">View in History</button>'
+      + '<button type="button" class="btn-text-action" id="openHistoryFromGymBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">View in History</button>'
       + '<button type="button" class="btn-text-action" id="trainNextDayEarlyBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Next: ' + esc(nextWorkoutSched.name) + ' →</button>'
       + '</div>'
       + '<div style="margin-top:24px">'
@@ -306,11 +306,22 @@ export function renderGym() {
     var swapIconSVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>';
     var swapBtn = '<button type="button" class="swap-btn" data-swap-orig="' + exOrig.id + '" data-swap-curr="' + ex.id + '" data-muscle="' + (ex.muscle || '') + '" title="Swap exercise" style="background:none;border:none;padding:4px;cursor:pointer;color:#8A8A8E;display:inline-flex;align-items:center;justify-content:center">' + swapIconSVG + '</button>';
 
+    var curLoggedSets = ((rec.workout || {})[ex.id] || []).filter(Boolean);
     var bestWeight = lastSets.reduce(function (m, s) { return Math.max(m, Number(s.weight) || 0); }, 0);
     var bestReps = lastSets.reduce(function (m, s) { return Math.max(m, Number(s.reps) || 0); }, 0);
     var prStr = '';
-    if (bestWeight > 0 || bestReps > 0) {
-      prStr = '<span style="font-size:11px;color:#C6F432;font-weight:600">' + (isBW ? (bestReps + ' reps PR') : (bestWeight + ' kg PR')) + '</span>';
+    if (lastSets.length > 0 && curLoggedSets.length > 0) {
+      if (isBW) {
+        var curTopR = curLoggedSets.reduce(function (m, s) { return Math.max(m, Number(s.reps) || 0); }, 0);
+        if (curTopR > bestReps && bestReps > 0) {
+          prStr = '<span style="font-size:11px;color:#C6F432;font-weight:600">' + curTopR + ' reps PR</span>';
+        }
+      } else {
+        var curTopW = curLoggedSets.reduce(function (m, s) { return Math.max(m, Number(s.weight) || 0); }, 0);
+        if (curTopW > bestWeight && bestWeight > 0) {
+          prStr = '<span style="font-size:11px;color:#C6F432;font-weight:600">' + curTopW + ' kg PR</span>';
+        }
+      }
     }
 
     // Item 3: "1 / 7" as an 11px text2 label above the name
@@ -336,7 +347,7 @@ export function renderGym() {
   }).join('');
 
   var finishCardHTML = (loggedTotal >= totalPlanned && totalPlanned > 0 && !rec.workoutDone)
-    ? ('<div style="margin:20px 0 16px"><button type="button" class="btn btn-primary" id="finishAllSetsBtn" style="width:100%;height:48px;background:#C6F432;color:#0B0B0C;font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer">Finish workout (' + loggedTotal + '/' + totalPlanned + ' sets completed)</button></div>')
+    ? ('<div style="margin:20px 0 16px"><button type="button" class="btn" id="finishAllSetsBtn" style="width:100%;height:48px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer">Finish workout (' + loggedTotal + '/' + totalPlanned + ' sets completed)</button></div>')
     : '';
 
   document.getElementById('content').innerHTML =
@@ -364,10 +375,10 @@ export function buildVolumeTable() {
     + vData.map(function(v) {
       var pct = Math.min(100, Math.round((v.sets / 20) * 100));
       var inRange = v.sets >= 10 && v.sets <= 20;
-      return '<div style="background:#141416;border-radius:12px;padding:10px 14px">'
+      return '<div style="padding:10px 0;border-bottom:1px solid #1C1C1F">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
           + '<span style="font-size:15px;font-weight:600;color:#F5F5F4">' + esc(v.muscle) + '</span>'
-          + '<span class="tabnum" style="font-size:11px;color:' + (inRange ? '#C6F432' : '#8A8A8E') + '">' + v.sets + ' / 10–20 sets</span>'
+          + '<span class="tabnum" style="font-size:11px;color:' + (inRange ? '#F5F5F4' : '#8A8A8E') + '">' + v.sets + ' / 10–20 sets</span>'
         + '</div>'
         + '<div class="prog-line"><div class="prog-line-fill' + (inRange ? ' lime' : '') + '" style="width:' + pct + '%"></div></div>'
         + '</div>';
