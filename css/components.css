@@ -177,8 +177,27 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
 .precision-input:disabled { opacity: 0.75 !important; cursor: default !important; }
 .precision-input.muted-val { color: var(--text2) !important; }
 
-/* ── Set Row Precision ── */
-.set-row-precision { display: flex !important; align-items: center !important; gap: var(--spacing-12) !important; min-height: var(--tap-min) !important; margin-bottom: var(--spacing-8) !important; box-sizing: border-box !important; }
+/* ── Set Row Precision & Swipe Delete ── */
+.set-row-wrap {
+  position: relative !important;
+  overflow: hidden !important;
+  border-radius: var(--r-md) !important;
+  margin-bottom: var(--spacing-8) !important;
+  box-sizing: border-box !important;
+}
+.set-swipe-bg {
+  position: absolute !important;
+  inset: 0 !important;
+  background: var(--danger) !important;
+  border-radius: var(--r-md) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  padding-right: var(--spacing-24) !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+.set-row-precision { display: flex !important; align-items: center !important; gap: var(--spacing-12) !important; min-height: var(--tap-min) !important; box-sizing: border-box !important; }
 .precision-circle-tap {
   width: var(--tap-min) !important;
   height: var(--tap-min) !important;

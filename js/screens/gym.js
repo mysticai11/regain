@@ -13,6 +13,7 @@ import { renderWorkoutTimer, renderRestTimer, startRestTimer, showFinishWorkoutS
 import { chooseWorkoutForDate } from "./gym/session-sheet.js";
 import { getWorkoutForDate, getWorkoutWeek, getCompletedWorkoutCount, getNextProgramWorkout, getActiveWorkoutSession, getSessionMeta, attachCommonGymHeaderEvents } from "./gym/helpers.js";
 import { attachGymEvents } from "./gym/events.js";
+import { renderSetRowWrap } from "./gym/swipe-delete.js";
 export * from "./gym/helpers.js";
 export * from "./gym/timer.js";
 export * from "./gym/sets.js";
@@ -276,8 +277,7 @@ export function renderGym() {
         tagHTML = '<div style="font-size:11px;color:#8A8A8E;padding-left:24px;margin-top:-2px;margin-bottom:6px">' + esc(ex.setTags[i]) + '</div>';
       }
 
-      return '<div class="set-row-precision ' + (logged ? 'is-done' : '') + '" id="setrow-' + ex.id + '-' + i + '">'
-        + '<span style="font-size:17px;font-weight:600;color:#8A8A8E;font-variant-numeric:tabular-nums;width:16px;text-align:right">' + (i + 1) + '</span>'
+      var rowInner = '<span style="font-size:17px;font-weight:600;color:#8A8A8E;font-variant-numeric:tabular-nums;width:16px;text-align:right">' + (i + 1) + '</span>'
         + '<input type="text" placeholder="' + placeholderW + '" class="precision-input set-weight ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillW + '" data-ex="' + ex.id + '" data-set-index="' + i + '" data-is-bw="' + (isBW ? '1' : '0') + '" value="' + inputW + '" inputmode="decimal" ' + (logged ? 'disabled' : '') + '>'
         + '<input type="number" min="1" max="50" placeholder="' + placeholderR + '" class="precision-input set-reps ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillR + '" data-ex="' + ex.id + '" data-set-index="' + i + '" value="' + inputR + '" inputmode="numeric" ' + (logged ? 'disabled' : '') + '>'
         + '<button type="button" class="rir-cycle-text" data-cycle-rir="' + ex.id + '" data-set-index="' + i + '" ' + (logged ? 'disabled' : '') + '>' + rirDisplay + '</button>'
@@ -289,9 +289,8 @@ export function renderGym() {
         + '</select>'
         + '<button type="button" class="precision-circle-tap ' + (logged ? 'done' : 'btn-log') + '" ' + (logged ? ('data-quick-edit-logged="' + ex.id + '"') : ('data-logset="' + ex.id + '"')) + ' data-set-index="' + i + '" data-ex-name="' + esc(ex.name) + '" data-weight="' + (logged ? (logged.weight || 0) : '') + '" data-reps="' + (logged ? logged.reps : '') + '" data-rir="' + (logged && logged.rir != null ? logged.rir : '') + '" ' + (!logged && !hasValues ? 'disabled' : '') + ' aria-label="' + (logged ? 'Edit logged set' : 'Log set') + '">'
           + '<span class="precision-circle ' + (logged ? 'done' : '') + '">' + (logged ? '✓' : '') + '</span>'
-        + '</button>'
-        + '</div>'
-        + tagHTML;
+        + '</button>';
+      return renderSetRowWrap(rowInner, ex.id, i, !!logged) + tagHTML;
     }).join('');
 
     var repsStr = ex.reps || exOrig.reps || '8-12';

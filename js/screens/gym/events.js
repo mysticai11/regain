@@ -15,6 +15,7 @@ import { chooseWorkoutForDate } from "./session-sheet.js";
 import { openSwapSheet, openPlateCalculator } from "./swap.js";
 import { startRestTimer } from "./timer.js";
 import { openCustomRoutineSheet, openCustomRoutineManager } from "./plan-editor.js";
+import { attachSetRowSwipeHandlers } from "./swipe-delete.js";
 
 export function attachGymEvents(key, rec, session, programDayIndex) {
   attachCommonGymHeaderEvents();
@@ -318,4 +319,5 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       current.workout[id][index]={weight:w,reps:r,rir:rir}; saveDayRecord(key,current); renderGym();
     });
   });
+  attachSetRowSwipeHandlers(key);
 }
