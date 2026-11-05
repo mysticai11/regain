@@ -1,7 +1,7 @@
 /* Today screen: main dashboard view, daily meal checklist, and bodyweight row */
 
 import { profile, setTab } from "../state.js";
-import { dayRecord, saveDayRecord, ls, sv, allDayKeys } from "../storage.js";
+import { dayRecord, saveDayRecord, ls, sv, allDayKeys, exportData } from "../storage.js";
 import { getActiveProgram, getWeeklySchedule, getWorkoutForDate, getNextProgramWorkout, getCurrentWorkout, CAL_TARGET_REST, CAL_TARGET_GYM, PROT_TARGET_REST, PROT_TARGET_GYM } from "../data/plan.js";
 import { DEFAULT_MEAL_PLAN } from "../data/foods.js";
 import { todayKey, dateKey, addDays, esc, currentWeight, formatDuration } from "../lib/format.js";
@@ -10,7 +10,7 @@ import { playSound, triggerHaptic, ic } from "../lib/dom.js";
 import { showToast, showUndoToast } from "../components/toast.js";
 import { buildGauge, statusPill, macroBar } from "../components/gauge.js";
 import { openFoodSearch, openCustomFoodBuilder, openRecipeBuilder, openCustomFoodsManager, openMealEditor, openEditItemSheet } from "./today/food-modal.js";
-import { addQuickFood, getStaplesShelfHTML, getMergedStaples, openPortionSheet, buildWeekDotRowHTML, openWorkoutOverrideSheet, buildCalRingHTML, buildWeightTrendChip, buildNextSessionPreviewHTML, buildWeekGlanceHTML, openCheckinSheet } from "./today/widgets.js";
+import { addQuickFood, getStaplesShelfHTML, getMergedStaples, openPortionSheet, buildWeekDotRowHTML, openWorkoutOverrideSheet, buildCalRingHTML, buildWeightTrendChip, buildBackupNudgeHTML, bindBackupNudgeEvents } from "./today/widgets.js";
 import { openSettings } from "./settings.js";
 export * from "./today/food-modal.js";
 export * from "./today/widgets.js";
@@ -65,6 +65,7 @@ export function renderTodaySimple() {
     + '<button class="icon-btn" id="settingsBtn" aria-label="Settings">' + ic('settings') + '</button>'
     + '</div>'
     + pastDateBanner
+    + buildBackupNudgeHTML()
     + calRingHTML
     + weekDotHTML
     + '<div class="today-workout-block" style="background:#141416;border-radius:20px;padding:20px;margin-bottom:20px">'
@@ -131,6 +132,7 @@ export function renderTodaySimple() {
 
   var settingsBtn = document.getElementById('settingsBtn');
   if (settingsBtn) settingsBtn.onclick = function(e) { if (e && e.stopPropagation) e.stopPropagation(); openSettings(); };
+  bindBackupNudgeEvents(exportData);
 
   var prevWk = document.getElementById('prevWeekBtn');
   if (prevWk) prevWk.onclick = function() { triggerHaptic(); window.todayWeekOffset = (window.todayWeekOffset || 0) - 1; renderTodaySimple(); };

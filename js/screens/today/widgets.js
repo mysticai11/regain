@@ -1,7 +1,7 @@
 /* Today screen widgets: staples shelf, week dot row, calorie ring, and workout preview */
 
 import { profile } from "../../state.js";
-import { ls, dayRecord, saveDayRecord, getWorkoutSessions, allDayKeys } from "../../storage.js";
+import { ls, sv, dayRecord, saveDayRecord, getWorkoutSessions, allDayKeys } from "../../storage.js";
 import { getActiveProgram, getWeeklySchedule, getNextProgramWorkout } from "../../data/plan.js";
 import { DEFAULT_STAPLES } from "../../data/foods.js";
 import { todayKey, dateKey, addDays, esc, currentWeight, goalDirection } from "../../lib/format.js";
@@ -316,3 +316,34 @@ export function buildWeightTrendChip(currentWeight) {
 export function buildNextSessionPreviewHTML() { return ''; }
 export function buildWeekGlanceHTML() { return ''; }
 export function openCheckinSheet() {}
+
+export function buildBackupNudgeHTML() {
+  var lastBackup = ls('rg_last_backup') || ls('tally_last_backup');
+  var now = Date.now();
+  var diffDays = lastBackup ? Math.floor((now - new Date(lastBackup).getTime()) / 86400000) : 999;
+  var snoozedUntil = ls('rg_backup_nudge_snooze', 0);
+  if (diffDays < 14 || now < snoozedUntil) return '';
+
+  var diffMsg = lastBackup ? (diffDays + ' days') : '14+ days';
+  return '<div id="backupNudgeBanner" style="display:flex;align-items:center;justify-content:space-between;background:#141416;border-radius:12px;padding:10px 14px;margin-bottom:14px;border:1px solid #222">'
+    + '<span style="font-size:11px;color:#8A8A8E">No backup for ' + diffMsg + ' · <button type="button" id="backupNudgeActionBtn" style="background:none;border:none;color:#C6F432;font-size:11px;font-weight:600;padding:0;cursor:pointer">Back up now</button></span>'
+    + '<button type="button" id="dismissBackupNudgeBtn" style="background:none;border:none;color:#8A8A8E;font-size:15px;cursor:pointer;padding:4px 8px;line-height:1" aria-label="Dismiss">&times;</button>'
+    + '</div>';
+}
+
+export function bindBackupNudgeEvents(exportFn) {
+  var nudgeAction = document.getElementById('backupNudgeActionBtn');
+  if (nudgeAction) {
+    nudgeAction.onclick = function() {
+      if (typeof exportFn === 'function') exportFn();
+    };
+  }
+  var nudgeDismiss = document.getElementById('dismissBackupNudgeBtn');
+  if (nudgeDismiss) {
+    nudgeDismiss.onclick = function() {
+      sv('rg_backup_nudge_snooze', Date.now() + 7 * 86400000);
+      var banner = document.getElementById('backupNudgeBanner');
+      if (banner) banner.remove();
+    };
+  }
+}
