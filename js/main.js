@@ -1,6 +1,6 @@
 /* Application entry point: initializes app, sets up router, and boots services */
 
-import { profile, setProfile, tab, setTab, workoutTimer, restTimer, subscribe, getState, setState, preserveUiStateDuringRender } from "./state.js";
+import { profile, setProfile, tab, setTab, workoutTimer, restTimer, subscribe, getState, setState, preserveUiStateDuringRender, scrollByTab } from "./state.js";
 import { ls, sv, SQLiteStorage, migrateWorkoutSessions, requestPersistentStorage } from "./storage.js";
 import { DEFAULT_MEAL_PLAN } from "./data/foods.js";
 import { migrateWorkoutRoutineSwap, getActiveProgram } from "./data/plan.js";
@@ -30,8 +30,6 @@ export function renderApp() {
   document.querySelectorAll('.navitem').forEach(function (btn) {
     btn.addEventListener('click', function () {
       triggerHaptic();
-      if (workoutTimer.interval) { clearInterval(workoutTimer.interval); workoutTimer.interval = null; }
-      if (restTimer.interval) { clearInterval(restTimer.interval); restTimer.interval = null; restTimer.endAt = 0; restTimer.remaining = 0; }
       setTab(btn.dataset.tab);
       document.querySelectorAll('.navitem').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
       renderTab();
@@ -53,6 +51,14 @@ export function renderTab() {
     else renderGym();
   } catch (err) {
     console.error('Error rendering tab ' + tab + ':', err);
+  }
+  if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(function() {
+      var c = document.getElementById('content');
+      if (c && scrollByTab && scrollByTab[tab] != null) {
+        c.scrollTop = scrollByTab[tab];
+      }
+    });
   }
 }
 

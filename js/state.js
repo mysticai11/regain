@@ -13,6 +13,8 @@ export var confirmLoggingAccurate = false;
 export var activeGymDateKey = null;
 export var activeTodaySelectedDateKey = null;
 export var activeExpandedExId = null;
+export var scrollByTab = { today: 0, progress: 0, gym: 0 };
+export var activeProgressSubTab = 'body';
 
 var subscribers = new Set();
 var isPendingNotification = false;
@@ -149,12 +151,17 @@ export function preserveUiStateDuringRender(renderFn) {
       selectionEnd = document.activeElement.selectionEnd;
     } catch(e) {}
   }
-  var scrollY = (typeof window !== 'undefined') ? (window.scrollY || (document.documentElement ? document.documentElement.scrollTop : 0)) : 0;
+  var content = typeof document !== 'undefined' ? document.getElementById('content') : null;
+  var scrollY = content ? content.scrollTop : ((typeof window !== 'undefined') ? (window.scrollY || (document.documentElement ? document.documentElement.scrollTop : 0)) : 0);
   var hasOpenOverlay = (typeof document !== 'undefined') ? !!document.querySelector('.overlay') : false;
+
+  if (tab === 'gym') snapshotGymDrafts();
 
   renderFn();
 
-  if (typeof window !== 'undefined' && scrollY) {
+  if (content && scrollY != null) {
+    content.scrollTop = scrollY;
+  } else if (typeof window !== 'undefined' && scrollY) {
     window.scrollTo(0, scrollY);
   }
   if (activeElementId && !hasOpenOverlay && typeof document !== 'undefined') {
@@ -166,6 +173,33 @@ export function preserveUiStateDuringRender(renderFn) {
       }
     }
   }
+}
+
+export function snapshotGymDrafts() {
+  if (typeof document === 'undefined') return;
+  var key = activeGymDateKey || (typeof window !== 'undefined' && window.activeGymDateKey) || todayKey();
+  var rec = dayRecord(key);
+  var dirty = false;
+  document.querySelectorAll('.set-row-precision').forEach(function(row) {
+    var exId = row.dataset.exId;
+    var sIdx = parseInt(row.dataset.setIndex, 10);
+    if (!exId || isNaN(sIdx)) return;
+    var wInput = row.querySelector('.set-weight');
+    var rInput = row.querySelector('.set-reps');
+    var rirSelect = row.querySelector('.set-rir');
+    if (wInput || rInput) {
+      rec.workoutDraft = rec.workoutDraft || {};
+      rec.workoutDraft[exId] = rec.workoutDraft[exId] || [];
+      var wVal = wInput ? (wInput.value.trim() === '' ? '' : parseFloat(wInput.value) || 0) : '';
+      var rVal = rInput ? (rInput.value.trim() === '' ? '' : parseInt(rInput.value, 10) || '') : '';
+      var rirVal = rirSelect ? (rirSelect.value === '' ? null : parseInt(rirSelect.value, 10)) : null;
+      if (wVal !== '' || rVal !== '') {
+        rec.workoutDraft[exId][sIdx] = { weight: wVal, reps: rVal, rir: rirVal };
+        dirty = true;
+      }
+    }
+  });
+  if (dirty) saveDayRecord(key, rec);
 }
 
 export function getProfile() {
@@ -191,8 +225,18 @@ export function getTab() {
 }
 
 export function setTab(t) {
+  var content = typeof document !== 'undefined' ? document.getElementById('content') : null;
+  if (content && tab) {
+    scrollByTab[tab] = content.scrollTop;
+  }
+  if (tab === 'gym') {
+    snapshotGymDrafts();
+  }
   tab = t;
-  if (typeof window !== 'undefined') window.tab = t;
+  if (typeof window !== 'undefined') {
+    window.tab = t;
+    window.scrollByTab = scrollByTab;
+  }
 }
 
 export function getActiveGymDateKey() {

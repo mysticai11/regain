@@ -80,8 +80,10 @@ function setupChartInteractions(container) {
 }
 
 export function renderProgressSimple(mode, historySubTab) {
-  mode=mode||'body';
-  historySubTab=historySubTab||'weeks';
+  mode = mode || (typeof window !== 'undefined' ? window.activeProgressSubTab : null) || 'body';
+  if (typeof window !== 'undefined') window.activeProgressSubTab = mode;
+  historySubTab = historySubTab || (typeof window !== 'undefined' ? window.activeProgressHistorySubTab : null) || 'weeks';
+  if (typeof window !== 'undefined') window.activeProgressHistorySubTab = historySubTab;
   var entries=getWeightHistory(), records=allDayKeys().map(function(k){var r=dayRecord(k),t=getDayTotals(k);return {key:k,weight:r.weight,kcal:t.kcal,protein:t.protein};});
   var workoutSessions=getWorkoutSessions().filter(function(session){return (session.exercises||[]).some(function(exercise){return (exercise.sets||[]).some(Boolean);});});
   var current=entries.length?entries[entries.length-1].weight:null, range='4w';
