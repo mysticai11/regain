@@ -34,7 +34,7 @@ export function openSettings() {
     + '<div class="sheet-handle"></div>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
       + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">Settings</div>'
-      + '<button type="button" class="btn-text-action" id="closeSettingsBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:8px 0;cursor:pointer;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:flex-end">Close</button>'
+      + '<button type="button" class="btn-text-action" id="closeSettingsBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:8px 0;cursor:pointer;min-height:48px;min-width:48px;display:inline-flex;align-items:center;justify-content:flex-end">Close</button>'
     + '</div>'
 
     // TARGETS (Compact Card)

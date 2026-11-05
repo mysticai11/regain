@@ -84,8 +84,23 @@
   padding: 0 !important;
   display: inline-flex !important;
   align-items: center !important;
+  justify-content: center !important;
   user-select: none !important;
   line-height: 1 !important;
+  position: relative !important;
+  min-height: var(--tap-min) !important;
+  box-sizing: border-box !important;
+}
+.btn-text-action::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  width: 100%;
+  height: 100%;
 }
 .btn-text-action:active { opacity: 0.75 !important; }
 .btn-text-action.destructive { color: var(--danger) !important; }
@@ -99,13 +114,28 @@
   justify-content: center;
   width: var(--tap-min);
   height: var(--tap-min);
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
   cursor: pointer;
   border-radius: var(--r-control);
   padding: 0;
+  position: relative;
+  box-sizing: border-box;
+}
+.icon-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  width: 100%;
+  height: 100%;
 }
 .icon-btn:active { color: var(--text); }
 
-.swap-btn {
+.swap-btn, .range-btn {
   background: none;
   border: none;
   padding: 0;
@@ -114,10 +144,42 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  position: relative;
+  box-sizing: border-box;
+}
+.swap-btn::after, .range-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  width: 100%;
+  height: 100%;
 }
 .swap-btn:active { color: var(--text); }
+
+.week-strip-cell {
+  position: relative;
+  min-height: var(--tap-min) !important;
+  box-sizing: border-box !important;
+}
+.week-strip-cell::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 44px;
+  min-height: var(--tap-min);
+  width: 100%;
+  height: 100%;
+}
 
 /* ── Inputs & Selects ── */
 input[type=number], input[type=text], input[type=password], input[type=date], select, textarea {
