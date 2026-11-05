@@ -5,7 +5,7 @@ import { ls, sv, SQLiteStorage, migrateWorkoutSessions, requestPersistentStorage
 import { DEFAULT_MEAL_PLAN } from "./data/foods.js";
 import { migrateWorkoutRoutineSwap, getActiveProgram } from "./data/plan.js";
 import { todayKey, esc } from "./lib/format.js";
-import { ic, triggerHaptic } from "./lib/dom.js";
+import { ic, triggerHaptic, initMaterialRipple } from "./lib/dom.js";
 import { renderTodaySimple, migrateFoodTotals, openCheckinSheet } from "./screens/today.js";
 import { renderProgressSimple } from "./screens/progress.js?v=4";
 import { renderGym } from "./screens/gym.js";
@@ -59,6 +59,7 @@ export function renderTab() {
 // ── Boot ────────────────────────────────────────────────────────────────────────
 function bootApp() {
   console.log('BOOT: bootApp running');
+  initMaterialRipple();
   SQLiteStorage.init(function () {
     console.log('BOOT: SQLiteStorage init done');
     requestPersistentStorage();

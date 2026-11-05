@@ -103,4 +103,8 @@
   --motion-fast: 150ms ease-out;
   --motion-normal: 150ms ease-out;
   --transition-default: 150ms ease-out;
+
+  /* Material Ripple */
+  --ripple-dark: rgba(255, 255, 255, 0.12);
+  --ripple-lime: rgba(11, 11, 12, 0.15);
 }

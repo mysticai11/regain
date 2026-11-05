@@ -240,3 +240,31 @@ export function triggerHaptic() {
     }
   } catch(e) {}
 }
+
+export function initMaterialRipple() {
+  if (typeof document === 'undefined') return;
+  if (document._rippleInitialized) return;
+  document._rippleInitialized = true;
+
+  document.addEventListener('pointerdown', function(e) {
+    if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+    var target = e.target && e.target.closest && e.target.closest('.ripple, .list-row, .navitem, .tab-item, .chip, .quick-staple-chip, .week-strip-day, .settings-row, .btn:not(.btn-primary)');
+    if (!target) return;
+    if (target.classList.contains('btn-primary') || target.closest('.btn-primary')) return;
+
+    var rect = target.getBoundingClientRect();
+    var d = 2 * Math.max(rect.width, rect.height);
+    var rip = document.createElement('span');
+    rip.className = 'rip';
+    rip.style.width = d + 'px';
+    rip.style.height = d + 'px';
+    rip.style.left = (e.clientX - rect.left - d / 2) + 'px';
+    rip.style.top = (e.clientY - rect.top - d / 2) + 'px';
+    rip.addEventListener('animationend', function() {
+      rip.remove();
+    });
+    target.appendChild(rip);
+  }, { passive: true });
+}
