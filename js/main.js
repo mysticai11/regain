@@ -85,12 +85,6 @@ export function initKeyboardHandling() {
       var Keyboard = window.Capacitor.Plugins.Keyboard;
       Keyboard.addListener('keyboardWillShow', function() {
         document.body.classList.add('kb-open');
-        setTimeout(function() {
-          var active = document.activeElement;
-          if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA') && active.scrollIntoView) {
-            active.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 50);
       });
       Keyboard.addListener('keyboardWillHide', function() {
         document.body.classList.remove('kb-open');
@@ -103,11 +97,6 @@ export function initKeyboardHandling() {
   document.addEventListener('focusin', function(e) {
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
       document.body.classList.add('kb-open');
-      setTimeout(function() {
-        if (e.target && e.target.scrollIntoView) {
-          e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 50);
     }
   });
 

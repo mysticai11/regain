@@ -66,10 +66,10 @@ subscribe(function() {
   scheduleCount++;
 });
 
-saveDayRecord('2026-11-06', { test: 1 }, { silent: true });
+saveDayRecord('2026-11-06', { test: 1, workout: { bench_press: [{ weight: 80, reps: 8 }] } }, { silent: true });
 // Give any microtask or tick a moment
 await new Promise(resolve => setTimeout(resolve, 20));
-assert.strictEqual(scheduleCount, 0, 'Silent saveDayRecord must NOT trigger state subscribers');
+assert.strictEqual(scheduleCount, 0, 'Silent saveDayRecord with active workout sets must NOT trigger state subscribers');
 
 saveDayRecord('2026-11-06', { test: 2 });
 await new Promise(resolve => setTimeout(resolve, 20));

@@ -81,13 +81,15 @@ export function workoutSessionStore() {
   return stored;
 }
 
-export function saveWorkoutSession(session) {
+export function saveWorkoutSession(session, options) {
   if (!session || !session.id) return false;
   var store = workoutSessionStore();
   store.sessions[session.id] = session;
   var res = sv(WORKOUT_SESSIONS_KEY, store);
-  if (typeof window !== 'undefined' && typeof window.scheduleStateNotification === 'function') {
-    window.scheduleStateNotification();
+  if (!options || !options.silent) {
+    if (typeof window !== 'undefined' && typeof window.scheduleStateNotification === 'function') {
+      window.scheduleStateNotification();
+    }
   }
   return res;
 }
@@ -156,7 +158,7 @@ export function workoutDayKeys() {
   return Object.keys(keys);
 }
 
-export function saveWorkoutSessionFromDay(dayKey, rec, sequence) {
+export function saveWorkoutSessionFromDay(dayKey, rec, sequence, options) {
   var store = workoutSessionStore(), changed = false;
   Object.keys(store.sessions).forEach(function (id) {
     if (store.sessions[id] && store.sessions[id].dayKey === dayKey) {
@@ -190,7 +192,7 @@ export function saveWorkoutSessionFromDay(dayKey, rec, sequence) {
       duration_sec: groupMeta.duration_sec || (groupMeta.durationMinutes ? groupMeta.durationMinutes * 60 : null),
       updatedAt: new Date().toISOString()
     };
-    saveWorkoutSession(session);
+    saveWorkoutSession(session, options);
     saved.push(session);
   });
   return saved;

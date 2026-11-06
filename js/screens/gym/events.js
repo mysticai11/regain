@@ -221,32 +221,48 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
     };
   });
 
+  var draftTimer = null;
+  var flushDraft = function(input) {
+    if (!input) return;
+    var draftRec = dayRecord(key), id = input.dataset.ex, index = parseInt(input.dataset.setIndex, 10);
+    draftRec.workoutDraft = draftRec.workoutDraft || {};
+    draftRec.workoutDraft[id] = draftRec.workoutDraft[id] || [];
+    var wInput = document.querySelector('.set-weight[data-ex="' + id + '"][data-set-index="' + index + '"]');
+    var rInput = document.querySelector('.set-reps[data-ex="' + id + '"][data-set-index="' + index + '"]');
+    var rawW = (wInput ? wInput.value : '').trim();
+    var parsedW = (rawW === '' || rawW.toUpperCase() === 'BW') ? 0 : (parseFloat(rawW) || 0);
+    var parsedR = parseInt((rInput ? rInput.value : ''), 10) || '';
+    var rirEl = document.querySelector('.set-rir[data-ex="' + id + '"][data-set-index="' + index + '"]');
+    var row = {
+      weight: parsedW,
+      reps: parsedR,
+      rir: (rirEl && rirEl.value !== '') ? parseInt(rirEl.value, 10) : null
+    };
+    draftRec.workoutDraft[id][index] = row;
+    saveDayRecord(key, draftRec, { silent: true });
+  };
+
   document.querySelectorAll('.set-weight,.set-reps,.set-rir').forEach(function(input){
     input.addEventListener('input', function(){
-      var draftRec=dayRecord(key), id=input.dataset.ex, index=parseInt(input.dataset.setIndex,10);
+      var id = input.dataset.ex, index = parseInt(input.dataset.setIndex, 10);
       var isBW = isBodyweightExercise(id);
-      draftRec.workoutDraft=draftRec.workoutDraft||{};
-      draftRec.workoutDraft[id]=draftRec.workoutDraft[id]||[];
-      var wInput = document.querySelector('.set-weight[data-ex="'+id+'"][data-set-index="'+index+'"]');
-      var rInput = document.querySelector('.set-reps[data-ex="'+id+'"][data-set-index="'+index+'"]');
-      var rawW = (wInput ? wInput.value : '').trim();
-      var parsedW = (rawW === '' || rawW.toUpperCase() === 'BW') ? 0 : (parseFloat(rawW) || 0);
-      var parsedR = parseInt((rInput ? rInput.value : ''), 10) || '';
-      var row={
-        weight: parsedW,
-        reps: parsedR,
-        rir: (document.querySelector('.set-rir[data-ex="'+id+'"][data-set-index="'+index+'"]').value || null)
-      };
-      draftRec.workoutDraft[id][index]=row;
-      saveDayRecord(key, draftRec, { silent: true });
-      var logButton=document.querySelector('[data-logset="'+id+'"][data-set-index="'+index+'"]');
-      if(logButton) {
+      var wInput = document.querySelector('.set-weight[data-ex="' + id + '"][data-set-index="' + index + '"]');
+      var rInput = document.querySelector('.set-reps[data-ex="' + id + '"][data-set-index="' + index + '"]');
+      var logButton = document.querySelector('[data-logset="' + id + '"][data-set-index="' + index + '"]');
+      if (logButton) {
         var pw = (wInput && wInput.dataset.prefill) || '';
         var pr = (rInput && rInput.dataset.prefill) || '';
         var effW = (wInput && wInput.value) || pw;
         var effR = (rInput && rInput.value) || pr;
         logButton.disabled = isBW ? !(parseInt(effR, 10) > 0) : !(parseFloat(effW) > 0 && parseInt(effR, 10) > 0);
       }
+      clearTimeout(draftTimer);
+      draftTimer = setTimeout(function() {
+        flushDraft(input);
+      }, 300);
+    });
+    input.addEventListener('blur', function() {
+      flushDraft(input);
     });
   });
 

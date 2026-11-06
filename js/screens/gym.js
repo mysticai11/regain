@@ -219,7 +219,7 @@ export function renderGym() {
         + '</div>'
         + '<div style="flex-shrink:0;margin-left:12px">'
         + (isExCompleted
-          ? '<span style="font-size:17px;font-weight:600;color:#F5F5F4">✓</span>'
+          ? '<span style="font-size:17px;font-weight:600;color:#C6F432">✓</span>'
           : '<span style="font-size:15px;color:#8A8A8E;font-variant-numeric:tabular-nums">' + completedSets.length + ' / ' + targetSets + '</span>')
         + '</div>'
         + '</div>';

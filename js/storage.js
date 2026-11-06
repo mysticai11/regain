@@ -256,8 +256,8 @@ export function dayRecord(key) {
 
 export function saveDayRecord(key, rec, options){
   sv('rg_day_'+key, rec);
-  saveWorkoutSessionFromDay(key, rec, Object.keys(workoutSessionStore().sessions).length);
   if (!options || !options.silent) {
+    saveWorkoutSessionFromDay(key, rec, Object.keys(workoutSessionStore().sessions).length);
     if (typeof window !== 'undefined' && typeof window.scheduleStateNotification === 'function') {
       window.scheduleStateNotification();
     }

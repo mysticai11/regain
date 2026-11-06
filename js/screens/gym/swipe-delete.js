@@ -8,10 +8,10 @@ import { renderGym } from "../gym.js";
 export function renderSetRowWrap(innerHtml, exId, setIndex, isDone) {
   var trashIcon = '<svg class="set-trash-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="transform:scale(0.6);transition:transform 60ms linear"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
   return '<div class="set-row-wrap" id="setwrap-' + exId + '-' + setIndex + '" style="position:relative;overflow:hidden;border-radius:12px;margin-bottom:8px">'
-    + '<div class="set-swipe-bg" style="position:absolute;inset:0;background:#FF4D4F;border-radius:12px;display:flex;align-items:center;justify-content:flex-end;padding-right:24px;pointer-events:none;z-index:1">'
+    + '<div class="set-swipe-bg" style="position:absolute;inset:0;background:#FF4D4F;border-radius:12px;display:flex;align-items:center;justify-content:flex-end;padding-right:20px;pointer-events:none;z-index:1;opacity:0">'
     + trashIcon
     + '</div>'
-    + '<div class="set-row set-row-precision ' + (isDone ? 'is-done' : '') + '" id="setrow-' + exId + '-' + setIndex + '" data-ex-id="' + exId + '" data-set-index="' + setIndex + '" style="position:relative;z-index:2;background:#141416;touch-action:pan-y">'
+    + '<div class="set-row set-row-precision ' + (isDone ? 'is-done' : '') + '" id="setrow-' + exId + '-' + setIndex + '" data-ex-id="' + exId + '" data-set-index="' + setIndex + '" style="position:relative;z-index:2;background:#0B0B0C;touch-action:pan-y">'
     + innerHtml
     + '</div>'
     + '</div>';
@@ -69,6 +69,8 @@ export function attachSetRowSwipeHandlers(key) {
       if (axisLocked === 'h') {
         if (e.stopPropagation) e.stopPropagation();
         if (e.preventDefault) e.preventDefault();
+        var bg = wrap ? wrap.querySelector('.set-swipe-bg') : null;
+        if (bg) bg.style.opacity = '1';
 
         var tx = Math.max(-96, Math.min(0, dx));
         row.style.transition = 'none';
@@ -166,6 +168,12 @@ export function attachSetRowSwipeHandlers(key) {
           row.style.transition = prefersReduced ? 'none' : 'transform 200ms cubic-bezier(0.16, 1, 0.3, 1)';
           row.style.transform = 'translateX(0)';
           if (trash) trash.style.transform = 'scale(0.6)';
+          setTimeout(function() {
+            var bg = wrap ? wrap.querySelector('.set-swipe-bg') : null;
+            if (bg && (!row.style.transform || row.style.transform === 'translateX(0px)' || row.style.transform === 'translateX(0)')) {
+              bg.style.opacity = '0';
+            }
+          }, 200);
         }
       }
       startTime = 0;
