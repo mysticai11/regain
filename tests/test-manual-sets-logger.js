@@ -146,3 +146,4 @@ console.log('✓ Extra set removed cleanly: visible count returns to 2.');
 console.log('\n======================================================');
 console.log(' ALL WORKOUT LOGGER MANUAL SETS TESTS PASSED (100%)! ');
 console.log('======================================================');
+
