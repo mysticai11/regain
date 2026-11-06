@@ -40,47 +40,18 @@ export function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
   var elapsedSec = getSessionElapsedSeconds(meta);
   var elapsedFormatted = Math.floor(elapsedSec / 60) + ':' + pad(elapsedSec % 60);
 
+  var dotsHTML = '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:48px;height:48px;color:var(--text2)">•••</button>';
+  var finishBtnHTML = '<div style="display:flex;align-items:center;gap:8px"><button type="button" class="btn-text-action" id="timerFinishBtn" style="color:var(--text);font-size:15px;font-weight:600;cursor:pointer">Finish</button>' + dotsHTML + '</div>';
+
   if (isIdle) {
-    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%">'
-      + '<div style="display:flex;align-items:center;gap:16px">'
-        + '<button type="button" class="btn-text-action" id="startWorkoutBtn" style="color:var(--text);font-size:15px;font-weight:600;cursor:pointer">Start</button>'
-        + '<button type="button" class="btn-text-action" id="enterTimeBtn" style="color:var(--text2);font-size:15px;font-weight:400;cursor:pointer">Enter time</button>'
-      + '</div>'
-      + '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:48px;height:48px;color:var(--text2)">•••</button>'
-      + '</div>';
+    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%"><div style="display:flex;align-items:center;gap:16px"><button type="button" class="btn-text-action" id="startWorkoutBtn" style="color:var(--text);font-size:15px;font-weight:600;cursor:pointer">Start</button><button type="button" class="btn-text-action" id="enterTimeBtn" style="color:var(--text2);font-size:15px;font-weight:400;cursor:pointer">Enter time</button></div>' + dotsHTML + '</div>';
   } else if (isFinished) {
     var durMin = meta.durationMinutes || Math.floor(elapsedSec / 60);
-    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%">'
-      + '<span style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + formatDuration(durMin) + ' total</span>'
-      + '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:48px;height:48px;color:var(--text2)">•••</button>'
-      + '</div>';
+    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%"><span style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + formatDuration(durMin) + ' total</span>' + dotsHTML + '</div>';
   } else if (isPaused) {
-    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%">'
-      + '<div style="display:flex;align-items:center;gap:12px">'
-        + '<button type="button" class="icon-btn" id="sessionTimerToggleBtn" aria-label="Resume workout" style="width:48px;height:48px;color:var(--text);display:inline-flex;align-items:center;justify-content:center">'
-          + '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>'
-        + '</button>'
-        + '<span id="workoutElapsed" style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + elapsedFormatted + ' · Paused</span>'
-      + '</div>'
-      + '<div style="display:flex;align-items:center;gap:8px">'
-        + '<button type="button" class="btn-text-action" id="timerFinishBtn" style="color:var(--text);font-size:15px;font-weight:600;cursor:pointer">Finish</button>'
-        + '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:48px;height:48px;color:var(--text2)">•••</button>'
-      + '</div>'
-      + '</div>';
+    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%"><div style="display:flex;align-items:center;gap:12px"><button type="button" class="icon-btn" id="sessionTimerToggleBtn" aria-label="Resume workout" style="width:48px;height:48px;color:var(--text);display:inline-flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></button><span id="workoutElapsed" style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + elapsedFormatted + ' · Paused</span></div>' + finishBtnHTML + '</div>';
   } else {
-    // Running
-    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%">'
-      + '<div style="display:flex;align-items:center;gap:12px">'
-        + '<button type="button" class="icon-btn" id="sessionTimerToggleBtn" aria-label="Pause workout" style="width:48px;height:48px;color:var(--text);display:inline-flex;align-items:center;justify-content:center">'
-          + '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
-        + '</button>'
-        + '<span id="workoutElapsed" style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + elapsedFormatted + '</span>'
-      + '</div>'
-      + '<div style="display:flex;align-items:center;gap:8px">'
-        + '<button type="button" class="btn-text-action" id="timerFinishBtn" style="color:var(--text);font-size:15px;font-weight:600;cursor:pointer">Finish</button>'
-        + '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:48px;height:48px;color:var(--text2)">•••</button>'
-      + '</div>'
-      + '</div>';
+    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%"><div style="display:flex;align-items:center;gap:12px"><button type="button" class="icon-btn" id="sessionTimerToggleBtn" aria-label="Pause workout" style="width:48px;height:48px;color:var(--text);display:inline-flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></button><span id="workoutElapsed" style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + elapsedFormatted + '</span></div>' + finishBtnHTML + '</div>';
   }
 
   // Interval for running timer
@@ -274,13 +245,21 @@ export function renderRestTimer() {
   var secs = restTimer.remaining % 60;
   var timeStr = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
 
-  wrap.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:16px 20px calc(16px + var(--safe-b));position:fixed;bottom:calc(var(--nav-h) + var(--safe-b));left:0;right:0;max-width:480px;margin:0 auto;z-index:150">'
+  var countdownEl = document.getElementById('restTimerCountdown');
+  var pauseEl = document.getElementById('pauseRestBtn');
+  if (countdownEl && pauseEl) {
+    countdownEl.textContent = timeStr;
+    pauseEl.textContent = restTimer.isPaused ? 'Resume' : 'Pause';
+    return;
+  }
+
+  wrap.innerHTML = '<div class="sheet rest-timer-sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:16px 20px calc(16px + var(--safe-b));position:fixed;bottom:calc(var(--nav-h) + var(--safe-b));left:0;right:0;max-width:480px;margin:0 auto;z-index:150">'
     + '<div class="sheet-handle"></div>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
       + '<div style="font-size:17px;font-weight:600;color:#F5F5F4">Rest Timer</div>'
       + '<button type="button" class="btn-text-action" id="skipRestBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">Skip</button>'
     + '</div>'
-    + '<div style="font-size:48px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:center;padding:8px 0;line-height:1">' + timeStr + '</div>'
+    + '<div id="restTimerCountdown" style="font-size:48px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:center;padding:8px 0;line-height:1">' + timeStr + '</div>'
     + '<div style="display:flex;justify-content:center;gap:24px;align-items:center;margin-top:12px">'
       + '<button type="button" class="btn-text-action" id="addRest30Btn" style="font-size:15px;font-weight:600;color:#F5F5F4;cursor:pointer">+30s</button>'
       + '<button type="button" class="btn-text-action" id="pauseRestBtn" style="font-size:15px;font-weight:600;color:#F5F5F4;cursor:pointer">' + (restTimer.isPaused ? 'Resume' : 'Pause') + '</button>'
@@ -305,17 +284,35 @@ export function renderRestTimer() {
   if (add30Btn) add30Btn.onclick = function() {
     restTimer.remaining += 30;
     if (restTimer.endAt) restTimer.endAt += 30000;
-    renderRestTimer();
+    var cd = document.getElementById('restTimerCountdown');
+    if (cd) {
+      var m = Math.floor(restTimer.remaining / 60);
+      var s = restTimer.remaining % 60;
+      cd.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    }
   };
   var pauseBtn = document.getElementById('pauseRestBtn');
   if (pauseBtn) pauseBtn.onclick = function() {
-    if (restTimer.isPaused) { restTimer.isPaused = false; restTimer.endAt = Date.now() + restTimer.remaining * 1000; }
-    else { restTimer.isPaused = true; }
-    renderRestTimer();
+    if (restTimer.isPaused) {
+      restTimer.isPaused = false;
+      restTimer.endAt = Date.now() + restTimer.remaining * 1000;
+    } else {
+      restTimer.isPaused = true;
+    }
+    pauseBtn.textContent = restTimer.isPaused ? 'Resume' : 'Pause';
   };
   var resetBtn = document.getElementById('resetRestBtn');
   if (resetBtn) resetBtn.onclick = function() {
-    var d = restTimer.defaultDuration || 90; restTimer.remaining = d; restTimer.endAt = Date.now() + d * 1000; restTimer.isPaused = false; renderRestTimer();
+    var d = restTimer.defaultDuration || 90;
+    restTimer.remaining = d;
+    restTimer.endAt = Date.now() + d * 1000;
+    restTimer.isPaused = false;
+    var cd = document.getElementById('restTimerCountdown');
+    if (cd) {
+      var m = Math.floor(d / 60);
+      var s = d % 60;
+      cd.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    }
   };
 }
 

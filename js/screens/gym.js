@@ -282,7 +282,7 @@ export function renderGym() {
 
       var rowInner = '<span style="font-size:17px;font-weight:600;color:#8A8A8E;font-variant-numeric:tabular-nums;width:16px;text-align:right">' + (i + 1) + '</span>'
         + '<input type="text" id="set_weight_' + ex.id + '_' + i + '" placeholder="' + placeholderW + '" class="precision-input set-weight ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillW + '" data-ex="' + ex.id + '" data-set-index="' + i + '" data-is-bw="' + (isBW ? '1' : '0') + '" value="' + inputW + '" inputmode="decimal" enterkeyhint="next" ' + (logged ? 'disabled' : '') + '>'
-        + '<input type="number" min="1" max="50" id="set_reps_' + ex.id + '_' + i + '" placeholder="' + placeholderR + '" class="precision-input set-reps ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillR + '" data-ex="' + ex.id + '" data-set-index="' + i + '" value="' + inputR + '" inputmode="numeric" enterkeyhint="next" ' + (logged ? 'disabled' : '') + '>'
+        + '<input type="text" id="set_reps_' + ex.id + '_' + i + '" placeholder="' + placeholderR + '" class="precision-input set-reps ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillR + '" data-ex="' + ex.id + '" data-set-index="' + i + '" value="' + inputR + '" inputmode="numeric" enterkeyhint="next" ' + (logged ? 'disabled' : '') + '>'
         + '<button type="button" class="rir-cycle-text" data-cycle-rir="' + ex.id + '" data-set-index="' + i + '" ' + (logged ? 'disabled' : '') + '>' + rirDisplay + '</button>'
         + '<select class="set-rir" data-ex="' + ex.id + '" data-set-index="' + i + '" style="display:none">'
         + '<option value="3" ' + (valueRir === 3 ? 'selected' : '') + '>3+</option>'

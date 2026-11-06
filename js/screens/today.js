@@ -13,8 +13,8 @@ import { openFoodSearch, openCustomFoodBuilder, openRecipeBuilder, openCustomFoo
 import { addQuickFood, getStaplesShelfHTML, getMergedStaples, openPortionSheet, buildWeekDotRowHTML, openWorkoutOverrideSheet, buildCalRingHTML, buildWeightTrendChip, buildBackupNudgeHTML, bindBackupNudgeEvents, triggerTodayAnimations } from "./today/widgets.js";
 import { buildCatchupCardHTML, bindCatchupCardEvents } from "./today/catchup-card.js";
 import { openSettings } from "./settings.js";
-export * from "./today/food-modal.js";
-export * from "./today/widgets.js";
+import { sessionSetCount } from "../lib/schedule.js";
+export * from "./today/food-modal.js"; export * from "./today/widgets.js";
 
 export function renderTodaySimple() {
   window.renderTodaySimple = renderTodaySimple;
@@ -38,7 +38,7 @@ export function renderTodaySimple() {
   if (lastSpace > 0) cleanWorkoutName = cleanWorkoutName.substring(0, lastSpace) + '\u00A0' + cleanWorkoutName.substring(lastSpace + 1);
 
   var exercises = (session && session.exercises) ? session.exercises : [];
-  var totalPlannedSets = exercises.reduce(function (acc, ex) { return acc + (ex.sets || 0); }, 0);
+  var totalPlannedSets = sessionSetCount(session);
   var loggedSets = exercises.reduce(function (acc, ex) {
     var aid = (targetRec.swaps && targetRec.swaps[ex.id]) || ex.id;
     return acc + ((targetRec.workout || {})[aid] || []).filter(Boolean).length;

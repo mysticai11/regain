@@ -4,7 +4,7 @@ import { detectMissedDay, planSlide, buildMergedSession } from "../../lib/catchu
 import { getWeekOverrides, saveWeekOverrides, getCatchupDecisions, setCatchupDecision, getCatchupSettings } from "../../storage-catchup.js";
 import { scheduledSessionFor, canonicalSessionName, canonicalSessionLabel } from "../../lib/schedule.js";
 import { getActiveProgram, getWeeklySchedule } from "../../data/plan.js";
-import { dayRecord, allDayKeys } from "../../storage.js";
+import { dayRecord, saveDayRecord, allDayKeys } from "../../storage.js";
 import { todayKey, esc } from "../../lib/format.js";
 import { triggerHaptic } from "../../lib/dom.js";
 import { showToast, showUndoToast } from "../../components/toast.js";
@@ -312,6 +312,7 @@ export function openMergePreviewSheet(todayDateKey, missedDateKey, onCompleted) 
         var rec = dayRecord(tKey);
         rec.isMerged = true;
         rec.catchupFrom = missedDateKey;
+        saveDayRecord(tKey, rec);
 
         window.activeGymDateKey = tKey;
         if (typeof onCompleted === 'function') onCompleted();
@@ -329,6 +330,7 @@ export function openMergePreviewSheet(todayDateKey, missedDateKey, onCompleted) 
           var r = dayRecord(tKey);
           delete r.isMerged;
           delete r.catchupFrom;
+          saveDayRecord(tKey, r);
           if (typeof onCompleted === 'function') onCompleted();
         });
       };

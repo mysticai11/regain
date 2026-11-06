@@ -199,26 +199,33 @@ export function renderProgressSimple(mode, historySubTab) {
     if (weightMeta) {
       if (latest != null) {
         var latestAvg = (weightValues.length && weightValues[weightValues.length - 1].avg != null) ? weightValues[weightValues.length - 1].avg : latest;
-        var toGoalText = toGoal != null ? ((toGoal > 0 ? '+' : '') + toGoal.toFixed(1) + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span>') : '—';
-        var rateDisplay = weeklyRate != null ? ((weeklyRate >= 0 ? '+' : '') + weeklyRate.toFixed(2) + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg/wk</span>') : '—';
+        var toGoalText = toGoal != null ? ((toGoal > 0 ? '+' : '') + toGoal.toFixed(1) + ' <span style="font-size:11px;color:#8A8A8E;font-weight:500">kg</span>') : '—';
+        var rateDisplay = weeklyRate != null ? ((weeklyRate >= 0 ? '+' : '') + weeklyRate.toFixed(2) + ' <span style="font-size:11px;color:#8A8A8E;font-weight:500">kg/wk</span>') : '—';
 
-        weightMeta.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;text-align:left">'
-          + '<div>'
-            + '<div class="t-micro" style="color:#8A8A8E;font-size:11px;text-transform:uppercase;letter-spacing:0.04em">7-Day Avg</div>'
-            + '<div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.2;margin-top:2px">' + latestAvg.toFixed(1) + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span></div>'
+        var subInfoHTML = '';
+        if (entries.length < 5) {
+          subInfoHTML = '<div style="font-size:11px;color:#8A8A8E;text-align:center;margin-top:10px;padding-top:10px;border-top:1px solid #1C1C1F">Log 5+ weigh-ins for weekly rate & pace</div>';
+        } else if (advisorCard) {
+          subInfoHTML = '<div style="margin-top:10px;padding-top:10px;border-top:1px solid #1C1C1F">' + advisorCard + '</div>';
+        }
+
+        weightMeta.innerHTML = '<div style="background:#141416;border:1px solid #1C1C1F;border-radius:16px;padding:14px 16px;margin-top:14px">'
+          + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;text-align:center">'
+            + '<div style="padding-right:8px;border-right:1px solid #1C1C1F">'
+              + '<div style="color:#8A8A8E;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">7-Day Avg</div>'
+              + '<div class="tabnum" style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:4px">' + latestAvg.toFixed(1) + ' <span style="font-size:11px;color:#8A8A8E;font-weight:500">kg</span></div>'
+            + '</div>'
+            + '<div style="padding:0 8px;border-right:1px solid #1C1C1F">'
+              + '<div style="color:#8A8A8E;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Rate</div>'
+              + '<div class="tabnum" style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:4px">' + rateDisplay + '</div>'
+            + '</div>'
+            + '<div style="padding-left:8px">'
+              + '<div style="color:#8A8A8E;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">To ' + Math.round(targetW) + ' kg</div>'
+              + '<div class="tabnum" style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:4px">' + toGoalText + '</div>'
+            + '</div>'
           + '</div>'
-          + '<div>'
-            + '<div class="t-micro" style="color:#8A8A8E;font-size:11px;text-transform:uppercase;letter-spacing:0.04em">Rate</div>'
-            + '<div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.2;margin-top:2px">' + rateDisplay + '</div>'
-          + '</div>'
-          + '<div>'
-            + '<div class="t-micro" style="color:#8A8A8E;font-size:11px;text-transform:uppercase;letter-spacing:0.04em">To ' + Math.round(targetW) + ' kg</div>'
-            + '<div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.2;margin-top:2px">' + toGoalText + '</div>'
-          + '</div>'
-          + '</div>'
-          + (entries.length < 5
-              ? '<div style="font-size:15px;color:#8A8A8E;margin-top:10px">Log 5+ weigh-ins for weekly rate</div>'
-              : (advisorCard ? ('<div style="margin-top:12px">' + advisorCard + '</div>') : ''));
+          + subInfoHTML
+          + '</div>';
       } else {
         weightMeta.innerHTML = '<div style="padding:12px 0;font-size:15px;color:#8A8A8E">No weight entries yet</div>';
       }
@@ -367,18 +374,10 @@ export function renderProgressSimple(mode, historySubTab) {
   }
   var liftSelect=document.getElementById('liftSelect'); if(liftSelect) liftSelect.onchange=render;
   document.querySelectorAll('[data-edit-workout-session]').forEach(function(btn){
-    btn.onclick = function(e){
-      if (e && e.stopPropagation) e.stopPropagation();
-      if (e && e.preventDefault) e.preventDefault();
-      openEditWorkoutSheet(btn.dataset.editWorkoutSession);
-    };
+    btn.onclick = function(e){ if (e && e.stopPropagation) e.stopPropagation(); openEditWorkoutSheet(btn.dataset.editWorkoutSession); };
   });
   document.querySelectorAll('[data-session-menu]').forEach(function(btn){
-    btn.onclick = function(e){
-      if (e && e.stopPropagation) e.stopPropagation();
-      if (e && e.preventDefault) e.preventDefault();
-      openSessionMenu(btn.dataset.sessionMenu);
-    };
+    btn.onclick = function(e){ if (e && e.stopPropagation) e.stopPropagation(); openSessionMenu(btn.dataset.sessionMenu); };
   });
   document.querySelectorAll('[data-quick-edit-set]').forEach(function(btn){
     btn.onclick = function() {

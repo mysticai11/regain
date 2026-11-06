@@ -3,6 +3,7 @@
 import { ls, sv, dayRecord, saveDayRecord, SQLiteStorage } from "./storage.js";
 import { showToast } from "./components/toast.js";
 import { getExerciseData, getActiveProgram } from "./data/plan.js";
+import { getWeekOverrides } from "./storage-catchup.js";
 
 export var WORKOUT_SESSIONS_KEY = 'rg_workout_sessions';
 export var WORKOUT_SESSIONS_VERSION = 3;
@@ -107,10 +108,17 @@ export function getWorkoutSessions() {
   var sessions = Object.keys(store.sessions).map(function (id) {
     var session = store.sessions[id];
     if (session.dayKey && session.programDay != null) {
-      var liveGroups = groupWorkoutExercises(dayRecord(session.dayKey).workout);
+      var liveRec = dayRecord(session.dayKey);
+      var liveGroups = (liveRec && liveRec.isMerged)
+        ? [{
+            index: Number(session.programDay),
+            exercises: Object.keys((liveRec && liveRec.workout) || {}).filter(function(k){
+              return Array.isArray(liveRec.workout[k]) && liveRec.workout[k].some(function(s){ return s && (Number(s.weight) > 0 || Number(s.reps) > 0); });
+            }).map(function(k){ return { id: k, sets: liveRec.workout[k] || [] }; })
+          }]
+        : groupWorkoutExercises((liveRec && liveRec.workout) || {});
       var liveGroup = liveGroups.find(function (group) { return group.index === Number(session.programDay); });
       if (liveGroup) {
-        var liveRec = dayRecord(session.dayKey);
         var liveMeta = (liveRec.workoutMetaBySession || {})[String(session.programDay)] || liveRec.workoutMeta || {};
         var liveExercises = JSON.stringify(liveGroup.exercises);
         if (JSON.stringify(session.exercises || []) !== liveExercises) {
@@ -170,7 +178,21 @@ export function saveWorkoutSessionFromDay(dayKey, rec, sequence, options) {
     if (changed) sv(WORKOUT_SESSIONS_KEY, store);
     return null;
   }
-  var groups = groupWorkoutExercises(rec.workout);
+  var groups;
+  if (rec.isMerged) {
+    var allExs = Object.keys(rec.workout || {}).filter(function (id) {
+      return Array.isArray(rec.workout[id]) && rec.workout[id].some(function (s) {
+        return s && (Number(s.weight) > 0 || Number(s.reps) > 0);
+      });
+    }).map(function (id) { return { id: id, sets: rec.workout[id] || [] }; });
+    var overrides = getWeekOverrides();
+    var ov = overrides[dayKey];
+    var mergedProgDay = (ov && ov.programDay != null) ? ov.programDay : ((rec.workoutMeta && rec.workoutMeta.programDay != null) ? rec.workoutMeta.programDay : 0);
+    var mergedLabel = (ov && (ov.cleanName || ov.label)) || (rec.workoutMeta && (rec.workoutMeta.sessionLabel || rec.workoutMeta.programLabel)) || 'Merged Workout';
+    groups = [{ index: Number(mergedProgDay), label: mergedLabel, exercises: allExs }];
+  } else {
+    groups = groupWorkoutExercises(rec.workout);
+  }
   var programLength = (getActiveProgram() || []).length;
   var saved = [];
   groups.forEach(function (group, groupIndex) {
@@ -185,6 +207,7 @@ export function saveWorkoutSessionFromDay(dayKey, rec, sequence, options) {
       programLabel: group.label || identity.label,
       exerciseGroups: [group],
       exercises: group.exercises,
+      isMerged: !!rec.isMerged,
       completed: !!(groupMeta.completedAt || rec.workoutDone),
       completedAt: groupMeta.completedAt || null,
       startedAt: groupMeta.startedAt || null,
@@ -248,6 +271,8 @@ export function deleteWorkoutSession(sessionId) {
     if (!hasRemaining) {
       rec.workoutDone = false;
       rec.workout = {};
+      delete rec.isMerged;
+      delete rec.catchupFrom;
     }
     saveDayRecord(session.dayKey, rec);
   }

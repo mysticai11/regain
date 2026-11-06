@@ -78,7 +78,12 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
 
   document.querySelectorAll('.precision-input').forEach(function(inp){
     inp.addEventListener('focus', function(){
-      this.select();
+      var self = this;
+      setTimeout(function() {
+        if (typeof self.select === 'function') {
+          try { self.select(); } catch(e) {}
+        }
+      }, 50);
     });
   });
 
@@ -217,7 +222,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       draftRec.workoutDraft[exId] = draftRec.workoutDraft[exId] || [];
       draftRec.workoutDraft[exId][sIdx] = draftRec.workoutDraft[exId][sIdx] || {};
       draftRec.workoutDraft[exId][sIdx].rir = parseInt(nextVal, 10);
-      saveDayRecord(key, draftRec);
+      saveDayRecord(key, draftRec, { silent: true });
     };
   });
 
