@@ -2,7 +2,7 @@
 
 import { profile, activeGymDateKey, activeExpandedExId, setActiveExpandedExId, setTab } from "../state.js";
 import { dayRecord, saveDayRecord } from "../storage.js";
-import { getActiveProgram, getExerciseData, getWeeklySchedule, getCurrentWorkout } from "../data/plan.js";
+import { getActiveProgram, getExerciseData, getWeeklySchedule, getCurrentWorkout, sessionSetCount } from "../data/plan.js";
 import { todayKey, dateKey, formatDuration, workoutElapsed, esc, pad } from "../lib/format.js";
 import { playSound, triggerHaptic, ic } from "../lib/dom.js";
 import { showToast } from "../components/toast.js";
@@ -58,7 +58,7 @@ export function renderGym() {
 
   var workoutIndex = curWorkout.workoutIndex;
   var session = curWorkout.session || (prog && prog[0]) || { label: 'Workout', exercises: [] };
-  var totalPlanned = (session.exercises || []).reduce(function (total, ex) { return total + (ex.sets || 0); }, 0);
+  var totalPlanned = sessionSetCount(session);
   var loggedTotal = (session.exercises || []).reduce(function (total, ex) {
     var actualId = (rec.swaps && rec.swaps[ex.id]) || ex.id;
     return total + ((rec.workout || {})[actualId] || []).filter(Boolean).length;
@@ -194,7 +194,7 @@ export function renderGym() {
 
   var exHTML = uniqueExercises.map(function (exOrig, exIndex) {
     var exId = (rec.swaps && rec.swaps[exOrig.id]) ? rec.swaps[exOrig.id] : exOrig.id;
-    var ex = getExerciseData(exId) || exOrig;
+    var ex = Object.assign({}, getExerciseData(exId) || {}, exOrig);
     var isBW = isBodyweightExercise(ex.id, ex.name);
     var sets = (rec.workout || {})[ex.id] || [];
     var drafts = (rec.workoutDraft || {})[ex.id] || [];

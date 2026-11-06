@@ -24,10 +24,10 @@ export var BUILTIN_EXERCISE_CATALOG = [
   { id: 'assisted_pullup', name: 'Assisted Pull-up Machine', muscle: 'back,biceps', sets: 3, reps: '8–12', rir: '1–2', rest: 90, type: 'machine', cue: 'Counterbalanced weight, strict full range of motion' },
 
   // ── Chest ──
-  { id: 'bench', name: 'Flat Barbell Bench Press', muscle: 'chest,triceps', sets: 3, reps: '6–10', rir: '1–2', rest: 150, type: 'compound', cue: 'Arch upper back, bar down to lower sternum' },
+  { id: 'bench', name: 'Flat Bench Press', muscle: 'chest,triceps', sets: 2, reps: '6–10', rir: '1–2', rest: 150, type: 'compound', cue: 'Arch upper back, bar down to lower sternum' },
   { id: 'incline_bench', name: 'Incline Barbell Bench Press', muscle: 'chest,triceps', sets: 3, reps: '6–10', rir: '1–2', rest: 150, type: 'compound', cue: '30° incline for clavicular upper chest' },
   { id: 'flat_db_press', name: 'Flat Dumbbell Press', muscle: 'chest,triceps', sets: 3, reps: '8–12', rir: '1–2', rest: 120, type: 'compound', cue: 'Deep stretch at bottom, press up smoothly' },
-  { id: 'incline_db_press', name: 'Incline Dumbbell Press (30°)', muscle: 'chest,triceps', sets: 3, reps: '8–12', rir: '1–2', rest: 120, cue: 'Slight incline, drive elbows inward at top' },
+  { id: 'incline_db_press', name: 'Incline Dumbbell Press', muscle: 'chest,triceps', sets: 2, reps: '8–12', rir: '1–2', rest: 120, type: 'compound', cue: 'Slight incline, drive elbows inward at top' },
   { id: 'steep_incline_db_press', name: 'Steep Incline Dumbbell Press (45°)', muscle: 'chest,shoulders', sets: 3, reps: '8–12', rir: '1–2', rest: 120, type: 'compound', cue: 'High upper chest & anterior delt recruitment' },
   { id: 'decline_db_press', name: 'Decline Dumbbell Press', muscle: 'chest,triceps', sets: 3, reps: '8–12', rir: '1–2', rest: 90, type: 'compound', cue: 'Lower chest focus, shoulder-friendly path' },
   { id: 'machine_chest_press', name: 'Seated Chest Press Machine', muscle: 'chest,triceps', sets: 3, reps: '8–12', rir: '1–2', rest: 90, type: 'machine', cue: 'Adjust seat so handles align with mid-chest' },
@@ -72,7 +72,7 @@ export var BUILTIN_EXERCISE_CATALOG = [
   { id: 'overhead_triceps_ext', name: 'Overhead Cable Triceps Extension', muscle: 'triceps', sets: 3, reps: '10–15', rir: '0–1', rest: 75, type: 'cable', cue: 'Long head stretch behind neck, extend arms forward' },
   { id: 'overhead_db_ext', name: 'Single Dumbbell Overhead Extension', muscle: 'triceps', sets: 3, reps: '8–12', rir: '1–2', rest: 75, type: 'isolation', cue: 'Two-handed cup grip, deep stretch behind head' },
   { id: 'skull_crushers', name: 'Skull Crushers (Lying EZ-Bar Extension)', muscle: 'triceps', sets: 3, reps: '8–12', rir: '1–2', rest: 90, type: 'isolation', cue: 'Lower bar to crown of head, keep elbows tucked' },
-  { id: 'close_grip_bench', name: 'Close-Grip Bench Press', muscle: 'triceps,chest', sets: 3, reps: '6–10', rir: '1–2', rest: 120, type: 'compound', cue: 'Hands shoulder-width apart, elbows tucked to sides' },
+  { id: 'close_grip_bench', name: 'Close-Grip Bench Press (flat bench)', muscle: 'triceps,chest', sets: 2, reps: '8–12', rir: '1–2', rest: 120, type: 'compound', cue: 'Hands shoulder-width apart, elbows tucked to sides' },
   { id: 'jm_press', name: 'JM Press (Smith Machine / Barbell)', muscle: 'triceps', sets: 3, reps: '8–10', rir: '1–2', rest: 90, type: 'compound', cue: 'Hybrid close-grip bench and skull crusher' },
   { id: 'tricep_dips', name: 'Upright Triceps Dips', muscle: 'triceps,chest', sets: 3, reps: '8–12', rir: '1–2', rest: 90, type: 'compound', bodyweight: true, cue: 'Keep torso upright to focus load onto triceps' },
   { id: 'cable_kickback', name: 'Single-Arm Cable Triceps Kickback', muscle: 'triceps', sets: 3, reps: '12–15', rir: '0–1', rest: 60, type: 'cable', cue: 'Upper arm parallel to floor, full lockout contraction' },

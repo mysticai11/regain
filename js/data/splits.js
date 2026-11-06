@@ -142,11 +142,11 @@ export var DEFAULT_5DAY_ROUTINE = [
     dayIndex: 0,
     scheduleDay: 1,
     exercises: [
-      {id:'incline_bench', name:'Barbell Incline Bench Press', muscle:'chest', sets:2, reps:'6–10', rir:'1–2', rest:150, cue:'Upper chest', weightIncrement:2.5, type:'compound'},
-      {id:'machine_row', name:'Machine Row', muscle:'back', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Mid back', weightIncrement:2.5, type:'compound'},
-      {id:'chest_press_machine', name:'Chest Press Machine', muscle:'chest', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Chest', weightIncrement:2.5, type:'machine'},
-      {id:'lat_pulldown', name:'Lat Pulldown', muscle:'back', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Lats', weightIncrement:2.5, type:'cable'},
-      {id:'pec_deck', name:'Pec Deck Fly', muscle:'chest', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Chest stretch', weightIncrement:2.5, type:'isolation'}
+      {id:'incline_bench', name:'Barbell Incline Bench Press', muscle:'chest', primaryMuscle:'chest', secondaryMuscle:'triceps', sets:2, reps:'6–10', rir:'1–2', rest:150, cue:'Upper chest', weightIncrement:2.5, type:'compound', isCompound:true},
+      {id:'machine_row', name:'Machine Row', muscle:'back', primaryMuscle:'back', secondaryMuscle:'biceps', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Mid back', weightIncrement:2.5, type:'compound', isCompound:true},
+      {id:'chest_press_machine', name:'Chest Press Machine', muscle:'chest', primaryMuscle:'chest', secondaryMuscle:'triceps', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Chest', weightIncrement:2.5, type:'machine', isCompound:true},
+      {id:'lat_pulldown', name:'Lat Pulldown', muscle:'back', primaryMuscle:'back', secondaryMuscle:'biceps', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Lats', weightIncrement:2.5, type:'cable', isCompound:true},
+      {id:'pec_deck', name:'Pec Deck Fly', muscle:'chest', primaryMuscle:'chest', secondaryMuscle:'', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Chest stretch', weightIncrement:2.5, type:'isolation', isCompound:false}
     ]
   },
   {
@@ -154,60 +154,60 @@ export var DEFAULT_5DAY_ROUTINE = [
     dayIndex: 1,
     scheduleDay: 2,
     exercises: [
-      {id:'leg_press', name:'Leg Press', muscle:'quads,glutes', sets:2, reps:'8–12', rir:'1–2', rest:150, cue:'Quads & glutes', weightIncrement:5, type:'compound'},
-      {id:'romanian_deadlift', name:'Romanian Deadlift', muscle:'hamstrings', sets:2, reps:'8–12', rir:'1–2', rest:150, cue:'Hamstrings & hinge', weightIncrement:2.5, type:'compound'},
-      {id:'leg_extension', name:'Leg Extension', muscle:'quads', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Quads', weightIncrement:2.5, type:'isolation'},
-      {id:'hamstring_curl', name:'Hamstring Curl', muscle:'hamstrings', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Hamstrings', weightIncrement:2.5, type:'isolation'},
-      {id:'shoulder_press_machine', name:'Shoulder Press Machine', muscle:'shoulders', sets:2, reps:'6–10', rir:'1–2', rest:120, cue:'Deltoids', weightIncrement:2.5, type:'machine'},
-      {id:'lateral_raise_machine', name:'Lateral Raise Machine', muscle:'shoulders', sets:3, reps:'10–15', rir:'1–2', rest:90, cue:'Side delts', weightIncrement:1.25, type:'isolation'}
+      {id:'leg_press', name:'Leg Press', muscle:'quads,glutes', primaryMuscle:'quads', secondaryMuscle:'glutes', sets:2, reps:'8–12', rir:'1–2', rest:150, cue:'Quads & glutes', weightIncrement:5, type:'compound', isCompound:true},
+      {id:'romanian_deadlift', name:'Romanian Deadlift', muscle:'hamstrings', primaryMuscle:'hamstrings', secondaryMuscle:'glutes', sets:2, reps:'8–12', rir:'1–2', rest:150, cue:'Hamstrings & hinge', weightIncrement:2.5, type:'compound', isCompound:true},
+      {id:'leg_extension', name:'Leg Extension', muscle:'quads', primaryMuscle:'quads', secondaryMuscle:'', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Quads', weightIncrement:2.5, type:'isolation', isCompound:false},
+      {id:'hamstring_curl', name:'Hamstring Curl', muscle:'hamstrings', primaryMuscle:'hamstrings', secondaryMuscle:'', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Hamstrings', weightIncrement:2.5, type:'isolation', isCompound:false},
+      {id:'shoulder_press_machine', name:'Shoulder Press Machine', muscle:'shoulders', primaryMuscle:'shoulders', secondaryMuscle:'triceps', sets:2, reps:'6–10', rir:'1–2', rest:120, cue:'Deltoids', weightIncrement:2.5, type:'machine', isCompound:true},
+      {id:'lateral_raise_machine', name:'Lateral Raise Machine', muscle:'shoulders', primaryMuscle:'shoulders', secondaryMuscle:'', sets:3, reps:'10–15', rir:'1–2', rest:90, cue:'Side delts', weightIncrement:1.25, type:'isolation', isCompound:false}
     ]
   },
   {
-    label: 'Day 4 — Arms',
+    label: 'Day 3 — Arms',
     dayIndex: 2,
     scheduleDay: 4,
     exercises: [
-      {id:'ez_bar_curl', name:'EZ-Bar Curl', muscle:'biceps', sets:2, reps:'8–12', rir:'1–2', rest:90, cue:'Biceps', weightIncrement:2.5, type:'isolation'},
-      {id:'overhead_triceps_ext', name:'Overhead Triceps Extension', muscle:'triceps', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Triceps overhead stretch', weightIncrement:2.5, type:'isolation'},
-      {id:'hammer_curl', name:'Hammer Curl', muscle:'forearms', sets:2, reps:'8–12', rir:'1–2', rest:90, cue:'Brachialis & forearms', weightIncrement:2, type:'isolation'},
-      {id:'triceps_pushdown', name:'Triceps Pushdown', muscle:'triceps', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Triceps lateral head', weightIncrement:2.5, type:'isolation'},
-      {id:'incline_db_curl', name:'Incline Dumbbell Curl', muscle:'biceps', sets:2, reps:'8–12', rir:'1–2', rest:90, cue:'Biceps stretch', weightIncrement:2, type:'isolation'}
+      {id:'ez_bar_curl', name:'EZ-Bar Curl', muscle:'biceps', primaryMuscle:'biceps', secondaryMuscle:'', sets:2, reps:'8–12', rir:'1–2', rest:90, cue:'Biceps', weightIncrement:2.5, type:'isolation', isCompound:false},
+      {id:'overhead_triceps_ext', name:'Overhead Triceps Extension', muscle:'triceps', primaryMuscle:'triceps', secondaryMuscle:'', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Triceps overhead stretch', weightIncrement:2.5, type:'isolation', isCompound:false},
+      {id:'hammer_curl', name:'Hammer Curl', muscle:'forearms', primaryMuscle:'forearms', secondaryMuscle:'biceps', sets:2, reps:'8–12', rir:'1–2', rest:90, cue:'Brachialis & forearms', weightIncrement:2, type:'isolation', isCompound:false},
+      {id:'triceps_pushdown', name:'Triceps Pushdown', muscle:'triceps', primaryMuscle:'triceps', secondaryMuscle:'', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Triceps lateral head', weightIncrement:2.5, type:'isolation', isCompound:false},
+      {id:'incline_db_curl', name:'Incline Dumbbell Curl', muscle:'biceps', primaryMuscle:'biceps', secondaryMuscle:'', sets:2, reps:'8–12', rir:'1–2', rest:90, cue:'Biceps stretch', weightIncrement:2, type:'isolation', isCompound:false}
     ]
   },
   {
-    label: 'Day 5 — Chest & Back B',
+    label: 'Day 4 — Chest & Back B',
     dayIndex: 3,
     scheduleDay: 5,
     exercises: [
-      {id:'bench', name:'Flat Bench Press', muscle:'chest', sets:2, reps:'6–10', rir:'1–2', rest:150, cue:'Chest', weightIncrement:2.5, type:'compound'},
-      {id:'machine_row_b', name:'Machine Row', muscle:'back', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Mid back', weightIncrement:2.5, type:'compound'},
-      {id:'incline_db_press', name:'Incline Dumbbell Press', muscle:'chest', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Upper chest', weightIncrement:2, type:'compound'},
-      {id:'lat_pulldown_b', name:'Lat Pulldown', muscle:'back', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Lats', weightIncrement:2.5, type:'cable'},
-      {id:'close_grip_bench', name:'Close-Grip Bench Press (flat bench)', muscle:'triceps,chest', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Triceps & chest', weightIncrement:2.5, type:'compound'},
-      {id:'pec_deck_b', name:'Pec Deck Fly', muscle:'chest', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Chest stretch', weightIncrement:2.5, type:'isolation'}
+      {id:'bench', name:'Flat Bench Press', muscle:'chest', primaryMuscle:'chest', secondaryMuscle:'triceps', sets:2, reps:'6–10', rir:'1–2', rest:150, cue:'Chest', weightIncrement:2.5, type:'compound', isCompound:true},
+      {id:'machine_row_b', name:'Machine Row', muscle:'back', primaryMuscle:'back', secondaryMuscle:'biceps', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Mid back', weightIncrement:2.5, type:'compound', isCompound:true},
+      {id:'incline_db_press', name:'Incline Dumbbell Press', muscle:'chest', primaryMuscle:'chest', secondaryMuscle:'triceps', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Upper chest', weightIncrement:2, type:'compound', isCompound:true},
+      {id:'lat_pulldown_b', name:'Lat Pulldown', muscle:'back', primaryMuscle:'back', secondaryMuscle:'biceps', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Lats', weightIncrement:2.5, type:'cable', isCompound:true},
+      {id:'close_grip_bench', name:'Close-Grip Bench Press (flat bench)', muscle:'triceps,chest', primaryMuscle:'triceps', secondaryMuscle:'chest', sets:2, reps:'8–12', rir:'1–2', rest:120, cue:'Triceps & chest', weightIncrement:2.5, type:'compound', isCompound:true},
+      {id:'pec_deck_b', name:'Pec Deck Fly', muscle:'chest', primaryMuscle:'chest', secondaryMuscle:'', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Chest stretch', weightIncrement:2.5, type:'isolation', isCompound:false}
     ]
   },
   {
-    label: 'Day 6 — Legs & Shoulders B',
+    label: 'Day 5 — Legs & Shoulders B',
     dayIndex: 4,
     scheduleDay: 6,
     exercises: [
-      {id:'hamstring_curl_b', name:'Hamstring Curl', muscle:'hamstrings', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Hamstrings', weightIncrement:2.5, type:'isolation'},
-      {id:'leg_extension_b', name:'Leg Extension', muscle:'quads', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Quads', weightIncrement:2.5, type:'isolation'},
-      {id:'shoulder_press_b', name:'Shoulder Press Machine', muscle:'shoulders', sets:2, reps:'6–10', rir:'1–2', rest:120, cue:'Deltoids', weightIncrement:2.5, type:'machine'},
-      {id:'lateral_raise_b', name:'Lateral Raise Machine', muscle:'shoulders', sets:3, reps:'10–15', rir:'1–2', rest:90, cue:'Side delts', weightIncrement:1.25, type:'isolation'},
-      {id:'rear_delt_fly', name:'Rear Delt Fly', muscle:'shoulders', sets:2, reps:'15', rir:'1–2', rest:90, cue:'Rear delts', weightIncrement:2.5, type:'isolation', setTags:[null, 'rest-pause (15+5+5, 0 RIR)']},
-      {id:'calves', name:'Calves', muscle:'calves', sets:2, reps:'12–20', rir:'1–2', rest:60, cue:'Calves', weightIncrement:2.5, type:'isolation'}
+      {id:'hamstring_curl_b', name:'Hamstring Curl', muscle:'hamstrings', primaryMuscle:'hamstrings', secondaryMuscle:'', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Hamstrings', weightIncrement:2.5, type:'isolation', isCompound:false},
+      {id:'leg_extension_b', name:'Leg Extension', muscle:'quads', primaryMuscle:'quads', secondaryMuscle:'', sets:2, reps:'10–15', rir:'1–2', rest:90, cue:'Quads', weightIncrement:2.5, type:'isolation', isCompound:false},
+      {id:'shoulder_press_b', name:'Shoulder Press Machine', muscle:'shoulders', primaryMuscle:'shoulders', secondaryMuscle:'triceps', sets:2, reps:'6–10', rir:'1–2', rest:120, cue:'Deltoids', weightIncrement:2.5, type:'machine', isCompound:true},
+      {id:'lateral_raise_b', name:'Lateral Raise Machine', muscle:'shoulders', primaryMuscle:'shoulders', secondaryMuscle:'', sets:3, reps:'10–15', rir:'1–2', rest:90, cue:'Side delts', weightIncrement:1.25, type:'isolation', isCompound:false},
+      {id:'rear_delt_fly', name:'Rear Delt Fly', muscle:'shoulders', primaryMuscle:'shoulders', secondaryMuscle:'', sets:2, reps:'15', rir:'1–2', rest:90, cue:'Rear delts', weightIncrement:2.5, type:'isolation', isCompound:false, setTags:[null, 'rest-pause (15+5+5, 0 RIR)']},
+      {id:'calves', name:'Calves', muscle:'calves', primaryMuscle:'calves', secondaryMuscle:'', sets:2, reps:'12–20', rir:'1–2', rest:60, cue:'Calves', weightIncrement:2.5, type:'isolation', isCompound:false}
     ]
   }
 ];
 
 export var SCHEDULE_7DAY = [
-  { dayNum: 1, name: 'Day 1', weekday: 'Mon', label: 'Chest & Back A', isRest: false, workoutIndex: 0 },
-  { dayNum: 2, name: 'Day 2', weekday: 'Tue', label: 'Legs & Shoulders A', isRest: false, workoutIndex: 1 },
+  { dayNum: 1, name: 'Day 1', weekday: 'Mon', label: 'Day 1 — Chest & Back A', isRest: false, workoutIndex: 0 },
+  { dayNum: 2, name: 'Day 2', weekday: 'Tue', label: 'Day 2 — Legs & Shoulders A', isRest: false, workoutIndex: 1 },
   { dayNum: 3, name: 'Day 3', weekday: 'Wed', label: 'Rest Day', isRest: true, workoutIndex: null },
-  { dayNum: 4, name: 'Day 4', weekday: 'Thu', label: 'Arms', isRest: false, workoutIndex: 2 },
-  { dayNum: 5, name: 'Day 5', weekday: 'Fri', label: 'Chest & Back B', isRest: false, workoutIndex: 3 },
-  { dayNum: 6, name: 'Day 6', weekday: 'Sat', label: 'Legs & Shoulders B', isRest: false, workoutIndex: 4 },
+  { dayNum: 4, name: 'Day 4', weekday: 'Thu', label: 'Day 3 — Arms', isRest: false, workoutIndex: 2 },
+  { dayNum: 5, name: 'Day 5', weekday: 'Fri', label: 'Day 4 — Chest & Back B', isRest: false, workoutIndex: 3 },
+  { dayNum: 6, name: 'Day 6', weekday: 'Sat', label: 'Day 5 — Legs & Shoulders B', isRest: false, workoutIndex: 4 },
   { dayNum: 7, name: 'Day 7', weekday: 'Sun', label: 'Rest Day', isRest: true, workoutIndex: null }
 ];

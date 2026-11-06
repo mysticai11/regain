@@ -3,6 +3,7 @@
 import { profile, setState } from "../../state.js";
 import { sv } from "../../storage.js";
 import { getActiveProgram, DEFAULT_5DAY_ROUTINE } from "../../data/plan.js";
+import { validateTrainingDays, canonicalSessionLabel, canonicalSessionName } from "../../lib/schedule.js";
 import { openActionMenuSheet } from "../../components/sheet.js";
 import { showToast } from "../../components/toast.js";
 import { esc } from "../../lib/format.js";
@@ -80,10 +81,11 @@ export function openSplitManagerSheet() {
       }).join('');
 
       var totalSets = (day.exercises || []).reduce(function (acc, item) { return acc + (Number(item.sets) || 0); }, 0);
+      var displayLabel = canonicalSessionLabel(day, dIdx);
       return '<div class="split-day-card" style="padding:16px 0;border-bottom:1px solid #222;margin-bottom:8px">'
         + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:8px">'
           + '<div style="flex:1;min-width:0">'
-            + '<div style="font-size:17px;font-weight:600;color:#F5F5F4;line-height:1.25">' + esc(day.label) + '</div>'
+            + '<div style="font-size:17px;font-weight:600;color:#F5F5F4;line-height:1.25">' + esc(displayLabel) + '</div>'
             + '<div style="font-size:15px;color:#8A8A8E;margin-top:2px">' + exCount + ' exercises · ' + totalSets + ' sets</div>'
           + '</div>'
           + '<button type="button" class="btn-ghost" data-day-menu="' + dIdx + '" style="font-size:17px;line-height:1;padding:4px 8px;color:#8A8A8E;background:none;border:none;cursor:pointer">···</button>'
@@ -92,6 +94,17 @@ export function openSplitManagerSheet() {
         + '<div style="margin-top:10px"><button type="button" class="btn-text-action" data-add-ex-day="' + dIdx + '" style="font-size:15px;color:#F5F5F4;font-weight:600;background:none;border:none;padding:6px 0;cursor:pointer">+ Add exercise</button></div>'
         + '</div>';
     }).join('');
+
+    var val = validateTrainingDays(prog, tdays);
+    var mismatchWarningHTML = !val.valid
+      ? ('<div id="planMismatchWarning" style="background:#1C1C1F;border:1px solid #FF4D4F;border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">'
+          + '<div>'
+          + '<div style="color:#FF4D4F;font-weight:600;font-size:15px">Schedule mismatch</div>'
+          + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">' + esc(val.message) + '</div>'
+          + '</div>'
+          + '<button type="button" class="btn-text-action" id="fixTrainingDaysBtn" style="color:#C6F432;font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;padding:0">Fix</button>'
+        + '</div>')
+      : '';
 
     overlay.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%">'
       + '<div class="sheet-handle"></div>'
@@ -103,6 +116,7 @@ export function openSplitManagerSheet() {
         + '</div>'
       + '</div>'
       + '<div style="font-size:15px;color:#8A8A8E;margin-bottom:16px">Customize days, sessions, exercise order, and swaps. Saved plans apply to future workouts.</div>'
+      + mismatchWarningHTML
       + '<div style="margin-bottom:20px">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span class="eyebrow">Days You Train</span><span style="font-size:11px;color:#8A8A8E;font-weight:600">' + tdays.length + ' training · ' + (7 - tdays.length) + ' rest</span></div>'
         + '<div class="day-toggles">' + dayTogglesHTML + '</div>'
@@ -116,6 +130,38 @@ export function openSplitManagerSheet() {
       + '</div>';
 
     overlay.querySelector('#closeSplitEditorBtn').onclick = function () { overlay.remove(); };
+
+    var fixBtn = overlay.querySelector('#fixTrainingDaysBtn');
+    if (fixBtn) {
+      fixBtn.onclick = function() {
+        if (prog.length === 5) tdays = [1, 2, 4, 5, 6];
+        else if (prog.length === 4) tdays = [1, 2, 4, 5];
+        else if (prog.length === 3) tdays = [1, 3, 5];
+        else if (prog.length === 2) tdays = [1, 4];
+        else if (prog.length === 6) tdays = [1, 2, 3, 4, 5, 6];
+        else tdays = [1, 2, 3, 4, 5, 6, 0].slice(0, prog.length);
+        renderSplitUI();
+      };
+    }
+
+    overlay.querySelectorAll('[data-split-day]').forEach(function (btn) {
+      btn.onclick = function () {
+        var day = parseInt(btn.dataset.splitDay, 10);
+        if (tdays.includes(day)) {
+          if (tdays.length <= 1) return;
+          tdays = tdays.filter(function (d) { return d !== day; });
+        } else {
+          if (tdays.length >= 6) return;
+          tdays.push(day);
+          tdays.sort(function (a, b) {
+            var aOrder = a === 0 ? 7 : a;
+            var bOrder = b === 0 ? 7 : b;
+            return aOrder - bOrder;
+          });
+        }
+        renderSplitUI();
+      };
+    });
 
     overlay.querySelectorAll('[data-add-ex-day]').forEach(function (btn) {
       btn.onclick = function () {

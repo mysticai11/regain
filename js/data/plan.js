@@ -2,11 +2,13 @@
 
 import { profile } from "../state.js";
 import { sv, dayRecord, saveDayRecord, getWorkoutSessions } from "../storage.js";
-import { allDayKeys } from "../lib/format.js";
+import { allDayKeys, todayKey } from "../lib/format.js";
 import { DEFAULT_5DAY_ROUTINE } from "./splits.js";
 import { getAllKnownExercises, getCustomExercises, saveCustomExercise } from "./exercises.js";
+import { scheduledSessionFor } from "../lib/schedule.js";
 export * from "./splits.js";
 export * from "./exercises.js";
+export { scheduledSessionFor, sessionSetCount, canonicalSessionName, canonicalSessionLabel } from "../lib/schedule.js";
 
 export var CAL_TARGET_REST  = 2700;
 export var CAL_TARGET_GYM   = 3000;
@@ -19,31 +21,34 @@ export function getWeeklySchedule() {
   var prog = getActiveProgram();
   var weekdays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   var jsDays = [1, 2, 3, 4, 5, 6, 0]; // Monday (1) to Sunday (0)
-  var tdays = (profile && Array.isArray(profile.trainingDays) && profile.trainingDays.length > 0)
+  var rawTdays = (profile && Array.isArray(profile.trainingDays) && profile.trainingDays.length > 0)
     ? profile.trainingDays
     : [1, 2, 4, 5, 6];
   
+  var tdays = rawTdays.slice().sort(function(a, b) {
+    var aOrder = a === 0 ? 7 : a;
+    var bOrder = b === 0 ? 7 : b;
+    return aOrder - bOrder;
+  });
+
   var schedule = [];
-  var workoutCursor = 0;
   
   for (var i = 0; i < 7; i++) {
     var dayNum = i + 1; // 1..7 (Mon=1 .. Sun=7)
     var jsDay = jsDays[i]; // 0..6
-    var isTrain = tdays.includes(jsDay);
     var dayCode = weekdays[i];
+    var trainIdx = tdays.indexOf(jsDay);
     
-    if (isTrain && prog.length > 0) {
-      var wIdx = workoutCursor % prog.length;
-      workoutCursor++;
-      var session = prog[wIdx] || {};
+    if (trainIdx >= 0 && trainIdx < prog.length) {
+      var session = prog[trainIdx] || {};
       schedule.push({
         dayNum: dayNum,
         jsDay: jsDay,
         name: 'Day ' + dayNum,
         weekday: dayCode,
-        label: session.label || ('Workout ' + (wIdx + 1)),
+        label: session.label || ('Day ' + (trainIdx + 1)),
         isRest: false,
-        workoutIndex: wIdx
+        workoutIndex: trainIdx
       });
     } else {
       schedule.push({
@@ -62,7 +67,7 @@ export function getWeeklySchedule() {
 
 export function migrateWorkoutRoutineSwap() {
   if (profile) {
-    if (Array.isArray(profile.trainingDays) && profile.trainingDays.join(',') === '1,2,3,5,6') {
+    if (Array.isArray(profile.trainingDays) && (profile.trainingDays.join(',') === '1,2,3,5,6' || profile.trainingDays.join(',') === '4,6')) {
       profile.trainingDays = [1, 2, 4, 5, 6];
       sv('rg_profile', profile);
     }
@@ -70,16 +75,15 @@ export function migrateWorkoutRoutineSwap() {
       var d2 = profile.activeSplitData[2];
       var d3 = profile.activeSplitData[3];
       if (d2 && d3 && String(d2.label).indexOf('Chest & Back B') > -1 && String(d3.label).indexOf('Arms') > -1) {
-        d2.label = 'Day 5 — Chest & Back B';
-        d2.dayIndex = 3;
-        d2.scheduleDay = 5;
-        d3.label = 'Day 4 — Arms';
-        d3.dayIndex = 2;
-        d3.scheduleDay = 4;
         profile.activeSplitData[2] = d3;
         profile.activeSplitData[3] = d2;
-        sv('rg_profile', profile);
       }
+      profile.activeSplitData.forEach(function(day, idx) {
+        day.dayIndex = idx;
+        var clean = (day.label || '').replace(/^Day\s*\d+\s*[—–·•\-]\s*/i, '').trim();
+        day.label = 'Day ' + (idx + 1) + ' — ' + clean;
+      });
+      sv('rg_profile', profile);
     }
     if (!profile.migratedRemovedSkillExercises) {
       if (profile.activeSplitData && Array.isArray(profile.activeSplitData)) {
@@ -321,48 +325,29 @@ export function isBodyweightExercise(id, name) {
 }
 
 export function getWorkoutForDate(dayKey, rec) {
-  var prog = getActiveProgram();
-  var d = new Date(dayKey + 'T00:00:00').getDay();
-  var dayNum = d === 0 ? 7 : d;
-  var weeklySched = getWeeklySchedule();
-  var matched = weeklySched.find(function(s){ return s.dayNum === dayNum; });
-  var defaultIndex = (matched && !matched.isRest) ? matched.workoutIndex : null;
-
-  var index = rec && rec.selectedWorkout !== undefined ? rec.selectedWorkout : defaultIndex;
-  if (index === null) {
-    return { index: null, isRest: true, session: null };
-  }
-  var safeIndex = index == null ? 0 : Math.min(Math.max(0, index), prog.length - 1);
-  return { index: safeIndex, isRest: false, session: prog[safeIndex] || prog[0] };
+  var resolved = scheduledSessionFor(dayKey, { rec: rec });
+  return {
+    index: resolved.workoutIndex,
+    isRest: resolved.isRest,
+    session: resolved.session
+  };
 }
 
 export function getCurrentWorkout(dayKey) {
   var k = dayKey || (typeof window !== 'undefined' && window.activeGymDateKey) || todayKey();
   var rec = dayRecord(k);
-  var prog = getActiveProgram();
-  var d = new Date(k + 'T00:00:00').getDay();
-  var dayNum = d === 0 ? 7 : d;
-  var weeklySched = getWeeklySchedule();
-  var matched = weeklySched.find(function(s){ return s.dayNum === dayNum; });
-  var defaultIndex = (matched && !matched.isRest) ? matched.workoutIndex : null;
+  var resolved = scheduledSessionFor(k, { rec: rec });
+  var defaultBase = scheduledSessionFor(k, { ignoreDayRecord: true, weekOverrides: {} });
 
-  var index = (rec && rec.selectedWorkout !== undefined) ? rec.selectedWorkout : defaultIndex;
-  var isRest = index === null;
-  var session = null;
-  if (!isRest) {
-    var safeIdx = Math.min(Math.max(0, index), prog.length - 1);
-    session = prog[safeIdx] || prog[0];
-  }
-  var rawName = isRest ? 'Rest Day' : (session ? (session.label.replace(/^Day\s*\d+\s*[—–-]\s*/i, '') || session.label) : 'Workout');
   return {
     dayKey: k,
-    workoutIndex: isRest ? null : index,
-    isRest: isRest,
-    session: session,
-    cleanName: rawName,
-    hasOverride: rec && rec.selectedWorkout !== undefined,
-    isSuggestedRest: defaultIndex === null,
-    suggestedIndex: defaultIndex
+    workoutIndex: resolved.workoutIndex,
+    isRest: resolved.isRest,
+    session: resolved.session,
+    cleanName: resolved.cleanName,
+    hasOverride: resolved.source === 'manual' || resolved.source === 'override',
+    isSuggestedRest: defaultBase.isRest,
+    suggestedIndex: defaultBase.workoutIndex
   };
 }
 
