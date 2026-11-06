@@ -76,17 +76,6 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
     });
   });
 
-  document.querySelectorAll('.precision-input').forEach(function(inp){
-    inp.addEventListener('focus', function(){
-      var self = this;
-      setTimeout(function() {
-        if (typeof self.select === 'function') {
-          try { self.select(); } catch(e) {}
-        }
-      }, 50);
-    });
-  });
-
   document.querySelectorAll('[data-expand-ex]').forEach(function(row){
     row.addEventListener('click', function(){
       window.activeExpandedExId = row.dataset.expandEx;
@@ -94,9 +83,11 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
     });
   });
 
+  var isLoggingSet = false;
   document.querySelectorAll('[data-logset]').forEach(function(btn){
     btn.addEventListener('click', function(){
-      triggerHaptic();
+      if (isLoggingSet) return;
+      isLoggingSet = true;
       var id = btn.dataset.logset;
       var exObj = getExerciseData(id) || {};
       var isBW = isBodyweightExercise(id, exObj.name);
@@ -112,86 +103,97 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       var rawR = (rEl ? rEl.value : '').trim();
       if (!rawR && rEl && rEl.dataset.prefill) rawR = rEl.dataset.prefill.trim();
       var r = parseInt(rawR, 10);
-      if (!r || r <= 0) { showToast('Please enter reps', 'warn'); return; }
-      if (!isBW && (!w || w <= 0)) { showToast('Please enter weight and reps', 'warn'); return; }
+      if (!r || r <= 0) { isLoggingSet = false; showToast('Please enter reps', 'warn'); return; }
+      if (!isBW && (!w || w <= 0)) { isLoggingSet = false; showToast('Please enter weight and reps', 'warn'); return; }
       var rirEl = document.querySelector('.set-rir[data-ex="'+id+'"][data-set-index="'+setIndex+'"]');
       var rirValue = rirEl && rirEl.value !== '' ? parseInt(rirEl.value,10) : null;
-      rec = dayRecord(key);
-      rec.workout = rec.workout||{};
-      rec.workout[id] = rec.workout[id]||[];
-      rec.workoutDraft = rec.workoutDraft||{};
-      var sessionMeta=getSessionMeta(rec, programDayIndex);
-      var hadLoggedSets = Object.keys(rec.workout).some(function(workoutId){
-        return (rec.workout[workoutId]||[]).some(Boolean);
-      });
-      if(!sessionMeta.startedAt) sessionMeta.startedAt=new Date().toISOString();
-      if(!hadLoggedSets) sessionMeta.firstSetAt=new Date().toISOString();
-      sessionMeta.lastSetAt=new Date().toISOString();
-      sessionMeta.sessionLabel=session.label;
-      rec.workout[id][setIndex] = {weight:w,reps:r,rir:rirValue};
-      if (rec.workoutDraft[id]) delete rec.workoutDraft[id][setIndex];
-      // Only auto-fill next set draft if strictly within planned count (never auto-create extra sets)
-      var sessionEx = (session && session.exercises) ? session.exercises.find(function(item) {
-        var actualItemId = (rec.swaps && rec.swaps[item.id]) || item.id;
-        return actualItemId === id || item.id === id;
-      }) : null;
-      var exPlannedSets = (sessionEx && sessionEx.sets != null) ? sessionEx.sets : ((exObj && exObj.sets != null) ? exObj.sets : 2);
-      if (setIndex + 1 < exPlannedSets && !rec.workout[id][setIndex + 1]) {
-        rec.workoutDraft[id] = rec.workoutDraft[id] || [];
-        rec.workoutDraft[id][setIndex + 1] = { weight: w, reps: r, rir: rirValue };
-      }
-      if (rec.workoutDraft && rec.workoutDraft[id]) {
-        for (var dI = exPlannedSets; dI < rec.workoutDraft[id].length; dI++) {
-          if (rec.workoutDraft[id][dI] && !rec.workoutDraft[id][dI].manual) delete rec.workoutDraft[id][dI];
-        }
-      }
-      // Auto-advance to next incomplete exercise if this exercise is now complete
-      var curSetsDone = ((rec.workout || {})[id] || []).filter(Boolean).length;
-      if (curSetsDone >= exPlannedSets) {
-        var nextIncomplete = session.exercises.find(function(item) {
-          var actualItemId = (rec.swaps && rec.swaps[item.id]) || item.id;
-          var itemSets = ((rec.workout || {})[actualItemId] || []).filter(Boolean).length;
-          return itemSets < (item.sets || 2);
+      var savedOk = false;
+      try {
+        rec = dayRecord(key);
+        rec.workout = rec.workout||{};
+        rec.workout[id] = rec.workout[id]||[];
+        rec.workoutDraft = rec.workoutDraft||{};
+        var sessionMeta=getSessionMeta(rec, programDayIndex);
+        var hadLoggedSets = Object.keys(rec.workout).some(function(workoutId){
+          return (rec.workout[workoutId]||[]).some(Boolean);
         });
-        if (nextIncomplete) {
-          window.activeExpandedExId = (rec.swaps && rec.swaps[nextIncomplete.id]) || nextIncomplete.id;
+        if(!sessionMeta.startedAt) sessionMeta.startedAt=new Date().toISOString();
+        if(!hadLoggedSets) sessionMeta.firstSetAt=new Date().toISOString();
+        sessionMeta.lastSetAt=new Date().toISOString();
+        sessionMeta.sessionLabel=session.label;
+        rec.workout[id][setIndex] = {weight:w,reps:r,rir:rirValue};
+        if (rec.workoutDraft[id]) delete rec.workoutDraft[id][setIndex];
+        var sessionEx = (session && session.exercises) ? session.exercises.find(function(item) {
+          var actualItemId = (rec.swaps && rec.swaps[item.id]) || item.id;
+          return actualItemId === id || item.id === id;
+        }) : null;
+        var exPlannedSets = (sessionEx && sessionEx.sets != null) ? sessionEx.sets : ((exObj && exObj.sets != null) ? exObj.sets : 2);
+        if (setIndex + 1 < exPlannedSets && !rec.workout[id][setIndex + 1]) {
+          rec.workoutDraft[id] = rec.workoutDraft[id] || [];
+          rec.workoutDraft[id][setIndex + 1] = { weight: w, reps: r, rir: rirValue };
         }
-      }
-      // Real-time PR detection
-      if (isBW && (!w || w === 0)) {
-        var prevBestReps = getBestRepCount(id) || 0;
-        if (r > prevBestReps) {
-          playSound('workout_complete');
-          triggerHaptic();
-          showToast('PR: ' + (exObj.name || 'Lift') + ': ' + r + ' reps (BW)', 'ok');
+        if (rec.workoutDraft && rec.workoutDraft[id]) {
+          for (var dI = exPlannedSets; dI < rec.workoutDraft[id].length; dI++) {
+            if (rec.workoutDraft[id][dI] && !rec.workoutDraft[id][dI].manual) delete rec.workoutDraft[id][dI];
+          }
+        }
+        var curSetsDone = ((rec.workout || {})[id] || []).filter(Boolean).length;
+        if (curSetsDone >= exPlannedSets) {
+          var nextIncomplete = session.exercises.find(function(item) {
+            var actualItemId = (rec.swaps && rec.swaps[item.id]) || item.id;
+            var itemSets = ((rec.workout || {})[actualItemId] || []).filter(Boolean).length;
+            return itemSets < (item.sets || 2);
+          });
+          if (nextIncomplete) {
+            window.activeExpandedExId = (rec.swaps && rec.swaps[nextIncomplete.id]) || nextIncomplete.id;
+          }
+        }
+        sessionMeta.updatedAt=new Date().toISOString();
+        var allDone = session.exercises.every(function(ex){var actualId=(rec.swaps&&rec.swaps[ex.id])||ex.id;return (rec.workout[actualId]||[]).filter(Boolean).length>=(ex.sets||2);});
+        if(allDone && !rec.workoutDone){
+          rec.workoutDone=true; profile.xp=(profile.xp||0)+30; sv('rg_profile',profile);
+          showToast('Session complete.', 'ok');
         } else {
-          playSound('set_logged');
+          profile.xp=(profile.xp||0)+3; sv('rg_profile',profile);
         }
-      } else {
-        var prevBestE1RM = getBestE1RM(id) || 0;
-        var currentE1RM = w * (1 + r / 30);
-        if (currentE1RM > prevBestE1RM + 0.25) {
-          playSound('workout_complete');
+        saveDayRecord(key, rec, { silent: true });
+        renderGym();
+        savedOk = true;
+      } catch(err) {
+        console.error('Set log error:', err);
+        showToast('Could not save set', 'warn');
+      } finally {
+        isLoggingSet = false;
+      }
+
+      if (savedOk) {
+        try {
           triggerHaptic();
-          showToast('PR: ' + (exObj.name || 'Lift') + ': ' + (w > 0 ? (w + 'kg × ' + r) : (r + ' reps')) + ' (' + currentE1RM.toFixed(1) + 'kg e1RM)', 'ok');
-        } else {
-          playSound('set_logged');
-        }
+          if(navigator.vibrate) navigator.vibrate(35);
+          if (isBW && (!w || w === 0)) {
+            var prevBestReps = getBestRepCount(id) || 0;
+            if (r > prevBestReps) {
+              playSound('workout_complete');
+              showToast('PR: ' + (exObj.name || 'Lift') + ': ' + r + ' reps (BW)', 'ok');
+            } else {
+              playSound('set_logged');
+            }
+          } else {
+            var prevBestE1RM = getBestE1RM(id) || 0;
+            var currentE1RM = w * (1 + r / 30);
+            if (currentE1RM > prevBestE1RM + 0.25) {
+              playSound('workout_complete');
+              showToast('PR: ' + (exObj.name || 'Lift') + ': ' + (w > 0 ? (w + 'kg × ' + r) : (r + ' reps')) + ' (' + currentE1RM.toFixed(1) + 'kg e1RM)', 'ok');
+            } else {
+              playSound('set_logged');
+            }
+          }
+        } catch(sensErr) {}
+        try {
+          var loggedExercise=getExerciseData(id)||{};
+          startRestTimer(loggedExercise.rest||90);
+        } catch(timerErr) {}
       }
-      sessionMeta.updatedAt=new Date().toISOString();
-      // Check if all exercises done (2+ sets each)
-      var allDone = session.exercises.every(function(ex){var actualId=(rec.swaps&&rec.swaps[ex.id])||ex.id;return (rec.workout[actualId]||[]).filter(Boolean).length>=(ex.sets||2);});
-      if(allDone && !rec.workoutDone){
-        rec.workoutDone=true; profile.xp=(profile.xp||0)+30; sv('rg_profile',profile);
-        showToast('Session complete.', 'ok');
-      } else {
-        profile.xp=(profile.xp||0)+3; sv('rg_profile',profile);
-      }
-      saveDayRecord(key,rec);
-      renderGym();
-      if(navigator.vibrate) navigator.vibrate(35);
-      var loggedExercise=getExerciseData(id)||{};
-      startRestTimer(loggedExercise.rest||90);
     });
   });
 
@@ -306,7 +308,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       var curDone = (draftRec.workout && draftRec.workout[id] || []).filter(Boolean).length;
       var count = Math.max(pSets, curDone, draftRec.workoutDraft[id].length);
       draftRec.workoutDraft[id][count] = { weight: '', reps: '', rir: null, manual: true };
-      saveDayRecord(key,draftRec);
+      saveDayRecord(key,draftRec,{silent:true});
       renderGym();
     });
   });
@@ -316,7 +318,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       var draftRec=dayRecord(key), id=btn.dataset.removeDraft || btn.dataset.removeExtraSet, index=parseInt(btn.dataset.setIndex,10);
       var removedDraft = (draftRec.workoutDraft && draftRec.workoutDraft[id]) ? draftRec.workoutDraft[id].splice(index,1)[0] : null;
       var removedSet = (draftRec.workout && draftRec.workout[id]) ? draftRec.workout[id].splice(index,1)[0] : null;
-      saveDayRecord(key,draftRec);
+      saveDayRecord(key,draftRec,{silent:true});
       renderGym();
       showUndoToast('Set removed', function() {
         var restoreRec = dayRecord(key);
@@ -330,7 +332,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
           restoreRec.workout[id] = restoreRec.workout[id] || [];
           restoreRec.workout[id].splice(index, 0, removedSet);
         }
-        saveDayRecord(key, restoreRec);
+        saveDayRecord(key, restoreRec, {silent:true});
         renderGym();
       });
     });

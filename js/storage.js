@@ -258,10 +258,12 @@ export function dayRecord(key) {
 export function saveDayRecord(key, rec, options){
   sv('rg_day_'+key, rec);
   if (!options || !options.silent) {
-    saveWorkoutSessionFromDay(key, rec, Object.keys(workoutSessionStore().sessions).length);
+    saveWorkoutSessionFromDay(key, rec, Object.keys(workoutSessionStore().sessions).length, options);
     if (typeof window !== 'undefined' && typeof window.scheduleStateNotification === 'function') {
       window.scheduleStateNotification();
     }
+  } else {
+    saveWorkoutSessionFromDay(key, rec, Object.keys(workoutSessionStore().sessions).length, { silent: true });
   }
 }
 

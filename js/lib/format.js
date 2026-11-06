@@ -41,7 +41,7 @@ export function daysBetween(k1, k2) {
 
 export function formatDuration(minutes) {
   if (!minutes && minutes !== 0) return '—';
-  var m = Math.round(Number(minutes) || 0);
+  var m = Math.min(180, Math.round(Number(minutes) || 0));
   if (m < 60) return m + 'm';
   var hrs = Math.floor(m / 60);
   var rem = m % 60;
@@ -51,8 +51,14 @@ export function formatDuration(minutes) {
 export function workoutElapsed(meta) {
   if (!meta || !meta.startedAt) return 0;
   var start = new Date(meta.startedAt).getTime();
-  var end = meta.completedAt ? new Date(meta.completedAt).getTime() : Date.now();
-  return Math.max(0, Math.floor((end - start) / 1000));
+  var now = Date.now();
+  if (isNaN(start) || start > now || (now - start) > 18 * 3600 * 1000) {
+    meta.startedAt = new Date().toISOString();
+    start = now;
+  }
+  var end = meta.completedAt ? new Date(meta.completedAt).getTime() : now;
+  var sec = Math.max(0, Math.floor((end - start) / 1000));
+  return Math.min(180 * 60, sec);
 }
 
 export function currentDayNum() {

@@ -358,15 +358,16 @@ export function renderGym() {
     : '';
 
   document.getElementById('content').innerHTML =
-    '<div class="gym-page">'
+    '<div class="gym-page" style="padding-bottom:120px">'
     + dateBannerHTML
     + gymHeaderUnifiedHTML
     + exHTML
     + finishCardHTML
-    + '</div><div id="restTimerWrap"></div>';
+    + '</div><div id="restTimerWrap" style="pointer-events:none"></div>';
 
   attachGymEvents(key, rec, session, workoutIndex);
   renderWorkoutTimer(key, rec, session, workoutIndex);
+  renderRestTimer();
   var finishAllSetsBtn = document.getElementById('finishAllSetsBtn');
   if (finishAllSetsBtn) {
     finishAllSetsBtn.onclick = function() {

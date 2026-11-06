@@ -440,6 +440,15 @@ body.kb-open .tab-bar {
   transform: translateY(100%);
   pointer-events: none;
 }
+body.kb-open .rest-timer-dock {
+  transform: translateY(calc(100% + 24px));
+  pointer-events: none;
+  opacity: 0;
+}
+.rest-timer-dock {
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1), opacity 150ms ease;
+  will-change: transform, opacity;
+}
 body.kb-open .sheet {
   max-height: calc(100dvh - 20px) !important;
   overflow-y: auto !important;

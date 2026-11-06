@@ -12,9 +12,14 @@ import { showWorkoutCelebrationModal } from "./session-sheet.js";
 
 export function getSessionElapsedSeconds(meta) {
   if (!meta || !meta.startedAt) return 0;
-  var endMs = meta.completedAt ? new Date(meta.completedAt).getTime() : (meta.pausedAt ? new Date(meta.pausedAt).getTime() : Date.now());
   var start = new Date(meta.startedAt).getTime();
-  if (isNaN(start) || isNaN(endMs) || endMs < start) return 0;
+  var now = Date.now();
+  if (isNaN(start) || start > now || (now - start) > 18 * 3600 * 1000) {
+    meta.startedAt = new Date().toISOString();
+    start = now;
+  }
+  var endMs = meta.completedAt ? new Date(meta.completedAt).getTime() : (meta.pausedAt ? new Date(meta.pausedAt).getTime() : now);
+  if (isNaN(endMs) || endMs < start) return 0;
   var totalPaused = meta.accumulatedPausedMs || 0;
   var diffMs = Math.max(0, endMs - start - totalPaused);
   var sec = Math.floor(diffMs / 1000);
@@ -55,7 +60,7 @@ export function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
   }
 
   // Interval for running timer
-  if (workoutTimer.interval) clearInterval(workoutTimer.interval);
+  if (workoutTimer.interval) { clearInterval(workoutTimer.interval); workoutTimer.interval = null; }
   if (isRunning) {
     workoutTimer.interval = setInterval(function() {
       var el = document.getElementById('workoutElapsed');
@@ -253,10 +258,10 @@ export function renderRestTimer() {
     return;
   }
 
-  wrap.innerHTML = '<div class="rest-timer-dock" id="restTimerDock" style="position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 8px);left:16px;right:16px;max-width:448px;margin:0 auto;background:#141416;border:1px solid #1C1C1F;border-radius:16px;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;z-index:150">'
+  wrap.innerHTML = '<div class="rest-timer-dock" id="restTimerDock" style="position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 8px);left:16px;right:16px;max-width:448px;margin:0 auto;height:48px;box-sizing:border-box;background:#141416;border:1px solid #1C1C1F;border-radius:16px;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;z-index:150;contain:layout paint;will-change:transform,opacity;pointer-events:auto">'
     + '<div style="display:flex;align-items:center;gap:8px">'
       + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Rest</span>'
-      + '<span id="restTimerCountdown" style="font-size:17px;font-weight:600;color:#C6F432;font-variant-numeric:tabular-nums">' + timeStr + '</span>'
+      + '<span id="restTimerCountdown" style="font-size:17px;font-weight:600;color:#C6F432;font-variant-numeric:tabular-nums;width:52px;display:inline-block;text-align:center">' + timeStr + '</span>'
     + '</div>'
     + '<div style="display:flex;align-items:center;gap:8px">'
       + '<button type="button" class="btn-text-action" id="addRest30Btn" style="font-size:15px;font-weight:600;color:#F5F5F4;background:none;border:none;padding:6px 8px;cursor:pointer">+30s</button>'
@@ -378,4 +383,12 @@ export function setManualSessionDuration(dayKey, session, programDayIndex) {
   saveDayRecord(dayKey, rec);
   showToast('Session time saved', 'ok');
   if (typeof window.renderGym === 'function') window.renderGym();
+}
+
+if (typeof document !== 'undefined' && typeof window !== 'undefined' && !window._wakeLockVisibilityBound) {
+  window._wakeLockVisibilityBound = true;
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') releaseWakeLock();
+    else if (document.visibilityState === 'visible' && ((restTimer && restTimer.remaining > 0 && !restTimer.isPaused) || (workoutTimer && workoutTimer.interval))) requestWakeLock();
+  });
 }

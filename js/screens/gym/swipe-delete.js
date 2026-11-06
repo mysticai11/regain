@@ -37,7 +37,7 @@ export function attachSetRowSwipeHandlers(key) {
     var trash = wrap ? wrap.querySelector('.set-trash-icon') : null;
 
     row.onpointerdown = function(e) {
-      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'SELECT')) {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'SELECT' || (typeof e.target.closest === 'function' && e.target.closest('input, button, select, label, .precision-input, .rir-cycle-text, .precision-circle-tap')))) {
         return;
       }
       startX = e.clientX;
@@ -54,8 +54,8 @@ export function attachSetRowSwipeHandlers(key) {
       var dy = e.clientY - startY;
 
       if (!axisLocked) {
-        if (Math.hypot(dx, dy) >= 8) {
-          if (Math.abs(dx) > Math.abs(dy)) {
+        if (Math.hypot(dx, dy) >= 14) {
+          if (Math.abs(dx) > Math.abs(dy) * 1.5) {
             axisLocked = 'h';
             if (row.setPointerCapture && e.pointerId) {
               try { row.setPointerCapture(e.pointerId); } catch(err) {}
