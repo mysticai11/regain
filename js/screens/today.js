@@ -59,7 +59,8 @@ export function renderTodaySimple() {
       + '</div>')
     : '';
 
-  document.getElementById('content').innerHTML =
+  var contentEl = document.getElementById('content'), prevScroll = contentEl ? contentEl.scrollTop : 0;
+  contentEl.innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">'
     + '<span class="t-label">' + todayHeaderDateStr + '</span>'
     + '<button class="icon-btn" id="settingsBtn" aria-label="Settings">' + ic('settings') + '</button>'
@@ -134,6 +135,7 @@ export function renderTodaySimple() {
   if (settingsBtn) settingsBtn.onclick = function(e) { if (e && e.stopPropagation) e.stopPropagation(); openSettings(); };
   bindBackupNudgeEvents(exportData);
   triggerTodayAnimations();
+  if (contentEl && prevScroll > 0) contentEl.scrollTop = prevScroll;
 
   var prevWk = document.getElementById('prevWeekBtn');
   if (prevWk) prevWk.onclick = function() { triggerHaptic(); window.todayWeekOffset = (window.todayWeekOffset || 0) - 1; renderTodaySimple(); };
@@ -368,7 +370,6 @@ export function renderTodaySimple() {
 }
 
 export function renderChecklistHTML() { return ''; }
-
 export function addFoodToDay(key, food, servings) {
   var m = foodMacros(food, servings), rec = dayRecord(key);
   rec.extra = rec.extra || [];
