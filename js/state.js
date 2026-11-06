@@ -152,17 +152,21 @@ export function preserveUiStateDuringRender(renderFn) {
     } catch(e) {}
   }
   var content = typeof document !== 'undefined' ? document.getElementById('content') : null;
-  var scrollY = content ? content.scrollTop : ((typeof window !== 'undefined') ? (window.scrollY || (document.documentElement ? document.documentElement.scrollTop : 0)) : 0);
+  var scrollY = (typeof window !== 'undefined' && (window.scrollY || window.pageYOffset || (document.documentElement ? document.documentElement.scrollTop : 0) || (document.body ? document.body.scrollTop : 0))) || (content ? content.scrollTop : 0);
   var hasOpenOverlay = (typeof document !== 'undefined') ? !!document.querySelector('.overlay') : false;
 
   if (tab === 'gym') snapshotGymDrafts();
 
   renderFn();
 
-  if (content && scrollY != null) {
-    content.scrollTop = scrollY;
-  } else if (typeof window !== 'undefined' && scrollY) {
-    window.scrollTo(0, scrollY);
+  if (scrollY != null && scrollY > 0) {
+    if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, scrollY);
+    if (content) content.scrollTop = scrollY;
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(function() {
+        if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, scrollY);
+      });
+    }
   }
   if (activeElementId && !hasOpenOverlay && typeof document !== 'undefined') {
     var el = document.getElementById(activeElementId);

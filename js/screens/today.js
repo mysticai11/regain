@@ -60,7 +60,8 @@ export function renderTodaySimple() {
       + '</div>')
     : '';
 
-  var contentEl = document.getElementById('content'), prevScroll = contentEl ? contentEl.scrollTop : 0;
+  var contentEl = document.getElementById('content');
+  var prevScroll = (typeof window !== 'undefined' && (window.scrollY || window.pageYOffset || (document.documentElement ? document.documentElement.scrollTop : 0) || (document.body ? document.body.scrollTop : 0))) || (contentEl ? contentEl.scrollTop : 0);
   contentEl.innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">'
     + '<span class="t-label">' + todayHeaderDateStr + '</span>'
@@ -138,7 +139,11 @@ export function renderTodaySimple() {
   bindBackupNudgeEvents(exportData);
   bindCatchupCardEvents(contentEl, renderTodaySimple);
   triggerTodayAnimations();
-  if (contentEl && prevScroll > 0) contentEl.scrollTop = prevScroll;
+  if (prevScroll > 0) {
+    if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, prevScroll);
+    if (contentEl) contentEl.scrollTop = prevScroll;
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(function() { if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, prevScroll); });
+  }
 
   var prevWk = document.getElementById('prevWeekBtn'); if (prevWk) prevWk.onclick = function() { triggerHaptic(); window.todayWeekOffset = (window.todayWeekOffset || 0) - 1; renderTodaySimple(); };
   var nextWk = document.getElementById('nextWeekBtn'); if (nextWk) nextWk.onclick = function() { triggerHaptic(); window.todayWeekOffset = (window.todayWeekOffset || 0) + 1; renderTodaySimple(); };
@@ -310,17 +315,12 @@ export function renderTodaySimple() {
   });
 
   var addFoodBtn = document.getElementById('addFoodBtn');
-  if (addFoodBtn) {
-    addFoodBtn.onclick = function () {
-      openFoodSearch(function (food, s) { addFoodToDay(activeDateKey, food, s); });
-    };
-  }
+  if (addFoodBtn) addFoodBtn.onclick = function () { openFoodSearch(function (food, s) { addFoodToDay(activeDateKey, food, s); }); };
 
   document.querySelectorAll('.food-delete').forEach(function (btn) {
     btn.onclick = function (e) {
       if (e && e.stopPropagation) e.stopPropagation();
-      var idx = parseInt(btn.dataset.foodIndex, 10);
-      var current = dayRecord(activeDateKey);
+      var idx = parseInt(btn.dataset.foodIndex, 10), current = dayRecord(activeDateKey);
       if (!current.extra || isNaN(idx) || !current.extra[idx]) return;
       var removed = current.extra.splice(idx, 1)[0];
       saveDayRecord(activeDateKey, current);

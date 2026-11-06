@@ -68,14 +68,15 @@ var totalLoggedSets = sessions[0].exercises.reduce(function(acc, ex) {
 assert.strictEqual(totalLoggedSets, 8, 'Total logged sets in merged session must equal 8');
 console.log('✓ Merged workout successfully saved as 1 session with all ' + totalLoggedSets + ' sets across 4 exercises');
 
-// 3. Verify CSS keyboard protection rule exists in components.css
-console.log('\n[3/3] Verifying CSS keyboard shield for rest timer...');
+// 3. Verify rest timer dock is lightweight and not a disruptive modal sheet
+console.log('\n[3/3] Verifying rest timer dock structure...');
 import fs from 'node:fs';
-var cssContent = fs.readFileSync('./css/components.css', 'utf8');
-assert.ok(cssContent.includes('body.kb-open #restTimerWrap'), 'components.css must shield rest timer when virtual keyboard opens');
-assert.ok(cssContent.includes('opacity: 0'), 'rest timer must be hidden on keyboard open');
-console.log('✓ CSS rule body.kb-open #restTimerWrap verified');
+var timerContent = fs.readFileSync('./js/screens/gym/timer.js', 'utf8');
+assert.ok(timerContent.includes('rest-timer-dock'), 'timer.js must render a lightweight rest-timer-dock');
+assert.ok(!timerContent.includes('class="sheet rest-timer-sheet"'), 'timer.js must not render rest timer as a heavy sheet modal');
+console.log('✓ Rest timer dock structure verified (lightweight dock, non-blocking)');
 
 console.log('\n=============================================');
 console.log(' ALL MERGED & TIMER TESTS PASSED (100%) ');
 console.log('=============================================');
+

@@ -440,10 +440,6 @@ body.kb-open .tab-bar {
   transform: translateY(100%);
   pointer-events: none;
 }
-body.kb-open #restTimerWrap {
-  opacity: 0;
-  pointer-events: none;
-}
 body.kb-open .sheet {
   max-height: calc(100dvh - 20px) !important;
   overflow-y: auto !important;

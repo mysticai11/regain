@@ -77,123 +77,120 @@ export function openSettings() {
     + '</div>'
 
     // TRAINING DAYS
-    + '<div style="margin-top:32px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Training days</span></div>'
-    + '<div class="day-toggles" style="display:grid;grid-template-columns:repeat(7, 1fr);gap:6px;width:100%;margin-bottom:24px">' + dayTogglesHTML + '</div>'
+    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Training Days</span></div>'
+    + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px">'
+      + '<div style="font-size:15px;font-weight:600;color:#F5F5F4;margin-bottom:2px">Days you train</div>'
+      + '<div style="font-size:11px;color:#8A8A8E;margin-bottom:14px">Workouts map to your split in weekly sequence</div>'
+      + '<div class="day-toggles" style="display:grid;grid-template-columns:repeat(7, 1fr);gap:6px;width:100%">' + dayTogglesHTML + '</div>'
+    + '</div>'
 
     // PROFILE (Selects with chevron icon & same height)
-    + '<div style="margin-top:32px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Profile</span></div>'
-    + '<div style="margin-bottom:24px">'
-      + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Primary Goal</label>'
-      + '<div style="position:relative;display:flex;align-items:center;width:100%">'
-        + '<select id="setGoal" class="precision-select" style="width:100%;height:44px;background:#1C1C1F;color:#F5F5F4;border:1px solid #222;border-radius:8px;padding:0 36px 0 12px;font-size:15px;appearance:none;-webkit-appearance:none;cursor:pointer">'
-          + '<option value="gain"' + (goalVal === 'gain' ? ' selected' : '') + '>Build muscle</option>'
-          + '<option value="loss"' + (goalVal === 'loss' ? ' selected' : '') + '>Lose fat</option>'
-          + '<option value="recomp"' + (goalVal === 'recomp' ? ' selected' : '') + '>Recomp</option>'
-          + '<option value="strength"' + (goalVal === 'strength' ? ' selected' : '') + '>Strength</option>'
-        + '</select>'
-        + chevronSVG
+    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Profile & Preferences</span></div>'
+    + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px;display:flex;flex-direction:column;gap:14px">'
+      + '<div>'
+        + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Primary Goal</label>'
+        + '<div style="position:relative;display:flex;align-items:center;width:100%">'
+          + '<select id="setGoal" class="precision-select" style="width:100%;height:44px;background:#141416;color:#F5F5F4;border:1px solid #222;border-radius:8px;padding:0 36px 0 12px;font-size:15px;appearance:none;-webkit-appearance:none;cursor:pointer">'
+            + '<option value="gain"' + (goalVal === 'gain' ? ' selected' : '') + '>Build muscle</option>'
+            + '<option value="loss"' + (goalVal === 'loss' ? ' selected' : '') + '>Lose fat</option>'
+            + '<option value="recomp"' + (goalVal === 'recomp' ? ' selected' : '') + '>Recomp</option>'
+            + '<option value="strength"' + (goalVal === 'strength' ? ' selected' : '') + '>Strength</option>'
+          + '</select>'
+          + chevronSVG
+        + '</div>'
       + '</div>'
-    + '</div>'
-    + '<div style="margin-bottom:24px">'
-      + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Equipment Access</label>'
-      + '<div style="position:relative;display:flex;align-items:center;width:100%">'
-        + '<select id="setEquip" class="precision-select" style="width:100%;height:44px;background:#1C1C1F;color:#F5F5F4;border:1px solid #222;border-radius:8px;padding:0 36px 0 12px;font-size:15px;appearance:none;-webkit-appearance:none;cursor:pointer">'
-          + '<option value="full"' + (equipVal === 'full' ? ' selected' : '') + '>Full Gym</option>'
-          + '<option value="home"' + (equipVal === 'home' ? ' selected' : '') + '>Home Gym</option>'
-          + '<option value="db"' + (equipVal === 'db' ? ' selected' : '') + '>Dumbbells Only</option>'
-          + '<option value="body"' + (equipVal === 'body' ? ' selected' : '') + '>Bodyweight</option>'
-        + '</select>'
-        + chevronSVG
+      + '<div>'
+        + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Equipment Access</label>'
+        + '<div style="position:relative;display:flex;align-items:center;width:100%">'
+          + '<select id="setEquip" class="precision-select" style="width:100%;height:44px;background:#141416;color:#F5F5F4;border:1px solid #222;border-radius:8px;padding:0 36px 0 12px;font-size:15px;appearance:none;-webkit-appearance:none;cursor:pointer">'
+            + '<option value="full"' + (equipVal === 'full' ? ' selected' : '') + '>Full Gym</option>'
+            + '<option value="home"' + (equipVal === 'home' ? ' selected' : '') + '>Home Gym</option>'
+            + '<option value="db"' + (equipVal === 'db' ? ' selected' : '') + '>Dumbbells Only</option>'
+            + '<option value="body"' + (equipVal === 'body' ? ' selected' : '') + '>Bodyweight</option>'
+          + '</select>'
+          + chevronSVG
+        + '</div>'
       + '</div>'
-    + '</div>'
-    + '<div style="margin-bottom:24px">'
-      + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Dietary Pattern</label>'
-      + '<div style="position:relative;display:flex;align-items:center;width:100%">'
-        + '<select id="setDiet" class="precision-select" style="width:100%;height:44px;background:#1C1C1F;color:#F5F5F4;border:1px solid #222;border-radius:8px;padding:0 36px 0 12px;font-size:15px;appearance:none;-webkit-appearance:none;cursor:pointer">'
-          + '<option value="nonveg"' + (dietVal === 'nonveg' ? ' selected' : '') + '>Non-Vegetarian</option>'
-          + '<option value="eggitarian"' + (dietVal === 'eggitarian' ? ' selected' : '') + '>Eggitarian</option>'
-          + '<option value="veg"' + (dietVal === 'veg' ? ' selected' : '') + '>Vegetarian</option>'
-          + '<option value="vegan"' + (dietVal === 'vegan' ? ' selected' : '') + '>Vegan</option>'
-        + '</select>'
-        + chevronSVG
+      + '<div>'
+        + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Dietary Pattern</label>'
+        + '<div style="position:relative;display:flex;align-items:center;width:100%">'
+          + '<select id="setDiet" class="precision-select" style="width:100%;height:44px;background:#141416;color:#F5F5F4;border:1px solid #222;border-radius:8px;padding:0 36px 0 12px;font-size:15px;appearance:none;-webkit-appearance:none;cursor:pointer">'
+            + '<option value="nonveg"' + (dietVal === 'nonveg' ? ' selected' : '') + '>Non-Vegetarian</option>'
+            + '<option value="eggitarian"' + (dietVal === 'eggitarian' ? ' selected' : '') + '>Eggitarian</option>'
+            + '<option value="veg"' + (dietVal === 'veg' ? ' selected' : '') + '>Vegetarian</option>'
+            + '<option value="vegan"' + (dietVal === 'vegan' ? ' selected' : '') + '>Vegan</option>'
+          + '</select>'
+          + chevronSVG
+        + '</div>'
       + '</div>'
-    + '</div>'
-    + '<div style="margin-bottom:24px">'
-      + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Experience tier</label>'
-      + '<div style="position:relative;display:flex;align-items:center;width:100%">'
-        + '<select id="setExp" class="precision-select" style="width:100%;height:44px;background:#1C1C1F;color:#F5F5F4;border:1px solid #222;border-radius:8px;padding:0 36px 0 12px;font-size:15px;appearance:none;-webkit-appearance:none;cursor:pointer">'
-          + '<option value="novice"' + (expVal === 'novice' ? ' selected' : '') + '>Novice / Intermediate</option>'
-          + '<option value="advanced"' + (expVal === 'advanced' ? ' selected' : '') + '>Advanced</option>'
-        + '</select>'
-        + chevronSVG
+      + '<div>'
+        + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Experience Tier</label>'
+        + '<div style="position:relative;display:flex;align-items:center;width:100%">'
+          + '<select id="setExp" class="precision-select" style="width:100%;height:44px;background:#141416;color:#F5F5F4;border:1px solid #222;border-radius:8px;padding:0 36px 0 12px;font-size:15px;appearance:none;-webkit-appearance:none;cursor:pointer">'
+            + '<option value="novice"' + (expVal === 'novice' ? ' selected' : '') + '>Novice / Intermediate</option>'
+            + '<option value="advanced"' + (expVal === 'advanced' ? ' selected' : '') + '>Advanced</option>'
+          + '</select>'
+          + chevronSVG
+        + '</div>'
       + '</div>'
     + '</div>'
 
     // PLAN
-    + '<div style="margin-top:32px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Plan</span></div>'
-    + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222">'
+    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Workout Routine</span></div>'
+    + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">'
       + '<div>'
-        + '<div style="font-size:15px;font-weight:500;color:#F5F5F4">Workout Plan</div>'
-        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Custom split & exercises</div>'
+        + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">Routine & Split</div>'
+        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Custom 5-day split & exercise catalog</div>'
       + '</div>'
-      + '<button type="button" class="btn" id="openPlanFromSettingsBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Edit plan</button>'
+      + '<button type="button" class="btn" id="openPlanFromSettingsBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#141416;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Edit plan</button>'
     + '</div>'
 
-    // ADVANCED (Unified List-Rows with 36px action buttons)
-    + '<div style="margin-top:32px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Advanced</span></div>'
-    + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222">'
-      + '<div>'
-        + '<div style="font-size:15px;font-weight:500;color:#F5F5F4">' + shields + (shields === 1 ? ' shield' : ' shields') + '</div>'
-        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Protects your streak if you miss a day</div>'
+    // ADVANCED (Unified Card with 36px action buttons)
+    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Data & Preferences</span></div>'
+    + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid #141416">'
+        + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Haptic feedback</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Vibrate on taps and logged sets</div></div>'
+        + '<button type="button" class="btn" id="toggleHapticsBtn" style="height:36px;min-width:64px;padding:0 14px;border-radius:8px;background:#141416;color:' + (profile.hapticsMuted ? '#8A8A8E' : '#C6F432') + ';font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">' + (profile.hapticsMuted ? 'Muted' : 'On') + '</button>'
       + '</div>'
-      + '<button type="button" class="btn" id="buyShieldBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#1C1C1F;color:' + (((profile.xp || 0) < 100) ? '#55555A' : '#F5F5F4') + ';font-size:15px;font-weight:600;border:1px solid #222;cursor:' + (((profile.xp || 0) < 100) ? 'not-allowed' : 'pointer') + '"' + (((profile.xp || 0) < 100) ? ' disabled' : '') + '>Buy · 100 XP</button>'
-    + '</div>'
-    + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222">'
-      + '<div><div style="font-size:15px;font-weight:500;color:#F5F5F4">Haptic feedback</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Vibrate on taps and logged sets</div></div>'
-      + '<button type="button" class="btn" id="toggleHapticsBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#1C1C1F;color:' + (profile.hapticsMuted ? '#8A8A8E' : '#C6F432') + ';font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">' + (profile.hapticsMuted ? 'Muted' : 'On') + '</button>'
-    + '</div>'
-    + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222">'
-      + '<div>'
-        + '<div style="font-size:15px;font-weight:500;color:#F5F5F4">Custom foods</div>'
-        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Manage custom items & staples</div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
+        + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Streak shields</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">' + shields + ' shields available</div></div>'
+        + '<button type="button" class="btn" id="buyShieldBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#141416;color:' + (((profile.xp || 0) < 100) ? '#55555A' : '#F5F5F4') + ';font-size:15px;font-weight:600;border:1px solid #222;cursor:' + (((profile.xp || 0) < 100) ? 'not-allowed' : 'pointer') + '"' + (((profile.xp || 0) < 100) ? ' disabled' : '') + '>Buy · 100 XP</button>'
       + '</div>'
-      + '<button type="button" class="btn" id="editCustomFoodsBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Manage</button>'
-    + '</div>'
-    + (function() {
-      var lastBackupStr = 'Never';
-      var lastBackupTime = ls('tally_last_backup') || ls('rg_last_backup');
-      var backupDiffDays = null;
-      if (lastBackupTime) {
-        backupDiffDays = Math.floor((Date.now() - new Date(lastBackupTime).getTime()) / (1000 * 60 * 60 * 24));
-        lastBackupStr = (backupDiffDays === 0) ? 'Today' : (backupDiffDays + (backupDiffDays === 1 ? ' day ago' : ' days ago'));
-      }
-      return '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222">'
-        + '<div>'
-          + '<div style="font-size:15px;font-weight:500;color:#F5F5F4">Data backup</div>'
-          + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Last backup: ' + lastBackupStr + ((backupDiffDays != null && backupDiffDays > 7) ? ' · Backup recommended' : '') + '</div>'
-        + '</div>'
-        + '<div style="display:flex;gap:8px">'
-          + '<button type="button" class="btn" id="exportBtn" style="height:36px;padding:0 12px;border-radius:8px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Export</button>'
-          + '<button type="button" class="btn" id="importBtn" style="height:36px;padding:0 12px;border-radius:8px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Import</button>'
-        + '</div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
+        + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Custom foods</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Manage custom items & staples</div></div>'
+        + '<button type="button" class="btn" id="editCustomFoodsBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#141416;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Manage</button>'
+      + '</div>'
+      + (function() {
+        var lastBackupStr = 'Never', lastBackupTime = ls('tally_last_backup') || ls('rg_last_backup');
+        if (lastBackupTime) {
+          var diff = Math.floor((Date.now() - new Date(lastBackupTime).getTime()) / (1000 * 60 * 60 * 24));
+          lastBackupStr = diff === 0 ? 'Today' : (diff + (diff === 1 ? ' day ago' : ' days ago'));
+        }
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:14px">'
+          + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Data backup</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Last backup: ' + lastBackupStr + '</div></div>'
+          + '<div style="display:flex;gap:8px">'
+            + '<button type="button" class="btn" id="exportBtn" style="height:36px;padding:0 12px;border-radius:8px;background:#141416;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Export</button>'
+            + '<button type="button" class="btn" id="importBtn" style="height:36px;padding:0 12px;border-radius:8px;background:#141416;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Import</button>'
+          + '</div>'
         + '</div>';
-    })()
+      })()
+    + '</div>'
     + buildCatchupSettingsHTML()
 
     // DANGER ZONE
-    + '<div style="margin-top:32px">'
-      + '<div style="font-size:11px;font-weight:600;color:#FF4D4F;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Danger Zone</div>'
-      + '<div style="background:#141416;border:1px solid rgba(255,77,79,0.25);border-radius:12px;padding:14px;display:flex;justify-content:space-between;align-items:center">'
-        + '<div>'
-          + '<div style="font-size:15px;font-weight:500;color:#F5F5F4">Reset all data</div>'
-          + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Irreversibly delete all workout & nutrition logs</div>'
-        + '</div>'
-        + '<button type="button" id="resetBtn" style="height:36px;padding:0 14px;border-radius:8px;background:transparent;border:1px solid #FF4D4F;color:#FF4D4F;font-size:15px;font-weight:600;cursor:pointer">Reset</button>'
+    + '<div style="margin-top:24px;margin-bottom:8px">'
+      + '<span style="font-size:11px;font-weight:600;color:#FF4D4F;text-transform:uppercase;letter-spacing:0.08em">Danger Zone</span>'
+    + '</div>'
+    + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">'
+      + '<div>'
+        + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">Reset all data</div>'
+        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Irreversibly delete all workout & nutrition logs</div>'
       + '</div>'
+      + '<button type="button" id="resetBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#141416;border:1px solid #FF4D4F;color:#FF4D4F;font-size:15px;font-weight:600;cursor:pointer">Reset</button>'
     + '</div>'
 
     // BOTTOM CLOSE / DONE BUTTON
-    + '<div style="padding-top:16px;margin-top:24px">'
+    + '<div style="margin-top:16px">'
       + '<button type="button" class="btn" id="closeSettingsBottomBtn" style="width:100%;height:48px;border-radius:12px;background:#1C1C1F;color:#F5F5F4;border:1px solid #222;font-size:15px;font-weight:600;cursor:pointer">Done</button>'
       + '<button type="button" id="saveSettingsBtn" style="display:none"></button>'
     + '</div>'
@@ -285,11 +282,9 @@ export function openSettings() {
 
   var closeBtn = overlay.querySelector('#closeSettingsBtn');
   var bottomDoneBtn = overlay.querySelector('#closeSettingsBottomBtn');
-  ['click', 'pointerdown'].forEach(function(evt) {
-    if (closeBtn) closeBtn.addEventListener(evt, closeSheetFn);
-    if (bottomDoneBtn) bottomDoneBtn.addEventListener(evt, closeSheetFn);
-  });
-  overlay.addEventListener('click', function(e){ if (e.target === overlay) closeSheetFn(e); });
+  if (closeBtn) closeBtn.onclick = closeSheetFn;
+  if (bottomDoneBtn) bottomDoneBtn.onclick = closeSheetFn;
+  overlay.onclick = function(e){ if (e.target === overlay) closeSheetFn(e); };
 
   var saveBtn = overlay.querySelector('#saveSettingsBtn');
   if (saveBtn) {

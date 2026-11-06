@@ -253,17 +253,15 @@ export function renderRestTimer() {
     return;
   }
 
-  wrap.innerHTML = '<div class="sheet rest-timer-sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:16px 20px calc(16px + var(--safe-b));position:fixed;bottom:calc(var(--nav-h) + var(--safe-b));left:0;right:0;max-width:480px;margin:0 auto;z-index:150">'
-    + '<div class="sheet-handle"></div>'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-      + '<div style="font-size:17px;font-weight:600;color:#F5F5F4">Rest Timer</div>'
-      + '<button type="button" class="btn-text-action" id="skipRestBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">Skip</button>'
+  wrap.innerHTML = '<div class="rest-timer-dock" id="restTimerDock" style="position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 8px);left:16px;right:16px;max-width:448px;margin:0 auto;background:#141416;border:1px solid #1C1C1F;border-radius:16px;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;z-index:150">'
+    + '<div style="display:flex;align-items:center;gap:8px">'
+      + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Rest</span>'
+      + '<span id="restTimerCountdown" style="font-size:17px;font-weight:600;color:#C6F432;font-variant-numeric:tabular-nums">' + timeStr + '</span>'
     + '</div>'
-    + '<div id="restTimerCountdown" style="font-size:48px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:center;padding:8px 0;line-height:1">' + timeStr + '</div>'
-    + '<div style="display:flex;justify-content:center;gap:24px;align-items:center;margin-top:12px">'
-      + '<button type="button" class="btn-text-action" id="addRest30Btn" style="font-size:15px;font-weight:600;color:#F5F5F4;cursor:pointer">+30s</button>'
-      + '<button type="button" class="btn-text-action" id="pauseRestBtn" style="font-size:15px;font-weight:600;color:#F5F5F4;cursor:pointer">' + (restTimer.isPaused ? 'Resume' : 'Pause') + '</button>'
-      + '<button type="button" class="btn-text-action" id="skipRestBtn2" style="font-size:15px;font-weight:600;color:#8A8A8E;cursor:pointer">Skip</button>'
+    + '<div style="display:flex;align-items:center;gap:8px">'
+      + '<button type="button" class="btn-text-action" id="addRest30Btn" style="font-size:15px;font-weight:600;color:#F5F5F4;background:none;border:none;padding:6px 8px;cursor:pointer">+30s</button>'
+      + '<button type="button" class="btn-text-action" id="pauseRestBtn" style="font-size:15px;font-weight:600;color:#F5F5F4;background:none;border:none;padding:6px 8px;cursor:pointer">' + (restTimer.isPaused ? 'Resume' : 'Pause') + '</button>'
+      + '<button type="button" class="btn-text-action" id="skipRestBtn" style="font-size:15px;font-weight:600;color:#FF4D4F;background:none;border:none;padding:6px 8px;cursor:pointer">Skip</button>'
     + '</div>'
     + '</div>';
 
@@ -276,9 +274,8 @@ export function renderRestTimer() {
     releaseWakeLock();
   };
 
-  document.getElementById('skipRestBtn').onclick = closeTimer;
-  var skip2 = document.getElementById('skipRestBtn2');
-  if (skip2) skip2.onclick = closeTimer;
+  var skipBtn = document.getElementById('skipRestBtn');
+  if (skipBtn) skipBtn.onclick = closeTimer;
 
   var add30Btn = document.getElementById('addRest30Btn');
   if (add30Btn) add30Btn.onclick = function() {

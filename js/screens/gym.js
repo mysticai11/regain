@@ -23,6 +23,9 @@ export * from "./gym/plan-editor.js";
 export * from "./gym/events.js";
 
 export function renderGym() {
+  var contentEl = document.getElementById('content');
+  var prevScroll = (typeof window !== 'undefined' && (window.scrollY || window.pageYOffset || (document.documentElement ? document.documentElement.scrollTop : 0) || (document.body ? document.body.scrollTop : 0))) || (contentEl ? contentEl.scrollTop : 0);
+  var restoreScroll = function() { if (prevScroll > 0) { if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, prevScroll); if (contentEl) contentEl.scrollTop = prevScroll; if (typeof requestAnimationFrame === 'function') requestAnimationFrame(function() { if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, prevScroll); }); } };
   var key = window.activeGymDateKey || todayKey();
   var rec = dayRecord(key);
   var prog = getActiveProgram();
@@ -101,6 +104,7 @@ export function renderGym() {
       + '</div>';
 
     attachCommonGymHeaderEvents();
+  restoreScroll();
     var nextBtn = document.getElementById('previewNextWorkoutBtn');
     if (nextBtn) {
       nextBtn.onclick = function () {
@@ -137,6 +141,7 @@ export function renderGym() {
       + '</div>';
 
     attachCommonGymHeaderEvents();
+  restoreScroll();
     var histBtn = document.getElementById('openHistoryFromGymBtn');
     if (histBtn) {
       histBtn.onclick = function () {
@@ -369,6 +374,7 @@ export function renderGym() {
     };
   }
   attachCommonGymHeaderEvents();
+  restoreScroll();
 }
 
 export function buildVolumeTable() {
