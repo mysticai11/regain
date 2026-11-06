@@ -1,7 +1,7 @@
 /* Gym timer module: workout timer dock, manual duration, and rest countdown */
 
 import { workoutTimer, restTimer } from "../../state.js";
-import { dayRecord, saveDayRecord, getWorkoutSessions } from "../../storage.js";
+import { dayRecord, saveDayRecord, getWorkoutSessions, workoutSessionId } from "../../storage.js";
 import { getExerciseData, isBodyweightExercise } from "../../data/plan.js";
 import { getSessionMeta } from "./helpers.js";
 import { formatDuration, pad, esc } from "../../lib/format.js";
@@ -9,6 +9,7 @@ import { playSound, triggerHaptic, requestWakeLock, releaseWakeLock } from "../.
 import { showToast } from "../../components/toast.js";
 import { openActionMenuSheet, openSheet } from "../../components/sheet.js";
 import { showWorkoutCelebrationModal } from "./session-sheet.js";
+import { openEditWorkoutSheet } from "./edit-workout.js";
 
 export function getSessionElapsedSeconds(meta) {
   if (!meta || !meta.startedAt) return 0;
@@ -121,6 +122,13 @@ export function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
   if (dotsBtn) {
     dotsBtn.onclick = function() {
       openActionMenuSheet('Timer', [
+        {
+          label: 'Edit full workout',
+          action: function() {
+            var sId = workoutSessionId(dayKey, programDayIndex);
+            openEditWorkoutSheet(sId);
+          }
+        },
         {
           label: 'Finish workout',
           action: function() {

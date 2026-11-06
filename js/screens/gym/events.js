@@ -76,6 +76,14 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
     });
   });
 
+  var toggleExpandAllBtn = document.getElementById('toggleExpandAllBtn');
+  if (toggleExpandAllBtn) {
+    toggleExpandAllBtn.addEventListener('click', function() {
+      window.activeExpandedExId = (window.activeExpandedExId === 'all') ? null : 'all';
+      renderGym();
+    });
+  }
+
   document.querySelectorAll('[data-expand-ex]').forEach(function(row){
     row.addEventListener('click', function(){
       window.activeExpandedExId = row.dataset.expandEx;
@@ -223,6 +231,11 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       draftRec.workoutDraft[exId] = draftRec.workoutDraft[exId] || [];
       draftRec.workoutDraft[exId][sIdx] = draftRec.workoutDraft[exId][sIdx] || {};
       draftRec.workoutDraft[exId][sIdx].rir = parseInt(nextVal, 10);
+      if (draftRec.workout && draftRec.workout[exId] && draftRec.workout[exId][sIdx]) {
+        draftRec.workout[exId][sIdx].rir = parseInt(nextVal, 10);
+        var logBtn = document.querySelector('[data-quick-edit-logged="' + exId + '"][data-set-index="' + sIdx + '"]');
+        if (logBtn) logBtn.dataset.rir = nextVal;
+      }
       saveDayRecord(key, draftRec, { silent: true });
     };
   });
@@ -240,12 +253,26 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
     var rawR = (rInput ? rInput.value : '').trim();
     var parsedR = rawR === '' ? '' : (parseInt(rawR, 10) || '');
     var rirEl = document.querySelector('.set-rir[data-ex="' + id + '"][data-set-index="' + index + '"]');
+    var rirVal = (rirEl && rirEl.value !== '') ? parseInt(rirEl.value, 10) : null;
     var row = {
       weight: parsedW,
       reps: parsedR,
-      rir: (rirEl && rirEl.value !== '') ? parseInt(rirEl.value, 10) : null
+      rir: rirVal
     };
     draftRec.workoutDraft[id][index] = row;
+    if (draftRec.workout && draftRec.workout[id] && draftRec.workout[id][index]) {
+      var numW = typeof parsedW === 'number' ? parsedW : (parseFloat(String(parsedW).replace(',', '.')) || 0);
+      var numR = typeof parsedR === 'number' ? parsedR : (parseInt(String(parsedR), 10) || 0);
+      if (numR > 0) {
+        draftRec.workout[id][index] = { weight: numW, reps: numR, rir: rirVal };
+        var logBtn = document.querySelector('[data-quick-edit-logged="' + id + '"][data-set-index="' + index + '"]');
+        if (logBtn) {
+          logBtn.dataset.weight = String(numW);
+          logBtn.dataset.reps = String(numR);
+          logBtn.dataset.rir = rirVal != null ? String(rirVal) : '';
+        }
+      }
+    }
     saveDayRecord(key, draftRec, { silent: true });
   };
 

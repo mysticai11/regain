@@ -165,6 +165,7 @@ export function renderGym() {
         var r = dayRecord(key);
         r.workoutDone = false;
         saveDayRecord(key, r);
+        window.activeExpandedExId = 'all';
         renderGym();
         showToast('Session reopened for editing', 'ok');
       };
@@ -184,17 +185,20 @@ export function renderGym() {
   // Accordion: determine currently expanded exercise ID
   var expandedExId = window.activeExpandedExId;
   var exists = uniqueExercises.some(function (e) { return e.id === expandedExId; });
-  if (!expandedExId || !exists) {
-    // Find first exercise that has remaining unlogged sets
-    var firstIncomplete = uniqueExercises.find(function (e) {
-      var actualId = (rec.swaps && rec.swaps[e.id]) || e.id;
-      var loggedSets = ((rec.workout || {})[actualId] || []).filter(Boolean).length;
-      return loggedSets < (e.sets || 2);
-    });
-    expandedExId = firstIncomplete ? firstIncomplete.id : (uniqueExercises[0] ? uniqueExercises[0].id : null);
-    window.activeExpandedExId = expandedExId;
+  if (expandedExId !== 'all') {
+    if (!expandedExId || !exists) {
+      // Find first exercise that has remaining unlogged sets
+      var firstIncomplete = uniqueExercises.find(function (e) {
+        var actualId = (rec.swaps && rec.swaps[e.id]) || e.id;
+        var loggedSets = ((rec.workout || {})[actualId] || []).filter(Boolean).length;
+        return loggedSets < (e.sets || 2);
+      });
+      expandedExId = firstIncomplete ? firstIncomplete.id : (uniqueExercises[0] ? uniqueExercises[0].id : null);
+      window.activeExpandedExId = expandedExId;
+    }
   }
 
+  var isAllExpanded = expandedExId === 'all';
   var totalExCount = uniqueExercises.length;
 
   var exHTML = uniqueExercises.map(function (exOrig, exIndex) {
@@ -213,7 +217,7 @@ export function renderGym() {
     var visibleCount = Math.max(plannedCount, completedSets.length, manualExtra);
     var targetSets = plannedCount;
     var isExCompleted = completedSets.length >= targetSets && targetSets > 0;
-    var isCurrentExpanded = ex.id === expandedExId;
+    var isCurrentExpanded = isAllExpanded || (ex.id === expandedExId);
 
     // Item 4: Collapsed 56px row when not the active exercise
     if (!isCurrentExpanded) {
@@ -286,9 +290,9 @@ export function renderGym() {
       }
 
       var rowInner = '<span style="font-size:17px;font-weight:600;color:#8A8A8E;font-variant-numeric:tabular-nums;width:16px;text-align:right">' + (i + 1) + '</span>'
-        + '<input type="text" id="set_weight_' + ex.id + '_' + i + '" placeholder="' + placeholderW + '" class="precision-input set-weight ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillW + '" data-ex="' + ex.id + '" data-set-index="' + i + '" data-is-bw="' + (isBW ? '1' : '0') + '" value="' + inputW + '" inputmode="decimal" enterkeyhint="next" ' + (logged ? 'disabled' : '') + '>'
-        + '<input type="text" id="set_reps_' + ex.id + '_' + i + '" placeholder="' + placeholderR + '" class="precision-input set-reps ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillR + '" data-ex="' + ex.id + '" data-set-index="' + i + '" value="' + inputR + '" inputmode="numeric" enterkeyhint="next" ' + (logged ? 'disabled' : '') + '>'
-        + '<button type="button" class="rir-cycle-text" data-cycle-rir="' + ex.id + '" data-set-index="' + i + '" ' + (logged ? 'disabled' : '') + '>' + rirDisplay + '</button>'
+        + '<input type="text" id="set_weight_' + ex.id + '_' + i + '" placeholder="' + placeholderW + '" class="precision-input set-weight ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillW + '" data-ex="' + ex.id + '" data-set-index="' + i + '" data-is-bw="' + (isBW ? '1' : '0') + '" value="' + inputW + '" inputmode="decimal" enterkeyhint="next">'
+        + '<input type="text" id="set_reps_' + ex.id + '_' + i + '" placeholder="' + placeholderR + '" class="precision-input set-reps ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillR + '" data-ex="' + ex.id + '" data-set-index="' + i + '" value="' + inputR + '" inputmode="numeric" enterkeyhint="next">'
+        + '<button type="button" class="rir-cycle-text" data-cycle-rir="' + ex.id + '" data-set-index="' + i + '">' + rirDisplay + '</button>'
         + '<select class="set-rir" data-ex="' + ex.id + '" data-set-index="' + i + '" style="display:none">'
         + '<option value="3" ' + (valueRir === 3 ? 'selected' : '') + '>3+</option>'
         + '<option value="2" ' + (valueRir === 2 ? 'selected' : '') + '>RIR 2</option>'
@@ -357,10 +361,18 @@ export function renderGym() {
     ? ('<div style="margin:20px 0 16px"><button type="button" class="btn" id="finishAllSetsBtn" style="width:100%;height:48px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer">Finish workout (' + loggedTotal + '/' + totalPlanned + ' sets completed)</button></div>')
     : '';
 
+  var expandToggleHTML = (!activeSched.isRest && totalExCount > 1)
+    ? ('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #1C1C1F">'
+      + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">' + totalExCount + ' exercises</span>'
+      + '<button type="button" id="toggleExpandAllBtn" style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:' + (isAllExpanded ? '#8A8A8E' : '#C6F432') + ';cursor:pointer;text-transform:uppercase;letter-spacing:0.06em">' + (isAllExpanded ? 'Collapse' : 'Expand all') + '</button>'
+      + '</div>')
+    : '';
+
   document.getElementById('content').innerHTML =
     '<div class="gym-page" style="padding-bottom:120px">'
     + dateBannerHTML
     + gymHeaderUnifiedHTML
+    + expandToggleHTML
     + exHTML
     + finishCardHTML
     + '</div><div id="restTimerWrap" style="pointer-events:none"></div>';
