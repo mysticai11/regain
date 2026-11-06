@@ -5,6 +5,7 @@ import { showToast } from "./components/toast.js";
 import { DEFAULT_MEAL_PLAN } from "./data/foods.js";
 import { saveWorkoutSessionFromDay, workoutSessionStore, WORKOUT_SESSIONS_KEY, WORKOUT_SESSIONS_VERSION } from "./storage-sessions.js";
 export * from "./storage-sessions.js";
+export * from "./storage-catchup.js";
 export { allDayKeys };
 
 export var SQLiteStorage = {
