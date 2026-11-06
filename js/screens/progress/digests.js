@@ -184,8 +184,8 @@ export function buildWeeklyDigestHTML() {
       if (wEntry) dayInfo.push(wEntry.weight.toFixed(1) + ' kg');
       var dayDesc = dayInfo.join(' · ') || 'Rest';
 
-      dayRows.push('<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:15px;color:#F5F5F4;border-bottom:1px solid #222">'
-        + '<div style="display:flex;flex-direction:column">'
+      dayRows.push('<div class="list-row" data-jump-day="' + dKey + '" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:15px;color:#F5F5F4;border-bottom:1px solid #222;cursor:pointer">'
+        + '<div style="display:flex;flex-direction:column;pointer-events:none">'
           + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase">' + esc(dayName) + '</span>'
           + '<span style="font-size:15px;color:' + (woLabel ? '#C6F432' : '#F5F5F4') + '">' + dayDesc + '</span>'
         + '</div>'
@@ -259,11 +259,17 @@ export function openHistoryArchiveModal(defaultTab) {
       };
     });
     overlay.querySelectorAll('[data-jump-day]').forEach(function(btn) {
-      btn.onclick = function() {
+      btn.onclick = function(e) {
+        if (e && e.stopPropagation) e.stopPropagation();
         triggerHaptic();
         overlay.remove();
         window.activeTodaySelectedDateKey = btn.dataset.jumpDay;
-        if (typeof setTab === 'function') setTab('today');
+        if (typeof window !== 'undefined' && typeof window.setTab === 'function') {
+          window.setTab('today');
+        } else {
+          setTab('today');
+          if (typeof window !== 'undefined' && typeof window.renderTab === 'function') window.renderTab();
+        }
       };
     });
   }
@@ -350,10 +356,16 @@ export function wireHistoryScreenEvents(container, onTabSwitch, onMonthChange) {
   });
 
   container.querySelectorAll('[data-jump-day]').forEach(function(btn) {
-    btn.onclick = function() {
+    btn.onclick = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
       triggerHaptic();
       window.activeTodaySelectedDateKey = btn.dataset.jumpDay;
-      if (typeof setTab === 'function') setTab('today');
+      if (typeof window !== 'undefined' && typeof window.setTab === 'function') {
+        window.setTab('today');
+      } else {
+        setTab('today');
+        if (typeof window !== 'undefined' && typeof window.renderTab === 'function') window.renderTab();
+      }
     };
   });
 }
