@@ -2,8 +2,9 @@
 
 import { profile } from "../state.js";
 import { dayRecord, ls, sv } from "../storage.js";
-import { getActiveProgram, getExerciseData, CAL_TARGET_REST, CAL_TARGET_GYM, PROT_TARGET_REST, PROT_TARGET_GYM } from "../data/plan.js";
+import { getActiveProgram, getExerciseData, isBodyweightExercise, CAL_TARGET_REST, CAL_TARGET_GYM, PROT_TARGET_REST, PROT_TARGET_GYM } from "../data/plan.js";
 import { DEFAULT_MEAL_PLAN } from "../data/foods.js";
+import { getAllKnownExercises } from "../data/exercises.js";
 import { dateKey, todayKey, addDays, allDayKeys } from "./format.js";
 export * from "./progression.js";
 
@@ -43,9 +44,9 @@ export function getLoggedWeeklyVolume() {
 }
 
 export function getTargetsForDate(dateStr) {
-  if(!profile) return { kcal: CAL_TARGET_REST, protein: PROT_TARGET_REST, carbs: 415, fat: 100 };
+  if (!profile) return { kcal: CAL_TARGET_REST, protein: PROT_TARGET_REST, carbs: 415, fat: 100 };
   var d = new Date(dateStr + 'T00:00:00');
-  var tdays = profile.trainingDays || [1,3,5];
+  var tdays = profile.trainingDays || [1, 2, 4, 5, 6];
   var isTrain = tdays.includes(d.getDay());
   try {
     var rec = dayRecord(dateStr);
@@ -53,9 +54,13 @@ export function getTargetsForDate(dateStr) {
       isTrain = rec.selectedWorkout !== null;
     }
   } catch(e) {}
+  var restCal = Number(profile.calTargetRest) || CAL_TARGET_REST;
+  var gymCal = Number(profile.calTargetGym) || CAL_TARGET_GYM;
+  var restProt = Number(profile.protTargetRest) || PROT_TARGET_REST;
+  var gymProt = Number(profile.protTargetGym) || PROT_TARGET_GYM;
   return {
-    kcal: isTrain ? (profile.calTargetGym || (profile.goal === 'loss' ? 2700 : CAL_TARGET_GYM)) : (profile.calTargetRest || (profile.goal === 'loss' ? 2500 : CAL_TARGET_REST)),
-    protein: isTrain ? (profile.protTargetGym || PROT_TARGET_GYM) : (profile.protTargetRest || PROT_TARGET_REST),
+    kcal: isTrain ? gymCal : restCal,
+    protein: isTrain ? gymProt : restProt,
     carbs: isTrain ? 475 : 415,
     fat: isTrain ? 110 : 100
   };
@@ -134,22 +139,75 @@ export function yesterdayMissed() {
   return getDayTotals(key).kcal < ct*0.9 && !rec.shielded;
 }
 
-// ── Workout session type (A/B alternation) ────────────────────────────────────
+// ── Workout session type & PR calculations ────────────────────────────────────
 
-export function calcE1RM(w, r) { return r===1 ? w : w*(1 + r/30); }
+export function getEquivalentExerciseIds(exId) {
+  var ids = [exId];
+  var baseId = exId.replace(/_[ab\d]+$/i, '');
+  if (baseId !== exId && !ids.includes(baseId)) ids.push(baseId);
+  [baseId + '_b', baseId + '_a', baseId + '_machine'].forEach(function(s){ if(!ids.includes(s)) ids.push(s); });
+  var pairs = {
+    machine_row_b: 'machine_row', machine_row: 'machine_row_b',
+    lat_pulldown_b: 'lat_pulldown', lat_pulldown: 'lat_pulldown_b',
+    pec_deck_b: 'pec_deck', pec_deck: 'pec_deck_b',
+    hamstring_curl_b: 'hamstring_curl', hamstring_curl: 'hamstring_curl_b',
+    leg_extension_b: 'leg_extension', leg_extension: 'leg_extension_b',
+    shoulder_press_b: 'shoulder_press_machine', shoulder_press_machine: 'shoulder_press_b',
+    lateral_raise_b: 'lateral_raise_machine', lateral_raise_machine: 'lateral_raise_b',
+    pull_ups: 'chin_ups', chin_ups: 'pull_ups',
+    rear_delt_fly: 'rear_delt_fly_1', rear_delt_fly_1: 'rear_delt_fly', rear_delt_fly_rp: 'rear_delt_fly',
+    calves: 'calf_stand', calves_training: 'calves'
+  };
+  if (pairs[exId] && !ids.includes(pairs[exId])) ids.push(pairs[exId]);
+  if (exId === 'rear_delt_fly' && !ids.includes('rear_delt_fly_rp')) ids.push('rear_delt_fly_rp');
+  if (exId === 'calves') {
+    if (!ids.includes('calf_stand')) ids.push('calf_stand');
+    if (!ids.includes('calf_press')) ids.push('calf_press');
+  }
+  var currentName = ((getExerciseData(exId) || {}).name || '').toLowerCase().trim();
+  if (currentName) {
+    getAllKnownExercises().forEach(function(item) {
+      if (item && item.name && item.name.toLowerCase().trim() === currentName && !ids.includes(item.id)) ids.push(item.id);
+    });
+  }
+  return ids;
+}
 
-export function getBestE1RM(exId) {
-  var ids = (typeof getEquivalentExerciseIds === 'function') ? getEquivalentExerciseIds(exId) : [exId];
+export function isIsolationLift(exId, exData) {
+  var ex = exData || ((typeof getExerciseData === 'function') ? getExerciseData(exId) : null);
+  if (ex) {
+    if (ex.type === 'isolation' || ex.isCompound === false) return true;
+    if (ex.type === 'compound' || ex.isCompound === true) return false;
+  }
+  var id = (exId || '').toLowerCase(), name = (ex && ex.name ? ex.name : '').toLowerCase();
+  return /curl|fly|flye|raise|pushdown|extension|pec_deck|calves|shrug|wrist/i.test(id) ||
+         /curl|fly|flye|raise|pushdown|extension|pec deck|calves|shrug|wrist/i.test(name);
+}
+
+/**
+ * Epley formula: e1RM = w * (1 + r / 30).
+ * Exclude sets > 12 reps from e1RM (returns null).
+ */
+export function calcE1RM(w, r) {
+  w = Number(w) || 0; r = Number(r) || 0;
+  if (w <= 0 || r <= 0) return 0;
+  if (r > 12) return null;
+  return r === 1 ? w : +(w * (1 + r / 30)).toFixed(2);
+}
+
+export function getBestE1RM(exId, excludeDayKey) {
+  var ids = getEquivalentExerciseIds(exId);
   var best = 0;
   allDayKeys().forEach(function(key){
+    if (excludeDayKey && key === excludeDayKey) return;
     var rec = dayRecord(key);
     var wo = rec.workout || {};
     ids.forEach(function(id){
       var sets = wo[id] || [];
       sets.forEach(function(s){
-        if (s && s.weight && s.reps) {
+        if (s && s.weight && s.reps && Number(s.reps) <= 12) {
           var e = calcE1RM(s.weight, s.reps);
-          if (e > best) best = e;
+          if (e && e > best) best = e;
         }
       });
     });
@@ -157,16 +215,17 @@ export function getBestE1RM(exId) {
   return best > 0 ? best : null;
 }
 
-export function getBestRepCount(exId) {
-  var ids = (typeof getEquivalentExerciseIds === 'function') ? getEquivalentExerciseIds(exId) : [exId];
+export function getBestRepCount(exId, excludeDayKey) {
+  var ids = getEquivalentExerciseIds(exId);
   var best = 0;
   allDayKeys().forEach(function(key){
+    if (excludeDayKey && key === excludeDayKey) return;
     var rec = dayRecord(key);
     var wo = rec.workout || {};
     ids.forEach(function(id){
       var sets = wo[id] || [];
       sets.forEach(function(s){
-        if (s && s.reps) {
+        if (s && s.reps && Number(s.reps) <= 12) {
           var r = Number(s.reps) || 0;
           if (r > best) best = r;
         }
@@ -174,6 +233,61 @@ export function getBestRepCount(exId) {
     });
   });
   return best > 0 ? best : null;
+}
+
+export function checkExercisePR(exId, weight, reps, currentDayKey) {
+  var w = Number(weight) || 0;
+  var r = Number(reps) || 0;
+  if (r <= 0 || r > 12) return { isPR: false, reason: 'Reps must be between 1 and 12' };
+
+  var exData = (typeof getExerciseData === 'function') ? getExerciseData(exId) : null;
+  var isBW = isBodyweightExercise(exId, exData ? exData.name : '');
+  var isIso = isIsolationLift(exId, exData);
+
+  var ids = getEquivalentExerciseIds(exId);
+  var priorSets = [];
+  allDayKeys().forEach(function(key) {
+    if (currentDayKey && key === currentDayKey) return;
+    var rec = dayRecord(key);
+    var wo = (rec && rec.workout) || {};
+    ids.forEach(function(id) {
+      var sets = wo[id] || [];
+      sets.forEach(function(s) {
+        if (s && !s.isWarmup && (Number(s.reps) > 0 || Number(s.weight) > 0)) {
+          if (Number(s.reps) <= 12) priorSets.push({ weight: Number(s.weight) || 0, reps: Number(s.reps) || 0 });
+        }
+      });
+    });
+  });
+
+  if (priorSets.length === 0) return { isPR: false, reason: 'baseline' };
+
+  if (isBW && w === 0) {
+    var maxReps = Math.max.apply(null, priorSets.map(function(s){ return s.reps; }));
+    if (r > maxReps) return { isPR: true, type: 'reps', prev: maxReps, current: r };
+    return { isPR: false };
+  }
+
+  if (isIso) {
+    var maxW = Math.max.apply(null, priorSets.map(function(s){ return s.weight; }));
+    if (w > maxW && r >= 6) return { isPR: true, type: 'weight', prev: maxW, current: w };
+    var sameW = priorSets.filter(function(s){ return Math.abs(s.weight - w) < 0.1; });
+    if (sameW.length > 0) {
+      var maxR = Math.max.apply(null, sameW.map(function(s){ return s.reps; }));
+      if (r > maxR) return { isPR: true, type: 'reps', prev: maxR, current: r };
+    }
+    return { isPR: false };
+  }
+
+  var currentE1 = calcE1RM(w, r);
+  if (!currentE1) return { isPR: false };
+  var priorE1s = priorSets.map(function(s){ return calcE1RM(s.weight, s.reps); }).filter(Boolean);
+  if (!priorE1s.length) return { isPR: false, reason: 'baseline' };
+  var bestPriorE1 = Math.max.apply(null, priorE1s);
+  if (currentE1 >= bestPriorE1 + 0.5) {
+    return { isPR: true, type: 'e1rm', prev: bestPriorE1, current: currentE1 };
+  }
+  return { isPR: false };
 }
 
 // ── Linear regression + 95% CI ────────────────────────────────────────────────

@@ -2,10 +2,11 @@
 
 import { getWorkoutSessions, dayRecord, allDayKeys } from "../../storage.js";
 import { getExerciseData, getActiveProgram } from "../../data/plan.js";
-import { calcE1RM, getBestE1RM, getBestRepCount } from "../../lib/calc.js";
+import { calcE1RM, getBestE1RM, getBestRepCount, getEquivalentExerciseIds } from "../../lib/calc.js";
 import { todayKey } from "../../lib/format.js";
 
 export { isBodyweightExercise } from "../../data/plan.js";
+export { getEquivalentExerciseIds };
 import { isBodyweightExercise } from "../../data/plan.js";
 
 export function getExercisePR(exId) {
@@ -55,66 +56,6 @@ export function getLastSessionWeightReps(exId, rec) {
     }
   }
   return null;
-}
-
-
-export function getEquivalentExerciseIds(exId) {
-  var ids = [exId];
-  // Strip _b, _a, _1, _2, _machine suffixes
-  var baseId = exId.replace(/_[ab\d]+$/i, '');
-  if (baseId !== exId && !ids.includes(baseId)) ids.push(baseId);
-  if (!ids.includes(baseId + '_b')) ids.push(baseId + '_b');
-  if (!ids.includes(baseId + '_a')) ids.push(baseId + '_a');
-  if (!ids.includes(baseId + '_machine')) ids.push(baseId + '_machine');
-
-  // Explicit pairs from the 5-day and 6-day split
-  var pairs = {
-    'machine_row_b': 'machine_row',
-    'machine_row': 'machine_row_b',
-    'lat_pulldown_b': 'lat_pulldown',
-    'lat_pulldown': 'lat_pulldown_b',
-    'pec_deck_b': 'pec_deck',
-    'pec_deck': 'pec_deck_b',
-    'hamstring_curl_b': 'hamstring_curl',
-    'hamstring_curl': 'hamstring_curl_b',
-    'leg_extension_b': 'leg_extension',
-    'leg_extension': 'leg_extension_b',
-    'shoulder_press_b': 'shoulder_press_machine',
-    'shoulder_press_machine': 'shoulder_press_b',
-    'lateral_raise_b': 'lateral_raise_machine',
-    'lateral_raise_machine': 'lateral_raise_b',
-    'pull_ups': 'chin_ups',
-    'chin_ups': 'pull_ups',
-    'rear_delt_fly': 'rear_delt_fly_1',
-    'rear_delt_fly_1': 'rear_delt_fly',
-    'rear_delt_fly_rp': 'rear_delt_fly',
-    'calves': 'calf_stand',
-    'calves_training': 'calves'
-  };
-  if (pairs[exId] && !ids.includes(pairs[exId])) {
-    ids.push(pairs[exId]);
-  }
-  if (exId === 'rear_delt_fly' && !ids.includes('rear_delt_fly_rp')) {
-    ids.push('rear_delt_fly_rp');
-  }
-  if (exId === 'calves') {
-    if (!ids.includes('calf_stand')) ids.push('calf_stand');
-    if (!ids.includes('calf_press')) ids.push('calf_press');
-  }
-
-  // Also match by exercise name
-  var currentName = ((getExerciseData(exId) || {}).name || '').toLowerCase().trim();
-  if (currentName) {
-    var lib = typeof EXERCISE_LIBRARY !== 'undefined' ? EXERCISE_LIBRARY : {};
-    var allEx = Object.keys(lib);
-    allEx.forEach(function(k) {
-      var item = lib[k];
-      if (item && item.name && item.name.toLowerCase().trim() === currentName) {
-        if (!ids.includes(k)) ids.push(k);
-      }
-    });
-  }
-  return ids;
 }
 
 export function getLastSessionSets(exId, rec) {

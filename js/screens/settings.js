@@ -22,7 +22,6 @@ export function openSettings() {
   var restKcal = profile.calTargetRest || CAL_TARGET_REST, gymKcal = profile.calTargetGym || CAL_TARGET_GYM, restProt = profile.protTargetRest || PROT_TARGET_REST, gymProt = profile.protTargetGym || PROT_TARGET_GYM, targetWeight = profile.targetWeight || 60.0;
 
   var chevronSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8A8E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:12px;pointer-events:none"><path d="M6 9l6 6 6-6"/></svg>';
-
   var dayTogglesHTML = weekDaysMeta.map(function(d) {
     var active = tdays.includes(d.js);
     var actStyle = active
@@ -47,29 +46,29 @@ export function openSettings() {
       + '</div>'
       + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Calories</div>'
       + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">'
-        + '<div style="height:44px;background:#141416;border:1px solid #222;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:text" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
+        + '<div style="height:48px;min-height:48px;background:#141416;border:1px solid #222;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:text" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
           + '<input type="number" id="setTargetRest" value="' + restKcal + '" inputmode="numeric" style="background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:center;width:68px;padding:0;outline:none">'
           + '<span style="font-size:11px;color:#8A8A8E;pointer-events:none">kcal</span>'
         + '</div>'
-        + '<div style="height:44px;background:#141416;border:1px solid #222;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:text" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
+        + '<div style="height:48px;min-height:48px;background:#141416;border:1px solid #222;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:text" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
           + '<input type="number" id="setTargetGym" value="' + gymKcal + '" inputmode="numeric" style="background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:center;width:68px;padding:0;outline:none">'
           + '<span style="font-size:11px;color:#8A8A8E;pointer-events:none">kcal</span>'
         + '</div>'
       + '</div>'
       + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Protein</div>'
       + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">'
-        + '<div style="height:44px;background:#141416;border:1px solid #222;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:text" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
+        + '<div style="height:48px;min-height:48px;background:#141416;border:1px solid #222;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:text" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
           + '<input type="number" id="setProtRest" value="' + restProt + '" inputmode="numeric" style="background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:center;width:48px;padding:0;outline:none">'
           + '<span style="font-size:11px;color:#8A8A8E;pointer-events:none">g</span>'
         + '</div>'
-        + '<div style="height:44px;background:#141416;border:1px solid #222;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:text" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
+        + '<div style="height:48px;min-height:48px;background:#141416;border:1px solid #222;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:text" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
           + '<input type="number" id="setProtGym" value="' + gymProt + '" inputmode="numeric" style="background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:center;width:48px;padding:0;outline:none">'
           + '<span style="font-size:11px;color:#8A8A8E;pointer-events:none">g</span>'
         + '</div>'
       + '</div>'
       + '<div style="border-top:1px solid #222;padding-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center">'
         + '<div style="font-size:15px;color:#F5F5F4;font-weight:500">Goal Weight</div>'
-        + '<div style="height:44px;background:#141416;border:1px solid #222;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:text" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
+        + '<div style="height:48px;min-height:48px;background:#141416;border:1px solid #222;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:text" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
           + '<input type="number" step="0.1" id="setTargetWeight" value="' + targetWeight + '" inputmode="decimal" style="background:transparent;border:none;font-size:17px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;text-align:center;width:56px;padding:0;outline:none">'
           + '<span style="font-size:11px;color:#8A8A8E;pointer-events:none">kg</span>'
         + '</div>'
@@ -77,7 +76,7 @@ export function openSettings() {
     + '</div>'
 
     // TRAINING DAYS
-    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Training Days</span></div>'
+    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Training days</span></div>'
     + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px">'
       + '<div style="font-size:15px;font-weight:600;color:#F5F5F4;margin-bottom:2px">Days you train</div>'
       + '<div style="font-size:11px;color:#8A8A8E;margin-bottom:14px">Workouts map to your split in weekly sequence</div>'
@@ -85,7 +84,7 @@ export function openSettings() {
     + '</div>'
 
     // PROFILE (Selects with chevron icon & same height)
-    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Profile & Preferences</span></div>'
+    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Profile</span></div>'
     + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px;display:flex;flex-direction:column;gap:14px">'
       + '<div>'
         + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Primary Goal</label>'
@@ -136,7 +135,7 @@ export function openSettings() {
     + '</div>'
 
     // PLAN
-    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Workout Routine</span></div>'
+    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Plan</span></div>'
     + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">'
       + '<div>'
         + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">Routine & Split</div>'
@@ -146,14 +145,18 @@ export function openSettings() {
     + '</div>'
 
     // ADVANCED (Unified Card with 36px action buttons)
-    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Data & Preferences</span></div>'
+    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Advanced</span></div>'
     + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid #141416">'
         + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Haptic feedback</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Vibrate on taps and logged sets</div></div>'
         + '<button type="button" class="btn" id="toggleHapticsBtn" style="height:36px;min-width:64px;padding:0 14px;border-radius:8px;background:#141416;color:' + (profile.hapticsMuted ? '#8A8A8E' : '#C6F432') + ';font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">' + (profile.hapticsMuted ? 'Muted' : 'On') + '</button>'
       + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
-        + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Streak shields</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">' + shields + ' shields available</div></div>'
+        + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Auto-start rest timer</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Counts down after saving a set</div></div>'
+        + '<button type="button" class="btn" id="toggleAutoRestBtn" style="height:36px;min-width:64px;padding:0 14px;border-radius:8px;background:#141416;color:' + (profile.autoStartRestTimer === false ? '#8A8A8E' : '#C6F432') + ';font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">' + (profile.autoStartRestTimer === false ? 'Off' : 'On') + '</button>'
+      + '</div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
+        + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Streak shields</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">' + shields + (shields === 1 ? ' shield' : ' shields') + ' available</div></div>'
         + '<button type="button" class="btn" id="buyShieldBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#141416;color:' + (((profile.xp || 0) < 100) ? '#55555A' : '#F5F5F4') + ';font-size:15px;font-weight:600;border:1px solid #222;cursor:' + (((profile.xp || 0) < 100) ? 'not-allowed' : 'pointer') + '"' + (((profile.xp || 0) < 100) ? ' disabled' : '') + '>Buy · 100 XP</button>'
       + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
@@ -161,7 +164,7 @@ export function openSettings() {
         + '<button type="button" class="btn" id="editCustomFoodsBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#141416;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Manage</button>'
       + '</div>'
       + (function() {
-        var lastBackupStr = 'Never', lastBackupTime = ls('tally_last_backup') || ls('rg_last_backup');
+        var lastBackupStr = 'Never', lastBackupTime = ls('rg_last_backup') || ls('tally_last_backup');
         if (lastBackupTime) {
           var diff = Math.floor((Date.now() - new Date(lastBackupTime).getTime()) / (1000 * 60 * 60 * 24));
           lastBackupStr = diff === 0 ? 'Today' : (diff + (diff === 1 ? ' day ago' : ' days ago'));
@@ -307,13 +310,21 @@ export function openSettings() {
     };
   }
 
+  var toggleAutoRestBtn = overlay.querySelector('#toggleAutoRestBtn');
+  if (toggleAutoRestBtn) {
+    toggleAutoRestBtn.onclick = function() {
+      profile.autoStartRestTimer = (profile.autoStartRestTimer === false) ? true : false;
+      sv('rg_profile', profile);
+      toggleAutoRestBtn.textContent = profile.autoStartRestTimer ? 'On' : 'Off';
+      toggleAutoRestBtn.style.color = profile.autoStartRestTimer ? '#C6F432' : '#8A8A8E';
+      showToast(profile.autoStartRestTimer ? 'Rest timer auto-start on' : 'Rest timer auto-start off', 'ok');
+    };
+  }
+
   overlay.querySelector('#buyShieldBtn').addEventListener('click', function() {
     if ((profile.xp || 0) >= 100) {
-      profile.xp -= 100;
-      profile.shields = (profile.shields || 0) + 1;
-      sv('rg_profile', profile);
-      overlay.remove();
-      openSettings();
+      profile.xp -= 100; profile.shields = (profile.shields || 0) + 1;
+      sv('rg_profile', profile); overlay.remove(); openSettings();
       showToast('Streak shield purchased!', 'ok');
     }
   });
@@ -343,7 +354,7 @@ export function openSettings() {
 
       var confirmed = false;
       try {
-        confirmed = confirm('This will delete all Tally data on this device. Are you sure?');
+        confirmed = confirm('This will delete all Regain data on this device. Are you sure?');
       } catch (e) {
         confirmed = false;
       }
@@ -368,16 +379,13 @@ export function openSettings() {
 
   var openPlanBtn = overlay.querySelector('#openPlanFromSettingsBtn');
   if (openPlanBtn) {
-    openPlanBtn.addEventListener('click', function() {
-      overlay.remove();
-      openSplitManagerSheet();
-    });
+    openPlanBtn.addEventListener('click', function() { overlay.remove(); openSplitManagerSheet(); });
   }
 
-  overlay.querySelector('#editCustomFoodsBtn').addEventListener('click', function() {
-    overlay.remove();
-    openCustomFoodsManager();
-  });
+  var editFoodsBtn = overlay.querySelector('#editCustomFoodsBtn');
+  if (editFoodsBtn) {
+    editFoodsBtn.addEventListener('click', function() { overlay.remove(); openCustomFoodsManager(); });
+  }
 
   var expBtn = overlay.querySelector('#exportBtn');
   if (expBtn) expBtn.addEventListener('click', exportData);
@@ -386,7 +394,3 @@ export function openSettings() {
 }
 
 export * from "./onboarding.js";
-
-// ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-// HISTORY TAB
-// ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════

@@ -74,20 +74,26 @@ saveDayRecord('2026-11-01', day1);
 
 // 2. Test serializeAllStores
 const backup = await serializeAllStores();
-assert.strictEqual(backup.app, 'forge', 'App identifier should be forge');
+assert.strictEqual(backup.app, 'regain', 'App identifier should be regain');
 assert.strictEqual(backup.schemaVersion, 1, 'Schema version should be 1');
 assert.ok(backup.exportedAt, 'exportedAt timestamp present');
 assert.deepStrictEqual(backup.data.profile.weightEntries, initialProfile.weightEntries, 'Profile weight entries serialized');
 assert.ok(backup.data.days['2026-11-01'], 'Day record serialized');
 
-// 3. Test parseAndValidateBackup
+// 3. Test parseAndValidateBackup (including backward compat for forge and tally)
 const jsonText = JSON.stringify(backup);
 const validated = parseAndValidateBackup(jsonText);
-assert.ok(validated && validated.valid, 'Backup parsing should be valid');
+assert.ok(validated && validated.valid, 'Backup parsing should be valid for regain');
 assert.strictEqual(validated.schemaVersion, 1, 'Validated schema version matches');
 assert.strictEqual(validated.counts.food, 3, 'Counts 2 foodLog items + 1 meal item = 3 food entries');
 assert.strictEqual(validated.counts.weights, 2, 'Counts 2 weight entries');
 assert.strictEqual(validated.counts.workouts, 1, 'Counts 1 workout session');
+
+// Verify backward compatibility with forge and tally files
+const forgeValid = parseAndValidateBackup(JSON.stringify(Object.assign({}, backup, { app: 'forge' })));
+assert.ok(forgeValid && forgeValid.valid, 'Backward-compatible import of forge backup files');
+const tallyValid = parseAndValidateBackup(JSON.stringify(Object.assign({}, backup, { app: 'tally' })));
+assert.ok(tallyValid && tallyValid.valid, 'Backward-compatible import of tally backup files');
 
 // 4. Test Round-trip: wipe and replace restore
 // Wipe local data

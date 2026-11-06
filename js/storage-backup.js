@@ -35,7 +35,7 @@ export async function serializeAllStores() {
   var meals = ls('rg_meals', DEFAULT_MEAL_PLAN);
 
   return {
-    app: "forge",
+    app: "regain",
     schemaVersion: 1,
     exportedAt: new Date().toISOString(),
     data: {
@@ -55,7 +55,7 @@ export async function exportData() {
   try {
     var backupObject = await serializeAllStores();
     var jsonStr = JSON.stringify(backupObject, null, 2);
-    var fileName = 'forge-backup-' + todayKey() + '.json';
+    var fileName = 'regain-backup-' + todayKey() + '.json';
 
     if (window.Capacitor && window.Capacitor.isPluginAvailable && window.Capacitor.isPluginAvailable('Filesystem')) {
       try {
@@ -69,7 +69,7 @@ export async function exportData() {
         });
         if (Share && typeof Share.share === 'function') {
           await Share.share({
-            title: 'Forge Backup ' + todayKey(),
+            title: 'Regain Backup ' + todayKey(),
             url: writeRes.uri
           });
           sv('rg_last_backup', Date.now());
@@ -85,7 +85,7 @@ export async function exportData() {
       try {
         var file = new File([jsonStr], fileName, { type: 'application/json' });
         if (navigator.canShare({ files: [file] })) {
-          await navigator.share({ title: 'Forge Backup ' + todayKey(), files: [file] });
+          await navigator.share({ title: 'Regain Backup ' + todayKey(), files: [file] });
           sv('rg_last_backup', Date.now());
           showToast('Backup shared successfully', 'ok');
           return;

@@ -212,7 +212,7 @@ export function workoutHistoryHTML() {
           + '</div>'
           + '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0">'
             + '<span class="history-chevron" style="display:inline-flex;align-items:center;color:#8A8A8E;transition:transform 0.2s ease">' + chevronSVG + '</span>'
-            + '<button type="button" class="btn-ghost history-menu-btn" data-session-menu="' + esc(session.id) + '" style="background:none;border:none;font-size:17px;line-height:1;padding:8px 12px;color:#8A8A8E;cursor:pointer;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center" aria-label="Session options">···</button>'
+            + '<button type="button" class="btn-ghost history-menu-btn" data-session-menu="' + esc(session.id) + '" style="background:none;border:none;font-size:17px;line-height:1;padding:8px 12px;color:#8A8A8E;cursor:pointer;min-width:48px;min-height:48px;display:inline-flex;align-items:center;justify-content:center" aria-label="Session options">···</button>'
           + '</div>'
         + '</summary>'
         + '<div class="history-session-body" style="padding:0 16px 12px;border-top:1px solid #1C1C1F">' + exRows + '</div>'

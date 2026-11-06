@@ -287,9 +287,10 @@ export function buildCalRingHTML(kcalLogged, kcalTarget, protLogged, protTarget,
   var protPct = Math.min(100, Math.round(protLogged / Math.max(1, protTarget) * 100));
 
   var heroNumber = isOver ? ('+' + (kcalLogged - kcalTarget).toLocaleString()) : (remaining > 0 ? remaining.toLocaleString() : kcalLogged.toLocaleString());
+  var heroLabel = isOver ? 'over target' : (remaining > 0 ? 'remaining' : 'eaten');
   var heroSub = remaining > 0
-    ? ('of ' + kcalTarget.toLocaleString() + ' kcal')
-    : (isOver ? (kcalLogged.toLocaleString() + ' of ' + kcalTarget.toLocaleString() + ' kcal') : ('of ' + kcalTarget.toLocaleString() + ' kcal'));
+    ? (heroLabel + ' · of ' + kcalTarget.toLocaleString() + ' kcal')
+    : (isOver ? (heroLabel + ' · ' + kcalLogged.toLocaleString() + ' of ' + kcalTarget.toLocaleString() + ' kcal') : (heroLabel + ' · ' + kcalLogged.toLocaleString() + ' of ' + kcalTarget.toLocaleString() + ' kcal'));
 
   var rawVal = isOver ? (kcalLogged - kcalTarget) : (remaining > 0 ? remaining : kcalLogged);
   return '<div style="margin-bottom:24px">'

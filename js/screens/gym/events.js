@@ -5,7 +5,7 @@ import { dayRecord, saveDayRecord, sv } from "../../storage.js";
 import { getExerciseData } from "../../data/plan.js";
 import { isBodyweightExercise } from "./sets.js";
 import { getSessionMeta, attachCommonGymHeaderEvents } from "./helpers.js";
-import { getBestRepCount, getBestE1RM } from "../../lib/calc.js";
+import { checkExercisePR, isIsolationLift } from "../../lib/calc.js";
 import { playSound, triggerHaptic } from "../../lib/dom.js";
 import { showToast, showUndoToast } from "../../components/toast.js";
 import { openSheet } from "../../components/sheet.js";
@@ -169,29 +169,28 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       if (savedOk) {
         try {
           triggerHaptic();
-          if(navigator.vibrate) navigator.vibrate(35);
-          if (isBW && (!w || w === 0)) {
-            var prevBestReps = getBestRepCount(id) || 0;
-            if (r > prevBestReps) {
-              playSound('workout_complete');
-              showToast('PR: ' + (exObj.name || 'Lift') + ': ' + r + ' reps (BW)', 'ok');
+          if (navigator.vibrate) navigator.vibrate(35);
+          var prRes = checkExercisePR(id, w, r, key);
+          if (prRes.isPR) {
+            playSound('workout_complete');
+            if (prRes.type === 'weight') {
+              showToast('PR: ' + (exObj.name || 'Lift') + ': ' + w + 'kg × ' + r + ' (Weight PR)', 'ok');
+            } else if (prRes.type === 'reps') {
+              showToast('PR: ' + (exObj.name || 'Lift') + ': ' + (w > 0 ? (w + 'kg × ') : '') + r + ' reps (Rep PR)', 'ok');
             } else {
-              playSound('set_logged');
+              showToast('PR: ' + (exObj.name || 'Lift') + ': ' + (w > 0 ? (w + 'kg × ' + r) : (r + ' reps')) + ' (' + prRes.current.toFixed(1) + 'kg e1RM)', 'ok');
             }
           } else {
-            var prevBestE1RM = getBestE1RM(id) || 0;
-            var currentE1RM = w * (1 + r / 30);
-            if (currentE1RM > prevBestE1RM + 0.25) {
-              playSound('workout_complete');
-              showToast('PR: ' + (exObj.name || 'Lift') + ': ' + (w > 0 ? (w + 'kg × ' + r) : (r + ' reps')) + ' (' + currentE1RM.toFixed(1) + 'kg e1RM)', 'ok');
-            } else {
-              playSound('set_logged');
-            }
+            playSound('set_logged');
           }
         } catch(sensErr) {}
         try {
-          var loggedExercise=getExerciseData(id)||{};
-          startRestTimer(loggedExercise.rest||90);
+          if (profile && profile.autoStartRestTimer !== false) {
+            var loggedExercise = getExerciseData(id) || {};
+            var isIso = isIsolationLift(id, loggedExercise);
+            var restDur = (isIso ? (profile && profile.restIsolations) : (profile && profile.restCompounds)) || (loggedExercise.rest || (isIso ? 75 : 150));
+            startRestTimer(restDur);
+          }
         } catch(timerErr) {}
       }
     });

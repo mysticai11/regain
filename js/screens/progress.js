@@ -187,11 +187,12 @@ export function renderProgressSimple(mode, historySubTab) {
 
     var recentRecords = records.slice(-7);
     var avgCalories = recentRecords.length ? Math.round(recentRecords.reduce(function(s, r){ return s + (r.kcal || 0); }, 0) / recentRecords.length) : 0;
+    var targetCal = (profile && (profile.calTargetGym || profile.calTargetRest)) || 2700;
 
     var advisorCard = '';
     if (entries.length >= 5 && weeklyRate != null) {
-      var paceTitle = (avgCalories >= 2700 && weeklyRate < 0.25) ? 'Bulking Pace: Slow' : (isRateOnTarget ? 'Bulking Pace: On Target' : (weeklyRate > 0.55 ? 'Bulking Pace: Fast' : ''));
-      var paceBody = (avgCalories >= 2700 && weeklyRate < 0.25) ? ('Eating ~' + avgCalories.toLocaleString() + ' kcal and gaining slowly (' + rateStr + '). Target is +0.25–0.50 kg/wk. Increase intake by +150–200 kcal/day.') : (isRateOnTarget ? (rateStr + ' (target +0.25–0.50 kg/wk) · Est. ' + Math.round(targetW) + ' kg by ' + etaText) : (weeklyRate > 0.55 ? ('Gaining ' + rateStr + ' vs +0.25–0.50 kg/wk target. Maintain a clean surplus.') : ''));
+      var paceTitle = (avgCalories >= targetCal && weeklyRate < 0.25) ? 'Bulking Pace: Slow' : (isRateOnTarget ? 'Bulking Pace: On Target' : (weeklyRate > 0.55 ? 'Bulking Pace: Fast' : ''));
+      var paceBody = (avgCalories >= targetCal && weeklyRate < 0.25) ? ('Eating ~' + avgCalories.toLocaleString() + ' kcal and gaining slowly (' + rateStr + '). Target is +0.25–0.50 kg/wk. Increase intake by +150–200 kcal/day.') : (isRateOnTarget ? (rateStr + ' (target +0.25–0.50 kg/wk) · Est. ' + Math.round(targetW) + ' kg by ' + etaText) : (weeklyRate > 0.55 ? ('Gaining ' + rateStr + ' vs +0.25–0.50 kg/wk target. Maintain a clean surplus.') : ''));
       if (paceTitle) advisorCard = '<div style="font-size:15px;color:#F5F5F4;line-height:1.35;border-top:1px solid #222222;padding-top:10px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:2px">' + paceTitle + '</span>' + paceBody + '</div>';
     }
 

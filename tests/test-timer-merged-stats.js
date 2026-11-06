@@ -27,7 +27,8 @@ var d4ChestBackB = prog[3];
 
 var mergeResult = buildMergedSession(d4ChestBackB, d3Arms, {}, {}, { maxSets: 20, setsPerAddedExercise: 2 });
 assert.ok(mergeResult.mergedSession.isMerged, 'Session must have isMerged flag');
-assert.strictEqual(mergeResult.mergedSession.exercises.length, d4ChestBackB.exercises.length + mergeResult.addedExercises.length);
+assert.ok(mergeResult.mergedSession.exercises.length <= 7, 'Session must comply with max 7 exercises limit');
+assert.strictEqual(mergeResult.mergedSession.exercises.length, 7, 'Base 6 + 1 added (capped at 7)');
 
 var plannedSets = sessionSetCount(mergeResult.mergedSession);
 assert.strictEqual(plannedSets, mergeResult.totalSets, 'sessionSetCount must equal mergeResult.totalSets');
