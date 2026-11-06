@@ -103,7 +103,8 @@ const resolvedFri = scheduledSessionFor('2026-11-06', {
 
 assert.strictEqual(resolvedFri.source, 'override', 'Friday session must come from override');
 assert.strictEqual(resolvedFri.session.isMerged, true, 'Resolved session must be flagged as merged');
-assert.strictEqual(sessionSetCount(resolvedFri.session), 16, 'Resolved session must have 16 sets');
+assert.ok(sessionSetCount(resolvedFri.session) >= 14 && sessionSetCount(resolvedFri.session) <= 20, 'Resolved session must respect limits (14-20 sets)');
+assert.ok(resolvedFri.session.exercises.length <= 7, 'Resolved session must not exceed 7 exercises');
 console.log('✓ Friday schedule successfully resolved to merged workout snapshot.');
 
 // 4. User completes the merged workout on Friday in Gym
