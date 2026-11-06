@@ -236,8 +236,9 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
     var wInput = document.querySelector('.set-weight[data-ex="' + id + '"][data-set-index="' + index + '"]');
     var rInput = document.querySelector('.set-reps[data-ex="' + id + '"][data-set-index="' + index + '"]');
     var rawW = (wInput ? wInput.value : '').trim();
-    var parsedW = (rawW === '' || rawW.toUpperCase() === 'BW') ? 0 : (parseFloat(rawW) || 0);
-    var parsedR = parseInt((rInput ? rInput.value : ''), 10) || '';
+    var parsedW = rawW === '' ? '' : (rawW.toUpperCase() === 'BW' ? 0 : (parseFloat(rawW.replace(',', '.')) || 0));
+    var rawR = (rInput ? rInput.value : '').trim();
+    var parsedR = rawR === '' ? '' : (parseInt(rawR, 10) || '');
     var rirEl = document.querySelector('.set-rir[data-ex="' + id + '"][data-set-index="' + index + '"]');
     var row = {
       weight: parsedW,
@@ -260,7 +261,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
         var pr = (rInput && rInput.dataset.prefill) || '';
         var effW = (wInput && wInput.value) || pw;
         var effR = (rInput && rInput.value) || pr;
-        logButton.disabled = isBW ? !(parseInt(effR, 10) > 0) : !(parseFloat(effW) > 0 && parseInt(effR, 10) > 0);
+        logButton.disabled = isBW ? !(parseInt(effR, 10) > 0) : !(parseFloat(String(effW).replace(',', '.')) > 0 && parseInt(effR, 10) > 0);
       }
       clearTimeout(draftTimer);
       draftTimer = setTimeout(function() {

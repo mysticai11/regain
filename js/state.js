@@ -142,13 +142,17 @@ export function setState(patch) {
 
 export function preserveUiStateDuringRender(renderFn) {
   if (typeof renderFn !== 'function') return;
-  var activeElementId = (typeof document !== 'undefined' && document.activeElement) ? document.activeElement.id : null;
+  var active = (typeof document !== 'undefined') ? document.activeElement : null;
+  if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || (active.classList && active.classList.contains('precision-input')))) {
+    return;
+  }
+  var activeElementId = active ? active.id : null;
   var selectionStart = null;
   var selectionEnd = null;
-  if (document.activeElement && 'selectionStart' in document.activeElement) {
+  if (active && 'selectionStart' in active) {
     try {
-      selectionStart = document.activeElement.selectionStart;
-      selectionEnd = document.activeElement.selectionEnd;
+      selectionStart = active.selectionStart;
+      selectionEnd = active.selectionEnd;
     } catch(e) {}
   }
   var content = typeof document !== 'undefined' ? document.getElementById('content') : null;
@@ -194,16 +198,19 @@ export function snapshotGymDrafts() {
     if (wInput || rInput) {
       rec.workoutDraft = rec.workoutDraft || {};
       rec.workoutDraft[exId] = rec.workoutDraft[exId] || [];
-      var wVal = wInput ? (wInput.value.trim() === '' ? '' : parseFloat(wInput.value) || 0) : '';
-      var rVal = rInput ? (rInput.value.trim() === '' ? '' : parseInt(rInput.value, 10) || '') : '';
+      var curDraft = rec.workoutDraft[exId][sIdx] || {};
+      var rawW = wInput ? wInput.value.trim() : '';
+      var wVal = rawW === '' ? '' : (rawW.toUpperCase() === 'BW' ? 0 : (parseFloat(rawW.replace(',', '.')) || 0));
+      var rawR = rInput ? rInput.value.trim() : '';
+      var rVal = rawR === '' ? '' : (parseInt(rawR, 10) || '');
       var rirVal = rirSelect ? (rirSelect.value === '' ? null : parseInt(rirSelect.value, 10)) : null;
-      if (wVal !== '' || rVal !== '') {
+      if (curDraft.weight !== wVal || curDraft.reps !== rVal || curDraft.rir !== rirVal) {
         rec.workoutDraft[exId][sIdx] = { weight: wVal, reps: rVal, rir: rirVal };
         dirty = true;
       }
     }
   });
-  if (dirty) saveDayRecord(key, rec);
+  if (dirty) saveDayRecord(key, rec, { silent: true });
 }
 
 export function getProfile() {

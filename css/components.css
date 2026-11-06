@@ -441,13 +441,14 @@ body.kb-open .tab-bar {
   pointer-events: none;
 }
 body.kb-open .rest-timer-dock {
-  transform: translateY(calc(100% + 24px));
-  pointer-events: none;
-  opacity: 0;
+  bottom: calc(var(--safe-b) + 8px) !important;
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  transform: none !important;
 }
 .rest-timer-dock {
-  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1), opacity 150ms ease;
-  will-change: transform, opacity;
+  transition: opacity 150ms ease;
+  will-change: opacity;
 }
 body.kb-open .sheet {
   max-height: calc(100dvh - 20px) !important;

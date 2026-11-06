@@ -45,6 +45,12 @@ export function renderApp() {
         b.classList.toggle('active', isAct);
         b.setAttribute('aria-selected', isAct ? 'true' : 'false');
       });
+      var c = document.getElementById('content');
+      if (c) {
+        c.classList.remove('page-enter');
+        void c.offsetWidth;
+        c.classList.add('page-enter');
+      }
       renderTab();
     });
   });
@@ -54,9 +60,6 @@ export function renderTab() {
   var content = document.getElementById('content');
   if (content) {
     content.innerHTML = '';
-    content.classList.remove('page-enter');
-    void content.offsetWidth;
-    content.classList.add('page-enter');
   }
   try {
     if (tab === 'today') renderTodaySimple();
@@ -243,6 +246,12 @@ if (typeof window !== 'undefined') {
     triggerHaptic();
     setTab(t);
     document.querySelectorAll('.navitem').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === t); });
+    var c = document.getElementById('content');
+    if (c) {
+      c.classList.remove('page-enter');
+      void c.offsetWidth;
+      c.classList.add('page-enter');
+    }
     renderTab();
   };
   window.openEditWorkoutSheet = openEditWorkoutSheet;

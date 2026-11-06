@@ -339,6 +339,43 @@ assert.strictEqual(wakeLockReleaseCount, 2, 'Wake lock must be explicitly releas
 
 console.log('✓ Verified: WakeLock acquired on timer start, released on backgrounding, re-acquired on foregrounding, and released on session end.');
 
+// ── TEST 5: snapshotGymDrafts & preserveUiStateDuringRender loop prevention ──
+console.log('\n[5/5] Verifying snapshotGymDrafts does not trigger re-render notification loop...');
+const { snapshotGymDrafts, preserveUiStateDuringRender } = await import('../js/state.js');
+
+const beforeSnapshotSchedules = scheduleCount;
+
+// Setup mock row for precision inputs
+const rowPrecision = createMockElement('setrow-bench-1', 'div');
+rowPrecision.classList.add('set-row-precision');
+rowPrecision.dataset.exId = 'barbell_bench';
+rowPrecision.dataset.setIndex = '1';
+const rowWInput = createMockElement('set_weight_bench_1', 'input');
+rowWInput.classList.add('set-weight');
+rowWInput.value = '82.5';
+const rowRInput = createMockElement('set_reps_bench_1', 'input');
+rowRInput.classList.add('set-reps');
+rowRInput.value = '10';
+
+domElements.set('rowPrecision', rowPrecision);
+
+// Execute snapshotGymDrafts
+snapshotGymDrafts();
+
+assert.strictEqual(scheduleCount, beforeSnapshotSchedules, 'snapshotGymDrafts MUST save with silent: true and never trigger scheduleStateNotification');
+
+// Verify preserveUiStateDuringRender guards active inputs
+let renderFnCalled = false;
+globalThis.document.activeElement = rowWInput;
+preserveUiStateDuringRender(() => { renderFnCalled = true; });
+assert.strictEqual(renderFnCalled, false, 'preserveUiStateDuringRender must skip re-renders when an input is actively focused');
+
+globalThis.document.activeElement = null;
+preserveUiStateDuringRender(() => { renderFnCalled = true; });
+assert.strictEqual(renderFnCalled, true, 'preserveUiStateDuringRender should execute render when no input is focused');
+
+console.log('✓ Verified: snapshotGymDrafts is 100% silent and active input focus protects against re-render teardown.');
+
 console.log('\n================================================================');
-console.log(' ALL 4 PART A GYM LOGGER BUG FIX TESTS PASSED WITH 100% SUCCESS!');
+console.log(' ALL 5 PART A GYM LOGGER BUG FIX TESTS PASSED WITH 100% SUCCESS!');
 console.log('================================================================\n');
