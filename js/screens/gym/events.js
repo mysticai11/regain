@@ -222,7 +222,6 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
   });
 
   document.querySelectorAll('.set-weight,.set-reps,.set-rir').forEach(function(input){
-    input.addEventListener('focus', function(){ if (typeof this.select === 'function') this.select(); });
     input.addEventListener('input', function(){
       var draftRec=dayRecord(key), id=input.dataset.ex, index=parseInt(input.dataset.setIndex,10);
       var isBW = isBodyweightExercise(id);
@@ -239,7 +238,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
         rir: (document.querySelector('.set-rir[data-ex="'+id+'"][data-set-index="'+index+'"]').value || null)
       };
       draftRec.workoutDraft[id][index]=row;
-      saveDayRecord(key,draftRec);
+      saveDayRecord(key, draftRec, { silent: true });
       var logButton=document.querySelector('[data-logset="'+id+'"][data-set-index="'+index+'"]');
       if(logButton) {
         var pw = (wInput && wInput.dataset.prefill) || '';
