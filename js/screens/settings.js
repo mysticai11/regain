@@ -148,6 +148,10 @@ export function openSettings() {
       + '<button type="button" class="btn" id="buyShieldBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#1C1C1F;color:' + (((profile.xp || 0) < 100) ? '#55555A' : '#F5F5F4') + ';font-size:15px;font-weight:600;border:1px solid #222;cursor:' + (((profile.xp || 0) < 100) ? 'not-allowed' : 'pointer') + '"' + (((profile.xp || 0) < 100) ? ' disabled' : '') + '>Buy · 100 XP</button>'
     + '</div>'
     + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222">'
+      + '<div><div style="font-size:15px;font-weight:500;color:#F5F5F4">Haptic feedback</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Vibrate on taps and logged sets</div></div>'
+      + '<button type="button" class="btn" id="toggleHapticsBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#1C1C1F;color:' + (profile.hapticsMuted ? '#8A8A8E' : '#C6F432') + ';font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">' + (profile.hapticsMuted ? 'Muted' : 'On') + '</button>'
+    + '</div>'
+    + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222">'
       + '<div>'
         + '<div style="font-size:15px;font-weight:500;color:#F5F5F4">Custom foods</div>'
         + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Manage custom items & staples</div>'
@@ -297,6 +301,17 @@ export function openSettings() {
         closeSheetFn();
       }
     });
+  }
+
+  var toggleHapticsBtn = overlay.querySelector('#toggleHapticsBtn');
+  if (toggleHapticsBtn) {
+    toggleHapticsBtn.onclick = function() {
+      profile.hapticsMuted = !profile.hapticsMuted;
+      sv('rg_profile', profile);
+      toggleHapticsBtn.textContent = profile.hapticsMuted ? 'Muted' : 'On';
+      toggleHapticsBtn.style.color = profile.hapticsMuted ? '#8A8A8E' : '#C6F432';
+      showToast(profile.hapticsMuted ? 'Haptics muted' : 'Haptics active', 'ok');
+    };
   }
 
   overlay.querySelector('#buyShieldBtn').addEventListener('click', function() {

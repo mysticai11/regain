@@ -236,7 +236,9 @@ export function releaseWakeLock() {
 
 export function triggerHaptic() {
   try {
-    if (window.Capacitor && window.Capacitor.isPluginAvailable('Haptics')) {
+    var p = (typeof window !== 'undefined' && window.profile) || null;
+    if (p && (p.hapticsMuted === true || p.hapticsEnabled === false)) return;
+    if (window.Capacitor && window.Capacitor.isPluginAvailable && window.Capacitor.isPluginAvailable('Haptics')) {
       window.Capacitor.Plugins.Haptics.vibrate();
     } else if (navigator.vibrate) {
       navigator.vibrate(15);
