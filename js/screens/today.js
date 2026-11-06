@@ -221,7 +221,7 @@ export function renderTodaySimple() {
       var valStr = (todayWeightInput.value || '').trim();
       if (valStr === '' && initialW !== '' && rec.weight != null) { clearTodayWeight(); return; }
       if (!valStr || valStr === initialW) return;
-      var w = parseFloat(valStr);
+      var w = parseFloat(valStr.replace(',', '.'));
       if (!w || isNaN(w) || w < 20 || w > 300) { showToast('Enter a valid weight', 'warn'); return; }
       profile.weightEntries = (profile.weightEntries || []).filter(function(e){ return e.dayKey !== activeDateKey; });
       profile.weightEntries.push({ id: 'weight_' + Date.now(), dayKey: activeDateKey, weight: w, createdAt: new Date().toISOString() });

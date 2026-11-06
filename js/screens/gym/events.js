@@ -98,7 +98,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       if (!rawW && wEl && wEl.dataset.prefill) rawW = wEl.dataset.prefill.trim();
       var w = 0;
       if (rawW !== '' && rawW.toUpperCase() !== 'BW') {
-        w = parseFloat(rawW) || 0;
+        w = parseFloat(rawW.replace(',', '.')) || 0;
       }
       var rawR = (rEl ? rEl.value : '').trim();
       if (!rawR && rEl && rEl.dataset.prefill) rawR = rEl.dataset.prefill.trim();

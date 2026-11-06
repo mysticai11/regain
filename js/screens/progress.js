@@ -362,7 +362,7 @@ export function renderProgressSimple(mode, historySubTab) {
   if(saveWeight) {
     saveWeight.onclick = function() {
       var pInp = document.getElementById('progressWeight');
-      var value = pInp ? parseFloat((pInp.value || '').trim()) : NaN;
+      var value = pInp ? parseFloat((pInp.value || '').trim().replace(',', '.')) : NaN;
       if(!value || isNaN(value) || value < 20 || value > 300) { showToast('Enter a valid weight', 'warn'); return; }
       profile.weightEntries = profile.weightEntries || [];
       profile.weightEntries.push({ id: 'weight_' + Date.now(), dayKey: todayKey(), weight: value, createdAt: new Date().toISOString() });

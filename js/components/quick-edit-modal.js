@@ -189,7 +189,7 @@ export function openQuickEditSetModal(options) {
     // Save set
     overlay.querySelector('#quickSaveSetBtn').onclick = function() {
       var rawW = (wInp.value || '').trim();
-      var finalW = (rawW === '' || rawW.toUpperCase() === 'BW') ? 0 : (parseFloat(rawW) || 0);
+      var finalW = (rawW === '' || rawW.toUpperCase() === 'BW') ? 0 : (parseFloat(rawW.replace(',', '.')) || 0);
       var finalR = parseInt(rInp.value, 10);
       if (isNaN(finalW) || (!isBW && finalW <= 0) || !finalR || finalR <= 0) {
         showToast(isBW ? 'Please enter valid reps' : 'Please enter valid weight and reps', 'warn');
