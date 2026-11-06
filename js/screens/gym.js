@@ -215,7 +215,7 @@ export function renderGym() {
       return '<div class="gym-ex-collapsed-row" data-expand-ex="' + ex.id + '" style="min-height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;cursor:pointer;padding:8px 0;box-sizing:border-box">'
         + '<div style="display:flex;align-items:center;gap:12px;min-width:0;flex:1">'
         + '<span style="font-size:17px;font-weight:600;color:#8A8A8E;font-variant-numeric:tabular-nums;width:20px;text-align:right;flex-shrink:0">' + (exIndex + 1) + '</span>'
-        + '<span style="font-size:17px;font-weight:600;color:#F5F5F4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25;word-break:break-word">' + esc(ex.name) + '</span>'
+        + '<span style="font-size:17px;font-weight:600;color:#F5F5F4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25;word-break:break-word">' + esc(ex.name) + (ex.isCatchup || ex.source === 'catchup' ? ' <span style="font-size:11px;font-weight:600;color:#0B0B0C;background:#C6F432;border-radius:4px;padding:2px 6px;margin-left:6px;vertical-align:middle">Catch-up</span>' : '') + '</span>'
         + '</div>'
         + '<div style="flex-shrink:0;margin-left:12px">'
         + (isExCompleted
@@ -331,7 +331,7 @@ export function renderGym() {
       + '<div style="margin-bottom:16px">'
       + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">' + (exIndex + 1) + ' / ' + totalExCount + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
-      + '<div style="font-size:28px;line-height:1.15;font-weight:600;color:#F5F5F4;flex:1;word-break:break-word">' + esc(ex.name) + '</div>'
+      + '<div style="font-size:28px;line-height:1.15;font-weight:600;color:#F5F5F4;flex:1;word-break:break-word">' + esc(ex.name) + (ex.isCatchup || ex.source === 'catchup' ? ' <span style="display:inline-block;font-size:11px;font-weight:600;color:#0B0B0C;background:#C6F432;border-radius:4px;padding:2px 6px;margin-left:8px;vertical-align:middle">Catch-up</span>' : '') + '</div>'
       + '<div style="flex-shrink:0">' + swapBtn + '</div>'
       + '</div>'
       + '<div style="font-size:15px;color:#8A8A8E;margin-top:4px">' + esc(metaLine) + '</div>'

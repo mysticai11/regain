@@ -1,7 +1,7 @@
 /* Today screen widgets: staples shelf, week dot row, calorie ring, and workout preview */
 
 import { profile } from "../../state.js";
-import { ls, sv, dayRecord, saveDayRecord, getWorkoutSessions, allDayKeys } from "../../storage.js";
+import { ls, sv, dayRecord, saveDayRecord, getWorkoutSessions, allDayKeys, getWeekOverrides, getCatchupDecisions } from "../../storage.js";
 import { getActiveProgram, getWeeklySchedule, getNextProgramWorkout } from "../../data/plan.js";
 import { DEFAULT_STAPLES } from "../../data/foods.js";
 import { todayKey, dateKey, addDays, esc, currentWeight, goalDirection } from "../../lib/format.js";
@@ -144,9 +144,15 @@ export function buildWeekDotRowHTML(dayKey, activeSelectedKey) {
     var isSelected = (k === activeSelectedKey);
     var rec = dayRecord(k);
     var isTrained = !!sessionDays[k] || (rec && (rec.workoutDone || (rec.workout && Object.keys(rec.workout).some(function(id){return (rec.workout[id]||[]).some(Boolean);}))));
+    var isMerged = (rec && rec.isMerged) || (getCatchupDecisions()[k] === 'merged');
+    var isSlid = (getCatchupDecisions()[k] === 'slid') || (getWeekOverrides()[k] !== undefined && getWeekOverrides()[k] !== 'rest');
 
     var dotHTML = '';
-    if (isTrained) {
+    if (isTrained && isMerged) {
+      dotHTML = '<span title="Merged session" style="width:6px;height:6px;border-radius:50%;background:linear-gradient(90deg, #C6F432 50%, #222 50%);display:inline-block"></span>';
+    } else if (isTrained && isSlid) {
+      dotHTML = '<span title="Moved session" style="width:6px;height:6px;border-radius:50%;background:#C6F432;display:inline-flex;align-items:center;justify-content:center;font-size:11px;line-height:1;color:#0B0B0C;font-weight:900">&rarr;</span>';
+    } else if (isTrained) {
       dotHTML = '<span style="width:6px;height:6px;border-radius:50%;background:#C6F432;display:inline-block"></span>';
     } else if (isSelected) {
       dotHTML = '<span style="width:6px;height:6px;border-radius:50%;border:1.5px solid #F5F5F4;background:transparent;box-sizing:border-box;display:inline-block"></span>';

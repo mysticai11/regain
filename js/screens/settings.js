@@ -9,6 +9,7 @@ import { showToast } from "../components/toast.js";
 import { openSplitManagerSheet } from "./gym/plan-editor.js";
 import { openCustomFoodsManager } from "./today/food-modal.js";
 import { todayKey, esc, currentWeight } from "../lib/format.js";
+import { buildCatchupSettingsHTML, bindCatchupSettingsEvents } from "./settings/catchup.js";
 
 export function openSettings() {
   if (document.getElementById('settingsOverlay')) return;
@@ -177,6 +178,7 @@ export function openSettings() {
         + '</div>'
         + '</div>';
     })()
+    + buildCatchupSettingsHTML()
 
     // DANGER ZONE
     + '<div style="margin-top:32px">'
@@ -198,6 +200,7 @@ export function openSettings() {
     + '</div>';
 
   document.body.appendChild(overlay);
+  bindCatchupSettingsEvents(overlay);
 
   function saveTargetsOnBlur() {
     var rK = parseInt(document.getElementById('setTargetRest').value, 10);
@@ -206,16 +209,12 @@ export function openSettings() {
     var gP = parseInt(document.getElementById('setProtGym').value, 10);
     var tW = parseFloat(document.getElementById('setTargetWeight').value);
 
-    if (rK && (rK < 1000 || rK > 6000)) { showToast('Calories must be 1,000–6,000', 'warn'); return false; }
-    if (gK && (gK < 1000 || gK > 6000)) { showToast('Calories must be 1,000–6,000', 'warn'); return false; }
-    if (rP && (rP < 20 || rP > 400)) { showToast('Protein must be 20–400 g', 'warn'); return false; }
-    if (gP && (gP < 20 || gP > 400)) { showToast('Protein must be 20–400 g', 'warn'); return false; }
+    if ((rK && (rK < 1000 || rK > 6000)) || (gK && (gK < 1000 || gK > 6000))) { showToast('Calories must be 1,000–6,000', 'warn'); return false; }
+    if ((rP && (rP < 20 || rP > 400)) || (gP && (gP < 20 || gP > 400))) { showToast('Protein must be 20–400 g', 'warn'); return false; }
     if (tW && (tW < 30 || tW > 200)) { showToast('Weight must be 30–200 kg', 'warn'); return false; }
 
-    if (rK) profile.calTargetRest = rK;
-    if (gK) profile.calTargetGym = gK;
-    if (rP) profile.protTargetRest = rP;
-    if (gP) profile.protTargetGym = gP;
+    if (rK) profile.calTargetRest = rK; if (gK) profile.calTargetGym = gK;
+    if (rP) profile.protTargetRest = rP; if (gP) profile.protTargetGym = gP;
     if (tW) profile.targetWeight = tW;
     sv('rg_profile', profile);
     return true;
@@ -233,8 +232,7 @@ export function openSettings() {
       profile.equipment = document.getElementById('setEquip').value;
       profile.dietaryPattern = document.getElementById('setDiet').value;
       profile.experience = document.getElementById('setExp').value;
-      sv('rg_profile', profile);
-      showToast('Saved', 'ok');
+      sv('rg_profile', profile); showToast('Saved', 'ok');
     });
   });
 

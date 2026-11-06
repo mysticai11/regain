@@ -11,6 +11,7 @@ import { showToast, showUndoToast } from "../components/toast.js";
 import { buildGauge, statusPill, macroBar } from "../components/gauge.js";
 import { openFoodSearch, openCustomFoodBuilder, openRecipeBuilder, openCustomFoodsManager, openMealEditor, openEditItemSheet } from "./today/food-modal.js";
 import { addQuickFood, getStaplesShelfHTML, getMergedStaples, openPortionSheet, buildWeekDotRowHTML, openWorkoutOverrideSheet, buildCalRingHTML, buildWeightTrendChip, buildBackupNudgeHTML, bindBackupNudgeEvents, triggerTodayAnimations } from "./today/widgets.js";
+import { buildCatchupCardHTML, bindCatchupCardEvents } from "./today/catchup-card.js";
 import { openSettings } from "./settings.js";
 export * from "./today/food-modal.js";
 export * from "./today/widgets.js";
@@ -67,6 +68,7 @@ export function renderTodaySimple() {
     + '</div>'
     + pastDateBanner
     + buildBackupNudgeHTML()
+    + buildCatchupCardHTML(key)
     + calRingHTML
     + weekDotHTML
     + '<div class="today-workout-block" style="background:#141416;border-radius:20px;padding:20px;margin-bottom:20px">'
@@ -134,15 +136,13 @@ export function renderTodaySimple() {
   var settingsBtn = document.getElementById('settingsBtn');
   if (settingsBtn) settingsBtn.onclick = function(e) { if (e && e.stopPropagation) e.stopPropagation(); openSettings(); };
   bindBackupNudgeEvents(exportData);
+  bindCatchupCardEvents(contentEl, renderTodaySimple);
   triggerTodayAnimations();
   if (contentEl && prevScroll > 0) contentEl.scrollTop = prevScroll;
 
-  var prevWk = document.getElementById('prevWeekBtn');
-  if (prevWk) prevWk.onclick = function() { triggerHaptic(); window.todayWeekOffset = (window.todayWeekOffset || 0) - 1; renderTodaySimple(); };
-  var nextWk = document.getElementById('nextWeekBtn');
-  if (nextWk) nextWk.onclick = function() { triggerHaptic(); window.todayWeekOffset = (window.todayWeekOffset || 0) + 1; renderTodaySimple(); };
-  var retBtn = document.getElementById('returnTodayBtn');
-  if (retBtn) retBtn.onclick = function() { triggerHaptic(); window.activeTodaySelectedDateKey = null; window.todayWeekOffset = 0; renderTodaySimple(); };
+  var prevWk = document.getElementById('prevWeekBtn'); if (prevWk) prevWk.onclick = function() { triggerHaptic(); window.todayWeekOffset = (window.todayWeekOffset || 0) - 1; renderTodaySimple(); };
+  var nextWk = document.getElementById('nextWeekBtn'); if (nextWk) nextWk.onclick = function() { triggerHaptic(); window.todayWeekOffset = (window.todayWeekOffset || 0) + 1; renderTodaySimple(); };
+  var retBtn = document.getElementById('returnTodayBtn'); if (retBtn) retBtn.onclick = function() { triggerHaptic(); window.activeTodaySelectedDateKey = null; window.todayWeekOffset = 0; renderTodaySimple(); };
 
   document.querySelectorAll('[data-pick-today-strip-date]').forEach(function (cell) {
     cell.onclick = function () {
@@ -374,8 +374,7 @@ export function addFoodToDay(key, food, servings) {
   var m = foodMacros(food, servings), rec = dayRecord(key);
   rec.extra = rec.extra || [];
   rec.extra.push({ name: food.name + (servings !== 1 ? ' ×' + servings : ''), kcal: m.kcal, protein: m.protein, carbs: m.carbs, fat: m.fat, servings: 1 });
-  saveDayRecord(key, rec);
-  addRecent(food.name, m.kcal, m.protein, m.carbs, m.fat);
+  saveDayRecord(key, rec); addRecent(food.name, m.kcal, m.protein, m.carbs, m.fat);
   if (profile) { profile.xp = (profile.xp || 0) + 5; sv('rg_profile', profile); }
   renderTodaySimple();
 }
@@ -385,8 +384,8 @@ export function migrateFoodTotals() {
   allDayKeys().forEach(function (key) {
     var rec = dayRecord(key), changed = false;
     (rec.extra || []).forEach(function (item) {
-      var servings = Number(item.servings) || 1;
-      if (servings > 1) {
+      var s = Number(item.servings) || 1;
+      if (s > 1) {
         item.kcal = +(Number(item.kcal || 0)).toFixed(1); item.protein = +(Number(item.protein || 0)).toFixed(1);
         item.carbs = +(Number(item.carbs || 0)).toFixed(1); item.fat = +(Number(item.fat || 0)).toFixed(1);
         item.servings = 1; changed = true;

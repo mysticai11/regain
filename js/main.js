@@ -1,7 +1,7 @@
 /* Application entry point: initializes app, sets up router, and boots services */
 
 import { profile, setProfile, tab, setTab, workoutTimer, restTimer, subscribe, getState, setState, preserveUiStateDuringRender, scrollByTab } from "./state.js";
-import { ls, sv, SQLiteStorage, migrateWorkoutSessions, requestPersistentStorage } from "./storage.js";
+import { ls, sv, SQLiteStorage, migrateWorkoutSessions, requestPersistentStorage, checkWeekRollover } from "./storage.js";
 import { DEFAULT_MEAL_PLAN } from "./data/foods.js";
 import { migrateWorkoutRoutineSwap, getActiveProgram } from "./data/plan.js";
 import { todayKey, esc } from "./lib/format.js";
@@ -153,6 +153,7 @@ function bootApp() {
     setProfile(loadedProfile);
     migrateWorkoutSessions();
     migrateWorkoutRoutineSwap();
+    checkWeekRollover();
     if (typeof window.FoodDB !== 'undefined' && window.FoodDB.open) {
       window.FoodDB.open().then(function () {
         console.log('BOOT: FoodDB opened');
