@@ -453,4 +453,27 @@
   font-weight: 600;
 }
 
+/* U8: History session cards polish */
+.history-ex-num {
+  display: inline-block;
+  width: 24px;
+  min-width: 24px;
+  flex-shrink: 0;
+  font-size: var(--fs-15);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.history-session-title {
+  font-size: var(--fs-17);
+  font-weight: 600;
+  color: #F5F5F4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+
 

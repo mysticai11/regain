@@ -139,13 +139,11 @@ export function workoutHistoryHTML() {
 
         var isPrInSession = false, priorSets = [];
         for (var p = sIdx + 1; p < group.sessions.length; p++) {
-          var pEx = (group.sessions[p].exercises || []).find(function(e){ return e.id === exItem.id; });
-          if (pEx && pEx.sets) pEx.sets.filter(Boolean).forEach(function(s){ priorSets.push(s); });
+          (group.sessions[p].exercises || []).forEach(function(e){ if (e.id === exItem.id && e.sets) e.sets.filter(Boolean).forEach(function(s){ priorSets.push(s); }); });
         }
         for (var pw = wkIdx + 1; pw < weekOrder.length; pw++) {
           weekGroups[weekOrder[pw]].sessions.forEach(function(ps) {
-            var pEx = (ps.exercises || []).find(function(e){ return e.id === exItem.id; });
-            if (pEx && pEx.sets) pEx.sets.filter(Boolean).forEach(function(s){ priorSets.push(s); });
+            (ps.exercises || []).forEach(function(e){ if (e.id === exItem.id && e.sets) e.sets.filter(Boolean).forEach(function(s){ priorSets.push(s); }); });
           });
         }
         if (priorSets.length > 0) {
@@ -183,8 +181,9 @@ export function workoutHistoryHTML() {
         var isLast = exIdx === exercises.length - 1;
         return '<div style="padding:14px 0;' + (isLast ? '' : 'border-bottom:1px solid var(--hairline)') + '">'
           + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px">'
-            + '<div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 auto;overflow:hidden">'
-              + '<span style="font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(exData.name) + '</span>'
+            + '<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 auto;overflow:hidden">'
+              + '<span class="history-ex-num" style="display:inline-block;width:24px;min-width:24px;flex-shrink:0;font-size:15px;color:var(--text-secondary);font-variant-numeric:tabular-nums">' + (exIdx + 1) + '</span>'
+              + '<span class="history-ex-name" style="font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(exData.name) + '</span>'
               + progressTagHTML
               + (isPrInSession ? '<span class="set-pr-badge" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#C6F432;letter-spacing:0.08em;text-transform:uppercase;flex-shrink:0"><span style="width:5px;height:5px;border-radius:50%;background:#C6F432;display:inline-block"></span>PR</span>' : '')
             + '</div>'
@@ -197,14 +196,14 @@ export function workoutHistoryHTML() {
       var isFirstInWeek = (sIdx === 0 && wkIdx === 0);
 
       html += '<details class="history-session-details" ' + (isFirstInWeek ? 'open' : '') + ' style="margin-bottom:12px;background:#141416;border-radius:16px;overflow:hidden">'
-        + '<summary class="history-session-header" style="min-height:64px;height:auto;padding:10px 12px;display:flex;align-items:center;cursor:pointer;list-style:none;user-select:none;box-sizing:border-box;gap:10px">'
+        + '<summary class="history-session-header" style="min-height:64px;height:auto;padding:10px 10px;display:flex;align-items:center;cursor:pointer;list-style:none;user-select:none;box-sizing:border-box;gap:8px">'
           + '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;width:44px;text-align:center">'
             + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1.1;letter-spacing:0.04em;text-transform:uppercase">' + esc(dayLabel) + '</div>'
             + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1;font-variant-numeric:tabular-nums;margin:1px 0">' + String(dObj.getDate()) + '</div>'
             + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1.1;letter-spacing:0.04em;text-transform:uppercase">' + esc(monLabel) + '</div>'
           + '</div>'
           + '<div style="flex:1;min-width:0;overflow:hidden">'
-            + '<div style="font-size:17px;font-weight:600;color:#F5F5F4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(cleanTitle) + '</div>'
+            + '<div class="history-session-title" style="font-size:17px;font-weight:600;color:#F5F5F4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25;word-break:break-word">' + esc(cleanTitle) + '</div>'
             + '<div class="history-card-subline" style="font-size:15px;color:#8A8A8E;margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span>' + esc(baseStatsText) + '</span>' + (durText ? '<span class="hist-dur-part"> · ' + esc(durText) + '</span>' : '') + '</div>'
           + '</div>'
           + '<div style="display:flex;align-items:center;flex-shrink:0">'
