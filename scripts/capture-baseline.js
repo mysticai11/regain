@@ -83,10 +83,10 @@ function createHtmlForState(stateId, hash) {
           window.activeExpandedExId = "all";
           if (typeof renderGym === "function") renderGym();
         } else if (state === "progress-lifts") {
-          var liftsBtn = document.querySelector('[data-subtab="lifts"]');
+          var liftsBtn = document.getElementById("liftProgressBtn") || document.querySelector('[data-subtab="lifts"]');
           if (liftsBtn) liftsBtn.click();
         } else if (state === "progress-history") {
-          var histBtn = document.querySelector('[data-subtab="history"]');
+          var histBtn = document.getElementById("historyProgressBtn") || document.querySelector('[data-subtab="history"]');
           if (histBtn) histBtn.click();
         } else if (state === "settings") {
           var setBtn = document.getElementById("settingsBtn");

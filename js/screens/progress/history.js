@@ -281,8 +281,8 @@ export function weeklyVolumeChart() {
     return { muscle: v.muscle, sets: v.sets, target: target, pct: Math.min(100, Math.round(v.sets / target * 100)), isDone: v.sets >= target };
   });
   items.sort(function(a, b) { return a.isDone !== b.isDone ? (a.isDone ? 1 : -1) : (a.sets / a.target) - (b.sets / b.target); });
-  var rows = items.map(function(v) {
-    return '<div style="background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:10px 14px;margin-bottom:8px">'
+  var rows = items.map(function(v, i) {
+    return '<div style="padding:12px 16px;' + (i > 0 ? 'border-top:1px solid var(--hairline);' : '') + '">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:600;margin-bottom:6px">'
         + '<span style="color:var(--text);letter-spacing:0.02em">' + esc(v.muscle) + '</span>'
         + '<span class="tabnum" style="color:' + (v.isDone ? 'var(--lime)' : 'var(--text-secondary)') + '">' + v.sets + ' / ' + v.target + '</span>'
@@ -292,7 +292,7 @@ export function weeklyVolumeChart() {
       + '</div>'
       + '</div>';
   }).join('');
-  return '<div style="display:flex;flex-direction:column">' + rows + '</div>';
+  return '<div style="background:var(--surface);border:1px solid var(--hairline);border-radius:16px;overflow:hidden">' + rows + '</div>';
 }
 
 export function nutritionProgressHTML(records) {

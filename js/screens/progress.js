@@ -175,13 +175,7 @@ export function renderProgressSimple(mode, historySubTab) {
       }
     }
     var liftMeta=document.getElementById('liftMeta');
-    if(liftMeta) {
-      if (liftValues.length > 0) {
-        liftMeta.textContent = isBW ? 'Peak reps' : 'Est. 1RM (Epley formula)';
-      } else {
-        liftMeta.textContent = 'No lift entries yet';
-      }
-    }
+    if(liftMeta) liftMeta.textContent = liftValues.length > 0 ? (isBW ? 'Peak reps' : 'Est. 1RM (Epley formula)') : '';
   };
   var bodySection = '<div style="margin-bottom:28px">'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'
@@ -213,9 +207,12 @@ export function renderProgressSimple(mode, historySubTab) {
       + '<span class="t-label">Lift & PR progress</span>'
       + '<span id="liftMeta" class="t-micro tabnum" style="color:var(--text-secondary)"></span>'
     + '</div>'
-    + '<div class="exercise-picker-card" id="openExPickerBtn" style="display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:14px 16px;margin-bottom:14px;cursor:pointer">'
-      + '<span style="font-size:15px;font-weight:600;color:var(--text)">' + esc(curExObj.name.toUpperCase()) + ' · ' + curExCount + (curExCount === 1 ? ' SESSION' : ' SESSIONS') + '</span>'
-      + '<span style="color:var(--text-secondary);font-size:17px">›</span>'
+    + '<div class="exercise-picker-card" id="openExPickerBtn" style="display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:12px 16px;margin-bottom:14px;cursor:pointer;min-height:56px;gap:12px">'
+      + '<div style="flex:1;min-width:0">'
+        + '<div id="openExPickerName" style="font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(curExObj.name) + '</div>'
+        + '<div id="openExPickerSub" class="tabnum" style="font-size:11px;color:var(--text-secondary);margin-top:2px">' + curExCount + (curExCount === 1 ? ' session' : ' sessions') + '</div>'
+      + '</div>'
+      + '<span style="display:inline-flex;align-items:center;color:var(--text-secondary);flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span>'
     + '</div>'
     + '<select id="liftSelect" style="display:none">'
       + exOptions.map(function(e){ return '<option value="' + e.id + '" ' + (e.id === curExObj.id ? 'selected' : '') + '>' + esc(e.name) + '</option>'; }).join('')
@@ -231,7 +228,7 @@ export function renderProgressSimple(mode, historySubTab) {
   var weeklyWorkBlock = '<div style="margin-top:24px">'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">'
       + '<span class="t-label">Weekly work · Sets last 7 days</span>'
-      + '<span class="t-micro tabnum" style="color:var(--text-secondary)">Target 10–18</span>'
+      + '<span class="t-micro tabnum" style="color:var(--text-secondary)">Targets vary by muscle</span>'
     + '</div>'
     + weeklyVolumeChart()
     + '</div>';
@@ -362,10 +359,11 @@ export function renderProgressSimple(mode, historySubTab) {
           if (typeof window !== 'undefined') window.activeProgressExerciseId = newId;
           var lc = document.getElementById('liftSelect');
           if (lc) lc.value = newId;
-          var pl = document.querySelector('#openExPickerBtn span');
-          if (pl) {
+          var pn = document.getElementById('openExPickerName'), ps = document.getElementById('openExPickerSub');
+          if (pn) {
             var c = exerciseSessionCounts[newId] || 0, ed = getExerciseData(newId);
-            pl.textContent = (ed ? ed.name : newId).toUpperCase() + ' · ' + c + (c === 1 ? ' SESSION' : ' SESSIONS');
+            pn.textContent = ed ? ed.name : newId;
+            if (ps) ps.textContent = c + (c === 1 ? ' session' : ' sessions');
           }
           render();
         }
