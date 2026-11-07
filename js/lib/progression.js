@@ -4,7 +4,7 @@ import { profile } from "../state.js";
 import { dayRecord } from "../storage.js";
 import { getExerciseData } from "../data/plan.js";
 import { calcE1RM, getBestE1RM } from "./calc.js";
-import { esc } from "./format.js";
+import { esc, allDayKeys } from "./format.js";
 import { isBodyweightExercise } from "../screens/gym/sets.js";
 export * from "./progression-compare.js";
 
