@@ -146,8 +146,8 @@ export function renderProgressSimple(mode, historySubTab) {
     if (weightMeta) {
       if (latest != null) {
         var latestAvg = (weightValues.length && weightValues[weightValues.length - 1].avg != null) ? weightValues[weightValues.length - 1].avg : latest;
-        var toGoalText = toGoal != null ? ((toGoal > 0 ? '+' : '') + toGoal.toFixed(1) + ' <span style="font-size:11px;color:#8A8A8E;font-weight:500">kg</span>') : '—';
-        var rateDisplay = weeklyRate != null ? ((weeklyRate >= 0 ? '+' : '') + weeklyRate.toFixed(2) + ' <span style="font-size:11px;color:#8A8A8E;font-weight:500">kg/wk</span>') : '—';
+        var toGoalText = toGoal != null ? (Math.abs(toGoal).toFixed(1) + ' <span style="font-size:11px;color:#8A8A8E;font-weight:500">kg left</span>') : '—';
+        var rateDisplay = (entries.length >= 5 && weeklyRate != null) ? ((weeklyRate >= 0 ? '+' : '') + weeklyRate.toFixed(2) + ' <span style="font-size:11px;color:#8A8A8E;font-weight:500">kg/wk</span>') : '—';
 
         var subInfoHTML = '';
         if (entries.length < 5) {

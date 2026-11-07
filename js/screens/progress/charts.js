@@ -194,12 +194,12 @@ export function progressPlot(values, goal, unit, isLift) {
     var peakDesc = peakEntry.setDesc ? (' (' + peakEntry.setDesc + ')') : '';
     headerLeftHTML = '<span class="chart-readout tabnum" style="font-size:15px;color:#F5F5F4"><span style="color:#C6F432;font-weight:600">PR:</span> ' + peakVal + ' ' + unitLabel + '<span style="font-size:11px;color:#8A8A8E;margin-left:4px">' + esc(peakDesc) + '</span></span>';
   } else {
-    headerLeftHTML = '<span class="chart-readout tabnum" style="font-size:15px;color:#F5F5F4">' + esc(deltaFormatted) + ' <span style="font-size:11px;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.04em">' + (values.length > 1 ? 'overall' : '') + '</span></span>';
+    headerLeftHTML = '<span class="chart-readout tabnum" style="font-size:15px;color:#F5F5F4">' + esc(deltaFormatted) + ' <span style="font-size:11px;color:#8A8A8E;letter-spacing:0.04em">' + (values.length > 1 ? 'change since start' : '') + '</span></span>';
   }
 
   var headerRightHTML = isLift
     ? ('<span class="t-micro tabnum" style="color:var(--text-secondary)">' + values.length + ' ' + (values.length === 1 ? 'session' : 'sessions') + ' · ' + esc(deltaFormatted) + '</span>')
-    : ('<span class="t-micro tabnum" style="color:var(--text-secondary)">' + values.length + ' ' + (values.length === 1 ? 'entry' : 'entries') + (goalNum != null ? (' · Target ' + Math.round(goalNum) + ' ' + unitLabel) : '') + '</span>');
+    : ('<span class="t-micro tabnum" style="color:var(--text-secondary)">' + values.length + ' ' + (values.length === 1 ? 'entry' : 'entries') + '</span>');
 
   return '<div class="chart-container" id="' + chartId + '" style="margin-top:0;margin-bottom:12px;user-select:none">'
     + '<div class="chart-header" style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'

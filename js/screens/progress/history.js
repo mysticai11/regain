@@ -329,11 +329,11 @@ export function nutritionProgressHTML(records) {
 
   var dotCells = dayHits.map(function(dh) {
     var calDot = dh.calHit
-      ? '<span style="width:8px;height:8px;border-radius:50%;background:#F5F5F4;display:inline-block"></span>'
+      ? '<span style="width:8px;height:8px;border-radius:50%;background:#C6F432;display:inline-block"></span>'
       : '<span style="width:8px;height:8px;border-radius:50%;border:1px solid #55555A;background:transparent;box-sizing:border-box;display:inline-block"></span>';
     var protDot = dh.protHit
-      ? '<span style="width:8px;height:8px;border-radius:50%;background:#F5F5F4;display:inline-block"></span>'
-      : '<span style="width:8px;height:8px;border-radius:50%;border:1px solid #55555A;background:transparent;box-sizing:border-box;display:inline-block"></span>';
+      ? '<span style="width:8px;height:8px;border-radius:2px;background:#F5F5F4;display:inline-block"></span>'
+      : '<span style="width:8px;height:8px;border-radius:2px;border:1px solid #55555A;background:transparent;box-sizing:border-box;display:inline-block"></span>';
 
     return '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1">'
       + '<span style="font-size:11px;font-weight:600;color:' + (dh.isToday ? '#F5F5F4' : '#8A8A8E') + '">' + dh.letter + '</span>'
@@ -369,8 +369,8 @@ export function nutritionProgressHTML(records) {
       + '<span class="tabnum" style="font-size:11px;color:#8A8A8E">' + calHits + '/7 kcal · ' + protHits + '/7 protein</span>'
     + '</div>'
     + '<div style="display:flex;align-items:center;gap:12px;font-size:11px;color:#8A8A8E;margin-bottom:10px">'
-      + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#F5F5F4;display:inline-block"></span> kcal</span>'
-      + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#F5F5F4;display:inline-block"></span> protein</span>'
+      + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#C6F432;display:inline-block"></span> kcal</span>'
+      + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:#F5F5F4;display:inline-block"></span> protein</span>'
     + '</div>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:0 4px">' + dotCells + '</div>'
     + '<div style="border-top:1px solid #1C1C1F;padding-top:12px">'
