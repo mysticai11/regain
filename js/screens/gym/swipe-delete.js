@@ -5,6 +5,7 @@ import { triggerHaptic } from "../../lib/dom.js";
 import { showToast, showUndoToast } from "../../components/toast.js";
 import { confirmDialog } from "../../components/dialog.js";
 import { renderGym } from "../gym.js";
+import { setGestureCooldown, claimGestureOwner, releaseGestureOwner } from "../../lib/gesture.js";
 
 export function renderSetRowWrap(innerHtml, exId, setIndex, isDone) {
   var trashIcon = '<svg class="set-trash-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="transform:scale(0.6);transition:transform 60ms linear"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
@@ -12,7 +13,7 @@ export function renderSetRowWrap(innerHtml, exId, setIndex, isDone) {
     + '<div class="set-swipe-bg" style="position:absolute;inset:0;background:#FF4D4F;border-radius:12px;display:flex;align-items:center;justify-content:flex-end;padding-right:20px;pointer-events:none;z-index:1;opacity:0">'
     + trashIcon
     + '</div>'
-    + '<div class="set-row set-row-precision ' + (isDone ? 'is-done' : '') + '" id="setrow-' + exId + '-' + setIndex + '" data-ex-id="' + exId + '" data-set-index="' + setIndex + '" style="position:relative;z-index:2;background:#0B0B0C;touch-action:pan-y">'
+    + '<div class="set-row set-row-precision ' + (isDone ? 'is-done' : '') + '" id="setrow-' + exId + '-' + setIndex + '" data-gesture-owner="set-row" data-ex-id="' + exId + '" data-set-index="' + setIndex + '" style="position:relative;z-index:2;background:#0B0B0C;touch-action:pan-y">'
     + innerHtml
     + '</div>'
     + '</div>';
@@ -137,7 +138,7 @@ export function attachSetRowSwipeHandlers(key) {
       if (!axisLocked) {
         if (Math.hypot(dx, dy) >= 14) {
           if (Math.abs(dx) > Math.abs(dy) * 1.5) {
-            axisLocked = 'h';
+            axisLocked = 'h'; claimGestureOwner('set-row');
             if (row.setPointerCapture && e.pointerId) { try { row.setPointerCapture(e.pointerId); } catch(err) {} }
           } else { axisLocked = 'v'; }
         }
@@ -239,6 +240,7 @@ export function attachSetRowSwipeHandlers(key) {
             if (bg && (!row.style.transform || row.style.transform === 'translateX(0px)' || row.style.transform === 'translateX(0)')) bg.style.opacity = '0';
           }, 200);
         }
+        releaseGestureOwner(); setGestureCooldown(400);
       }
       startTime = 0; axisLocked = null;
     };

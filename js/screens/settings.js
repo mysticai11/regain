@@ -152,7 +152,7 @@ export function openSettings() {
         + renderSwitchHTML('toggleAutoRestBtn', profile.autoStartRestTimer !== false, 'Auto-start rest timer')
       + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
-        + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Swipe navigation system</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Swipe horizontally to switch tabs and views</div></div>'
+        + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Swipe navigation system</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Swipe between Body, Lifts and History</div></div>'
         + renderSwitchHTML('toggleSwipeNavBtn', !(profile.disableSwipeNav || profile.disableSlideNav), 'Swipe navigation system')
       + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'

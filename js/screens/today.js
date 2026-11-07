@@ -15,6 +15,7 @@ import { addQuickFood, getStaplesShelfHTML, getMergedStaples, openPortionSheet, 
 import { buildCatchupCardHTML, bindCatchupCardEvents } from "./today/catchup-card.js";
 import { openSettings } from "./settings.js";
 import { sessionSetCount } from "../lib/schedule.js";
+import { setGestureCooldown, claimGestureOwner, releaseGestureOwner } from "../lib/gesture.js";
 export * from "./today/food-modal.js"; export * from "./today/widgets.js";
 
 export function renderTodaySimple() {
@@ -131,7 +132,7 @@ export function renderTodaySimple() {
       ? ('<div>' + rec.extra.map(function (item, i) {
         var kc = Math.round(item.kcal * (item.servings || 1));
         var pr = Math.round((item.protein || 0) * (item.servings || 1));
-        return '<div class="food-log-row" data-food-index="' + i + '" style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;padding:14px 0;min-height:48px;gap:12px;touch-action:pan-y;cursor:pointer">'
+        return '<div class="food-log-row" data-gesture-owner="food-row" data-food-index="' + i + '" style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;padding:14px 0;min-height:48px;gap:12px;touch-action:pan-y;cursor:pointer">'
           + '<span style="font-size:17px;font-weight:400;color:#F5F5F4;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;line-height:1.3">' + esc(item.name) + '</span>'
           + '<span style="font-size:15px;color:#8A8A8E;font-variant-numeric:tabular-nums;flex-shrink:0">' + kc + ' kcal · ' + pr + ' g</span>'
           + '</div>';
@@ -337,6 +338,7 @@ export function renderTodaySimple() {
   document.querySelectorAll('.food-log-row').forEach(function (row) {
     var startX = 0, deltaX = 0, idx = parseInt(row.dataset.foodIndex, 10);
     row.addEventListener('touchstart', function (e) {
+      claimGestureOwner('food-row');
       if (e.changedTouches && e.changedTouches[0]) { startX = e.changedTouches[0].clientX; deltaX = 0; }
     }, { passive: true });
     row.addEventListener('touchmove', function (e) {
@@ -345,6 +347,7 @@ export function renderTodaySimple() {
       if (deltaX < 0) row.style.transform = 'translateX(' + Math.max(deltaX, -80) + 'px)';
     }, { passive: true });
     row.addEventListener('touchend', function () {
+      releaseGestureOwner(); setGestureCooldown(400);
       if (deltaX < -60) deleteFoodEntry(idx, row);
       else row.style.transform = '';
     }, { passive: true });

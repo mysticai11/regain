@@ -17,6 +17,7 @@ import { buildMonthlyDigestHTML, buildWeeklyDigestHTML, openHistoryArchiveModal,
 export * from "./progress/charts.js?v=4"; export * from "./progress/history.js"; export * from "./progress/session-editor.js";
 
 import { setupChartInteractions, openExercisePickerModal } from "./progress/interactions.js";
+import { decideSwipe, SWIPE_NAV_SCOPE, showGestureDebug } from "../lib/gesture.js";
 
 export function renderProgressSimple(mode, historySubTab) {
   mode = mode || (typeof window !== 'undefined' ? window.activeProgressSubTab : null) || 'body';
@@ -187,7 +188,7 @@ export function renderProgressSimple(mode, historySubTab) {
       + '<button type="button" class="range-btn" data-range="12w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">12W</button>'
       + '<button type="button" class="range-btn" data-range="all" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">All</button>'
     + '</div>'
-    + '<div id="weightPlot"></div>'
+    + '<div id="weightPlot" data-gesture-owner="chart"></div>'
     + '<div id="weightMeta" class="tabnum" style="font-size:15px;color:var(--text-secondary);margin-top:10px;line-height:1.4"></div>'
     + '<div class="field" style="margin-top:16px">'
       + '<input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="0.0" inputmode="decimal">'
@@ -223,7 +224,7 @@ export function renderProgressSimple(mode, historySubTab) {
       + '<button type="button" class="lift-range-btn" data-lift-range="12w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;cursor:pointer;height:36px">12W</button>'
       + '<button type="button" class="lift-range-btn" data-lift-range="all" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;cursor:pointer;height:36px">All</button>'
     + '</div>'
-    + '<div id="liftPlot"></div>'
+    + '<div id="liftPlot" data-gesture-owner="chart"></div>'
     + '</div>';
   var weeklyWorkBlock = '<div style="margin-top:24px">'
     + '<div style="margin-bottom:10px">'
@@ -232,31 +233,18 @@ export function renderProgressSimple(mode, historySubTab) {
     + '</div>'
     + weeklyVolumeChart()
     + '</div>';
-  var viewContent = '';
-  if (mode === 'body') {
-    viewContent = '<div class="app-view">' + bodySection + '</div>';
-  } else if (mode === 'lifts') {
-    viewContent = '<div class="app-view">' + getResumeWorkoutCardHTML() + liftChartBlock + weeklyWorkBlock + '</div>';
-  } else {
-    viewContent = buildHistoryScreenHTML(historySubTab);
-  }
+  var viewContent = mode === 'body' ? ('<div class="app-view">' + bodySection + '</div>') : (mode === 'lifts' ? ('<div class="app-view">' + getResumeWorkoutCardHTML() + liftChartBlock + weeklyWorkBlock + '</div>') : buildHistoryScreenHTML(historySubTab));
 
   document.getElementById('content').innerHTML =
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">'
-      + '<span class="t-label">Progress</span>'
-      + '<button class="icon-btn" id="settingsBtn" aria-label="Settings">' + ic('settings') + '</button>'
-    + '</div>'
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><span class="t-label">Progress</span><button class="icon-btn" id="settingsBtn" aria-label="Settings">' + ic('settings') + '</button></div>'
     + '<div class="seg-tabs" role="tablist" style="margin-bottom:20px">'
       + '<button class="seg-tab-btn' + (mode === 'body' ? ' active' : '') + '" id="bodyProgressBtn" role="tab" aria-selected="' + (mode === 'body' ? 'true' : 'false') + '">Body</button>'
       + '<button class="seg-tab-btn' + (mode === 'lifts' ? ' active' : '') + '" id="liftProgressBtn" role="tab" aria-selected="' + (mode === 'lifts' ? 'true' : 'false') + '">Lifts</button>'
       + '<button class="seg-tab-btn' + (mode === 'history' ? ' active' : '') + '" id="historyProgressBtn" role="tab" aria-selected="' + (mode === 'history' ? 'true' : 'false') + '">History</button>'
-    + '</div>'
-    + viewContent;
+    + '</div>' + viewContent;
 
   var settingsBtn = document.getElementById('settingsBtn');
-  if (settingsBtn) {
-    settingsBtn.onclick = function(e) { if (e && e.stopPropagation) e.stopPropagation(); openSettings(); };
-  }
+  if (settingsBtn) settingsBtn.onclick = function(e) { if (e && e.stopPropagation) e.stopPropagation(); openSettings(); };
   document.getElementById('bodyProgressBtn').onclick = function() { if (mode !== 'body') { triggerHaptic('selection'); renderProgressSimple('body'); } };
   document.getElementById('liftProgressBtn').onclick = function() { if (mode !== 'lifts') { triggerHaptic('selection'); renderProgressSimple('lifts'); } };
   document.getElementById('historyProgressBtn').onclick = function() { if (mode !== 'history') { triggerHaptic('selection'); renderProgressSimple('history'); } };
@@ -265,35 +253,35 @@ export function renderProgressSimple(mode, historySubTab) {
   if (aK) animateNumber(aK, 0, parseInt(getV(aK), 10) || 0, { duration: 300 }); if (aP) animateNumber(aP, 0, parseInt(getV(aP), 10) || 0, { duration: 300 }); if (aB) animateNumber(aB, 0, parseFloat(getV(aB)) || 0, { duration: 300, decimals: 1 });
 
   if (mode === 'history') {
-    wireHistoryScreenEvents(document.getElementById('content'), function(newTab) {
-      renderProgressSimple('history', newTab);
-    }, function() {
-      renderProgressSimple('history', historySubTab);
-    });
+    wireHistoryScreenEvents(document.getElementById('content'), function(newTab) { renderProgressSimple('history', newTab); }, function() { renderProgressSimple('history', historySubTab); });
   }
 
   var contentEl = document.getElementById('content');
   if (contentEl) {
-    var touchStartX = 0, touchStartY = 0;
+    var touchStartX = 0, touchStartY = 0, startTarget = null;
     contentEl.ontouchstart = function(e) {
       if (profile && (profile.disableSlideNav || profile.disableSwipeNav)) return;
-      if (e.target && (e.target.closest('.set-row') || e.target.closest('.set-row-precision') || e.target.closest('.set-row-wrap'))) return;
-      if (e.touches && e.touches[0]) { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }
+      if (e.touches && e.touches[0]) { startTarget = e.target; touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }
     };
     contentEl.ontouchend = function(e) {
       if (profile && (profile.disableSlideNav || profile.disableSwipeNav)) return;
-      if (e.target && (e.target.closest('.set-row') || e.target.closest('.set-row-precision') || e.target.closest('.set-row-wrap'))) return;
       if (!e.changedTouches || !e.changedTouches[0]) return;
-      var dx = e.changedTouches[0].clientX - touchStartX, dy = e.changedTouches[0].clientY - touchStartY;
-      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-        if (dx < 0) {
+      var res = decideSwipe({
+        startTarget: startTarget, startX: touchStartX, startY: touchStartY,
+        currentX: e.changedTouches[0].clientX, currentY: e.changedTouches[0].clientY,
+        pointers: (e.touches ? e.touches.length : 0) + 1, activeTab: mode,
+        scope: SWIPE_NAV_SCOPE, screenWidth: window.innerWidth, targetScrollTop: contentEl.scrollTop
+      });
+      showGestureDebug('ProgressSwipe: ' + res.action + ' (' + res.reason + ')');
+      if (res.action === 'NAVIGATE') {
+        if (res.direction === 'LEFT') {
           if (mode === 'body') { triggerHaptic(); renderProgressSimple('lifts'); }
           else if (mode === 'lifts') { triggerHaptic(); renderProgressSimple('history'); }
-          else if (mode === 'history' && typeof window.setTab === 'function') { window.setTab('gym'); }
-        } else if (dx > 0) {
+          else if (mode === 'history' && SWIPE_NAV_SCOPE === 'all-tabs' && typeof window.setTab === 'function') { window.setTab('gym'); }
+        } else if (res.direction === 'RIGHT') {
           if (mode === 'history') { triggerHaptic(); renderProgressSimple('lifts'); }
           else if (mode === 'lifts') { triggerHaptic(); renderProgressSimple('body'); }
-          else if (mode === 'body' && typeof window.setTab === 'function') { window.setTab('today'); }
+          else if (mode === 'body' && SWIPE_NAV_SCOPE === 'all-tabs' && typeof window.setTab === 'function') { window.setTab('today'); }
         }
       }
     };
