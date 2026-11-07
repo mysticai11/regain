@@ -1,6 +1,6 @@
 /* Application entry point: initializes app, sets up router, and boots services */
 
-import { profile, setProfile, tab, setTab, workoutTimer, restTimer, subscribe, getState, setState, preserveUiStateDuringRender, scrollByTab } from "./state.js";
+import { profile, setProfile, tab, setTab, workoutTimer, restTimer, subscribe, getState, setState, preserveUiStateDuringRender, scrollByTab, MOTION_POLISH_ENABLED } from "./state.js";
 import { ls, sv, SQLiteStorage, migrateWorkoutSessions, requestPersistentStorage, checkWeekRollover } from "./storage.js";
 import { DEFAULT_MEAL_PLAN } from "./data/foods.js";
 import { migrateWorkoutRoutineSwap, getActiveProgram } from "./data/plan.js";
@@ -179,6 +179,9 @@ export function initEdgeToEdgeAndSplash() {
 // ── Boot ────────────────────────────────────────────────────────────────────────
 function bootApp() {
   console.log('BOOT: bootApp running');
+  if (typeof document !== 'undefined' && document.documentElement) {
+    document.documentElement.setAttribute('data-motion-polish', MOTION_POLISH_ENABLED ? 'true' : 'false');
+  }
   initMaterialRipple();
   initKeyboardHandling();
   initSwipeNavigation();

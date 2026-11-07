@@ -15,6 +15,10 @@ export var activeTodaySelectedDateKey = null;
 export var activeExpandedExId = null;
 export var scrollByTab = { today: 0, progress: 0, gym: 0 };
 export var activeProgressSubTab = 'body';
+export var MOTION_POLISH_ENABLED = true;
+if (typeof window !== 'undefined') {
+  window.MOTION_POLISH_ENABLED = MOTION_POLISH_ENABLED;
+}
 
 var subscribers = new Set();
 var isPendingNotification = false;

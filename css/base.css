@@ -83,17 +83,78 @@ textarea:focus-visible,
   outline-offset: 2px !important;
 }
 
-button:active:not(:disabled),
+/* F1: Global Press Feel */
+button:not(:disabled):not([disabled]),
+.btn:not(:disabled):not([disabled]),
+.navitem,
+.tab-item,
+.btn-text-action,
+.icon-btn,
+.seg-tab-btn,
+.day-toggle,
+.chip,
+.staple-chip,
+.quick-staple-chip,
+.card-clickable,
+.exercise-picker-card,
+.food-log-row,
+.settings-row {
+  transition: transform var(--dur-150) var(--ease-standard), opacity var(--dur-150) var(--ease-standard);
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active:not(:disabled):not([disabled]),
+.btn:active:not(:disabled):not([disabled]),
 .navitem:active,
+.tab-item:active,
 .btn-text-action:active,
 .icon-btn:active,
 .seg-tab-btn:active,
 .day-toggle:active,
+.chip:active,
 .staple-chip:active,
+.quick-staple-chip:active,
+.card-clickable:active,
+.exercise-picker-card:active,
 .food-log-row:active,
-.btn:active:not(:disabled) {
-  opacity: 0.82;
-  transition: opacity var(--motion-fast);
+.settings-row:active {
+  transform: scale(0.97);
+  transition: transform var(--dur-80) var(--ease-standard);
+  background-image: linear-gradient(var(--state-pressed), var(--state-pressed));
+  opacity: 0.92;
+}
+
+/* Disabled elements get no press animation */
+button:disabled,
+button[disabled],
+.btn:disabled,
+.btn[disabled],
+.disabled {
+  transform: none !important;
+  opacity: var(--disabled-opacity) !important;
+  pointer-events: none !important;
+}
+
+/* No hover effects on touch; scoped to fine pointer */
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled),
+  button:hover:not(:disabled) {
+    opacity: 0.94;
+  }
+}
+
+/* Guard flag to restore baseline when motion polish is disabled */
+[data-motion-polish="false"] button:active,
+[data-motion-polish="false"] .btn:active,
+[data-motion-polish="false"] .navitem:active,
+[data-motion-polish="false"] .tab-item:active,
+[data-motion-polish="false"] .chip:active,
+[data-motion-polish="false"] .staple-chip:active,
+[data-motion-polish="false"] .quick-staple-chip:active,
+[data-motion-polish="false"] .food-log-row:active,
+[data-motion-polish="false"] .settings-row:active {
+  transform: none !important;
+  background-image: none !important;
 }
 
 @keyframes appViewEnter {

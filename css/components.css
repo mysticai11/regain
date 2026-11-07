@@ -69,8 +69,10 @@
 .btn:active { opacity: 0.85; }
 .btn-primary { background: var(--lime) !important; color: var(--accent-dark) !important; box-shadow: none !important; }
 .btn-primary:active {
-  opacity: 0.88 !important;
-  transition: opacity var(--motion-fast) !important;
+  transform: scale(0.97) !important;
+  transition: transform var(--dur-80) var(--ease-standard) !important;
+  background-image: linear-gradient(var(--state-pressed-lime), var(--state-pressed-lime)) !important;
+  opacity: 0.92 !important;
 }
 .btn-text-action {
   background: none !important;

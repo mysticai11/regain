@@ -110,6 +110,15 @@
   /* Android Motion: Standard M3 Easing cubic-bezier(0.2, 0, 0, 1) and Decelerate */
   --ease-m3: cubic-bezier(0.2, 0, 0, 1);
   --ease-decel: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0, 1);
+  --dur-80: 80ms;
+  --dur-150: 150ms;
+  --dur-200: 200ms;
+  --dur-300: 300ms;
+  --dur-400: 400ms;
+  --dur-500: 500ms;
+  --dur-700: 700ms;
   --motion-normal: 150ms ease-out;
   --motion-smooth: 200ms var(--ease-m3);
   --motion-sheet: 280ms var(--ease-decel);
