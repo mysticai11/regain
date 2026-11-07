@@ -73,8 +73,8 @@ export function renderGym() {
     + '<button class="icon-btn" id="settingsBtn" aria-label="Settings">' + ic('settings') + '</button>'
     + '</div>'
     + '</div>'
-    + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px">'
-    + '<div style="font-size:28px;line-height:1.15;font-weight:600;color:#F5F5F4;flex:1;word-break:break-word">' + esc(activeCleanName) + '</div>'
+    + '<div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px;margin-bottom:6px">'
+    + '<div style="font-size:28px;line-height:1.15;font-weight:600;color:#F5F5F4;min-width:200px;flex:1 1 auto;word-break:break-word">' + esc(activeCleanName) + '</div>'
     + (!activeSched.isRest ? ('<span style="font-size:15px;color:#8A8A8E;font-variant-numeric:tabular-nums;flex-shrink:0" id="gymSetProgress">' + loggedTotal + ' / ' + totalPlanned + ' sets</span>') : '')
     + '</div>'
     + (!activeSched.isRest ? '<div class="session-timer-dock" id="sessionTimer" style="display:flex;align-items:center;justify-content:space-between;padding-top:2px"></div>' : '')
@@ -273,16 +273,14 @@ export function renderGym() {
       var hasValues = logged || (isBW ? (Number(inputR) > 0 || Number(prefillR) > 0) : ((Number(inputW) > 0 || Number(prefillW) > 0) && (Number(inputR) > 0 || Number(prefillR) > 0)));
 
       var placeholderW = isBW ? 'BW' : (last && last.weight ? (last.weight + ' kg') : 'kg');
-      var displayPlaceholderW = placeholderW.replace(/\s*kg$/i, '');
+      var displayPlaceholderW = placeholderW.replace(/\s*kg$/i, '') || '–';
       var placeholderR = (last && last.reps != null ? String(last.reps) : 'reps');
-      var displayPlaceholderR = placeholderR.replace(/^reps$/i, '—');
-      var rirDisplay = valueRir === 0 ? 'F' : (valueRir === 2 ? 'RIR 2' : (valueRir === 3 ? '3+' : 'RIR 1'));
+      var displayPlaceholderR = (placeholderR === 'reps') ? '–' : placeholderR;
+      var rirDisplay = (valueRir === 0 || valueRir === '0') ? 'F' : ((valueRir != null && valueRir !== '') ? (Number(valueRir) >= 4 ? '+' : String(valueRir)) : '1');
 
       var tagHTML = '';
       if (i >= plannedCount) {
         tagHTML = '<div style="display:flex;justify-content:space-between;align-items:center;padding-left:24px;margin-top:-2px;margin-bottom:6px"><span style="font-size:11px;color:var(--text-secondary)">extra</span><button type="button" class="btn-text-action" data-remove-extra-set="' + ex.id + '" data-set-index="' + i + '" style="font-size:11px;color:var(--text-muted);background:none;border:none;padding:0;cursor:pointer">Remove</button></div>';
-      } else if (i === visibleCount - 1 && visibleCount > 1 && !logged) {
-        tagHTML = '<div style="display:flex;justify-content:flex-end;align-items:center;padding-left:24px;margin-top:-2px;margin-bottom:6px"><button type="button" class="btn-text-action" data-reduce-set="' + ex.id + '" style="font-size:11px;color:var(--text-secondary);background:none;border:none;padding:0;cursor:pointer">− Remove set ' + (i + 1) + '</button></div>';
       } else if (ex.setTags && ex.setTags[i]) {
         tagHTML = '<div style="font-size:11px;color:var(--text-secondary);padding-left:24px;margin-top:-2px;margin-bottom:6px">' + esc(ex.setTags[i]) + '</div>';
       }
@@ -290,7 +288,7 @@ export function renderGym() {
       var rowInner = '<span class="set-row-num" data-ex-id="' + ex.id + '" data-set-index="' + i + '" data-is-logged="' + (logged ? '1' : '0') + '" title="Long-press for options" style="font-size:17px;font-weight:600;color:var(--text-secondary);font-variant-numeric:tabular-nums;width:24px;text-align:center;cursor:pointer">' + (i + 1) + '</span>'
         + '<input type="text" id="set_weight_' + ex.id + '_' + i + '" placeholder="' + displayPlaceholderW + '" class="precision-input set-weight ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillW + '" data-ex="' + ex.id + '" data-set-index="' + i + '" data-is-bw="' + (isBW ? '1' : '0') + '" value="' + inputW + '" inputmode="decimal" enterkeyhint="next">'
         + '<input type="text" id="set_reps_' + ex.id + '_' + i + '" placeholder="' + displayPlaceholderR + '" class="precision-input set-reps ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillR + '" data-ex="' + ex.id + '" data-set-index="' + i + '" value="' + inputR + '" inputmode="numeric" enterkeyhint="next">'
-        + '<button type="button" class="rir-cycle-text" data-cycle-rir="' + ex.id + '" data-set-index="' + i + '">' + rirDisplay + '</button>'
+        + '<button type="button" class="rir-cycle-text" data-cycle-rir="' + ex.id + '" data-set-index="' + i + '" style="min-width:48px;height:48px;background:none;border:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0"><span class="hist-rir-badge" style="display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;min-width:18px;border-radius:4px;background:var(--surface-raised);font-size:11px;font-weight:600;color:' + (rirDisplay === 'F' ? 'var(--lime)' : 'var(--text-secondary)') + '">' + rirDisplay + '</span></button>'
         + '<select class="set-rir" data-ex="' + ex.id + '" data-set-index="' + i + '" style="display:none"><option value="3" ' + (valueRir === 3 ? 'selected' : '') + '>3+</option><option value="2" ' + (valueRir === 2 ? 'selected' : '') + '>RIR 2</option><option value="1" ' + (valueRir === 1 || valueRir == null ? 'selected' : '') + '>RIR 1</option><option value="0" ' + (valueRir === 0 ? 'selected' : '') + '>F</option></select>'
         + '<button type="button" class="precision-circle-tap ' + (logged ? 'done' : 'btn-log') + '" ' + (logged ? ('data-quick-edit-logged="' + ex.id + '"') : ('data-logset="' + ex.id + '"')) + ' data-set-index="' + i + '" data-ex-name="' + esc(ex.name) + '" data-weight="' + (logged ? (logged.weight || 0) : '') + '" data-reps="' + (logged ? logged.reps : '') + '" data-rir="' + (logged && logged.rir != null ? logged.rir : '') + '" ' + (!logged && !hasValues ? 'disabled' : '') + ' aria-label="' + (logged ? 'Edit logged set' : 'Log set') + '">'
           + '<span class="precision-circle ' + (logged ? 'done' : '') + '">' + (logged ? '✓' : '') + '</span>'
@@ -306,9 +304,9 @@ export function renderGym() {
     }).join(', ') : '';
 
     var metaLine = targetDisplay + (lastSetsStr ? ' · Last time: ' + lastSetsStr : '');
-    var swapIconSVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>';
-    var swapBtn = '<button type="button" class="swap-btn" data-swap-orig="' + exOrig.id + '" data-swap-curr="' + ex.id + '" data-muscle="' + (ex.muscle || '') + '" title="Swap exercise" style="background:none;border:none;padding:4px;cursor:pointer;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center">' + swapIconSVG + '</button>';
-    var skipBtn = '<button type="button" class="btn-text-action" data-skip-exercise="' + ex.id + '" data-ex-name="' + esc(ex.name) + '" title="Skip exercise today" style="color:var(--text-secondary);font-size:var(--fs-13);background:none;border:none;padding:0 4px;cursor:pointer">Skip today</button>';
+    var swapIconSVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>';
+    var swapBtn = '<button type="button" class="swap-btn" data-swap-orig="' + exOrig.id + '" data-swap-curr="' + ex.id + '" data-muscle="' + (ex.muscle || '') + '" title="Reorder / swap exercise" style="background:none;border:none;padding:0;width:48px;height:48px;min-width:48px;min-height:48px;cursor:pointer;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center" aria-label="Reorder exercise">' + swapIconSVG + '</button>';
+    var exMenuBtn = '<button type="button" class="btn-ghost" data-ex-menu="' + ex.id + '" data-ex-name="' + esc(ex.name) + '" style="background:none;border:none;padding:0;width:48px;height:48px;min-width:48px;min-height:48px;cursor:pointer;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;font-size:17px;line-height:1" aria-label="Exercise options">···</button>';
 
     var curLoggedSets = ((rec.workout || {})[ex.id] || []).filter(Boolean);
     var bestWeight = lastSets.reduce(function (m, s) { return Math.max(m, Number(s.weight) || 0); }, 0);
@@ -336,12 +334,12 @@ export function renderGym() {
       + '<span style="width:var(--tap-min)"></span>'
       + '</div>';
 
-    return '<section class="gym-ex-section-expanded" id="exsec-' + ex.id + '" style="padding:16px 0 20px;border-bottom:1px solid var(--hairline)">'
+    return '<section class="gym-ex-section-expanded" id="exsec-' + ex.id + '" style="padding:16px 0 12px;border-bottom:1px solid var(--hairline)">'
       + '<div style="margin-bottom:16px">'
       + '<div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">' + (exIndex + 1) + ' / ' + totalExCount + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
-      + '<div style="font-size:28px;line-height:1.15;font-weight:600;color:var(--text);flex:1;word-break:break-word">' + esc(ex.name) + catchupBadge + '</div>'
-      + '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0">' + swapBtn + skipBtn + '</div>'
+      + '<div style="font-size:28px;line-height:1.15;font-weight:600;color:var(--text);flex:1;min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word">' + esc(ex.name) + catchupBadge + '</div>'
+      + '<div style="display:flex;align-items:center;flex-shrink:0">' + swapBtn + exMenuBtn + '</div>'
       + '</div>'
       + '<div style="font-size:15px;color:var(--text-secondary);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + esc(metaLine) + '">' + esc(metaLine) + '</div>'
       + (prStr ? ('<div style="margin-top:4px">' + prStr + '</div>') : '')
@@ -354,9 +352,9 @@ export function renderGym() {
       + '<button type="button" class="btn-text-action" data-reduce-set="' + ex.id + '" style="color:var(--text-secondary);font-size:15px;background:none;border:none;padding:0;cursor:pointer">− Remove set</button>'
       + '</div>'
       + '</div>'
-      + '<div class="ex-cues-row">'
-      + '<button type="button" class="btn-text-action cue-toggle" data-cue-ex="' + ex.id + '" style="color:var(--text-secondary);font-size:15px;background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><span>Cues</span><span style="font-size:11px">▾</span></button>'
-      + '<input type="text" class="precision-input ex-note-input" data-ex="' + ex.id + '" placeholder="Technique cue..." value="' + esc((profile && profile.exerciseNotes && profile.exerciseNotes[ex.id]) || '') + '" style="display:none;width:100%;margin-top:8px;text-align:left;padding:0 12px;font-size:15px">'
+      + '<div class="ex-cues-row" style="margin-top:2px">'
+      + '<button type="button" class="btn-text-action cue-toggle" data-cue-ex="' + ex.id + '" style="color:var(--text-secondary);font-size:15px;background:none;border:none;padding:0;min-height:48px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><span>Cues</span><span style="font-size:11px">▾</span></button>'
+      + '<input type="text" class="precision-input ex-note-input" data-ex="' + ex.id + '" placeholder="Technique cue..." value="' + esc((profile && profile.exerciseNotes && profile.exerciseNotes[ex.id]) || '') + '" style="display:none;width:100%;margin-top:4px;margin-bottom:8px;text-align:left;padding:0 12px;font-size:15px">'
       + '</div>'
       + '</section>';
   }).join('');

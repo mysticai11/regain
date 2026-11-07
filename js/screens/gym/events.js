@@ -8,7 +8,7 @@ import { getSessionMeta, attachCommonGymHeaderEvents } from "./helpers.js";
 import { checkExercisePR, isIsolationLift } from "../../lib/calc.js";
 import { playSound, triggerHaptic } from "../../lib/dom.js";
 import { showToast, showUndoToast } from "../../components/toast.js";
-import { openSheet } from "../../components/sheet.js";
+import { openSheet, openActionMenuSheet } from "../../components/sheet.js";
 import { openQuickEditSetModal } from "../../components/quick-edit-modal.js";
 import { renderGym, buildVolumeTable } from "../gym.js";
 import { chooseWorkoutForDate } from "./session-sheet.js";
@@ -360,18 +360,23 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
     });
   });
 
-  document.querySelectorAll('[data-skip-exercise]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var exId = btn.dataset.skipExercise, exName = btn.dataset.exName || 'Exercise', cur = dayRecord(key);
-      cur.skippedExercises = cur.skippedExercises || {}; cur.skippedExercises[exId] = true; saveDayRecord(key, cur); renderGym();
-      showUndoToast(exName + ' skipped today', function() { var r = dayRecord(key); if (r.skippedExercises) delete r.skippedExercises[exId]; saveDayRecord(key, r); renderGym(); });
+  document.querySelectorAll('[data-ex-menu]').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      var exId = btn.dataset.exMenu, exName = btn.dataset.exName || 'Exercise';
+      openActionMenuSheet(exName, [{
+        label: 'Skip today', destructive: true,
+        action: function() {
+          var cur = dayRecord(key); cur.skippedExercises = cur.skippedExercises || {}; cur.skippedExercises[exId] = true; saveDayRecord(key, cur); renderGym();
+          showUndoToast(exName + ' skipped today', function() { var r = dayRecord(key); if (r.skippedExercises) delete r.skippedExercises[exId]; saveDayRecord(key, r); renderGym(); });
+        }
+      }]);
     });
   });
 
   document.querySelectorAll('[data-unskip-exercise]').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      var exId = btn.dataset.unskipExercise, cur = dayRecord(key);
-      if (cur.skippedExercises) delete cur.skippedExercises[exId];
+      var cur = dayRecord(key); if (cur.skippedExercises) delete cur.skippedExercises[btn.dataset.unskipExercise];
       saveDayRecord(key, cur); renderGym();
     });
   });
