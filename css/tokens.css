@@ -133,6 +133,17 @@
   --card-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   --lime-glow: 0 0 12px rgba(198, 244, 50, 0.2);
+
+  /* Round 1 UI Tokens */
+  --seg-track: #1C1C1F;
+  --seg-thumb: #F5F5F4;
+  --seg-thumb-text: #0B0B0C;
+  --chart-grid: rgba(255, 255, 255, 0.06);
+  --chart-line: #F5F5F4;
+  --chart-fill-top: rgba(245, 245, 244, 0.14);
+  --chart-fill-bottom: rgba(245, 245, 244, 0);
+  --cal-ring-planned: rgba(198, 244, 50, 0.6);
+  --cal-ring-skipped: #3A3A40;
 }
 
 /* F10: Subtle Card Top Highlight, Soft Depth Shadow & Primary Lime Button Glow */

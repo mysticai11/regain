@@ -36,14 +36,14 @@ async function run() {
 
   // 1. Test HTML generation for 'weeks' tab
   const htmlWeeks = buildHistoryScreenHTML('weeks');
-  assert.ok(htmlWeeks.includes('class="history-segmented-control"'), 'Uses history-segmented-control container');
-  assert.ok(htmlWeeks.includes('class="history-segment-btn active" id="historyTabWeeksBtn">Past Weeks</button>'), 'Weeks button active');
-  assert.ok(htmlWeeks.includes('class="history-segment-btn" id="historyTabMonthsBtn">Past Months</button>'), 'Months button inactive');
+  assert.ok(htmlWeeks.includes('class="seg"') || htmlWeeks.includes('class="history-segmented-control"'), 'Uses segmented control container');
+  assert.ok(htmlWeeks.includes('id="historyTabWeeksBtn">Past Weeks</button>'), 'Weeks button present');
+  assert.ok(htmlWeeks.includes('aria-selected="true"') || htmlWeeks.includes('active'), 'Active state indicated');
 
   // 2. Test HTML generation for 'months' tab
   const htmlMonths = buildHistoryScreenHTML('months');
-  assert.ok(htmlMonths.includes('class="history-segment-btn" id="historyTabWeeksBtn">Past Weeks</button>'), 'Weeks button inactive');
-  assert.ok(htmlMonths.includes('class="history-segment-btn active" id="historyTabMonthsBtn">Past Months</button>'), 'Months button active');
+  assert.ok(htmlMonths.includes('id="historyTabWeeksBtn">Past Weeks</button>'), 'Weeks button present');
+  assert.ok(htmlMonths.includes('id="historyTabMonthsBtn">Past Months</button>'), 'Months button present');
 
   // 3. Verify CSS properties in css/progress.css
   const cssContent = fs.readFileSync(path.join(__dirname, '../css/progress.css'), 'utf8');

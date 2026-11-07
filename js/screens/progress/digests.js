@@ -272,9 +272,10 @@ export function openHistoryArchiveModal(defaultTab) {
       + '</div>'
       + '<button type="button" class="btn-text-action" id="closeHistoryArchiveBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:6px 0;cursor:pointer">Done</button>'
     + '</div>'
-    + '<div class="history-segmented-control" style="margin-bottom:14px">'
-      + '<button type="button" class="history-segment-btn' + (defaultTab === 'weeks' ? ' active' : '') + '" id="archiveTabWeeksBtn">Past Weeks</button>'
-      + '<button type="button" class="history-segment-btn' + (defaultTab === 'months' ? ' active' : '') + '" id="archiveTabMonthsBtn">Past Months</button>'
+    + '<div class="seg" role="tablist" aria-label="History archive timeframe" data-gesture-owner style="--n:2;--i:' + (defaultTab === 'weeks' ? '0' : '1') + ';margin-bottom:14px">'
+      + '<span class="seg__thumb" aria-hidden="true"></span>'
+      + '<button type="button" class="seg__btn' + (defaultTab === 'weeks' ? ' active' : '') + '" role="tab" aria-selected="' + (defaultTab === 'weeks' ? 'true' : 'false') + '" tabindex="' + (defaultTab === 'weeks' ? '0' : '-1') + '" data-value="weeks" id="archiveTabWeeksBtn">Past Weeks</button>'
+      + '<button type="button" class="seg__btn' + (defaultTab === 'months' ? ' active' : '') + '" role="tab" aria-selected="' + (defaultTab === 'months' ? 'true' : 'false') + '" tabindex="' + (defaultTab === 'months' ? '0' : '-1') + '" data-value="months" id="archiveTabMonthsBtn">Past Months</button>'
     + '</div>'
     + '<div id="archiveScrollArea" style="overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding-right:2px"></div>'
     + '</div>';
@@ -306,9 +307,25 @@ export function openHistoryArchiveModal(defaultTab) {
 
   function renderTab(tab) {
     var area = overlay.querySelector('#archiveScrollArea'); if (!area) return;
+    var segEl = overlay.querySelector('.seg[aria-label="History archive timeframe"]');
+    if (segEl && segEl.style && segEl.style.setProperty) {
+      segEl.style.setProperty('--i', tab === 'weeks' ? '0' : '1');
+    }
     var wBtn = overlay.querySelector('#archiveTabWeeksBtn'), mBtn = overlay.querySelector('#archiveTabMonthsBtn');
-    if (wBtn) wBtn.classList.toggle('active', tab === 'weeks');
-    if (mBtn) mBtn.classList.toggle('active', tab === 'months');
+    if (wBtn) {
+      if (wBtn.classList && wBtn.classList.toggle) wBtn.classList.toggle('active', tab === 'weeks');
+      if (wBtn.setAttribute) {
+        wBtn.setAttribute('aria-selected', tab === 'weeks' ? 'true' : 'false');
+        wBtn.setAttribute('tabindex', tab === 'weeks' ? '0' : '-1');
+      }
+    }
+    if (mBtn) {
+      if (mBtn.classList && mBtn.classList.toggle) mBtn.classList.toggle('active', tab === 'months');
+      if (mBtn.setAttribute) {
+        mBtn.setAttribute('aria-selected', tab === 'months' ? 'true' : 'false');
+        mBtn.setAttribute('tabindex', tab === 'months' ? '0' : '-1');
+      }
+    }
     area.innerHTML = (tab === 'weeks') ? buildWeeklyDigestHTML() : buildAllMonthsHistoryHTML();
     wireInteractions();
   }
@@ -326,9 +343,11 @@ export function openHistoryArchiveModal(defaultTab) {
 export function buildHistoryScreenHTML(historyTab) {
   historyTab = historyTab || 'weeks';
   var calendarHTML = buildDotConsistencyCalendarHTML();
-  var tabsHTML = '<div class="history-segmented-control">'
-    + '<button type="button" class="history-segment-btn' + (historyTab === 'weeks' ? ' active' : '') + '" id="historyTabWeeksBtn">Past Weeks</button>'
-    + '<button type="button" class="history-segment-btn' + (historyTab === 'months' ? ' active' : '') + '" id="historyTabMonthsBtn">Past Months</button>'
+  var isWeeks = (historyTab === 'weeks');
+  var tabsHTML = '<div class="seg" role="tablist" aria-label="History timeframe" data-gesture-owner style="--n:2;--i:' + (isWeeks ? '0' : '1') + ';margin-bottom:16px">'
+    + '<span class="seg__thumb" aria-hidden="true"></span>'
+    + '<button type="button" class="seg__btn' + (isWeeks ? ' active' : '') + '" role="tab" aria-selected="' + (isWeeks ? 'true' : 'false') + '" tabindex="' + (isWeeks ? '0' : '-1') + '" data-value="weeks" id="historyTabWeeksBtn">Past Weeks</button>'
+    + '<button type="button" class="seg__btn' + (!isWeeks ? ' active' : '') + '" role="tab" aria-selected="' + (!isWeeks ? 'true' : 'false') + '" tabindex="' + (!isWeeks ? '0' : '-1') + '" data-value="months" id="historyTabMonthsBtn">Past Months</button>'
     + '</div>';
   var listHTML = (historyTab === 'weeks') ? buildWeeklyDigestHTML() : buildAllMonthsHistoryHTML();
   return '<div class="app-view" style="padding-bottom:calc(32px + var(--safe-b))">'
