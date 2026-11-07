@@ -245,67 +245,49 @@ export function buildDotConsistencyCalendarHTML() {
   var plannedCount = 0;
   var dots = [];
 
-  var firstDay = new Date(year, month, 1);
-  var lastDay = new Date(year, month + 1, 0);
-  var totalDaysInMonth = lastDay.getDate();
-  var firstDow = firstDay.getDay();
+  var firstDay = new Date(year, month, 1), lastDay = new Date(year, month + 1, 0);
+  var totalDaysInMonth = lastDay.getDate(), firstDow = firstDay.getDay();
   var leadSpaces = (firstDow === 0) ? 6 : firstDow - 1;
 
   for (var s = 0; s < leadSpaces; s++) {
-    dots.push('<span class="dot-cell" style="width:6px;height:6px;display:inline-block;visibility:hidden"></span>');
+    dots.push('<span style="width:6px;height:6px;display:inline-block;visibility:hidden;pointer-events:none"></span>');
   }
 
   for (var d = 1; d <= totalDaysInMonth; d++) {
-    var curD = new Date(year, month, d);
-    var mStr = (month + 1 < 10 ? '0' : '') + (month + 1);
-    var dStr = (d < 10 ? '0' : '') + d;
-    var key = year + '-' + mStr + '-' + dStr;
-    var dDow = curD.getDay();
-    var isTrainingDay = tdays.includes(dDow);
+    var curD = new Date(year, month, d), mStr = (month + 1 < 10 ? '0' : '') + (month + 1), dStr = (d < 10 ? '0' : '') + d;
+    var key = year + '-' + mStr + '-' + dStr, dDow = curD.getDay(), isTrainingDay = tdays.includes(dDow);
     if (isTrainingDay && key <= todayStr) plannedCount++;
-
-    var rec = dayRecord(key);
-    var trained = !!sessionDays[key] || (rec && (rec.workoutDone || (rec.workout && Object.keys(rec.workout).some(function(k){return (rec.workout[k]||[]).some(Boolean);}))));
+    var rec = dayRecord(key), trained = !!sessionDays[key] || (rec && (rec.workoutDone || (rec.workout && Object.keys(rec.workout).some(function(k){return (rec.workout[k]||[]).some(Boolean);}))));
     var isToday = (key === todayStr);
-
     if (trained) trainedCount++;
 
-    var dotStyle = 'width:6px;height:6px;border-radius:50%;display:inline-block;box-sizing:border-box;';
-    var dayTitle = key;
+    var dotStyle = 'display:inline-block;box-sizing:border-box;border-radius:50%;', dayTitle = key;
     if (trained) {
-      dotStyle += 'background:#C6F432;'; // all logged sessions = lime green
-      dayTitle += ' (Logged)';
+      dotStyle += isToday ? 'width:8px;height:8px;background:#C6F432;border:1.5px solid #F5F5F4;' : 'width:6px;height:6px;background:#C6F432;';
+      dayTitle += isToday ? ' (Today · Logged)' : ' (Logged)';
     } else if (isToday) {
-      if (isTrainingDay) {
-        dotStyle += 'background:transparent;border:1.5px solid #F5F5F4;'; // today training day = ring
-        dayTitle += ' (Today · Training)';
-      } else {
-        dotStyle += 'background:#55555A;border:1.5px solid #F5F5F4;'; // today rest day = gray with ring
-        dayTitle += ' (Today · Rest)';
-      }
+      dotStyle += 'width:8px;height:8px;background:#F5F5F4;';
+      dayTitle += isTrainingDay ? ' (Today · Training)' : ' (Today · Rest)';
     } else if (key > todayStr) {
-      dotStyle += 'background:#222222;'; // future = dim slot
+      dotStyle += 'width:6px;height:6px;background:transparent;';
     } else if (isTrainingDay) {
-      dotStyle += 'background:transparent;border:1px solid #55555A;'; // untrained / skipped = ring
+      dotStyle += 'width:6px;height:6px;background:transparent;border:1px solid #55555A;';
       dayTitle += ' (Skipped)';
     } else {
-      dotStyle += 'background:#55555A;'; // rest day = solid gray
+      dotStyle += 'width:4px;height:4px;background:#55555A;';
       dayTitle += ' (Rest)';
     }
-
     dots.push('<span class="dot-cell" style="' + dotStyle + '" title="' + esc(dayTitle) + '"></span>');
   }
 
   var trailSpaces = (7 - ((leadSpaces + totalDaysInMonth) % 7)) % 7;
   for (var t = 0; t < trailSpaces; t++) {
-    dots.push('<span class="dot-cell" style="width:6px;height:6px;display:inline-block;visibility:hidden"></span>');
+    dots.push('<span style="width:6px;height:6px;display:inline-block;visibility:hidden;pointer-events:none"></span>');
   }
 
   var dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   var lettersRow = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;justify-items:center;align-items:center;margin-bottom:6px">'
-    + dayLetters.map(function(ch) {
-      return '<span style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1">' + ch + '</span>';
-    }).join('')
+    + dayLetters.map(function(ch) { return '<span style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1">' + ch + '</span>'; }).join('')
     + '</div>';
 
   var legendHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:12px;font-size:11px;color:#8A8A8E">'
@@ -318,13 +300,13 @@ export function buildDotConsistencyCalendarHTML() {
   var navRow = '<div style="display:flex;align-items:center;gap:6px">'
     + '<button type="button" class="btn-text-action" id="prevProgressMonthBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0 4px;cursor:pointer">&larr;</button>'
     + '<span class="t-label">Consistency · ' + monthName + (offset !== 0 ? (' ' + year) : '') + '</span>'
-    + (canGoNext ? '<button type="button" class="btn-text-action" id="nextProgressMonthBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0 4px;cursor:pointer">&rarr;</button>' : '')
+    + (canGoNext ? '<button type="button" class="btn-text-action" id="nextProgressMonthBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0 4px;cursor:pointer">&rarr;</button>' : '<button type="button" class="btn-text-action" disabled style="opacity:0.25;cursor:default;color:#8A8A8E;background:none;border:none;padding:0 4px">&rarr;</button>')
     + '</div>';
 
   return '<div style="margin-bottom:24px">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
       + navRow
-      + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + trainedCount + ' of ' + plannedCount + (plannedCount === 1 ? ' workout' : ' workouts') + '</span>'
+      + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + trainedCount + ' of ' + plannedCount + ' planned so far</span>'
     + '</div>'
     + lettersRow
     + '<div class="dot-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;justify-items:center;align-items:center;padding:2px 0">'

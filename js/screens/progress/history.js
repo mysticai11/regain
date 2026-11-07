@@ -97,32 +97,21 @@ export function workoutHistoryHTML() {
       var matchingMeta = storedMeta[String(session.programDay)] || Object.keys(storedMeta).map(function(k){ return storedMeta[k]; }).find(function(m){ return m && (m.duration_sec != null || m.durationMinutes != null); });
       var durationSec = session.duration_sec != null ? Number(session.duration_sec) : (matchingMeta && (matchingMeta.duration_sec != null ? Number(matchingMeta.duration_sec) : Number(matchingMeta.durationMinutes)*60));
       var durMin = (durationSec && !isNaN(durationSec)) ? Math.round(durationSec / 60) : null;
-      var durStr = '-';
-      if (durMin && durMin > 0) {
-        if (durMin > 180) durMin = 180;
-        durStr = durMin + ' min';
-      }
-
       var rawTitle = session.programLabel || session.sessionLabel || 'Workout';
-      var cleanTitle = rawTitle.replace(/^Day\s*\d+\s*[·•—–-]\s*/gi, '').trim();
-      if (!cleanTitle) cleanTitle = rawTitle;
-
-      var volStr = totalVol > 0 ? (' · ' + Math.round(totalVol).toLocaleString() + ' kg') : '';
-      var statsText = durStr + ' · ' + totalSets + (totalSets === 1 ? ' set' : ' sets') + volStr;
+      var cleanTitle = rawTitle.replace(/^Day\s*\d+\s*[·•—–-]\s*/gi, '').trim() || rawTitle;
+      var statsParts = [totalSets + (totalSets === 1 ? ' set' : ' sets')];
+      if (totalVol > 0) statsParts.push(Math.round(totalVol).toLocaleString() + ' kg');
+      if (durMin && durMin > 0) statsParts.push(Math.min(durMin, 180) + ' min');
+      var statsText = statsParts.join(' · ');
 
       var exRows = exercises.map(function(exItem, exIdx) {
         var exData = getExerciseData(exItem.id) || { name: exItem.id };
-        var sets = (exItem.sets || []).filter(Boolean);
-        var isBW = isBodyweightExercise(exItem.id, exData.name);
+        var sets = (exItem.sets || []).filter(Boolean), isBW = isBodyweightExercise(exItem.id, exData.name);
 
-        // Find immediately prior session in history that had this exercise with logged sets
         var prevExSets = null;
         for (var pIdx = allSessionIdx + 1; pIdx < sessions.length; pIdx++) {
           var pe = (sessions[pIdx].exercises || []).find(function(e) { return e.id === exItem.id; });
-          if (pe && (pe.sets || []).some(Boolean)) {
-            prevExSets = (pe.sets || []).filter(Boolean);
-            break;
-          }
+          if (pe && (pe.sets || []).some(Boolean)) { prevExSets = (pe.sets || []).filter(Boolean); break; }
         }
 
         var progressTagHTML = '';
@@ -131,24 +120,23 @@ export function workoutHistoryHTML() {
             var curBestR = sets.reduce(function(m, s) { return Math.max(m, Number(s.reps) || 0); }, 0);
             var prevBestR = prevExSets.reduce(function(m, s) { return Math.max(m, Number(s.reps) || 0); }, 0);
             var dR = curBestR - prevBestR;
-            if (dR > 0) progressTagHTML = '<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:6px;background:rgba(198,244,50,0.12);color:#C6F432;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">+' + dR + (dR === 1 ? ' rep' : ' reps') + '</span>';
+            if (dR > 0) progressTagHTML = '<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:6px;background:rgba(198,244,50,0.12);color:var(--lime);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">+' + dR + (dR === 1 ? ' rep' : ' reps') + '</span>';
           } else {
             var curTopW = sets.reduce(function(m, s) { return Math.max(m, Number(s.weight) || 0); }, 0);
             var prevTopW = prevExSets.reduce(function(m, s) { return Math.max(m, Number(s.weight) || 0); }, 0);
             var dW = curTopW - prevTopW;
             if (dW > 0) {
-              progressTagHTML = '<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:6px;background:rgba(198,244,50,0.12);color:#C6F432;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">+' + (dW % 1 === 0 ? dW : dW.toFixed(1)) + ' kg</span>';
+              progressTagHTML = '<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:6px;background:rgba(198,244,50,0.12);color:var(--lime);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">+' + (dW % 1 === 0 ? dW : dW.toFixed(1)) + ' kg</span>';
             } else if (dW === 0 && curTopW > 0) {
               var curTopR = sets.filter(function(s) { return Number(s.weight) === curTopW; }).reduce(function(m, s) { return Math.max(m, Number(s.reps) || 0); }, 0);
               var prevTopR = prevExSets.filter(function(s) { return Number(s.weight) === prevTopW; }).reduce(function(m, s) { return Math.max(m, Number(s.reps) || 0); }, 0);
               var dTopR = curTopR - prevTopR;
-              if (dTopR > 0) progressTagHTML = '<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:6px;background:rgba(198,244,50,0.12);color:#C6F432;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">+' + dTopR + (dTopR === 1 ? ' rep' : ' reps') + '</span>';
+              if (dTopR > 0) progressTagHTML = '<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:6px;background:rgba(198,244,50,0.12);color:var(--lime);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">+' + dTopR + (dTopR === 1 ? ' rep' : ' reps') + '</span>';
             }
           }
         }
 
-        var isPrInSession = false;
-        var priorSets = [];
+        var isPrInSession = false, priorSets = [];
         for (var p = sIdx + 1; p < group.sessions.length; p++) {
           var pEx = (group.sessions[p].exercises || []).find(function(e){ return e.id === exItem.id; });
           if (pEx && pEx.sets) pEx.sets.filter(Boolean).forEach(function(s){ priorSets.push(s); });
@@ -159,7 +147,6 @@ export function workoutHistoryHTML() {
             if (pEx && pEx.sets) pEx.sets.filter(Boolean).forEach(function(s){ priorSets.push(s); });
           });
         }
-
         if (priorSets.length > 0) {
           if (isBW) {
             var maxReps = sets.reduce(function(m, s){ return Math.max(m, Number(s.reps) || 0); }, 0);
@@ -172,28 +159,38 @@ export function workoutHistoryHTML() {
           }
         }
 
-        var setLines = sets.map(function(s, sIdx2) {
-          var wDisp = isBW ? ((!s.weight || Number(s.weight) === 0) ? 'BW' : ('BW+' + s.weight)) : s.weight + ' kg';
-          var rir = s.rir;
-          var rirVal = (rir === 0 || rir === '0') ? 'F' : ((rir != null && rir !== '') ? (Number(rir) >= 4 ? '+' : String(rir)) : '');
-          var rirDisp = rirVal ? ('RIR ' + rirVal) : '';
-          return '<div class="history-set-row" data-quick-edit-set="1" data-session-id="' + esc(session.id) + '" data-ex-id="' + esc(exItem.id) + '" data-ex-name="' + esc(exData.name) + '" data-set-idx="' + sIdx2 + '" data-weight="' + (s.weight || 0) + '" data-reps="' + (s.reps || 0) + '" data-rir="' + (s.rir == null ? '' : s.rir) + '" style="display:grid;grid-template-columns:28px 1fr 60px;align-items:center;padding:6px 0;font-size:15px;color:#F5F5F4;font-variant-numeric:tabular-nums;cursor:pointer">'
-            + '<span style="color:#8A8A8E;font-size:11px">' + (sIdx2 + 1) + '</span>'
-            + '<span>' + esc(wDisp) + ' × ' + s.reps + '</span>'
-            + '<span style="text-align:right;color:' + (rirVal === 'F' ? '#C6F432' : '#8A8A8E') + ';font-size:11px;font-weight:600">' + esc(rirDisp) + '</span>'
+        var allIdentical = sets.length > 1 && sets.every(function(s){ return Number(s.weight) === Number(sets[0].weight) && Number(s.reps) === Number(sets[0].reps); });
+        var setDisplayHTML = '';
+        if (allIdentical) {
+          var firstS = sets[0], wDisp = isBW ? ((!firstS.weight || Number(firstS.weight) === 0) ? 'BW' : ('BW+' + firstS.weight)) : firstS.weight + ' kg';
+          var rirVal = (firstS.rir === 0 || firstS.rir === '0') ? 'F' : ((firstS.rir != null && firstS.rir !== '') ? (Number(firstS.rir) >= 4 ? '+' : String(firstS.rir)) : '');
+          var rirBadge = rirVal ? '<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;background:var(--surface-raised);color:' + (rirVal === 'F' ? 'var(--lime)' : 'var(--text-secondary)') + ';font-size:11px;font-weight:600;margin-left:8px">' + esc(rirVal) + '</span>' : '';
+          setDisplayHTML = '<div class="history-set-row" data-quick-edit-set="1" data-session-id="' + esc(session.id) + '" data-ex-id="' + esc(exItem.id) + '" data-ex-name="' + esc(exData.name) + '" data-set-idx="0" data-weight="' + (firstS.weight || 0) + '" data-reps="' + (firstS.reps || 0) + '" data-rir="' + (firstS.rir == null ? '' : firstS.rir) + '" style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:15px;color:var(--text);font-variant-numeric:tabular-nums;cursor:pointer">'
+            + '<span>' + sets.length + ' × ' + esc(wDisp) + ' × ' + firstS.reps + '</span>'
+            + rirBadge
             + '</div>';
-        }).join('');
+        } else {
+          setDisplayHTML = '<div style="display:flex;flex-wrap:wrap;gap:6px;padding:4px 0">' + sets.map(function(s, sIdx2) {
+            var wDisp = isBW ? ((!s.weight || Number(s.weight) === 0) ? 'BW' : ('BW+' + s.weight)) : s.weight + ' kg';
+            var rirVal = (s.rir === 0 || s.rir === '0') ? 'F' : ((s.rir != null && s.rir !== '') ? (Number(s.rir) >= 4 ? '+' : String(s.rir)) : '');
+            var rirBadge = rirVal ? '<span style="display:inline-flex;align-items:center;justify-content:center;padding:1px 4px;border-radius:4px;background:var(--surface-raised);color:' + (rirVal === 'F' ? 'var(--lime)' : 'var(--text-secondary)') + ';font-size:11px;font-weight:600;margin-left:4px">' + esc(rirVal) + '</span>' : '';
+            return '<div class="history-set-row" data-quick-edit-set="1" data-session-id="' + esc(session.id) + '" data-ex-id="' + esc(exItem.id) + '" data-ex-name="' + esc(exData.name) + '" data-set-idx="' + sIdx2 + '" data-weight="' + (s.weight || 0) + '" data-reps="' + (s.reps || 0) + '" data-rir="' + (s.rir == null ? '' : s.rir) + '" style="display:inline-flex;align-items:center;background:var(--surface);border:1px solid var(--hairline);border-radius:8px;padding:4px 8px;font-size:11px;color:var(--text);cursor:pointer">'
+              + '<span>' + esc(wDisp) + ' × ' + s.reps + '</span>'
+              + rirBadge
+              + '</div>';
+          }).join('') + '</div>';
+        }
 
         var isLast = exIdx === exercises.length - 1;
-        return '<div style="padding:10px 0;' + (isLast ? '' : 'border-bottom:1px solid #1C1C1F') + '">'
+        return '<div style="padding:10px 0;' + (isLast ? '' : 'border-bottom:1px solid var(--hairline)') + '">'
           + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
             + '<div style="display:flex;align-items:center;gap:8px">'
-              + '<span style="font-size:15px;font-weight:600;color:#F5F5F4">' + esc(exData.name) + '</span>'
+              + '<span style="font-size:15px;font-weight:600;color:var(--text)">' + esc(exData.name) + '</span>'
               + progressTagHTML
             + '</div>'
             + (isPrInSession ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#C6F432;letter-spacing:0.08em;text-transform:uppercase"><span style="width:5px;height:5px;border-radius:50%;background:#C6F432;display:inline-block"></span>PR</span>' : '')
           + '</div>'
-          + '<div>' + setLines + '</div>'
+          + '<div>' + setDisplayHTML + '</div>'
           + '</div>';
       }).join('');
 

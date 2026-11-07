@@ -160,38 +160,38 @@ export function buildWeeklyDigestHTML() {
       return acc + (s.exercises || []).reduce(function(a, ex) { return a + (ex.sets || []).filter(Boolean).length; }, 0);
     }, 0);
 
-    var wKcal = 0, wProt = 0, wFoodDays = 0;
-    var dayRows = [];
+    var trainedRows = [], restRows = [], skippedDaysCount = 0, wKcal = 0, wProt = 0, wFoodDays = 0;
+    var profileTrainingDays = (profile && profile.trainingDays) || [1, 2, 3, 5, 6];
 
     for (var d = 0; d < 7; d++) {
       var dKey = addDays(monKey, d);
       var curDayObj = new Date(dKey + 'T00:00:00');
       var dayName = curDayObj.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-
       var t = getDayTotals(dKey);
       if (t.kcal > 0) { wKcal += t.kcal; wProt += t.protein; wFoodDays++; }
 
       var dSessions = wSessions.filter(function(s){ return s.dayKey === dKey; });
-      var woLabel = dSessions.length ? (dSessions[0].label || 'Workout') : '';
+      var woLabel = dSessions.length ? (dSessions[0].label || dSessions[0].programLabel || 'Workout') : '';
       var dSets = dSessions.reduce(function(acc, s) {
         return acc + (s.exercises || []).reduce(function(a, ex) { return a + (ex.sets || []).filter(Boolean).length; }, 0);
       }, 0);
 
-      var wEntry = allEntries.find(function(e){ return (e.dayKey || e.createdAt.slice(0, 10)) === dKey; });
+      var isTrained = dSessions.length > 0 || (dayRecord(dKey) && dayRecord(dKey).workoutDone);
+      var isSched = profileTrainingDays.includes(curDayObj.getDay());
 
-      var dayInfo = [];
-      if (woLabel) dayInfo.push(esc(woLabel) + (dSets ? (' (' + dSets + ' sets)') : ''));
-      if (t.kcal > 0) dayInfo.push(t.kcal + ' kcal · ' + t.protein + 'g');
-      if (wEntry) dayInfo.push(wEntry.weight.toFixed(1) + ' kg');
-      var dayDesc = dayInfo.join(' · ') || 'Rest';
-
-      dayRows.push('<div class="list-row" data-jump-day="' + dKey + '" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:15px;color:#F5F5F4;border-bottom:1px solid #222;cursor:pointer">'
-        + '<div style="display:flex;flex-direction:column;pointer-events:none">'
-          + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase">' + esc(dayName) + '</span>'
-          + '<span style="font-size:15px;color:' + (woLabel ? '#C6F432' : '#F5F5F4') + '">' + dayDesc + '</span>'
-        + '</div>'
-        + '<button type="button" class="btn-text-action" data-jump-day="' + dKey + '" style="font-size:11px;color:#8A8A8E;background:none;border:none;cursor:pointer;padding:4px">View</button>'
-        + '</div>');
+      if (isTrained) {
+        var daySummaryStr = dayName + ' · ' + (woLabel || 'Workout') + (dSets ? (' · ' + dSets + ' sets') : '');
+        trainedRows.push('<div class="list-row" data-jump-day="' + dKey + '" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--hairline);cursor:pointer">'
+          + '<span style="font-size:15px;color:var(--text);font-weight:500">' + esc(daySummaryStr) + '</span>'
+          + '<span style="color:var(--text-secondary);font-size:17px">›</span>'
+          + '</div>');
+      } else {
+        if (isSched && dKey <= todayKey()) skippedDaysCount++;
+        restRows.push('<div class="list-row" data-jump-day="' + dKey + '" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--hairline);cursor:pointer;color:var(--text-secondary);font-size:11px">'
+          + '<span>' + esc(dayName) + ' · ' + (isSched ? 'Skipped' : 'Rest') + (t.kcal > 0 ? (' · ' + t.kcal + ' kcal') : '') + '</span>'
+          + '<span style="font-size:15px">›</span>'
+          + '</div>');
+      }
     }
 
     var avgKcal = wFoodDays ? Math.round(wKcal / wFoodDays) : 0;
@@ -207,19 +207,25 @@ export function buildWeeklyDigestHTML() {
     }
 
     var digestId = 'digest_wk_' + w;
-
-    weekBlocks.push('<div style="background:#141416;border-radius:12px;padding:14px;margin-bottom:12px;text-align:left">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" data-toggle-digest="' + digestId + '">'
-        + '<div>'
-          + '<div class="t-micro" style="color:#C6F432;font-size:11px;letter-spacing:0.04em">Week ' + weekNum + ' · ' + esc(rangeStr) + '</div>'
-          + '<div class="tabnum" style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + wSessions.length + (wSessions.length === 1 ? ' session' : ' sessions') + ' · ' + totalSets + ' sets · ' + (avgKcal > 0 ? (avgKcal + ' kcal/day') : 'No food') + '</div>'
-          + '<div class="tabnum" style="font-size:11px;color:#8A8A8E;margin-top:2px">' + esc(weightStr) + '</div>'
+    var restSummaryHTML = '';
+    if (restRows.length > 0) {
+      var restLabel = restRows.length + ' rest days' + (skippedDaysCount > 0 ? (' · ' + skippedDaysCount + ' skipped') : '') + ' ▾';
+      restSummaryHTML = '<div style="cursor:pointer;padding:10px 0;color:var(--text-secondary);font-size:11px;display:flex;justify-content:space-between;align-items:center" data-toggle-digest="' + digestId + '">'
+        + '<span>' + esc(restLabel) + '</span>'
         + '</div>'
-        + '<button type="button" class="btn-text-action" style="color:#8A8A8E;font-size:11px;background:none;border:none;cursor:pointer;padding:0">Details</button>'
+        + '<div id="' + digestId + '" style="display:none;padding:4px 0">' + restRows.join('') + '</div>';
+    }
+
+    weekBlocks.push('<div style="background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:16px;margin-bottom:14px;text-align:left">'
+      + '<div style="font-size:17px;font-weight:600;color:var(--text);margin-bottom:8px">' + esc(rangeStr) + '</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:var(--surface-raised);border:1px solid var(--hairline);border-radius:12px;padding:12px 14px;margin-bottom:10px;text-align:left">'
+        + '<div><div class="t-micro" style="color:var(--text-secondary);font-size:11px;letter-spacing:0.04em">SESSIONS</div><div class="tabnum" style="font-size:28px;font-weight:600;color:var(--text);line-height:1.2">' + wSessions.length + '</div></div>'
+        + '<div><div class="t-micro" style="color:var(--text-secondary);font-size:11px;letter-spacing:0.04em">SETS</div><div class="tabnum" style="font-size:28px;font-weight:600;color:var(--text);line-height:1.2">' + totalSets + '</div></div>'
+        + '<div><div class="t-micro" style="color:var(--text-secondary);font-size:11px;letter-spacing:0.04em">AVG KCAL</div><div class="tabnum" style="font-size:28px;font-weight:600;color:var(--text);line-height:1.2">' + (avgKcal > 0 ? avgKcal : '—') + '</div></div>'
       + '</div>'
-      + '<div id="' + digestId + '" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #222">'
-        + dayRows.join('')
-      + '</div>'
+      + '<div class="tabnum" style="font-size:11px;color:var(--text-secondary);margin-bottom:12px">' + esc(weightStr) + '</div>'
+      + '<div>' + (trainedRows.length ? trainedRows.join('') : '<div style="font-size:11px;color:var(--text-secondary);padding:6px 0">No sessions logged this week</div>') + '</div>'
+      + restSummaryHTML
       + '</div>');
   }
 
@@ -311,9 +317,9 @@ export function openHistoryArchiveModal(defaultTab) {
 export function buildHistoryScreenHTML(historyTab) {
   historyTab = historyTab || 'weeks';
   var calendarHTML = buildDotConsistencyCalendarHTML();
-  var tabsHTML = '<div class="seg-tabs" style="margin-top:20px;margin-bottom:16px">'
-    + '<button type="button" class="seg-tab-btn' + (historyTab === 'weeks' ? ' active' : '') + '" id="historyTabWeeksBtn">Past Weeks</button>'
-    + '<button type="button" class="seg-tab-btn' + (historyTab === 'months' ? ' active' : '') + '" id="historyTabMonthsBtn">Past Months</button>'
+  var tabsHTML = '<div class="seg-pill" style="display:inline-flex;background:var(--surface);border:1px solid var(--hairline);border-radius:9999px;padding:3px;gap:4px;margin-top:16px;margin-bottom:16px">'
+    + '<button type="button" class="btn-text-action" id="historyTabWeeksBtn" style="border:none;border-radius:9999px;padding:6px 14px;font-size:15px;font-weight:600;cursor:pointer;background:' + (historyTab === 'weeks' ? 'var(--surface-raised)' : 'transparent') + ';color:' + (historyTab === 'weeks' ? 'var(--text)' : 'var(--text-secondary)') + '">Past Weeks</button>'
+    + '<button type="button" class="btn-text-action" id="historyTabMonthsBtn" style="border:none;border-radius:9999px;padding:6px 14px;font-size:15px;font-weight:600;cursor:pointer;background:' + (historyTab === 'months' ? 'var(--surface-raised)' : 'transparent') + ';color:' + (historyTab === 'months' ? 'var(--text)' : 'var(--text-secondary)') + '">Past Months</button>'
     + '</div>';
   var listHTML = (historyTab === 'weeks') ? buildWeeklyDigestHTML() : buildAllMonthsHistoryHTML();
   return '<div class="app-view" style="padding-bottom:calc(32px + var(--safe-b))">'
