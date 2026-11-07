@@ -250,4 +250,84 @@
   box-sizing: border-box;
 }
 
+/* ── Catch-up Applied Status Banner ── */
+.catchup-applied-pill {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: var(--spacing-12) !important;
+  padding: var(--spacing-12) var(--spacing-16) !important;
+  min-height: 56px !important;
+  overflow: hidden !important;
+  border-radius: var(--r-card) !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--hairline) !important;
+  box-sizing: border-box !important;
+  margin-bottom: var(--spacing-16) !important;
+  width: 100% !important;
+}
+
+.catchup-applied-pill-icon {
+  flex: none !important;
+  width: 20px !important;
+  height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: var(--lime) !important;
+}
+
+.catchup-applied-pill-text {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  overflow: hidden !important;
+}
+
+.catchup-applied-pill-title {
+  font-size: var(--fs-15) !important;
+  font-weight: 400 !important;
+  color: var(--text) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.2 !important;
+}
+
+.catchup-applied-pill-summary {
+  font-size: var(--fs-11) !important;
+  font-weight: 400 !important;
+  color: var(--text-secondary) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.2 !important;
+}
+
+.catchup-applied-pill .btn-text-action,
+#catchupReviewPlanBtn {
+  flex: none !important;
+  white-space: nowrap !important;
+  background: none !important;
+  border: none !important;
+  color: var(--text-secondary) !important;
+  font-size: var(--fs-15) !important;
+  font-weight: 600 !important;
+  min-height: 48px !important;
+  min-width: 48px !important;
+  padding: 0 var(--spacing-8) !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+}
+
+#catchupReviewPlanBtn:active {
+  color: var(--text) !important;
+}
+
 
