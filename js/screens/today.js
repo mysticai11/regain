@@ -254,6 +254,7 @@ export function renderTodaySimple() {
 
     var logItem = function (mult) {
       mult = mult || 1;
+      var prevTot = getDayTotals(activeDateKey), dayTargets = getTargetsForDate(activeDateKey);
       var currentRec = dayRecord(activeDateKey);
       currentRec.extra = currentRec.extra || [];
       var insertIdx = currentRec.extra.length;
@@ -265,7 +266,8 @@ export function renderTodaySimple() {
       });
       saveDayRecord(activeDateKey, currentRec);
       addRecent(item.name, item.kcal, item.protein, item.carbs || 0, item.fat || 0);
-      playSound('set_logged'); triggerHaptic(); renderTodaySimple(); showFoodAddedChip(Math.round(item.kcal * mult));
+      var newTot = getDayTotals(activeDateKey), reached = (prevTot.kcal < dayTargets.kcal && newTot.kcal >= dayTargets.kcal);
+      playSound('set_logged'); triggerHaptic(reached ? 'success' : 'light'); renderTodaySimple(); showFoodAddedChip(Math.round(item.kcal * mult));
       showUndoToast('Logged ' + portionLabel + item.name + ' (' + +(item.protein * mult).toFixed(1) + 'g P)', function () {
         var undoRec = dayRecord(activeDateKey);
         if (undoRec.extra && undoRec.extra.length > insertIdx) {
@@ -349,11 +351,14 @@ export function renderTodaySimple() {
 
 export function renderChecklistHTML() { return ''; }
 export function addFoodToDay(key, food, servings) {
+  var prevTot = getDayTotals(key), dayTargets = getTargetsForDate(key);
   var m = foodMacros(food, servings), rec = dayRecord(key);
   rec.extra = rec.extra || [];
   rec.extra.push({ name: food.name + (servings !== 1 ? ' ×' + servings : ''), kcal: m.kcal, protein: m.protein, carbs: m.carbs, fat: m.fat, servings: 1 });
   saveDayRecord(key, rec); addRecent(food.name, m.kcal, m.protein, m.carbs, m.fat);
   if (profile) { profile.xp = (profile.xp || 0) + 5; sv('rg_profile', profile); }
+  var newTot = getDayTotals(key), reached = (prevTot.kcal < dayTargets.kcal && newTot.kcal >= dayTargets.kcal);
+  triggerHaptic(reached ? 'success' : 'light');
   renderTodaySimple(); showFoodAddedChip(m.kcal);
 }
 

@@ -261,9 +261,9 @@ export function renderProgressSimple(mode, historySubTab) {
   if (settingsBtn) {
     settingsBtn.onclick = function(e) { if (e && e.stopPropagation) e.stopPropagation(); openSettings(); };
   }
-  document.getElementById('bodyProgressBtn').onclick = function() { if (mode !== 'body') { triggerHaptic(); renderProgressSimple('body'); } };
-  document.getElementById('liftProgressBtn').onclick = function() { if (mode !== 'lifts') { triggerHaptic(); renderProgressSimple('lifts'); } };
-  document.getElementById('historyProgressBtn').onclick = function() { if (mode !== 'history') { triggerHaptic(); renderProgressSimple('history'); } };
+  document.getElementById('bodyProgressBtn').onclick = function() { if (mode !== 'body') { triggerHaptic('selection'); renderProgressSimple('body'); } };
+  document.getElementById('liftProgressBtn').onclick = function() { if (mode !== 'lifts') { triggerHaptic('selection'); renderProgressSimple('lifts'); } };
+  document.getElementById('historyProgressBtn').onclick = function() { if (mode !== 'history') { triggerHaptic('selection'); renderProgressSimple('history'); } };
   var aK = document.getElementById('progAvgKcalNum'), aP = document.getElementById('progAvgProtNum'), aB = document.getElementById('progBodyweightVal');
   var getV = function(el) { return el && el.dataset ? el.dataset.value : (el && el.getAttribute ? el.getAttribute('data-value') : null); };
   if (aK) animateNumber(aK, 0, parseInt(getV(aK), 10) || 0, { duration: 300 }); if (aP) animateNumber(aP, 0, parseInt(getV(aP), 10) || 0, { duration: 300 }); if (aB) animateNumber(aB, 0, parseFloat(getV(aB)) || 0, { duration: 300, decimals: 1 });
@@ -375,7 +375,7 @@ export function renderProgressSimple(mode, historySubTab) {
   }
   document.querySelectorAll('.lift-range-btn').forEach(function(btn) {
     btn.onclick = function() {
-      triggerHaptic(); liftRange = btn.dataset.liftRange;
+      triggerHaptic('selection'); liftRange = btn.dataset.liftRange;
       document.querySelectorAll('.lift-range-btn').forEach(function(b) {
         var isAct = b.dataset.liftRange === liftRange;
         b.style.color = isAct ? 'var(--text)' : 'var(--text-muted)'; b.style.borderBottom = isAct ? '2px solid var(--text)' : '2px solid transparent'; b.style.fontWeight = isAct ? '600' : '500';

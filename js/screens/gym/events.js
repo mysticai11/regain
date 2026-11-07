@@ -205,10 +205,9 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       else { nextVal = '3'; nextTxt = '3+'; }
       select.value = nextVal;
       btn.textContent = nextTxt;
-
+      triggerHaptic('selection');
       var draftRec = dayRecord(key);
-      draftRec.workoutDraft = draftRec.workoutDraft || {};
-      draftRec.workoutDraft[exId] = draftRec.workoutDraft[exId] || [];
+      draftRec.workoutDraft = draftRec.workoutDraft || {}; draftRec.workoutDraft[exId] = draftRec.workoutDraft[exId] || [];
       draftRec.workoutDraft[exId][sIdx] = draftRec.workoutDraft[exId][sIdx] || {};
       draftRec.workoutDraft[exId][sIdx].rir = parseInt(nextVal, 10);
       if (draftRec.workout && draftRec.workout[exId] && draftRec.workout[exId][sIdx]) {

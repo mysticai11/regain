@@ -240,6 +240,7 @@ export function openSettings() {
 
   overlay.querySelectorAll('.day-toggle').forEach(function(btn) {
     btn.addEventListener('click', function() {
+      triggerHaptic('selection');
       var d = parseInt(btn.dataset.day, 10);
       if (tdays.includes(d)) {
         if (tdays.length <= 1) { showToast('You need at least 1 training day', 'warn'); return; }
@@ -298,7 +299,7 @@ export function openSettings() {
   var toggleHapticsBtn = overlay.querySelector('#toggleHapticsBtn');
   if (toggleHapticsBtn) {
     toggleHapticsBtn.onclick = function() {
-      triggerHaptic();
+      triggerHaptic('selection');
       profile.hapticsMuted = !profile.hapticsMuted;
       sv('rg_profile', profile);
       updateSwitchUI(toggleHapticsBtn, !profile.hapticsMuted);
@@ -309,7 +310,7 @@ export function openSettings() {
   var toggleAutoRestBtn = overlay.querySelector('#toggleAutoRestBtn');
   if (toggleAutoRestBtn) {
     toggleAutoRestBtn.onclick = function() {
-      triggerHaptic();
+      triggerHaptic('selection');
       profile.autoStartRestTimer = (profile.autoStartRestTimer === false) ? true : false;
       sv('rg_profile', profile);
       updateSwitchUI(toggleAutoRestBtn, profile.autoStartRestTimer !== false);
@@ -320,7 +321,7 @@ export function openSettings() {
   var toggleSwipeNavBtn = overlay.querySelector('#toggleSwipeNavBtn') || overlay.querySelector('#toggleSlideNavBtn');
   if (toggleSwipeNavBtn) {
     toggleSwipeNavBtn.onclick = function() {
-      triggerHaptic();
+      triggerHaptic('selection');
       var isCurrentlyDisabled = !!(profile.disableSwipeNav || profile.disableSlideNav);
       var nextDisabled = !isCurrentlyDisabled;
       profile.disableSwipeNav = nextDisabled;

@@ -5,6 +5,7 @@ import { workoutSessionStore, WORKOUT_SESSIONS_KEY } from "../storage-sessions.j
 import { isBodyweightExercise } from "../data/plan.js";
 import { esc, todayKey } from "../lib/format.js";
 import { showToast } from "./toast.js";
+import { triggerHaptic } from "../lib/dom.js";
 
 export function openQuickEditSetModal(options) {
   // options: { context: 'history'|'gym', sessionId, dayKey, exId, exName, setIndex, weight, reps, rir }
@@ -91,23 +92,27 @@ export function openQuickEditSetModal(options) {
     overlay.querySelector('#quickCloseBtn').onclick = function() { overlay.remove(); };
 
     overlay.querySelector('#wDecBtn').onclick = function() {
+      triggerHaptic('selection');
       curW = Math.max(0, parseFloat((curW - 2.5).toFixed(2)));
       wInp.value = curW;
     };
     var bwBtn = overlay.querySelector('[data-set-bw]');
     if (bwBtn) {
       bwBtn.onclick = function() {
+        triggerHaptic('selection');
         curW = 0;
         wInp.value = 0;
       };
     }
 
     overlay.querySelector('#wIncBtn').onclick = function() {
+      triggerHaptic('selection');
       curW = parseFloat((curW + 2.5).toFixed(2));
       wInp.value = curW;
     };
     overlay.querySelectorAll('[data-adj-w]').forEach(function(b) {
       b.onclick = function() {
+        triggerHaptic('selection');
         var delta = parseFloat(b.dataset.adjW);
         curW = Math.max(0, parseFloat((curW + delta).toFixed(2)));
         wInp.value = curW;
@@ -115,15 +120,18 @@ export function openQuickEditSetModal(options) {
     });
 
     overlay.querySelector('#rDecBtn').onclick = function() {
+      triggerHaptic('selection');
       curR = Math.max(1, curR - 1);
       rInp.value = curR;
     };
     overlay.querySelector('#rIncBtn').onclick = function() {
+      triggerHaptic('selection');
       curR = curR + 1;
       rInp.value = curR;
     };
     overlay.querySelectorAll('[data-adj-r]').forEach(function(b) {
       b.onclick = function() {
+        triggerHaptic('selection');
         var delta = parseInt(b.dataset.adjR, 10);
         curR = Math.max(1, curR + delta);
         rInp.value = curR;
@@ -132,6 +140,7 @@ export function openQuickEditSetModal(options) {
 
     overlay.querySelectorAll('[data-set-rir]').forEach(function(b) {
       b.onclick = function() {
+        triggerHaptic('selection');
         curRir = b.dataset.setRir === '' ? null : parseInt(b.dataset.setRir, 10);
         overlay.querySelectorAll('[data-set-rir]').forEach(function(pill) {
           pill.classList.toggle('btn-primary', pill === b);

@@ -250,7 +250,11 @@ export function triggerHaptic(type) {
       return;
     }
     if (window.Capacitor && window.Capacitor.isPluginAvailable && window.Capacitor.isPluginAvailable('Haptics')) {
-      window.Capacitor.Plugins.Haptics.vibrate();
+      var H = window.Capacitor.Plugins.Haptics;
+      if (type === 'selection' && H && H.selectionChanged) H.selectionChanged();
+      else if (type === 'medium' && H && H.impact) H.impact({ style: 'MEDIUM' });
+      else if (H && H.impact) H.impact({ style: 'LIGHT' });
+      else if (H && H.vibrate) H.vibrate();
     } else if (navigator.vibrate) {
       navigator.vibrate(dur);
     }

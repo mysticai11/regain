@@ -55,7 +55,7 @@ export function bindCatchupSettingsEvents(container) {
   var autoBtn = container.querySelector('#toggleAutoOfferBtn');
   if (autoBtn) {
     autoBtn.onclick = function () {
-      triggerHaptic();
+      triggerHaptic('selection');
       var cur = getCatchupSettings();
       var next = !cur.autoOffer;
       saveCatchupSettings({ autoOffer: next });
@@ -66,7 +66,7 @@ export function bindCatchupSettingsEvents(container) {
   var protectBtn = container.querySelector('#toggleProtectRestBtn');
   if (protectBtn) {
     protectBtn.onclick = function () {
-      triggerHaptic();
+      triggerHaptic('selection');
       var cur = getCatchupSettings();
       var next = !cur.protectLastRestDay;
       saveCatchupSettings({ protectLastRestDay: next });
@@ -78,7 +78,7 @@ export function bindCatchupSettingsEvents(container) {
   var incBtn = container.querySelector('#incMaxSetsBtn');
   var display = container.querySelector('#maxSetsDisplay');
   var updateSets = function(delta) {
-    triggerHaptic();
+    triggerHaptic('selection');
     var cur = getCatchupSettings();
     var next = Math.max(16, Math.min(24, (cur.maxSets || 20) + delta));
     saveCatchupSettings({ maxSets: next });
@@ -89,7 +89,7 @@ export function bindCatchupSettingsEvents(container) {
 
   container.querySelectorAll('.catchup-sets-btn').forEach(function (btn) {
     btn.onclick = function () {
-      triggerHaptic();
+      triggerHaptic('selection');
       var val = Number(btn.dataset.catchupSets);
       saveCatchupSettings({ setsPerExercise: val });
       container.querySelectorAll('.catchup-sets-btn').forEach(function (b) {

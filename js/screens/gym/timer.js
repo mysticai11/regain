@@ -231,7 +231,7 @@ export function showFinishWorkoutSheet(dayKey, programDayIndex, session) {
   overlay.querySelector('#saveFinishBtn').onclick = function() {
     overlay.remove();
     endWorkoutSession(dayKey, programDayIndex, session, minutes);
-    triggerHaptic();
+    triggerHaptic('success');
     playSound('fanfare');
     if (typeof window.renderGym === 'function') window.renderGym();
     showToast('Workout finished · ' + totalSets + ' sets logged', 'ok');
