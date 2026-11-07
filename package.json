@@ -1,6 +1,6 @@
 {
   "name": "regain",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "A personal, offline-first Progressive Web App for tracking calories, macros, weight, and structured training during a long-term bulk.",
   "main": "db.js",
   "scripts": {

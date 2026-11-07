@@ -1,5 +1,5 @@
 // sw.js — Regain service worker
-const CACHE = 'regain-v22';
+const CACHE = 'regain-v2.0.0';
 const LOCAL_ASSETS = [
   "./",
   "./index.html",
@@ -49,20 +49,33 @@ const LOCAL_ASSETS = [
   "./js/screens/gym/session-sheet.js",
   "./js/screens/gym/sets.js",
   "./js/screens/gym/swap.js",
+  "./js/screens/gym/swipe-delete.js",
   "./js/screens/gym/timer.js",
   "./js/screens/onboarding.js",
   "./js/screens/progress.js",
   "./js/screens/progress/charts.js",
   "./js/screens/progress/digests.js",
   "./js/screens/progress/history.js",
+  "./js/screens/progress/lifts.js",
   "./js/screens/progress/session-editor.js",
+  "./js/screens/progress/stat-tiles.js",
   "./js/screens/settings.js",
   "./js/screens/today.js",
   "./js/screens/today/food-modal.js",
   "./js/screens/today/widgets.js",
   "./js/state.js",
   "./js/storage-sessions.js",
-  "./js/storage.js"
+  "./js/storage.js",
+  "./js/ui/segmented.js",
+  "./js/ui/chartGeometry.js",
+  "./js/ui/lineChart.js",
+  "./js/ui/sparkline.js",
+  "./js/ui/barGeometry.js",
+  "./js/ui/barChart.js",
+  "./js/view/liftStats.js",
+  "./js/view/calendarGrid.js",
+  "./js/view/weekStrip.js",
+  "./js/view/weeklyStats.js"
 ];
 
 self.addEventListener('install', e => {

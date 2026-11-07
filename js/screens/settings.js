@@ -197,6 +197,9 @@ export function openSettings() {
       + '<button type="button" class="btn" id="closeSettingsBottomBtn" style="width:100%;height:48px;border-radius:12px;background:#1C1C1F;color:#F5F5F4;border:1px solid #222;font-size:15px;font-weight:600;cursor:pointer">Done</button>'
       + '<button type="button" id="saveSettingsBtn" style="display:none"></button>'
     + '</div>'
+    + '<div style="text-align:center;padding:24px 0 8px;font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.06em">'
+      + 'Regain · v2.0.0'
+    + '</div>'
     + '</div>';
 
   document.body.appendChild(overlay);
