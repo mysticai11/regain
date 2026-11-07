@@ -111,23 +111,19 @@ export function openSettings() {
 
     // PROFILE (Rows with chevron right, opening bottom-sheet picker)
     + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Profile</span></div>'
-    + '<div style="background:#1C1C1F;border-radius:16px;padding:8px 16px;margin-bottom:24px">'
-      + '<div id="rowPickGoal" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;gap:12px;border-bottom:1px solid var(--hairline);cursor:pointer">'
-        + '<span style="font-size:15px;color:var(--text);font-weight:500;flex-shrink:0">Primary Goal</span>'
-        + '<div style="display:flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary);flex:1;min-width:0;justify-content:flex-end"><span id="valPickGoal" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right">' + esc(getOptLabel(goalOptions, goalVal)) + '</span><span style="display:inline-flex;align-items:center;flex-shrink:0">' + chevronSVG + '</span></div>'
-      + '</div>'
-      + '<div id="rowPickEquip" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;gap:12px;border-bottom:1px solid var(--hairline);cursor:pointer">'
-        + '<span style="font-size:15px;color:var(--text);font-weight:500;flex-shrink:0">Equipment Access</span>'
-        + '<div style="display:flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary);flex:1;min-width:0;justify-content:flex-end"><span id="valPickEquip" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right">' + esc(getOptLabel(equipOptions, equipVal)) + '</span><span style="display:inline-flex;align-items:center;flex-shrink:0">' + chevronSVG + '</span></div>'
-      + '</div>'
-      + '<div id="rowPickDiet" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;gap:12px;border-bottom:1px solid var(--hairline);cursor:pointer">'
-        + '<span style="font-size:15px;color:var(--text);font-weight:500;flex-shrink:0">Dietary Pattern</span>'
-        + '<div style="display:flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary);flex:1;min-width:0;justify-content:flex-end"><span id="valPickDiet" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right">' + esc(getOptLabel(dietOptions, dietVal)) + '</span><span style="display:inline-flex;align-items:center;flex-shrink:0">' + chevronSVG + '</span></div>'
-      + '</div>'
-      + '<div id="rowPickExp" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;gap:12px;cursor:pointer">'
-        + '<span style="font-size:15px;color:var(--text);font-weight:500;flex-shrink:0">Experience Tier</span>'
-        + '<div style="display:flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary);flex:1;min-width:0;justify-content:flex-end"><span id="valPickExp" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right">' + esc(getOptLabel(expOptions, expVal)) + '</span><span style="display:inline-flex;align-items:center;flex-shrink:0">' + chevronSVG + '</span></div>'
-      + '</div>'
+    + '<div style="background:#1C1C1F;border-radius:16px;padding:4px 16px;margin-bottom:24px">'
+      + (function() {
+        var r = function(rowId, valId, title, valText) {
+          return '<div id="' + rowId + '" class="settings-profile-row">'
+            + '<div class="settings-profile-info"><div class="settings-profile-title">' + title + '</div><div class="settings-profile-value" id="' + valId + '">' + esc(valText) + '</div></div>'
+            + '<div class="settings-profile-chevron">' + chevronSVG + '</div>'
+          + '</div>';
+        };
+        return r('rowPickGoal', 'valPickGoal', 'Primary Goal', getOptLabel(goalOptions, goalVal))
+          + r('rowPickEquip', 'valPickEquip', 'Equipment Access', getOptLabel(equipOptions, equipVal))
+          + r('rowPickDiet', 'valPickDiet', 'Dietary Pattern', getOptLabel(dietOptions, dietVal))
+          + r('rowPickExp', 'valPickExp', 'Experience Tier', getOptLabel(expOptions, expVal));
+      })()
       + '<select id="setGoal" style="display:none">' + goalOptions.map(function(o){ return '<option value="' + o.value + '"' + (goalVal === o.value ? ' selected' : '') + '>' + o.label + '</option>'; }).join('') + '</select>'
       + '<select id="setEquip" style="display:none">' + equipOptions.map(function(o){ return '<option value="' + o.value + '"' + (equipVal === o.value ? ' selected' : '') + '>' + o.label + '</option>'; }).join('') + '</select>'
       + '<select id="setDiet" style="display:none">' + dietOptions.map(function(o){ return '<option value="' + o.value + '"' + (dietVal === o.value ? ' selected' : '') + '>' + o.label + '</option>'; }).join('') + '</select>'
