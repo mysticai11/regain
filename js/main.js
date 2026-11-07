@@ -203,7 +203,10 @@ function onStorageReady() {
     subscribe(function() {
       preserveUiStateDuringRender(renderTab);
     });
-    if (location.hash === '#checkin' || location.search.indexOf('checkin') > -1) {
+    if (location.hash === '#gym') { setTab('gym'); renderTab(); }
+    else if (location.hash === '#progress') { setTab('progress'); renderTab(); }
+    else if (location.hash === '#settings') { openSettings(); }
+    else if (location.hash === '#checkin' || location.search.indexOf('checkin') > -1) {
       openCheckinSheet(todayKey());
     }
   }

@@ -29,6 +29,26 @@ export function detectMissedDay(todayDateInput, options) {
         isDone = Object.keys(rec.workout).some(function(id) { return Array.isArray(rec.workout[id]) && rec.workout[id].some(Boolean); });
       }
     }
+
+    if (!isDone) {
+      var tName = canonicalSessionName(scheduled.session), tIdx = scheduled.workoutIndex;
+      var completedLater = weekDays.some(function(otherDate, oIdx) {
+        if (oIdx <= i) return false;
+        var oRec = records[otherDate];
+        if (!oRec) return false;
+        var oDone = oRec.workoutDone || (oRec.workout && typeof oRec.workout === 'object' && Object.keys(oRec.workout).some(function(id) { return Array.isArray(oRec.workout[id]) && oRec.workout[id].some(Boolean); }));
+        if (!oDone) return false;
+        if (oRec.selectedWorkout != null && tIdx != null && oRec.selectedWorkout === tIdx) return true;
+        if (oRec.workoutMeta) {
+          if (oRec.workoutMeta.workoutIndex != null && tIdx != null && oRec.workoutMeta.workoutIndex === tIdx) return true;
+          if (oRec.workoutMeta.sessionLabel && canonicalSessionName({ label: oRec.workoutMeta.sessionLabel }) === tName) return true;
+        }
+        var oSched = scheduledSessionFor(otherDate, { prog: prog, trainingDays: trainingDays, weekOverrides: weekOverrides, rec: oRec });
+        return !!(oSched && oSched.session && (canonicalSessionName(oSched.session) === tName || (tIdx != null && oSched.workoutIndex === tIdx)));
+      });
+      if (completedLater) isDone = true;
+    }
+
     if (!isDone) allMissed.push({ date: pastDate, session: scheduled.session, workoutIndex: scheduled.workoutIndex, label: scheduled.label });
   }
 
@@ -45,16 +65,9 @@ export function validateSessionLimits(session, options) {
   var maxAddedEx = opts.maxAddedExercises != null ? Number(opts.maxAddedExercises) : 2;
   var maxAddedSets = opts.maxAddedSets != null ? Number(opts.maxAddedSets) : 4;
 
-  if (!session || !Array.isArray(session.exercises)) {
-    return { valid: true, session: session, dropped: [] };
-  }
-
-  var exercises = session.exercises.map(function(e) { return Object.assign({}, e); });
-  var dropped = [];
-
-  // 1. Separate base and added catch-up exercises
-  var addedCount = 0;
-  var addedSets = 0;
+  if (!session || !Array.isArray(session.exercises)) return { valid: true, session: session, dropped: [] };
+  var exercises = session.exercises.map(function(e) { return Object.assign({}, e); }), dropped = [];
+  var addedCount = 0, addedSets = 0;
   exercises = exercises.filter(function(ex) {
     if (ex.isCatchup || ex.source === 'catchup') {
       var s = ex.sets != null ? Number(ex.sets) : 2;
@@ -62,8 +75,7 @@ export function validateSessionLimits(session, options) {
         dropped.push({ id: ex.id, name: ex.name, reason: 'Exceeded max added catch-up limit per day' });
         return false;
       }
-      addedCount++;
-      addedSets += s;
+      addedCount++; addedSets += s;
     }
     return true;
   });
@@ -71,12 +83,9 @@ export function validateSessionLimits(session, options) {
   // 2. Enforce max exercises per session by dropping lowest-priority (isolation first)
   if (exercises.length > maxExercises) {
     var sortedToDrop = exercises.slice().sort(function(a, b) {
-      var aC = isCompoundLift(a) ? 1 : 0;
-      var bC = isCompoundLift(b) ? 1 : 0;
-      if (aC !== bC) return aC - bC; // isolations first
-      return (a.sets || 2) - (b.sets || 2);
+      var aC = isCompoundLift(a) ? 1 : 0, bC = isCompoundLift(b) ? 1 : 0;
+      return aC !== bC ? (aC - bC) : ((a.sets || 2) - (b.sets || 2));
     });
-
     while (exercises.length > maxExercises && sortedToDrop.length > 0) {
       var targetDrop = sortedToDrop.shift();
       var idx = exercises.findIndex(function(e) { return e.id === targetDrop.id; });
@@ -90,21 +99,18 @@ export function validateSessionLimits(session, options) {
   // 3. Enforce max sets ceiling
   var totalSets = exercises.reduce(function(tot, e) { return tot + (e.sets || 2); }, 0);
   if (totalSets > maxSets) {
-    // Trim sets from isolations first, then extra sets
     for (var i = exercises.length - 1; i >= 0 && totalSets > maxSets; i--) {
       var ex = exercises[i];
       if (!isCompoundLift(ex) && ex.sets > 2) {
         var cut = Math.min(ex.sets - 2, totalSets - maxSets);
-        ex.sets -= cut;
-        totalSets -= cut;
+        ex.sets -= cut; totalSets -= cut;
       }
     }
     for (var j = exercises.length - 1; j >= 0 && totalSets > maxSets; j--) {
       var ex2 = exercises[j];
       if (ex2.sets > 1) {
         var cut2 = Math.min(ex2.sets - 1, totalSets - maxSets);
-        ex2.sets -= cut2;
-        totalSets -= cut2;
+        ex2.sets -= cut2; totalSets -= cut2;
       }
     }
   }
@@ -351,15 +357,9 @@ export function planSpreadAcrossWeek(todayDateInput, options) {
 
 /** Pure session merge algorithm (single-day preview) */
 export function buildMergedSession(todayPlan, missedPlan, weeklyProgress, targets, options) {
-  var opts = options || {};
-  var maxSets = opts.maxSets != null ? opts.maxSets : 20;
-  var maxAdded = opts.maxAddedExercises != null ? opts.maxAddedExercises : 2;
-  var setsPerAdded = opts.setsPerAddedExercise != null ? opts.setsPerAddedExercise : 2;
-
-  var tSession = todayPlan || { label: 'Workout', exercises: [] };
-  var mSession = missedPlan || { label: 'Missed Workout', exercises: [] };
-  var mergedExercises = (tSession.exercises || []).map(function(e) { return Object.assign({}, e); });
-  var addedList = [], dropped = [];
+  var opts = options || {}, maxSets = opts.maxSets != null ? opts.maxSets : 20, maxAdded = opts.maxAddedExercises != null ? opts.maxAddedExercises : 2, setsPerAdded = opts.setsPerAddedExercise != null ? opts.setsPerAddedExercise : 2;
+  var tSession = todayPlan || { label: 'Workout', exercises: [] }, mSession = missedPlan || { label: 'Missed Workout', exercises: [] };
+  var mergedExercises = (tSession.exercises || []).map(function(e) { return Object.assign({}, e); }), addedList = [], dropped = [];
   var currentSets = mergedExercises.reduce(function(tot, e) { return tot + (e.sets || 2); }, 0);
 
   (mSession.exercises || []).forEach(function(ex) {
