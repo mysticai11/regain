@@ -152,11 +152,11 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
         if (allDone && !rec.workoutDone) {
           rec.workoutDone = true; profile.xp = (profile.xp || 0) + 30; sv('rg_profile', profile);
           showToast('Session complete.', 'ok');
-        } else {
-          profile.xp = (profile.xp || 0) + 3; sv('rg_profile', profile);
-        }
+        } else { profile.xp = (profile.xp || 0) + 3; sv('rg_profile', profile); }
         saveDayRecord(key, rec, { silent: true });
         renderGym();
+        var rowEl = document.getElementById('setrow-' + id + '-' + setIndex);
+        if (rowEl) { rowEl.classList.add('just-completed'); setTimeout(function() { rowEl.classList.remove('just-completed'); }, 300); }
         savedOk = true;
       } catch(err) {
         console.error('Set log error:', err);
@@ -167,7 +167,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
 
       if (savedOk) {
         try {
-          triggerHaptic(); if (navigator.vibrate) navigator.vibrate(35);
+          triggerHaptic('medium');
           var prRes = checkExercisePR(id, w, r, key);
           if (prRes.isPR) {
             playSound('workout_complete');
@@ -328,7 +328,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       if (prevP != null && prevP > 1) draftRec.exercisePlannedSets[id] = prevP - 1;
       var removedDraft = (draftRec.workoutDraft && draftRec.workoutDraft[id]) ? draftRec.workoutDraft[id].splice(index, 1)[0] : null;
       var removedSet = (draftRec.workout && draftRec.workout[id]) ? draftRec.workout[id].splice(index, 1)[0] : null;
-      saveDayRecord(key, draftRec, { silent: true }); renderGym();
+      saveDayRecord(key, draftRec, { silent: true }); renderGym(); triggerHaptic('light');
       showUndoToast('Set removed', function() {
         var r = dayRecord(key);
         if (prevP != null) { r.exercisePlannedSets = r.exercisePlannedSets || {}; r.exercisePlannedSets[id] = prevP; }
@@ -356,7 +356,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
   document.querySelectorAll('[data-delete-set]').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var cur = dayRecord(key), id = btn.dataset.deleteSet, idx = parseInt(btn.dataset.setIndex, 10);
-      if (cur.workout && cur.workout[id]) { cur.workout[id].splice(idx, 1); cur.workoutDone = false; saveDayRecord(key, cur); renderGym(); }
+      if (cur.workout && cur.workout[id]) { cur.workout[id].splice(idx, 1); cur.workoutDone = false; saveDayRecord(key, cur); renderGym(); triggerHaptic('light'); }
     });
   });
 

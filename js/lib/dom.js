@@ -234,14 +234,25 @@ export function releaseWakeLock() {
   } catch(e) {}
 }
 
-export function triggerHaptic() {
+export function triggerHaptic(type) {
   try {
     var p = (typeof window !== 'undefined' && window.profile) || null;
     if (p && (p.hapticsMuted === true || p.hapticsEnabled === false)) return;
+    var dur = 15;
+    if (type === 'medium') dur = 35;
+    else if (type === 'selection') dur = 8;
+    else if (type === 'success') {
+      if (window.Capacitor && window.Capacitor.isPluginAvailable && window.Capacitor.isPluginAvailable('Haptics')) {
+        window.Capacitor.Plugins.Haptics.notification({ type: 'SUCCESS' });
+      } else if (navigator.vibrate) {
+        navigator.vibrate([20, 50, 20]);
+      }
+      return;
+    }
     if (window.Capacitor && window.Capacitor.isPluginAvailable && window.Capacitor.isPluginAvailable('Haptics')) {
       window.Capacitor.Plugins.Haptics.vibrate();
     } else if (navigator.vibrate) {
-      navigator.vibrate(15);
+      navigator.vibrate(dur);
     }
   } catch(e) {}
 }

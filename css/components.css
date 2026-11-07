@@ -275,6 +275,7 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   background: var(--bg) !important;
   border-radius: var(--r-control) !important;
   padding: 0 !important;
+  transition: opacity var(--dur-150) var(--ease-standard) !important;
 }
 .set-row-precision.is-done { opacity: 0.75 !important; }
 .set-row-precision.is-done .precision-input { opacity: 0.8 !important; color: var(--text2) !important; }
@@ -303,12 +304,54 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   box-sizing: border-box !important;
   font-size: 11px !important;
   font-weight: 600 !important;
-  transition: transform var(--motion-fast), background var(--motion-fast) !important;
+  transition: transform var(--dur-150) var(--ease-standard), background var(--dur-150) var(--ease-standard), border-color var(--dur-150) var(--ease-standard) !important;
   border: 2px solid var(--text3) !important;
   color: transparent !important;
   background: transparent !important;
 }
-.precision-circle.done, .precision-circle-tap.done .precision-circle { background: var(--lime) !important; border-color: var(--lime) !important; color: var(--accent-dark) !important; transform: scale(1.05); }
+.precision-circle.done, .precision-circle-tap.done .precision-circle {
+  background: var(--lime) !important;
+  border-color: var(--lime) !important;
+  color: var(--accent-dark) !important;
+  transform: scale(1.05);
+}
+
+/* F2: Set Completion Animations */
+@keyframes circleFillLime {
+  0% { transform: scale(0.6); opacity: 0.5; }
+  100% { transform: scale(1.05); opacity: 1; }
+}
+
+@keyframes checkStrokeDraw {
+  0% { stroke-dashoffset: 24; }
+  100% { stroke-dashoffset: 0; }
+}
+
+.check-path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 0;
+}
+
+.just-completed .precision-circle {
+  animation: circleFillLime var(--dur-200) var(--ease-standard) forwards;
+}
+
+.just-completed .check-path {
+  stroke-dashoffset: 24;
+  animation: checkStrokeDraw var(--dur-150) var(--ease-standard) 60ms forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .just-completed .precision-circle,
+  .just-completed .check-path {
+    animation: none !important;
+  }
+}
+
+[data-motion-polish="false"] .just-completed .precision-circle,
+[data-motion-polish="false"] .just-completed .check-path {
+  animation: none !important;
+}
 .rir-cycle-text {
   height: var(--tap-min) !important;
   background: none !important;
