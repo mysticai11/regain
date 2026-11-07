@@ -1,0 +1,3420 @@
+{
+  "app": "regain",
+  "schemaVersion": 1,
+  "exportedAt": "2026-11-08T06:30:00.000Z",
+  "data": {
+    "profile": {
+      "goal": "build_muscle",
+      "targetWeight": 75,
+      "calorieGoal": 2800,
+      "proteinGoal": 160,
+      "weightEntries": [
+        {
+          "id": "w_2026-09-28",
+          "dayKey": "2026-09-28",
+          "weight": 70.1
+        },
+        {
+          "id": "w_2026-10-01",
+          "dayKey": "2026-10-01",
+          "weight": 70.2
+        },
+        {
+          "id": "w_2026-10-04",
+          "dayKey": "2026-10-04",
+          "weight": 70.3
+        },
+        {
+          "id": "w_2026-10-07",
+          "dayKey": "2026-10-07",
+          "weight": 70.4
+        },
+        {
+          "id": "w_2026-10-10",
+          "dayKey": "2026-10-10",
+          "weight": 70.5
+        },
+        {
+          "id": "w_2026-10-13",
+          "dayKey": "2026-10-13",
+          "weight": 70.6
+        },
+        {
+          "id": "w_2026-10-16",
+          "dayKey": "2026-10-16",
+          "weight": 70.7
+        },
+        {
+          "id": "w_2026-10-19",
+          "dayKey": "2026-10-19",
+          "weight": 70.8
+        },
+        {
+          "id": "w_2026-10-22",
+          "dayKey": "2026-10-22",
+          "weight": 70.9
+        },
+        {
+          "id": "w_2026-10-25",
+          "dayKey": "2026-10-25",
+          "weight": 71
+        },
+        {
+          "id": "w_2026-10-28",
+          "dayKey": "2026-10-28",
+          "weight": 71.1
+        },
+        {
+          "id": "w_2026-10-31",
+          "dayKey": "2026-10-31",
+          "weight": 71.2
+        },
+        {
+          "id": "w_2026-11-03",
+          "dayKey": "2026-11-03",
+          "weight": 71.3
+        },
+        {
+          "id": "w_2026-11-06",
+          "dayKey": "2026-11-06",
+          "weight": 71.4
+        }
+      ],
+      "customExercises": [],
+      "customStaples": []
+    },
+    "days": {
+      "2026-09-28": {
+        "weight": 70.1,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {
+          "incline_bench": [
+            {
+              "weight": 62.5,
+              "reps": 8,
+              "completed": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 8,
+              "completed": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 7,
+              "completed": true
+            }
+          ]
+        },
+        "workoutDone": true,
+        "duration_sec": 2700
+      },
+      "2026-09-29": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-09-30": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {
+          "leg_press": [
+            {
+              "weight": 145,
+              "reps": 10,
+              "completed": true
+            },
+            {
+              "weight": 145,
+              "reps": 10,
+              "completed": true
+            },
+            {
+              "weight": 145,
+              "reps": 9,
+              "completed": true
+            }
+          ]
+        },
+        "workoutDone": true,
+        "duration_sec": 2720
+      },
+      "2026-10-01": {
+        "weight": 70.2,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-02": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {
+          "incline_bench": [
+            {
+              "weight": 62.5,
+              "reps": 9,
+              "completed": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 8,
+              "completed": true
+            }
+          ],
+          "leg_press": [
+            {
+              "weight": 145,
+              "reps": 10,
+              "completed": true
+            },
+            {
+              "weight": 145,
+              "reps": 10,
+              "completed": true
+            }
+          ]
+        },
+        "workoutDone": true,
+        "duration_sec": 2740
+      },
+      "2026-10-03": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-04": {
+        "weight": 70.3,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-05": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {
+          "incline_bench": [
+            {
+              "weight": 65,
+              "reps": 8,
+              "completed": true
+            },
+            {
+              "weight": 65,
+              "reps": 8,
+              "completed": true
+            },
+            {
+              "weight": 65,
+              "reps": 7,
+              "completed": true
+            }
+          ]
+        },
+        "workoutDone": true,
+        "duration_sec": 2770
+      },
+      "2026-10-06": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-07": {
+        "weight": 70.4,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {
+          "leg_press": [
+            {
+              "weight": 150,
+              "reps": 10,
+              "completed": true
+            },
+            {
+              "weight": 150,
+              "reps": 10,
+              "completed": true
+            },
+            {
+              "weight": 150,
+              "reps": 9,
+              "completed": true
+            }
+          ]
+        },
+        "workoutDone": true,
+        "duration_sec": 2790
+      },
+      "2026-10-08": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-09": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {
+          "incline_bench": [
+            {
+              "weight": 65,
+              "reps": 9,
+              "completed": true
+            },
+            {
+              "weight": 65,
+              "reps": 8,
+              "completed": true
+            }
+          ],
+          "leg_press": [
+            {
+              "weight": 150,
+              "reps": 10,
+              "completed": true
+            },
+            {
+              "weight": 150,
+              "reps": 10,
+              "completed": true
+            }
+          ]
+        },
+        "workoutDone": true,
+        "duration_sec": 2810
+      },
+      "2026-10-10": {
+        "weight": 70.5,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-11": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-12": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {
+          "incline_bench": [
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "completed": true
+            },
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "completed": true
+            },
+            {
+              "weight": 67.5,
+              "reps": 7,
+              "completed": true
+            }
+          ]
+        },
+        "workoutDone": true,
+        "duration_sec": 2840
+      },
+      "2026-10-13": {
+        "weight": 70.6,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-14": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {
+          "leg_press": [
+            {
+              "weight": 155,
+              "reps": 10,
+              "completed": true
+            },
+            {
+              "weight": 155,
+              "reps": 10,
+              "completed": true
+            },
+            {
+              "weight": 155,
+              "reps": 9,
+              "completed": true
+            }
+          ]
+        },
+        "workoutDone": true,
+        "duration_sec": 2860
+      },
+      "2026-10-15": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-16": {
+        "weight": 70.7,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {
+          "incline_bench": [
+            {
+              "weight": 67.5,
+              "reps": 9,
+              "completed": true
+            },
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "completed": true
+            }
+          ],
+          "leg_press": [
+            {
+              "weight": 155,
+              "reps": 10,
+              "completed": true
+            },
+            {
+              "weight": 155,
+              "reps": 10,
+              "completed": true
+            }
+          ]
+        },
+        "workoutDone": true,
+        "duration_sec": 2880
+      },
+      "2026-10-17": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-18": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-19": {
+        "weight": 70.8,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-20": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-21": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-22": {
+        "weight": 70.9,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-23": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-24": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-25": {
+        "weight": 71,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-26": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {
+          "incline_bench": [
+            {
+              "weight": 72.5,
+              "reps": 8,
+              "completed": true
+            },
+            {
+              "weight": 72.5,
+              "reps": 8,
+              "completed": true
+            },
+            {
+              "weight": 72.5,
+              "reps": 7,
+              "completed": true
+            }
+          ]
+        },
+        "workoutDone": true,
+        "duration_sec": 2980
+      },
+      "2026-10-27": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-28": {
+        "weight": 71.1,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {
+          "leg_press": [
+            {
+              "weight": 165,
+              "reps": 10,
+              "completed": true
+            },
+            {
+              "weight": 165,
+              "reps": 10,
+              "completed": true
+            },
+            {
+              "weight": 165,
+              "reps": 9,
+              "completed": true
+            }
+          ]
+        },
+        "workoutDone": true,
+        "duration_sec": 3000
+      },
+      "2026-10-29": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-10-30": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {
+          "incline_bench": [
+            {
+              "weight": 72.5,
+              "reps": 9,
+              "completed": true
+            },
+            {
+              "weight": 72.5,
+              "reps": 8,
+              "completed": true
+            }
+          ],
+          "leg_press": [
+            {
+              "weight": 165,
+              "reps": 10,
+              "completed": true
+            },
+            {
+              "weight": 165,
+              "reps": 10,
+              "completed": true
+            }
+          ]
+        },
+        "workoutDone": true,
+        "duration_sec": 3020
+      },
+      "2026-10-31": {
+        "weight": 71.2,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-11-01": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-11-02": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {
+          "incline_bench": [
+            {
+              "weight": 75,
+              "reps": 8,
+              "completed": true
+            },
+            {
+              "weight": 75,
+              "reps": 8,
+              "completed": true
+            },
+            {
+              "weight": 75,
+              "reps": 7,
+              "completed": true
+            }
+          ]
+        },
+        "workoutDone": true,
+        "duration_sec": 3050
+      },
+      "2026-11-03": {
+        "weight": 71.3,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-11-04": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {
+          "leg_press": [
+            {
+              "weight": 170,
+              "reps": 10,
+              "completed": true
+            },
+            {
+              "weight": 170,
+              "reps": 10,
+              "completed": true
+            },
+            {
+              "weight": 170,
+              "reps": 9,
+              "completed": true
+            }
+          ]
+        },
+        "workoutDone": true,
+        "duration_sec": 3070
+      },
+      "2026-11-05": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-11-06": {
+        "weight": 71.4,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {
+          "incline_bench": [
+            {
+              "weight": 75,
+              "reps": 9,
+              "completed": true
+            },
+            {
+              "weight": 75,
+              "reps": 8,
+              "completed": true
+            }
+          ],
+          "leg_press": [
+            {
+              "weight": 170,
+              "reps": 10,
+              "completed": true
+            },
+            {
+              "weight": 170,
+              "reps": 10,
+              "completed": true
+            }
+          ]
+        },
+        "workoutDone": true,
+        "duration_sec": 3090
+      },
+      "2026-11-07": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      },
+      "2026-11-08": {
+        "weight": null,
+        "sleep": 7.5,
+        "readiness": 4,
+        "foodLog": [
+          {
+            "name": "Oats & Milk",
+            "kcal": 450,
+            "protein": 18
+          },
+          {
+            "name": "Chicken, Rice & Veg",
+            "kcal": 680,
+            "protein": 52
+          },
+          {
+            "name": "Whey Isolate",
+            "kcal": 130,
+            "protein": 26
+          },
+          {
+            "name": "Peanut Butter Toast",
+            "kcal": 340,
+            "protein": 12
+          }
+        ],
+        "meals": {
+          "breakfast": [
+            {
+              "name": "Oats & Milk",
+              "kcal": 450,
+              "protein": 18
+            }
+          ],
+          "lunch": [
+            {
+              "name": "Chicken, Rice & Veg",
+              "kcal": 680,
+              "protein": 52
+            }
+          ],
+          "snack": [
+            {
+              "name": "Whey Isolate",
+              "kcal": 130,
+              "protein": 26
+            }
+          ],
+          "dinner": [
+            {
+              "name": "Peanut Butter Toast",
+              "kcal": 340,
+              "protein": 12
+            }
+          ]
+        },
+        "workout": {},
+        "workoutDone": false,
+        "duration_sec": 0
+      }
+    },
+    "workoutSessions": [
+      {
+        "id": "2026-09-28_session_0",
+        "dayKey": "2026-09-28",
+        "programDay": 0,
+        "label": "Day 1 — Chest & Back",
+        "completed": true,
+        "duration_sec": 2700,
+        "exercises": [
+          {
+            "id": "incline_bench",
+            "sets": [
+              {
+                "weight": 62.5,
+                "reps": 8,
+                "completed": true
+              },
+              {
+                "weight": 62.5,
+                "reps": 8,
+                "completed": true
+              },
+              {
+                "weight": 62.5,
+                "reps": 7,
+                "completed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-09-30_session_0",
+        "dayKey": "2026-09-30",
+        "programDay": 0,
+        "label": "Day 2 — Legs & Shoulders",
+        "completed": true,
+        "duration_sec": 2720,
+        "exercises": [
+          {
+            "id": "leg_press",
+            "sets": [
+              {
+                "weight": 145,
+                "reps": 10,
+                "completed": true
+              },
+              {
+                "weight": 145,
+                "reps": 10,
+                "completed": true
+              },
+              {
+                "weight": 145,
+                "reps": 9,
+                "completed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-10-02_session_0",
+        "dayKey": "2026-10-02",
+        "programDay": 0,
+        "label": "Day 3 — Upper/Lower",
+        "completed": true,
+        "duration_sec": 2740,
+        "exercises": [
+          {
+            "id": "incline_bench",
+            "sets": [
+              {
+                "weight": 62.5,
+                "reps": 9,
+                "completed": true
+              },
+              {
+                "weight": 62.5,
+                "reps": 8,
+                "completed": true
+              }
+            ]
+          },
+          {
+            "id": "leg_press",
+            "sets": [
+              {
+                "weight": 145,
+                "reps": 10,
+                "completed": true
+              },
+              {
+                "weight": 145,
+                "reps": 10,
+                "completed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-10-05_session_0",
+        "dayKey": "2026-10-05",
+        "programDay": 0,
+        "label": "Day 1 — Chest & Back",
+        "completed": true,
+        "duration_sec": 2770,
+        "exercises": [
+          {
+            "id": "incline_bench",
+            "sets": [
+              {
+                "weight": 65,
+                "reps": 8,
+                "completed": true
+              },
+              {
+                "weight": 65,
+                "reps": 8,
+                "completed": true
+              },
+              {
+                "weight": 65,
+                "reps": 7,
+                "completed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-10-07_session_0",
+        "dayKey": "2026-10-07",
+        "programDay": 0,
+        "label": "Day 2 — Legs & Shoulders",
+        "completed": true,
+        "duration_sec": 2790,
+        "exercises": [
+          {
+            "id": "leg_press",
+            "sets": [
+              {
+                "weight": 150,
+                "reps": 10,
+                "completed": true
+              },
+              {
+                "weight": 150,
+                "reps": 10,
+                "completed": true
+              },
+              {
+                "weight": 150,
+                "reps": 9,
+                "completed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-10-09_session_0",
+        "dayKey": "2026-10-09",
+        "programDay": 0,
+        "label": "Day 3 — Upper/Lower",
+        "completed": true,
+        "duration_sec": 2810,
+        "exercises": [
+          {
+            "id": "incline_bench",
+            "sets": [
+              {
+                "weight": 65,
+                "reps": 9,
+                "completed": true
+              },
+              {
+                "weight": 65,
+                "reps": 8,
+                "completed": true
+              }
+            ]
+          },
+          {
+            "id": "leg_press",
+            "sets": [
+              {
+                "weight": 150,
+                "reps": 10,
+                "completed": true
+              },
+              {
+                "weight": 150,
+                "reps": 10,
+                "completed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-10-12_session_0",
+        "dayKey": "2026-10-12",
+        "programDay": 0,
+        "label": "Day 1 — Chest & Back",
+        "completed": true,
+        "duration_sec": 2840,
+        "exercises": [
+          {
+            "id": "incline_bench",
+            "sets": [
+              {
+                "weight": 67.5,
+                "reps": 8,
+                "completed": true
+              },
+              {
+                "weight": 67.5,
+                "reps": 8,
+                "completed": true
+              },
+              {
+                "weight": 67.5,
+                "reps": 7,
+                "completed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-10-14_session_0",
+        "dayKey": "2026-10-14",
+        "programDay": 0,
+        "label": "Day 2 — Legs & Shoulders",
+        "completed": true,
+        "duration_sec": 2860,
+        "exercises": [
+          {
+            "id": "leg_press",
+            "sets": [
+              {
+                "weight": 155,
+                "reps": 10,
+                "completed": true
+              },
+              {
+                "weight": 155,
+                "reps": 10,
+                "completed": true
+              },
+              {
+                "weight": 155,
+                "reps": 9,
+                "completed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-10-16_session_0",
+        "dayKey": "2026-10-16",
+        "programDay": 0,
+        "label": "Day 3 — Upper/Lower",
+        "completed": true,
+        "duration_sec": 2880,
+        "exercises": [
+          {
+            "id": "incline_bench",
+            "sets": [
+              {
+                "weight": 67.5,
+                "reps": 9,
+                "completed": true
+              },
+              {
+                "weight": 67.5,
+                "reps": 8,
+                "completed": true
+              }
+            ]
+          },
+          {
+            "id": "leg_press",
+            "sets": [
+              {
+                "weight": 155,
+                "reps": 10,
+                "completed": true
+              },
+              {
+                "weight": 155,
+                "reps": 10,
+                "completed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-10-26_session_0",
+        "dayKey": "2026-10-26",
+        "programDay": 0,
+        "label": "Day 1 — Chest & Back",
+        "completed": true,
+        "duration_sec": 2980,
+        "exercises": [
+          {
+            "id": "incline_bench",
+            "sets": [
+              {
+                "weight": 72.5,
+                "reps": 8,
+                "completed": true
+              },
+              {
+                "weight": 72.5,
+                "reps": 8,
+                "completed": true
+              },
+              {
+                "weight": 72.5,
+                "reps": 7,
+                "completed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-10-28_session_0",
+        "dayKey": "2026-10-28",
+        "programDay": 0,
+        "label": "Day 2 — Legs & Shoulders",
+        "completed": true,
+        "duration_sec": 3000,
+        "exercises": [
+          {
+            "id": "leg_press",
+            "sets": [
+              {
+                "weight": 165,
+                "reps": 10,
+                "completed": true
+              },
+              {
+                "weight": 165,
+                "reps": 10,
+                "completed": true
+              },
+              {
+                "weight": 165,
+                "reps": 9,
+                "completed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-10-30_session_0",
+        "dayKey": "2026-10-30",
+        "programDay": 0,
+        "label": "Day 3 — Upper/Lower",
+        "completed": true,
+        "duration_sec": 3020,
+        "exercises": [
+          {
+            "id": "incline_bench",
+            "sets": [
+              {
+                "weight": 72.5,
+                "reps": 9,
+                "completed": true
+              },
+              {
+                "weight": 72.5,
+                "reps": 8,
+                "completed": true
+              }
+            ]
+          },
+          {
+            "id": "leg_press",
+            "sets": [
+              {
+                "weight": 165,
+                "reps": 10,
+                "completed": true
+              },
+              {
+                "weight": 165,
+                "reps": 10,
+                "completed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-11-02_session_0",
+        "dayKey": "2026-11-02",
+        "programDay": 0,
+        "label": "Day 1 — Chest & Back",
+        "completed": true,
+        "duration_sec": 3050,
+        "exercises": [
+          {
+            "id": "incline_bench",
+            "sets": [
+              {
+                "weight": 75,
+                "reps": 8,
+                "completed": true
+              },
+              {
+                "weight": 75,
+                "reps": 8,
+                "completed": true
+              },
+              {
+                "weight": 75,
+                "reps": 7,
+                "completed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-11-04_session_0",
+        "dayKey": "2026-11-04",
+        "programDay": 0,
+        "label": "Day 2 — Legs & Shoulders",
+        "completed": true,
+        "duration_sec": 3070,
+        "exercises": [
+          {
+            "id": "leg_press",
+            "sets": [
+              {
+                "weight": 170,
+                "reps": 10,
+                "completed": true
+              },
+              {
+                "weight": 170,
+                "reps": 10,
+                "completed": true
+              },
+              {
+                "weight": 170,
+                "reps": 9,
+                "completed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-11-06_session_0",
+        "dayKey": "2026-11-06",
+        "programDay": 0,
+        "label": "Day 3 — Upper/Lower",
+        "completed": true,
+        "duration_sec": 3090,
+        "exercises": [
+          {
+            "id": "incline_bench",
+            "sets": [
+              {
+                "weight": 75,
+                "reps": 9,
+                "completed": true
+              },
+              {
+                "weight": 75,
+                "reps": 8,
+                "completed": true
+              }
+            ]
+          },
+          {
+            "id": "leg_press",
+            "sets": [
+              {
+                "weight": 170,
+                "reps": 10,
+                "completed": true
+              },
+              {
+                "weight": 170,
+                "reps": 10,
+                "completed": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "customExercises": [],
+    "customStaples": [],
+    "recentFoods": [],
+    "meals": {}
+  }
+}
