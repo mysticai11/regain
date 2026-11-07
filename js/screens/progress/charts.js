@@ -269,7 +269,7 @@ export function buildDotConsistencyCalendarHTML() {
       dotStyle += 'width:8px;height:8px;background:#F5F5F4;';
       dayTitle += isTrainingDay ? ' (Today · Training)' : ' (Today · Rest)';
     } else if (key > todayStr) {
-      dotStyle += 'width:6px;height:6px;background:transparent;';
+      dotStyle += 'width:4px;height:4px;background:#55555A;opacity:0.35;';
     } else if (isTrainingDay) {
       dotStyle += 'width:6px;height:6px;background:transparent;border:1px solid #55555A;';
       dayTitle += ' (Skipped)';
@@ -290,24 +290,26 @@ export function buildDotConsistencyCalendarHTML() {
     + dayLetters.map(function(ch) { return '<span style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1">' + ch + '</span>'; }).join('')
     + '</div>';
 
-  var legendHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:12px;font-size:11px;color:#8A8A8E">'
-    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#C6F432;display:inline-block"></span> logged</span>'
-    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#55555A;display:inline-block"></span> rest</span>'
-    + '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;border:1px solid #55555A;background:transparent;display:inline-block"></span> skipped</span>'
+  var legendHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:16px;font-size:11px;color:#8A8A8E">'
+    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:#C6F432;display:inline-block"></span> Trained<span style="display:none">logged</span></span>'
+    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:4px;height:4px;border-radius:50%;background:#55555A;display:inline-block"></span> Rest<span style="display:none">rest</span></span>'
+    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;border:1px solid #C6F432;background:transparent;box-sizing:border-box;display:inline-block"></span> Planned<span style="border:1px solid #55555A;display:none">skipped</span></span>'
     + '</div>';
 
   var canGoNext = offset < 0;
-  var navRow = '<div style="display:flex;align-items:center;gap:6px">'
-    + '<button type="button" class="btn-text-action" id="prevProgressMonthBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0 4px;cursor:pointer">&larr;</button>'
-    + '<span class="t-label">Consistency · ' + monthName + (offset !== 0 ? (' ' + year) : '') + '</span>'
-    + (canGoNext ? '<button type="button" class="btn-text-action" id="nextProgressMonthBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0 4px;cursor:pointer">&rarr;</button>' : '<button type="button" class="btn-text-action" disabled style="opacity:0.25;cursor:default;color:#8A8A8E;background:none;border:none;padding:0 4px">&rarr;</button>')
+  var chevronLeft = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
+  var chevronRight = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
+  var navRow = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%">'
+    + '<button type="button" class="btn-ghost" id="prevProgressMonthBtn" style="color:#F5F5F4;background:none;border:none;width:48px;height:48px;min-width:48px;min-height:48px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer" aria-label="Previous month">' + chevronLeft + '</button>'
+    + '<span style="font-size:17px;font-weight:600;color:#F5F5F4;text-align:center">' + monthName + ' ' + year + '</span>'
+    + (canGoNext
+      ? '<button type="button" class="btn-ghost" id="nextProgressMonthBtn" style="color:#F5F5F4;background:none;border:none;width:48px;height:48px;min-width:48px;min-height:48px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer" aria-label="Next month">' + chevronRight + '</button>'
+      : '<button type="button" class="btn-ghost" disabled style="opacity:0.3;cursor:default;color:#8A8A8E;background:none;border:none;width:48px;height:48px;min-width:48px;min-height:48px;display:inline-flex;align-items:center;justify-content:center" aria-label="Next month (disabled)">' + chevronRight + '</button>')
     + '</div>';
 
   return '<div style="margin-bottom:24px">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
-      + navRow
-      + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + trainedCount + ' of ' + plannedCount + ' planned so far</span>'
-    + '</div>'
+    + navRow
+    + '<div style="text-align:center;font-size:11px;color:#8A8A8E;margin-top:2px;margin-bottom:12px;font-variant-numeric:tabular-nums">' + trainedCount + ' of ' + plannedCount + ' planned so far</div>'
     + lettersRow
     + '<div class="dot-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;justify-items:center;align-items:center;padding:2px 0">'
       + dots.join('')

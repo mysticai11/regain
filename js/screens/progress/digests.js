@@ -160,7 +160,7 @@ export function buildWeeklyDigestHTML() {
       return acc + (s.exercises || []).reduce(function(a, ex) { return a + (ex.sets || []).filter(Boolean).length; }, 0);
     }, 0);
 
-    var trainedRows = [], restRows = [], skippedDaysCount = 0, wKcal = 0, wProt = 0, wFoodDays = 0;
+    var trainedRows = [], restRows = [], skippedDaysCount = 0, pureRestCount = 0, wKcal = 0, wProt = 0, wFoodDays = 0;
     var profileTrainingDays = (profile && profile.trainingDays) || [1, 2, 3, 5, 6];
 
     for (var d = 0; d < 7; d++) {
@@ -180,51 +180,68 @@ export function buildWeeklyDigestHTML() {
       var isSched = profileTrainingDays.includes(curDayObj.getDay());
 
       if (isTrained) {
-        var daySummaryStr = dayName + ' · ' + (woLabel || 'Workout') + (dSets ? (' · ' + dSets + ' sets') : '');
-        trainedRows.push('<div class="list-row" data-jump-day="' + dKey + '" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--hairline);cursor:pointer">'
-          + '<span style="font-size:15px;color:var(--text);font-weight:500">' + esc(daySummaryStr) + '</span>'
-          + '<span style="color:var(--text-secondary);font-size:17px">›</span>'
+        var chevronRightSVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
+        trainedRows.push('<div class="list-row" data-jump-day="' + dKey + '" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #1C1C1F;cursor:pointer">'
+          + '<div style="flex:1;min-width:0;overflow:hidden">'
+            + '<div style="font-size:15px;font-weight:600;color:#F5F5F4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(woLabel || 'Workout') + '</div>'
+            + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px;font-variant-numeric:tabular-nums">' + esc(dayName) + (dSets ? (' · ' + dSets + (dSets === 1 ? ' set' : ' sets')) : '') + '</div>'
+          + '</div>'
+          + '<span style="display:inline-flex;align-items:center;justify-content:center;color:#8A8A8E;width:32px;height:32px;flex-shrink:0">' + chevronRightSVG + '</span>'
           + '</div>');
       } else {
         if (isSched && dKey <= todayKey()) skippedDaysCount++;
-        restRows.push('<div class="list-row" data-jump-day="' + dKey + '" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--hairline);cursor:pointer;color:var(--text-secondary);font-size:11px">'
+        else pureRestCount++;
+        restRows.push('<div class="list-row" data-jump-day="' + dKey + '" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1C1C1F;cursor:pointer;color:#8A8A8E;font-size:11px">'
           + '<span>' + esc(dayName) + ' · ' + (isSched ? 'Skipped' : 'Rest') + (t.kcal > 0 ? (' · ' + t.kcal + ' kcal') : '') + '</span>'
           + '<span style="font-size:15px">›</span>'
           + '</div>');
       }
     }
 
-    var avgKcal = wFoodDays ? Math.round(wKcal / wFoodDays) : 0;
-    var avgProt = wFoodDays ? Math.round(wProt / wFoodDays) : 0;
+    var totalWeekVol = wSessions.reduce(function(acc, s) {
+      return acc + (s.exercises || []).reduce(function(a, ex) {
+        return a + (ex.sets || []).reduce(function(v, st) { return v + ((Number(st && st.weight) || 0) * (Number(st && st.reps) || 0)); }, 0);
+      }, 0);
+    }, 0);
+    var volDisp = totalWeekVol > 0 ? (Math.round(totalWeekVol).toLocaleString() + ' kg') : '–';
+
+    var totalWeekDurMin = wSessions.reduce(function(acc, s) {
+      var dSec = s.duration_sec != null ? Number(s.duration_sec) : (s.durationMinutes ? Number(s.durationMinutes) * 60 : 0);
+      return acc + (dSec ? Math.round(dSec / 60) : 0);
+    }, 0);
+    var durDisp = totalWeekDurMin > 0 ? (totalWeekDurMin + ' min') : '–';
 
     var wWeighIns = allEntries.filter(function(e){ var k = e.dayKey || e.createdAt.slice(0, 10); return k >= monKey && k <= sunKey; });
-    var weightStr = 'No weigh-ins';
-    if (wWeighIns.length >= 2) {
-      var diff = wWeighIns[wWeighIns.length - 1].weight - wWeighIns[0].weight;
-      weightStr = wWeighIns[0].weight.toFixed(1) + ' → ' + wWeighIns[wWeighIns.length - 1].weight.toFixed(1) + ' kg (' + (diff >= 0 ? '+' : '') + diff.toFixed(1) + ' kg)';
-    } else if (wWeighIns.length === 1) {
-      weightStr = wWeighIns[0].weight.toFixed(1) + ' kg';
-    }
+    var avgWNum = wWeighIns.length > 0 ? (wWeighIns.reduce(function(sum, e){ return sum + Number(e.weight); }, 0) / wWeighIns.length) : null;
+    var weightDisp = avgWNum ? (avgWNum.toFixed(1) + ' kg') : '–';
 
     var digestId = 'digest_wk_' + w;
     var restSummaryHTML = '';
     if (restRows.length > 0) {
-      var restLabel = restRows.length + ' rest days' + (skippedDaysCount > 0 ? (' · ' + skippedDaysCount + ' skipped') : '') + ' ▾';
-      restSummaryHTML = '<div style="cursor:pointer;padding:10px 0;color:var(--text-secondary);font-size:11px;display:flex;justify-content:space-between;align-items:center" data-toggle-digest="' + digestId + '">'
+      var countsParts = [];
+      if (pureRestCount > 0) countsParts.push(pureRestCount + (pureRestCount === 1 ? ' rest day' : ' rest days'));
+      if (skippedDaysCount > 0) countsParts.push(skippedDaysCount + ' skipped');
+      var restLabel = (countsParts.join(' · ') || (restRows.length + ' rest days')) + ' ▾';
+      restSummaryHTML = '<div style="cursor:pointer;padding:10px 0 2px;color:#8A8A8E;font-size:11px;display:flex;justify-content:space-between;align-items:center" data-toggle-digest="' + digestId + '">'
         + '<span>' + esc(restLabel) + '</span>'
         + '</div>'
         + '<div id="' + digestId + '" style="display:none;padding:4px 0">' + restRows.join('') + '</div>';
     }
 
-    weekBlocks.push('<div style="background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:16px;margin-bottom:14px;text-align:left">'
-      + '<div style="font-size:17px;font-weight:600;color:var(--text);margin-bottom:8px">' + esc(rangeStr) + '</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:var(--surface-raised);border:1px solid var(--hairline);border-radius:12px;padding:12px 14px;margin-bottom:10px;text-align:left">'
-        + '<div><div class="t-micro" style="color:var(--text-secondary);font-size:11px;letter-spacing:0.04em">SESSIONS</div><div class="tabnum" style="font-size:28px;font-weight:600;color:var(--text);line-height:1.2">' + wSessions.length + '</div></div>'
-        + '<div><div class="t-micro" style="color:var(--text-secondary);font-size:11px;letter-spacing:0.04em">SETS</div><div class="tabnum" style="font-size:28px;font-weight:600;color:var(--text);line-height:1.2">' + totalSets + '</div></div>'
-        + '<div><div class="t-micro" style="color:var(--text-secondary);font-size:11px;letter-spacing:0.04em">AVG KCAL</div><div class="tabnum" style="font-size:28px;font-weight:600;color:var(--text);line-height:1.2">' + (avgKcal > 0 ? avgKcal : '—') + '</div></div>'
+    var sessionCountStr = wSessions.length + (wSessions.length === 1 ? ' session' : ' sessions');
+    var setsCountStr = totalSets + (totalSets === 1 ? ' set' : ' sets');
+    var cardHeaderStr = 'Week ' + weekNum + ' · ' + sessionCountStr + ' · ' + setsCountStr;
+
+    weekBlocks.push('<div style="background:#141416;border-radius:16px;padding:16px;margin-bottom:14px;text-align:left">'
+      + '<div style="font-size:17px;font-weight:600;color:#F5F5F4;margin-bottom:12px">' + esc(cardHeaderStr) + '</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;align-items:center;background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-bottom:12px;text-align:center">'
+        + '<div><div style="font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.04em;text-transform:uppercase">Volume</div><div class="tabnum" style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + esc(volDisp) + '</div></div>'
+        + '<div style="width:1px;height:28px;background:#222222"></div>'
+        + '<div><div style="font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.04em;text-transform:uppercase">Duration</div><div class="tabnum" style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + esc(durDisp) + '</div></div>'
+        + '<div style="width:1px;height:28px;background:#222222"></div>'
+        + '<div><div style="font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.04em;text-transform:uppercase">Weight</div><div class="tabnum" style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + esc(weightDisp) + '</div></div>'
       + '</div>'
-      + '<div class="tabnum" style="font-size:11px;color:var(--text-secondary);margin-bottom:12px">' + esc(weightStr) + '</div>'
-      + '<div>' + (trainedRows.length ? trainedRows.join('') : '<div style="font-size:11px;color:var(--text-secondary);padding:6px 0">No sessions logged this week</div>') + '</div>'
+      + '<div>' + (trainedRows.length ? trainedRows.join('') : '<div style="font-size:11px;color:#8A8A8E;padding:6px 0">No sessions logged this week</div>') + '</div>'
       + restSummaryHTML
       + '</div>');
   }
@@ -249,9 +266,9 @@ export function openHistoryArchiveModal(defaultTab) {
       + '</div>'
       + '<button type="button" class="btn-text-action" id="closeHistoryArchiveBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:6px 0;cursor:pointer">Done</button>'
     + '</div>'
-    + '<div class="seg-tabs" style="margin-bottom:14px">'
-      + '<button type="button" class="seg-tab-btn' + (defaultTab === 'weeks' ? ' active' : '') + '" id="archiveTabWeeksBtn">Past Weeks</button>'
-      + '<button type="button" class="seg-tab-btn' + (defaultTab === 'months' ? ' active' : '') + '" id="archiveTabMonthsBtn">Past Months</button>'
+    + '<div class="seg-tabs" style="display:flex;width:100%;height:40px;box-sizing:border-box;background:#141416;border:1px solid #1C1C1F;border-radius:9999px;padding:4px;gap:6px;margin-bottom:14px">'
+      + '<button type="button" class="seg-tab-btn' + (defaultTab === 'weeks' ? ' active' : '') + '" id="archiveTabWeeksBtn" style="flex:1;min-width:0;height:100%;border:none;border-radius:9999px;font-size:15px;font-weight:600;background:' + (defaultTab === 'weeks' ? '#1C1C1F' : 'transparent') + ';color:' + (defaultTab === 'weeks' ? '#F5F5F4' : '#8A8A8E') + '">Past Weeks</button>'
+      + '<button type="button" class="seg-tab-btn' + (defaultTab === 'months' ? ' active' : '') + '" id="archiveTabMonthsBtn" style="flex:1;min-width:0;height:100%;border:none;border-radius:9999px;font-size:15px;font-weight:600;background:' + (defaultTab === 'months' ? '#1C1C1F' : 'transparent') + ';color:' + (defaultTab === 'months' ? '#F5F5F4' : '#8A8A8E') + '">Past Months</button>'
     + '</div>'
     + '<div id="archiveScrollArea" style="overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding-right:2px"></div>'
     + '</div>';
@@ -268,38 +285,19 @@ export function openHistoryArchiveModal(defaultTab) {
     overlay.querySelectorAll('[data-jump-day]').forEach(function(btn) {
       btn.onclick = function(e) {
         if (e && e.stopPropagation) e.stopPropagation();
-        triggerHaptic();
-        overlay.remove();
-        window.activeTodaySelectedDateKey = btn.dataset.jumpDay;
-        if (typeof window !== 'undefined' && typeof window.setTab === 'function') {
-          window.setTab('today');
-        } else {
-          setTab('today');
-          if (typeof window !== 'undefined' && typeof window.renderTab === 'function') window.renderTab();
-        }
+        triggerHaptic(); overlay.remove(); window.activeTodaySelectedDateKey = btn.dataset.jumpDay;
+        if (typeof window !== 'undefined' && typeof window.setTab === 'function') { window.setTab('today'); }
+        else { setTab('today'); if (typeof window !== 'undefined' && typeof window.renderTab === 'function') window.renderTab(); }
       };
     });
   }
 
   function renderTab(tab) {
-    var area = overlay.querySelector('#archiveScrollArea');
-    if (!area) return;
-    var wBtn = overlay.querySelector('#archiveTabWeeksBtn');
-    var mBtn = overlay.querySelector('#archiveTabMonthsBtn');
-    if (wBtn) {
-      wBtn.classList.toggle('active', tab === 'weeks');
-      wBtn.style.color = (tab === 'weeks') ? '#F5F5F4' : '#8A8A8E';
-    }
-    if (mBtn) {
-      mBtn.classList.toggle('active', tab === 'months');
-      mBtn.style.color = (tab === 'months') ? '#F5F5F4' : '#8A8A8E';
-    }
-
-    if (tab === 'weeks') {
-      area.innerHTML = buildWeeklyDigestHTML();
-    } else {
-      area.innerHTML = buildAllMonthsHistoryHTML();
-    }
+    var area = overlay.querySelector('#archiveScrollArea'); if (!area) return;
+    var wBtn = overlay.querySelector('#archiveTabWeeksBtn'), mBtn = overlay.querySelector('#archiveTabMonthsBtn');
+    if (wBtn) { wBtn.classList.toggle('active', tab === 'weeks'); wBtn.style.background = (tab === 'weeks') ? '#1C1C1F' : 'transparent'; wBtn.style.color = (tab === 'weeks') ? '#F5F5F4' : '#8A8A8E'; }
+    if (mBtn) { mBtn.classList.toggle('active', tab === 'months'); mBtn.style.background = (tab === 'months') ? '#1C1C1F' : 'transparent'; mBtn.style.color = (tab === 'months') ? '#F5F5F4' : '#8A8A8E'; }
+    area.innerHTML = (tab === 'weeks') ? buildWeeklyDigestHTML() : buildAllMonthsHistoryHTML();
     wireInteractions();
   }
 
@@ -310,16 +308,15 @@ export function openHistoryArchiveModal(defaultTab) {
   var mBtn = overlay.querySelector('#archiveTabMonthsBtn');
   if (mBtn) mBtn.onclick = function() { triggerHaptic(); renderTab('months'); };
   overlay.onclick = function(e) { if (e.target === overlay) { triggerHaptic(); overlay.remove(); } };
-
   renderTab(defaultTab);
 }
 
 export function buildHistoryScreenHTML(historyTab) {
   historyTab = historyTab || 'weeks';
   var calendarHTML = buildDotConsistencyCalendarHTML();
-  var tabsHTML = '<div class="seg-pill" style="display:inline-flex;background:var(--surface);border:1px solid var(--hairline);border-radius:9999px;padding:3px;gap:4px;margin-top:16px;margin-bottom:16px">'
-    + '<button type="button" class="btn-text-action" id="historyTabWeeksBtn" style="border:none;border-radius:9999px;padding:6px 14px;font-size:15px;font-weight:600;cursor:pointer;background:' + (historyTab === 'weeks' ? 'var(--surface-raised)' : 'transparent') + ';color:' + (historyTab === 'weeks' ? 'var(--text)' : 'var(--text-secondary)') + '">Past Weeks</button>'
-    + '<button type="button" class="btn-text-action" id="historyTabMonthsBtn" style="border:none;border-radius:9999px;padding:6px 14px;font-size:15px;font-weight:600;cursor:pointer;background:' + (historyTab === 'months' ? 'var(--surface-raised)' : 'transparent') + ';color:' + (historyTab === 'months' ? 'var(--text)' : 'var(--text-secondary)') + '">Past Months</button>'
+  var tabsHTML = '<div class="seg-pill" style="display:flex;width:100%;height:40px;box-sizing:border-box;background:#141416;border:1px solid #1C1C1F;border-radius:9999px;padding:4px;gap:6px;margin:16px 0">'
+    + '<button type="button" class="btn-text-action" id="historyTabWeeksBtn" style="flex:1;min-width:0;height:100%;border:none;border-radius:9999px;padding:0;font-size:15px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:' + (historyTab === 'weeks' ? '#1C1C1F' : 'transparent') + ';color:' + (historyTab === 'weeks' ? '#F5F5F4' : '#8A8A8E') + '">Past Weeks</button>'
+    + '<button type="button" class="btn-text-action" id="historyTabMonthsBtn" style="flex:1;min-width:0;height:100%;border:none;border-radius:9999px;padding:0;font-size:15px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:' + (historyTab === 'months' ? '#1C1C1F' : 'transparent') + ';color:' + (historyTab === 'months' ? '#F5F5F4' : '#8A8A8E') + '">Past Months</button>'
     + '</div>';
   var listHTML = (historyTab === 'weeks') ? buildWeeklyDigestHTML() : buildAllMonthsHistoryHTML();
   return '<div class="app-view" style="padding-bottom:calc(32px + var(--safe-b))">'
