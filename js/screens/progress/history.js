@@ -175,7 +175,7 @@ export function workoutHistoryHTML() {
             var rirVal = (s.rir === 0 || s.rir === '0') ? 'F' : ((s.rir != null && s.rir !== '') ? (Number(s.rir) >= 4 ? '+' : String(s.rir)) : '');
             var rirBadge = rirVal ? '<span style="display:inline-flex;align-items:center;justify-content:center;padding:1px 4px;border-radius:4px;background:var(--surface-raised);color:' + (rirVal === 'F' ? 'var(--lime)' : 'var(--text-secondary)') + ';font-size:11px;font-weight:600;margin-left:4px">' + esc(rirVal) + '</span>' : '';
             return '<div class="history-set-row" data-quick-edit-set="1" data-session-id="' + esc(session.id) + '" data-ex-id="' + esc(exItem.id) + '" data-ex-name="' + esc(exData.name) + '" data-set-idx="' + sIdx2 + '" data-weight="' + (s.weight || 0) + '" data-reps="' + (s.reps || 0) + '" data-rir="' + (s.rir == null ? '' : s.rir) + '" style="display:inline-flex;align-items:center;background:var(--surface);border:1px solid var(--hairline);border-radius:8px;padding:4px 8px;font-size:11px;color:var(--text);cursor:pointer">'
-              + '<span>' + esc(wDisp) + ' × ' + s.reps + '</span>'
+              + '<span>1 × ' + esc(wDisp) + ' × ' + s.reps + '</span>'
               + rirBadge
               + '</div>';
           }).join('') + '</div>';
