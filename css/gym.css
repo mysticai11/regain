@@ -2,12 +2,15 @@
 
 /* ── Gym Page Container ── */
 .gym-page {
-  padding: 0 var(--spacing-lg);
+  padding: 0 var(--spacing-16);
+  max-width: 480px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 /* ── Unified Precision Gym Header ── */
 .gym-header-unified {
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: var(--spacing-20);
 }
 #gymDateSelectBtn {
   background: none;
@@ -31,12 +34,13 @@
 
 /* ── Date Banner (When Logging Non-Today) ── */
 .gym-date-banner {
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-12);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: var(--spacing-8) var(--spacing-12);
   background: var(--surface);
+  border: 1px solid var(--hairline);
   border-radius: var(--r-control);
 }
 
@@ -46,25 +50,21 @@
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  border-bottom: 1px solid var(--div) !important;
+  border-bottom: 1px solid var(--divider) !important;
   cursor: pointer !important;
-  padding: var(--spacing-xs) 0 !important;
+  padding: var(--spacing-8) 0 !important;
   box-sizing: border-box !important;
   user-select: none !important;
-}
-@media (hover: hover) {
-  .gym-ex-collapsed-row:hover {
-    background: rgba(255, 255, 255, 0.02);
-  }
+  transition: opacity var(--motion-fast) !important;
 }
 .gym-ex-collapsed-row:active {
-  background: rgba(255, 255, 255, 0.04);
+  opacity: 0.82;
 }
 
 /* ── Expanded Exercise Section ── */
 .gym-ex-section-expanded {
-  padding: var(--spacing-md) 0 var(--spacing-lg) !important;
-  border-bottom: 1px solid var(--div) !important;
+  padding: var(--spacing-16) 0 var(--spacing-20) !important;
+  border-bottom: 1px solid var(--divider) !important;
 }
 
 /* ── Session Timer Dock ── */
@@ -86,13 +86,48 @@
   position: relative;
   z-index: 150;
 }
+.rest-timer-dock {
+  position: fixed !important;
+  bottom: calc(var(--nav-h) + var(--safe-b) + 8px) !important;
+  left: 16px !important;
+  right: 16px !important;
+  max-width: 448px !important;
+  margin: 0 auto !important;
+  height: 52px !important;
+  box-sizing: border-box !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--hairline) !important;
+  border-radius: var(--r-surface) !important;
+  padding: 8px 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  z-index: 150 !important;
+  contain: layout paint !important;
+  will-change: transform, opacity !important;
+  pointer-events: auto !important;
+  box-shadow: none !important;
+}
+.rest-timer-dock .btn-text-action {
+  min-height: 44px !important;
+  min-width: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 var(--spacing-8) !important;
+  border-radius: var(--r-control) !important;
+  transition: opacity var(--motion-fast) !important;
+}
+.rest-timer-dock .btn-text-action:active {
+  opacity: 0.75 !important;
+}
 
 /* ── Stepper ── */
 .stepper-row {
   display: flex;
-  gap: var(--spacing-xxs);
+  gap: var(--spacing-4);
   align-items: center;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-16);
 }
 .sched-step {
   flex: 1;
@@ -111,23 +146,27 @@
 .cue-toggle {
   background: none;
   border: none;
-  color: var(--text-muted);
-  font-size: var(--fs-13);
+  color: var(--text-secondary);
+  font-size: var(--fs-11);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   cursor: pointer;
-  padding: var(--spacing-xs) 0;
+  padding: var(--spacing-8) 0;
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xxs);
+  gap: var(--spacing-4);
   font-family: inherit;
 }
 .cue-content {
-  font-size: var(--fs-13);
+  font-size: var(--fs-15);
   color: var(--text-secondary);
-  line-height: 1.4;
-  padding: var(--spacing-xs) 0 var(--spacing-sm);
+  line-height: 1.45;
+  padding: var(--spacing-8) 0 var(--spacing-12);
   display: none;
 }
 .cue-content.open {
   display: block;
 }
+
 

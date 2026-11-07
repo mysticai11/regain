@@ -4,33 +4,40 @@
   --bg: #0A0A0B;
   --surface: #141416;
   --surface2: #1C1C1F;
-  --surface-raised: #1C1C1F;
+  --surface-raised: #222222;
   --surface-hi: #1C1C1F;
-  --hairline: #26262B;
-  --divider: #26262B;
-  --div: #26262B;
-  --border: #26262B;
-  --border-strong: #26262B;
+  --hairline: #222222;
+  --divider: #222222;
+  --div: #222222;
+  --border: #222222;
+  --border-strong: #222222;
 
-  --text: #F2F2EE;
+  --text: #F5F5F4;
   --text2: #9E9EA4;
-  --text-secondary: #9E9EA4;
+  --text-secondary: #8A8A8E;
   --text3: #71717A;
   --text-muted: #9A9AA2;
   --text-tertiary: #71717A;
+  --text-dim: #55555A;
 
   /* Accent: Pure Lime with dark text #0B0B0C */
-  --accent: #C8F53C;
-  --lime: #C8F53C;
-  --accent-dark: #0A0A0B;
-  --lime-border: #C8F53C;
-  --amber: #C8F53C;
-  --amber-light: #C8F53C;
-  --amber-dark: #C8F53C;
+  --accent: #C6F432;
+  --lime: #C6F432;
+  --accent-dark: #0B0B0C;
+  --lime-border: #C6F432;
+  --amber: #C6F432;
+  --amber-light: #C6F432;
+  --amber-dark: #C6F432;
 
   /* Destructive */
-  --danger: #FF5A4F;
-  --danger-bg: rgba(255, 90, 79, 0.12);
+  --danger: #FF4D4F;
+  --danger-bg: rgba(255, 77, 79, 0.12);
+
+  /* State Tokens */
+  --state-pressed: rgba(255, 255, 255, 0.08);
+  --state-pressed-lime: rgba(11, 11, 12, 0.15);
+  --focus-ring: 2px solid var(--lime);
+  --disabled-opacity: 0.38;
 
   /* Typography: Single Grotesk family, weights 400/600, tabular numerals on all numbers, no monospace */
   --font-grotesk: 'Space Grotesk', system-ui, -apple-system, sans-serif;
@@ -80,16 +87,16 @@
   --spacing-xxl: 32px;
   --spacing-hero: 48px;
 
-  /* Geometry & Radii: 20 (cards), 14 (controls), 9999 (chips), 28 (sheet top) */
+  /* Geometry & Radii: 20 (cards), 12 (controls), 9999 (chips), 28 (sheet top) */
   --r-card: 20px;
-  --r-surface: 20px;
+  --r-surface: 16px;
   --r-sheet: 28px;
-  --r-control: 14px;
+  --r-control: 12px;
   --r-chip: 9999px;
   --r-full: 9999px;
   --r-lg: 20px;
-  --r-sm: 14px;
-  --r-xs: 12px;
+  --r-sm: 12px;
+  --r-xs: 8px;
 
   /* Layout & Interaction Targets: 48dp min */
   --tap-min: 48px;
@@ -100,10 +107,12 @@
   --safe-l: env(safe-area-inset-left, 0px);
   --safe-r: env(safe-area-inset-right, 0px);
 
-  /* Android Motion: Standard M3 Easing cubic-bezier(0.2, 0, 0, 1) */
+  /* Android Motion: Standard M3 Easing cubic-bezier(0.2, 0, 0, 1) and Decelerate */
   --ease-m3: cubic-bezier(0.2, 0, 0, 1);
+  --ease-decel: cubic-bezier(0.05, 0.7, 0.1, 1);
   --motion-normal: 150ms ease-out;
-  --motion-sheet: 280ms var(--ease-m3);
+  --motion-smooth: 200ms var(--ease-m3);
+  --motion-sheet: 280ms var(--ease-decel);
   --motion-tab: 180ms var(--ease-m3);
   --motion-expand: 180ms var(--ease-m3);
   --motion-fast: 120ms var(--ease-m3);

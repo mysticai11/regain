@@ -3,16 +3,17 @@
 .settings-sheet {
   background: var(--surface) !important;
   border-radius: var(--r-surface) var(--r-surface) 0 0 !important;
-  padding: var(--spacing-lg) var(--spacing-lg) calc(var(--spacing-xl) + var(--safe-b)) !important;
+  padding: var(--spacing-20) var(--spacing-20) calc(var(--spacing-24) + var(--safe-b)) !important;
   max-width: 480px !important;
   width: 100% !important;
   max-height: 88vh !important;
   overflow-y: auto !important;
+  box-sizing: border-box;
 }
 
 .settings-group {
-  margin-top: var(--spacing-xl);
-  margin-bottom: var(--spacing-md);
+  margin-top: var(--spacing-20);
+  margin-bottom: var(--spacing-16);
 }
 
 .settings-unit-field {
@@ -42,6 +43,9 @@
   border: none !important;
   cursor: pointer !important;
   padding: 0 !important;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .settings-day-toggle {
@@ -56,7 +60,7 @@
   padding: 0 !important;
   box-sizing: border-box !important;
   cursor: pointer !important;
-  transition: all 0.15s ease !important;
+  transition: opacity var(--motion-fast) !important;
 }
 .settings-day-toggle.active {
   background: #F5F5F4 !important;
@@ -98,16 +102,17 @@
 }
 .onboard-sub {
   font-size: var(--fs-15);
-  color: var(--text2);
+  color: var(--text-secondary);
   line-height: 1.4;
   margin-bottom: var(--spacing-16);
 }
 .onboard label {
   font-size: var(--fs-11);
   font-weight: 600;
-  color: var(--text2);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   display: block;
 }
+
 

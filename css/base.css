@@ -90,9 +90,10 @@ button:active:not(:disabled),
 .seg-tab-btn:active,
 .day-toggle:active,
 .staple-chip:active,
-.food-log-row:active {
-  transform: scale(0.98);
-  transition: transform 80ms var(--ease-m3);
+.food-log-row:active,
+.btn:active:not(:disabled) {
+  opacity: 0.82;
+  transition: opacity var(--motion-fast);
 }
 
 @keyframes appViewEnter {
