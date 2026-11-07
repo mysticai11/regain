@@ -25,7 +25,8 @@ export function buildCatchupCardHTML(currentDateKey) {
     var appliedDec = decisions[appliedDate];
     var isFb = weekDays.some(function(d) { return overrides[d] && overrides[d].isFullBody; });
     var aObj = new Date(appliedDate + 'T00:00:00');
-    var dayShort = aObj.toLocaleDateString('en-GB', { weekday: 'short' });
+    var isSameDay = (appliedDate === tKey);
+    var dayShort = isSameDay ? (new Date(tKey + 'T00:00:00')).toLocaleDateString('en-GB', { weekday: 'short' }) : ('Applied ' + aObj.toLocaleDateString('en-GB', { weekday: 'short' }));
     var planSummary = appliedDec === 'slid'
       ? ('Schedule shifted +1d · ' + dayShort)
       : (isFb ? ('Full-body week · ' + dayShort) : ('Volume spread across week · ' + dayShort));

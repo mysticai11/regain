@@ -72,48 +72,47 @@ export function renderTodaySimple() {
     + buildCatchupCardHTML(key)
     + calRingHTML
     + weekDotHTML
-    + '<div class="today-workout-block" style="background:#141416;border-radius:20px;padding:20px;margin-bottom:20px">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-    + '<span class="t-label">' + esc(workoutBlockDateLabel) + '</span>'
-    + '<button type="button" class="btn-text-action" id="changeWorkoutBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Change</button>'
-    + '</div>'
-    + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.2;margin-bottom:4px">' + esc(cleanWorkoutName) + '</div>'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">'
-    + '<div style="font-size:15px;color:#8A8A8E;font-variant-numeric:tabular-nums">'
-    + (isRest ? 'Recovery & Nutrition' : (loggedSets + ' / ' + totalPlannedSets + ' sets'))
-    + '</div>'
-    + (!isRest
-      ? (isSessionDone
-        ? ('<div style="display:flex;align-items:center;gap:16px">'
-            + '<span style="font-size:15px;color:#8A8A8E;font-variant-numeric:tabular-nums">Completed · ' + (targetRec.workoutMeta && targetRec.workoutMeta.durationMinutes ? targetRec.workoutMeta.durationMinutes : 35) + ' min · ' + loggedSets + ' sets</span>'
-            + '<button type="button" class="btn-text-action" id="trainAgainBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Train again</button>'
-          + '</div>')
-        : ('<button class="btn btn-primary btn-start" id="startWorkout" style="background:#C6F432;color:#0B0B0C;border:none;border-radius:12px;font-size:15px;font-weight:600;padding:10px 20px;cursor:pointer;box-shadow:none">'
-            + (loggedSets > 0 ? 'Keep logging' : 'Start')
-          + '</button>'))
-      : ('<button class="btn btn-primary btn-start" id="startWorkout" style="background:#1C1C1F;color:#F5F5F4;border:none;border-radius:12px;font-size:15px;font-weight:600;padding:10px 20px;cursor:pointer;box-shadow:none">Choose</button>'))
-    + '</div>'
-    + (hasOverride
-      ? ('<div style="margin-top:12px"><button type="button" class="btn-text-action" id="resetSuggestedWorkoutBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0;cursor:pointer">Reset to suggested</button></div>')
-      : '')
-    + '</div>'
+    + (function() {
+      var cardInner = '';
+      if (!isRest && isSessionDone) {
+        var durMin = (targetRec.workoutMeta && targetRec.workoutMeta.durationMinutes) ? targetRec.workoutMeta.durationMinutes : 35;
+        var compSubline = 'Completed · ' + durMin + ' min · ' + loggedSets + (loggedSets === 1 ? ' set' : ' sets');
+        cardInner = '<div style="font-size:17px;font-weight:600;color:#F5F5F4;line-height:1.2;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(cleanWorkoutName) + '</div>'
+          + '<div style="font-size:15px;color:#8A8A8E;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:16px">' + esc(compSubline) + '</div>'
+          + '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
+            + '<button type="button" class="btn" id="trainAgainBtn" style="height:48px;min-height:48px;padding:0 20px;border-radius:12px;background:#1C1C1F;border:1px solid #222222;color:#F5F5F4;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center">Train again</button>'
+            + (hasOverride ? '<button type="button" class="btn-text-action" id="resetSuggestedWorkoutBtn" style="height:48px;min-height:48px;color:#8A8A8E;font-size:15px;background:none;border:none;padding:0 8px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center">Reset to suggested</button>' : '')
+          + '</div>';
+      } else {
+        var btnText = !isRest ? (loggedSets > 0 ? 'Keep logging' : 'Start') : 'Choose';
+        var btnStyle = !isRest ? 'background:#C6F432;color:#0B0B0C' : 'background:#1C1C1F;color:#F5F5F4';
+        cardInner = '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.2;margin-bottom:4px">' + esc(cleanWorkoutName) + '</div>'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">'
+            + '<div style="font-size:15px;color:#8A8A8E;font-variant-numeric:tabular-nums">' + (isRest ? 'Recovery & Nutrition' : (loggedSets + ' / ' + totalPlannedSets + ' sets')) + '</div>'
+            + '<button class="btn btn-primary btn-start" id="startWorkout" style="' + btnStyle + ';border:none;border-radius:12px;font-size:15px;font-weight:600;padding:10px 20px;cursor:pointer;box-shadow:none">' + btnText + '</button>'
+          + '</div>'
+          + (hasOverride ? '<div style="margin-top:12px"><button type="button" class="btn-text-action" id="resetSuggestedWorkoutBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0;cursor:pointer">Reset to suggested</button></div>' : '');
+      }
+      return '<div class="today-workout-block" style="background:#141416;border-radius:20px;padding:20px;margin-bottom:20px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+          + '<span class="t-label">' + esc(workoutBlockDateLabel) + '</span>'
+          + '<button type="button" class="btn-text-action" id="changeWorkoutBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Change</button>'
+        + '</div>' + cardInner + '</div>';
+    })()
     + (function () {
-      var lastW = currentWeight();
-      var bwPlaceholder = lastW ? lastW.toFixed(1) : '—';
-      var bwValue = rec.weight ? rec.weight : '';
+      var lastW = currentWeight(), bwPlaceholder = lastW ? lastW.toFixed(1) : '54.0', bwValue = rec.weight ? rec.weight : '';
+      var saveLabel = bwValue ? 'Saved' : 'Save';
+      var saveStyle = bwValue ? 'background:#1C1C1F;color:#8A8A8E;border:1px solid #222222;cursor:default' : 'background:transparent;color:#8A8A8E;border:1px solid #222222;opacity:0.4;cursor:default';
       return '<div style="margin-bottom:24px">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
           + '<span style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8A8A8E;text-transform:uppercase">WEIGHT</span>'
-          + (bwValue ? '<button type="button" class="btn-text-action" id="deleteTodayWeightBtn" style="color:#FF4D4F;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;background:none;border:none;padding:0;cursor:pointer">Clear</button>' : '')
+          + (bwValue ? '<button type="button" class="btn-text-action" id="deleteTodayWeightBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0;min-height:48px;cursor:pointer;display:inline-flex;align-items:center">Clear</button>' : '')
         + '</div>'
-        + '<div style="display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid #222;padding-bottom:12px">'
-          + '<div style="display:flex;align-items:baseline;gap:8px">'
-            + '<input type="number" id="todayWeight" step="0.1" inputmode="decimal" placeholder="' + bwPlaceholder + '" value="' + bwValue + '" style="font-size:48px;font-weight:600;font-variant-numeric:tabular-nums;color:#F5F5F4;background:transparent;border:none;outline:none;padding:0;width:140px;line-height:1">'
-            + '<span style="font-size:15px;color:#8A8A8E">kg</span>'
-          + '</div>'
-          + '<button type="button" class="btn-text-action" id="saveTodayWeight" style="display:none;color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Save</button>'
-        + '</div>'
-        + '</div>';
+        + '<div style="display:flex;align-items:center;height:56px;background:#141416;border:1px solid #1C1C1F;border-radius:16px;padding:0 16px;box-sizing:border-box">'
+          + '<input type="number" id="todayWeight" step="0.1" inputmode="decimal" placeholder="' + bwPlaceholder + '" value="' + bwValue + '" style="flex:1;min-width:0;height:100%;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;color:#F5F5F4;background:transparent;border:none;outline:none;padding:0">'
+          + '<span style="font-size:15px;color:#8A8A8E;margin-right:12px">kg</span>'
+          + '<button type="button" id="saveTodayWeight" style="height:38px;padding:0 14px;border-radius:8px;font-size:15px;font-weight:600;' + saveStyle + '">' + saveLabel + '</button>'
+        + '</div></div>';
     })()
     + getStaplesShelfHTML()
     + '<div style="margin-top:28px;margin-bottom:40px">'
@@ -211,15 +210,23 @@ export function renderTodaySimple() {
   if (todayWeightInput && saveTodayWeight) {
     var initialW = (todayWeightInput.value || '').trim();
     todayWeightInput.oninput = function () {
-      var curW = (todayWeightInput.value || '').trim();
-      var changed = curW !== initialW;
-      saveTodayWeight.textContent = (curW === '' && initialW !== '') ? 'Clear' : 'Save';
-      saveTodayWeight.style.color = (curW === '' && initialW !== '') ? '#FF4D4F' : '#F5F5F4';
-      saveTodayWeight.style.display = changed ? 'inline-flex' : 'none';
+      var curW = (todayWeightInput.value || '').trim(), changed = curW !== initialW;
+      if (changed) {
+        saveTodayWeight.textContent = 'Save'; saveTodayWeight.style.background = '#C6F432';
+        saveTodayWeight.style.color = '#0B0B0C'; saveTodayWeight.style.border = 'none';
+        saveTodayWeight.style.opacity = '1'; saveTodayWeight.style.cursor = 'pointer';
+      } else if (initialW !== '') {
+        saveTodayWeight.textContent = 'Saved'; saveTodayWeight.style.background = '#1C1C1F';
+        saveTodayWeight.style.color = '#8A8A8E'; saveTodayWeight.style.border = '1px solid #222222';
+        saveTodayWeight.style.opacity = '1'; saveTodayWeight.style.cursor = 'default';
+      } else {
+        saveTodayWeight.textContent = 'Save'; saveTodayWeight.style.background = 'transparent';
+        saveTodayWeight.style.color = '#8A8A8E'; saveTodayWeight.style.border = '1px solid #222222';
+        saveTodayWeight.style.opacity = '0.4'; saveTodayWeight.style.cursor = 'default';
+      }
     };
     var doSaveWeight = function () {
       var valStr = (todayWeightInput.value || '').trim();
-      if (valStr === '' && initialW !== '' && rec.weight != null) { clearTodayWeight(); return; }
       if (!valStr || valStr === initialW) return;
       var w = parseFloat(valStr.replace(',', '.'));
       if (!w || isNaN(w) || w < 20 || w > 300) { showToast('Enter a valid weight', 'warn'); return; }
@@ -227,7 +234,7 @@ export function renderTodaySimple() {
       profile.weightEntries.push({ id: 'weight_' + Date.now(), dayKey: activeDateKey, weight: w, createdAt: new Date().toISOString() });
       sv('rg_profile', profile); rec.weight = w; saveDayRecord(activeDateKey, rec);
       triggerHaptic(); showToast('Weight saved', 'ok'); initialW = String(w);
-      saveTodayWeight.style.display = 'none'; renderTodaySimple();
+      renderTodaySimple();
     };
     saveTodayWeight.onclick = doSaveWeight;
     todayWeightInput.onblur = doSaveWeight;
@@ -246,66 +253,39 @@ export function renderTodaySimple() {
       var insertIdx = currentRec.extra.length;
       var portionLabel = mult === 1 ? '' : (mult === 0.5 ? '½× ' : mult + '× ');
       currentRec.extra.push({
-        name: portionLabel + item.name,
-        kcal: Math.round(item.kcal * mult),
-        protein: +(item.protein * mult).toFixed(1),
-        carbs: Math.round((item.carbs || 0) * mult),
-        fat: Math.round((item.fat || 0) * mult),
-        servings: 1
+        name: portionLabel + item.name, kcal: Math.round(item.kcal * mult),
+        protein: +(item.protein * mult).toFixed(1), carbs: Math.round((item.carbs || 0) * mult),
+        fat: Math.round((item.fat || 0) * mult), servings: 1
       });
       saveDayRecord(activeDateKey, currentRec);
       addRecent(item.name, item.kcal, item.protein, item.carbs || 0, item.fat || 0);
-      playSound('set_logged');
-      triggerHaptic();
-      renderTodaySimple();
+      playSound('set_logged'); triggerHaptic(); renderTodaySimple();
       showUndoToast('Logged ' + portionLabel + item.name + ' (' + +(item.protein * mult).toFixed(1) + 'g P)', function () {
         var undoRec = dayRecord(activeDateKey);
         if (undoRec.extra && undoRec.extra.length > insertIdx) {
-          undoRec.extra.splice(insertIdx, 1);
-          saveDayRecord(activeDateKey, undoRec);
-          renderTodaySimple();
+          undoRec.extra.splice(insertIdx, 1); saveDayRecord(activeDateKey, undoRec); renderTodaySimple();
         }
       });
     };
 
     var pressTimer = null, didLongPress = false, touchStartX = 0, touchStartY = 0, hasMoved = false;
-
     card.addEventListener('touchstart', function (e) {
-      didLongPress = false;
-      hasMoved = false;
-      if (e.touches && e.touches[0]) {
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-      }
+      didLongPress = false; hasMoved = false;
+      if (e.touches && e.touches[0]) { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }
       pressTimer = setTimeout(function () {
-        if (!hasMoved) {
-          didLongPress = true;
-          triggerHaptic();
-          openPortionSheet(item, function (mult) { logItem(mult); });
-        }
+        if (!hasMoved) { didLongPress = true; triggerHaptic(); openPortionSheet(item, function (mult) { logItem(mult); }); }
       }, 450);
     }, { passive: true });
-
     card.addEventListener('touchmove', function (e) {
       if (e.touches && e.touches[0]) {
-        var dx = Math.abs(e.touches[0].clientX - touchStartX);
-        var dy = Math.abs(e.touches[0].clientY - touchStartY);
-        if (dx > 10 || dy > 10) {
-          hasMoved = true;
-          if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
-        }
+        var dx = Math.abs(e.touches[0].clientX - touchStartX), dy = Math.abs(e.touches[0].clientY - touchStartY);
+        if (dx > 10 || dy > 10) { hasMoved = true; if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } }
       }
     }, { passive: true });
-
-    card.addEventListener('touchend', function () {
-      if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
-    }, { passive: true });
-
+    card.addEventListener('touchend', function () { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } }, { passive: true });
     card.addEventListener('contextmenu', function (e) {
-      e.preventDefault();
-      if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
-      triggerHaptic();
-      openPortionSheet(item, function (mult) { logItem(mult); });
+      e.preventDefault(); if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+      triggerHaptic(); openPortionSheet(item, function (mult) { logItem(mult); });
     });
 
     card.onclick = function () {
