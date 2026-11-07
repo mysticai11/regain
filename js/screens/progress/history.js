@@ -159,39 +159,37 @@ export function workoutHistoryHTML() {
           }
         }
 
-        var allIdentical = sets.length > 1 && sets.every(function(s){ return Number(s.weight) === Number(sets[0].weight) && Number(s.reps) === Number(sets[0].reps); });
-        var setDisplayHTML = '';
-        if (allIdentical) {
-          var firstS = sets[0], wDisp = isBW ? ((!firstS.weight || Number(firstS.weight) === 0) ? 'BW' : ('BW+' + firstS.weight)) : firstS.weight + ' kg';
-          var rirVal = (firstS.rir === 0 || firstS.rir === '0') ? 'F' : ((firstS.rir != null && firstS.rir !== '') ? (Number(firstS.rir) >= 4 ? '+' : String(firstS.rir)) : '');
-          var rirBadge = rirVal ? '<span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;background:var(--surface-raised);color:' + (rirVal === 'F' ? 'var(--lime)' : 'var(--text-secondary)') + ';font-size:11px;font-weight:600;margin-left:8px">' + esc(rirVal) + '</span>' : '';
-          setDisplayHTML = '<div class="history-set-row" data-quick-edit-set="1" data-session-id="' + esc(session.id) + '" data-ex-id="' + esc(exItem.id) + '" data-ex-name="' + esc(exData.name) + '" data-set-idx="0" data-weight="' + (firstS.weight || 0) + '" data-reps="' + (firstS.reps || 0) + '" data-rir="' + (firstS.rir == null ? '' : firstS.rir) + '" style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:15px;color:var(--text);font-variant-numeric:tabular-nums;cursor:pointer">'
-            + '<span>' + sets.length + ' × ' + esc(wDisp) + ' × ' + firstS.reps + '</span>'
-            + rirBadge
-            + '</div>';
-        } else {
-          setDisplayHTML = '<div style="display:flex;flex-wrap:wrap;gap:6px;padding:4px 0">' + sets.map(function(s, sIdx2) {
-            var wDisp = isBW ? ((!s.weight || Number(s.weight) === 0) ? 'BW' : ('BW+' + s.weight)) : s.weight + ' kg';
-            var rirVal = (s.rir === 0 || s.rir === '0') ? 'F' : ((s.rir != null && s.rir !== '') ? (Number(s.rir) >= 4 ? '+' : String(s.rir)) : '');
-            var rirBadge = rirVal ? '<span style="display:inline-flex;align-items:center;justify-content:center;padding:1px 4px;border-radius:4px;background:var(--surface-raised);color:' + (rirVal === 'F' ? 'var(--lime)' : 'var(--text-secondary)') + ';font-size:11px;font-weight:600;margin-left:4px">' + esc(rirVal) + '</span>' : '';
-            return '<div class="history-set-row" data-quick-edit-set="1" data-session-id="' + esc(session.id) + '" data-ex-id="' + esc(exItem.id) + '" data-ex-name="' + esc(exData.name) + '" data-set-idx="' + sIdx2 + '" data-weight="' + (s.weight || 0) + '" data-reps="' + (s.reps || 0) + '" data-rir="' + (s.rir == null ? '' : s.rir) + '" style="display:inline-flex;align-items:center;background:var(--surface);border:1px solid var(--hairline);border-radius:8px;padding:4px 8px;font-size:11px;color:var(--text);cursor:pointer">'
-              + '<span>1 × ' + esc(wDisp) + ' × ' + s.reps + '</span>'
-              + rirBadge
-              + '</div>';
-          }).join('') + '</div>';
-        }
-
+        var exVol = sets.reduce(function(acc, s) { return acc + ((Number(s.weight) || 0) * (Number(s.reps) || 0)); }, 0);
+        var volStr = exVol > 0 ? (' · ' + (exVol % 1 === 0 ? exVol : parseFloat(exVol.toFixed(1))) + ' kg') : '';
+        var summaryText = sets.length + (sets.length === 1 ? ' set' : ' sets') + volStr;
+        var tableHeaderHTML = '<div class="history-set-table-head" style="display:grid;grid-template-columns:36px 1fr 1fr 48px;align-items:center;padding-bottom:4px;margin-bottom:2px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">'
+          + '<span>Set</span><span style="text-align:right">kg</span><span style="text-align:right">Reps</span><span style="text-align:right">RIR</span></div>';
+        var setRowsHTML = sets.map(function(s, sIdx2) {
+          var wNum = Number(s.weight) || 0;
+          var wClean = wNum % 1 === 0 ? String(wNum) : String(parseFloat(wNum.toFixed(2)));
+          var wDisp = isBW ? ((!s.weight || wNum === 0) ? 'BW' : ('BW + ' + wClean)) : wClean;
+          var rVal = Number(s.reps) || 0;
+          var rirVal = (s.rir === 0 || s.rir === '0') ? 'F' : ((s.rir != null && s.rir !== '') ? (Number(s.rir) >= 4 ? '+' : String(s.rir)) : null);
+          var rirCell = rirVal != null
+            ? ('<span class="hist-rir-badge" style="display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;min-width:18px;border-radius:4px;background:var(--surface-raised);font-size:11px;font-weight:600;color:' + (rirVal === 'F' ? 'var(--lime)' : 'var(--text-secondary)') + '">' + esc(rirVal) + '</span>')
+            : '<span style="color:var(--text-tertiary);font-size:15px;line-height:1">–</span>';
+          return '<div class="history-set-row" data-quick-edit-set="1" data-session-id="' + esc(session.id) + '" data-ex-id="' + esc(exItem.id) + '" data-ex-name="' + esc(exData.name) + '" data-set-idx="' + sIdx2 + '" data-weight="' + (s.weight || 0) + '" data-reps="' + (s.reps || 0) + '" data-rir="' + (s.rir == null ? '' : s.rir) + '" style="display:grid;grid-template-columns:36px 1fr 1fr 48px;align-items:center;min-height:40px;height:42px;cursor:pointer">'
+            + '<span style="font-size:15px;color:var(--text-secondary);font-variant-numeric:tabular-nums">' + (sIdx2 + 1) + '</span>'
+            + '<span style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;text-align:right">' + esc(wDisp) + '</span>'
+            + '<span style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;text-align:right">' + rVal + '</span>'
+            + '<div style="display:flex;justify-content:flex-end;align-items:center">' + rirCell + '</div></div>';
+        }).join('');
         var isLast = exIdx === exercises.length - 1;
-        return '<div style="padding:10px 0;' + (isLast ? '' : 'border-bottom:1px solid var(--hairline)') + '">'
-          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-            + '<div style="display:flex;align-items:center;gap:8px">'
-              + '<span style="font-size:15px;font-weight:600;color:var(--text)">' + esc(exData.name) + '</span>'
+        return '<div style="padding:14px 0;' + (isLast ? '' : 'border-bottom:1px solid var(--hairline)') + '">'
+          + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px">'
+            + '<div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 auto;overflow:hidden">'
+              + '<span style="font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(exData.name) + '</span>'
               + progressTagHTML
+              + (isPrInSession ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#C6F432;letter-spacing:0.08em;text-transform:uppercase;flex-shrink:0"><span style="width:5px;height:5px;border-radius:50%;background:#C6F432;display:inline-block"></span>PR</span>' : '')
             + '</div>'
-            + (isPrInSession ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#C6F432;letter-spacing:0.08em;text-transform:uppercase"><span style="width:5px;height:5px;border-radius:50%;background:#C6F432;display:inline-block"></span>PR</span>' : '')
+            + '<span style="font-size:11px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0">' + esc(summaryText) + '</span>'
           + '</div>'
-          + '<div>' + setDisplayHTML + '</div>'
-          + '</div>';
+          + tableHeaderHTML + '<div class="history-set-rows-wrap">' + setRowsHTML + '</div></div>';
       }).join('');
 
       var chevronSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
