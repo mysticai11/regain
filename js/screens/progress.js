@@ -20,6 +20,7 @@ import { setupChartInteractions, openExercisePickerModal } from "./progress/inte
 import { decideSwipe, SWIPE_NAV_SCOPE, showGestureDebug } from "../lib/gesture.js";
 import { renderLineChart } from "../ui/lineChart.js";
 import { enhanceLiftsTab } from "./progress/lifts.js";
+import { enhanceProgressBodyTiles } from "./progress/stat-tiles.js";
 
 export function renderProgressSimple(mode, historySubTab) {
   mode = mode || (typeof window !== 'undefined' ? window.activeProgressSubTab : null) || 'body';
@@ -80,6 +81,10 @@ export function renderProgressSimple(mode, historySubTab) {
         btn.onclick = function(){ deleteWeightEntry(btn.dataset.deleteWeight); };
       });
     }
+
+    enhanceProgressBodyTiles(document.getElementById('weeklyStatTilesContainer'), {
+      entries: entries, records: records, workoutSessions: workoutSessions, profile: profile, todayDateKey: todayKey()
+    });
 
     enhanceLiftsTab({
       selected: selected,
@@ -196,6 +201,7 @@ export function renderProgressSimple(mode, historySubTab) {
       + '<button type="button" class="btn btn-primary field-btn" id="saveProgressWeight" style="height:40px;min-height:40px;padding:0 14px;border-radius:10px;cursor:pointer">Save</button>'
     + '</div>'
     + '<div id="weightEntriesContainer"></div>'
+    + '<div id="weeklyStatTilesContainer"></div>'
     + '</div>'
     + '<div style="margin-top:28px">'
       + '<div class="t-label" style="margin-bottom:8px">Nutrition · Last 7 days</div>'
