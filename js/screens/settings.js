@@ -106,7 +106,7 @@ export function openSettings() {
     + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px">'
       + '<div style="font-size:15px;font-weight:600;color:#F5F5F4;margin-bottom:2px">Days you train</div>'
       + '<div id="trainingDaysSubtitle" style="font-size:11px;color:#8A8A8E;margin-bottom:14px">' + esc(formatTrainingSubtitle(tdays)) + '</div>'
-      + '<div class="settings-day-toggles" style="display:flex;justify-content:space-between;align-items:center;width:100%">' + dayTogglesHTML + '</div>'
+      + '<div class="settings-day-toggles">' + dayTogglesHTML + '</div>'
     + '</div>'
 
     // PROFILE (Rows with chevron right, opening bottom-sheet picker)
