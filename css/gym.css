@@ -167,6 +167,7 @@
 }
 .cue-content.open {
   display: block;
+  animation: detailsExpand var(--dur-180) var(--ease-standard);
 }
 
 /* F7: Rest Timer visual styling */

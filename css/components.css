@@ -217,7 +217,7 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   display: inline-flex !important;
   align-items: center !important;
   line-height: 1 !important;
-  transition: color var(--motion-fast);
+  transition: color var(--dur-200) var(--ease-standard), border-bottom-color var(--dur-200) var(--ease-standard);
 }
 .seg-tab-btn.active, .seg-text-item.active { color: var(--text) !important; border-bottom-color: var(--text) !important; }
 
@@ -475,7 +475,7 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   opacity: 1;
   pointer-events: auto;
   visibility: visible;
-  animation: overlayFadeIn 180ms ease-out forwards;
+  animation: overlayFadeIn var(--dur-280) var(--ease-decelerate) forwards;
 }
 .sheet-overlay.is-hidden, .modal-backdrop.is-hidden, .overlay.is-hidden,
 .sheet-overlay[hidden], .modal-backdrop[hidden], .overlay[hidden] {
@@ -496,7 +496,7 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   -webkit-overflow-scrolling: touch !important;
   box-sizing: border-box !important;
   position: relative !important;
-  animation: sheetSlideUp 280ms var(--ease-m3) forwards;
+  animation: sheetSlideUp var(--dur-280) var(--ease-decelerate) forwards;
   will-change: transform;
 }
 .sheet-handle { width: 32px; height: 4px; background: var(--hairline); border-radius: var(--r-full); margin: 0 auto var(--spacing-16); }
@@ -623,7 +623,7 @@ body.kb-open .sheet {
   background: #1C1C1F;
   transform: scaleX(0.4);
   opacity: 0;
-  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--dur-200) var(--ease-standard), opacity var(--dur-200) var(--ease-standard);
   will-change: transform, opacity;
   z-index: 1;
 }

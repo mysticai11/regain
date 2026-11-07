@@ -162,9 +162,27 @@ button[disabled],
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes cardEntrance {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .app-view,
 .page-enter {
   animation: appViewEnter 160ms var(--ease-m3) forwards;
+}
+
+html[data-motion-polish="true"] .page-enter > *:nth-child(1) { animation: cardEntrance var(--dur-180) var(--ease-standard) 0ms both; }
+html[data-motion-polish="true"] .page-enter > *:nth-child(2) { animation: cardEntrance var(--dur-180) var(--ease-standard) 24ms both; }
+html[data-motion-polish="true"] .page-enter > *:nth-child(3) { animation: cardEntrance var(--dur-180) var(--ease-standard) 48ms both; }
+html[data-motion-polish="true"] .page-enter > *:nth-child(4) { animation: cardEntrance var(--dur-180) var(--ease-standard) 72ms both; }
+html[data-motion-polish="true"] .page-enter > *:nth-child(5) { animation: cardEntrance var(--dur-180) var(--ease-standard) 96ms both; }
+html[data-motion-polish="true"] .page-enter > *:nth-child(6) { animation: cardEntrance var(--dur-180) var(--ease-standard) 120ms both; }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-motion-polish="true"] .page-enter > * {
+    animation: none !important;
+  }
 }
 
 /* Option to disable slide navigation & transitions */

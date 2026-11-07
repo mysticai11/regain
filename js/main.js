@@ -50,6 +50,8 @@ export function renderApp() {
         c.classList.remove('page-enter');
         void c.offsetWidth;
         c.classList.add('page-enter');
+        clearTimeout(c._enterTimer);
+        c._enterTimer = setTimeout(function() { if (c) c.classList.remove('page-enter'); }, 320);
       }
       renderTab();
     });
@@ -294,6 +296,8 @@ if (typeof window !== 'undefined') {
       c.classList.remove('page-enter');
       void c.offsetWidth;
       c.classList.add('page-enter');
+      clearTimeout(c._enterTimer);
+      c._enterTimer = setTimeout(function() { if (c) c.classList.remove('page-enter'); }, 320);
     }
     renderTab();
   };

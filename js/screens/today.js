@@ -303,31 +303,37 @@ export function renderTodaySimple() {
   var addFoodBtn = document.getElementById('addFoodBtn');
   if (addFoodBtn) addFoodBtn.onclick = function () { openFoodSearch(function (food, s) { addFoodToDay(activeDateKey, food, s); }); };
 
+  var deleteFoodEntry = function(idx, row) {
+    var current = dayRecord(activeDateKey);
+    if (!current.extra || isNaN(idx) || !current.extra[idx]) return;
+    var performDel = function() {
+      var removed = current.extra.splice(idx, 1)[0];
+      saveDayRecord(activeDateKey, current); renderTodaySimple();
+      showUndoToast('Food entry deleted', function () {
+        var restored = dayRecord(activeDateKey);
+        restored.extra = restored.extra || []; restored.extra.splice(Math.min(idx, restored.extra.length), 0, removed);
+        saveDayRecord(activeDateKey, restored); renderTodaySimple();
+      });
+    };
+    if (row && typeof window !== 'undefined' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      row.style.transition = 'height 150ms cubic-bezier(0.2,0,0,1), opacity 150ms cubic-bezier(0.2,0,0,1), margin 150ms cubic-bezier(0.2,0,0,1)';
+      row.style.height = row.offsetHeight + 'px'; void row.offsetHeight;
+      row.style.height = '0px'; row.style.opacity = '0'; row.style.margin = '0px'; row.style.overflow = 'hidden';
+      setTimeout(performDel, 150);
+    } else { performDel(); }
+  };
+
   document.querySelectorAll('.food-delete').forEach(function (btn) {
     btn.onclick = function (e) {
       if (e && e.stopPropagation) e.stopPropagation();
-      var idx = parseInt(btn.dataset.foodIndex, 10), current = dayRecord(activeDateKey);
-      if (!current.extra || isNaN(idx) || !current.extra[idx]) return;
-      var removed = current.extra.splice(idx, 1)[0];
-      saveDayRecord(activeDateKey, current);
-      renderTodaySimple();
-      showUndoToast('Food entry deleted', function () {
-        var restored = dayRecord(activeDateKey);
-        restored.extra = restored.extra || [];
-        restored.extra.splice(Math.min(idx, restored.extra.length), 0, removed);
-        saveDayRecord(activeDateKey, restored);
-        renderTodaySimple();
-      });
+      deleteFoodEntry(parseInt(btn.dataset.foodIndex, 10), btn.closest('.food-log-row'));
     };
   });
 
   document.querySelectorAll('.food-log-row').forEach(function (row) {
-    var startX = 0, deltaX = 0;
-    var idx = parseInt(row.dataset.foodIndex, 10);
+    var startX = 0, deltaX = 0, idx = parseInt(row.dataset.foodIndex, 10);
     row.addEventListener('touchstart', function (e) {
-      if (!e.changedTouches || !e.changedTouches[0]) return;
-      startX = e.changedTouches[0].clientX;
-      deltaX = 0;
+      if (e.changedTouches && e.changedTouches[0]) { startX = e.changedTouches[0].clientX; deltaX = 0; }
     }, { passive: true });
     row.addEventListener('touchmove', function (e) {
       if (!e.changedTouches || !e.changedTouches[0]) return;
@@ -335,22 +341,8 @@ export function renderTodaySimple() {
       if (deltaX < 0) row.style.transform = 'translateX(' + Math.max(deltaX, -80) + 'px)';
     }, { passive: true });
     row.addEventListener('touchend', function () {
-      if (deltaX < -60) {
-        var current = dayRecord(activeDateKey);
-        if (!current.extra || isNaN(idx) || !current.extra[idx]) return;
-        var removed = current.extra.splice(idx, 1)[0];
-        saveDayRecord(activeDateKey, current);
-        renderTodaySimple();
-        showUndoToast('Food entry deleted', function () {
-          var restored = dayRecord(activeDateKey);
-          restored.extra = restored.extra || [];
-          restored.extra.splice(Math.min(idx, restored.extra.length), 0, removed);
-          saveDayRecord(activeDateKey, restored);
-          renderTodaySimple();
-        });
-      } else {
-        row.style.transform = '';
-      }
+      if (deltaX < -60) deleteFoodEntry(idx, row);
+      else row.style.transform = '';
     }, { passive: true });
   });
 }

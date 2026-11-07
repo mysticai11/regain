@@ -18,7 +18,7 @@
   cursor: pointer;
   font-family: inherit;
   margin-right: var(--spacing-16);
-  transition: color var(--motion-fast);
+  transition: color var(--dur-200) var(--ease-standard), border-bottom-color var(--dur-200) var(--ease-standard);
 }
 .seg-tab-btn.active {
   color: var(--text);
@@ -87,11 +87,18 @@
 .history-session-details[open] .history-chevron {
   transform: rotate(180deg);
 }
+.history-session-details[open] .history-session-body {
+  animation: detailsExpand var(--dur-180) var(--ease-standard);
+}
+@keyframes detailsExpand {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 .history-chevron {
   display: inline-flex;
   align-items: center;
   color: var(--text-secondary);
-  transition: transform var(--motion-normal);
+  transition: transform var(--dur-180) var(--ease-standard);
 }
 
 @media (max-width: 370px) {

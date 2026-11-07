@@ -5,16 +5,16 @@ import { esc } from "../lib/format.js";
 export function closeSheet(overlay) {
   if (!overlay || overlay._closing) return;
   overlay._closing = true;
-  overlay.style.transition = 'opacity 140ms ease-out';
+  overlay.style.transition = 'opacity 200ms cubic-bezier(0.2, 0, 0, 1)';
   overlay.style.opacity = '0';
   var s = overlay.querySelector('.sheet');
   if (s) {
-    s.style.transition = 'transform 180ms cubic-bezier(0.16, 1, 0.3, 1)';
+    s.style.transition = 'transform 200ms cubic-bezier(0.2, 0, 0, 1)';
     s.style.transform = 'translateY(100%)';
   }
   setTimeout(function() {
     if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-  }, 180);
+  }, 200);
 }
 
 export function enableSheetSwipeDismiss(overlay) {
@@ -51,7 +51,7 @@ export function enableSheetSwipeDismiss(overlay) {
     if (!tracking) return;
     tracking = false;
     var dy = currentY - startY;
-    sheet.style.transition = 'transform 180ms cubic-bezier(0.16, 1, 0.3, 1)';
+    sheet.style.transition = 'transform 200ms cubic-bezier(0.2, 0, 0, 1)';
     if (dy > 70) {
       var closeBtn = overlay.querySelector('#closeSettingsBtn, #closeFoodSearch, #closeExerciseModal, #closeSheetBtn, #closeActionMenuBtn');
       if (closeBtn) closeBtn.click();

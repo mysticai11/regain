@@ -267,11 +267,11 @@ export function openSettings() {
     if (isClosing) return;
     isClosing = true;
     saveTargetsOnBlur();
-    overlay.style.transition = 'opacity 140ms ease-out';
+    overlay.style.transition = 'opacity 200ms cubic-bezier(0.2, 0, 0, 1)';
     overlay.style.opacity = '0';
     var s = overlay.querySelector('.sheet');
     if (s) {
-      s.style.transition = 'transform 180ms cubic-bezier(0.16, 1, 0.3, 1)';
+      s.style.transition = 'transform 200ms cubic-bezier(0.2, 0, 0, 1)';
       s.style.transform = 'translateY(100%)';
     }
     setTimeout(function() {
@@ -279,7 +279,7 @@ export function openSettings() {
       var remaining = document.getElementById('settingsOverlay');
       if (remaining && typeof remaining.remove === 'function') remaining.remove();
       if (typeof window !== 'undefined' && typeof window.renderApp === 'function') window.renderApp();
-    }, 180);
+    }, 200);
   };
 
   var closeBtn = overlay.querySelector('#closeSettingsBtn');

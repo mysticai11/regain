@@ -114,7 +114,9 @@
   --ease-decelerate: cubic-bezier(0, 0, 0, 1);
   --dur-80: 80ms;
   --dur-150: 150ms;
+  --dur-180: 180ms;
   --dur-200: 200ms;
+  --dur-280: 280ms;
   --dur-300: 300ms;
   --dur-400: 400ms;
   --dur-500: 500ms;
