@@ -99,10 +99,10 @@ export function workoutHistoryHTML() {
       var durMin = (durationSec && !isNaN(durationSec)) ? Math.round(durationSec / 60) : null;
       var rawTitle = session.programLabel || session.sessionLabel || 'Workout';
       var cleanTitle = rawTitle.replace(/^Day\s*\d+\s*[·•—–-]\s*/gi, '').trim() || rawTitle;
-      var statsParts = [totalSets + (totalSets === 1 ? ' set' : ' sets')];
-      if (totalVol > 0) statsParts.push(Math.round(totalVol).toLocaleString() + ' kg');
-      if (durMin && durMin > 0) statsParts.push(Math.min(durMin, 180) + ' min');
-      var statsText = statsParts.join(' · ');
+      var baseStats = [totalSets + (totalSets === 1 ? ' set' : ' sets')];
+      if (totalVol > 0) baseStats.push(Math.round(totalVol).toLocaleString() + ' kg');
+      var baseStatsText = baseStats.join(' · ');
+      var durText = (durMin && durMin > 0) ? (Math.min(durMin, 180) + ' min') : '';
 
       var exRows = exercises.map(function(exItem, exIdx) {
         var exData = getExerciseData(exItem.id) || { name: exItem.id };
@@ -196,18 +196,19 @@ export function workoutHistoryHTML() {
       var isFirstInWeek = (sIdx === 0 && wkIdx === 0);
 
       html += '<details class="history-session-details" ' + (isFirstInWeek ? 'open' : '') + ' style="margin-bottom:12px;background:#141416;border-radius:16px;overflow:hidden">'
-        + '<summary class="history-session-header" style="min-height:72px;height:auto;padding:16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;list-style:none;user-select:none;box-sizing:border-box;gap:12px">'
-          + '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;min-width:36px">'
-            + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1.1;letter-spacing:0.04em">' + esc(dayLabel) + ' ' + esc(monLabel) + '</div>'
-            + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1;font-variant-numeric:tabular-nums">' + String(dObj.getDate()) + '</div>'
+        + '<summary class="history-session-header" style="min-height:64px;height:auto;padding:10px 12px;display:flex;align-items:center;cursor:pointer;list-style:none;user-select:none;box-sizing:border-box;gap:10px">'
+          + '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;width:44px;text-align:center">'
+            + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1.1;letter-spacing:0.04em;text-transform:uppercase">' + esc(dayLabel) + '</div>'
+            + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1;font-variant-numeric:tabular-nums;margin:1px 0">' + String(dObj.getDate()) + '</div>'
+            + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1.1;letter-spacing:0.04em;text-transform:uppercase">' + esc(monLabel) + '</div>'
           + '</div>'
           + '<div style="flex:1;min-width:0;overflow:hidden">'
             + '<div style="font-size:17px;font-weight:600;color:#F5F5F4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(cleanTitle) + '</div>'
-            + '<div style="font-size:15px;color:#8A8A8E;margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(statsText) + '</div>'
+            + '<div class="history-card-subline" style="font-size:15px;color:#8A8A8E;margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span>' + esc(baseStatsText) + '</span>' + (durText ? '<span class="hist-dur-part"> · ' + esc(durText) + '</span>' : '') + '</div>'
           + '</div>'
-          + '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0">'
-            + '<span class="history-chevron" style="display:inline-flex;align-items:center;color:#8A8A8E;transition:transform 0.2s ease">' + chevronSVG + '</span>'
-            + '<button type="button" class="btn-ghost history-menu-btn" data-session-menu="' + esc(session.id) + '" style="background:none;border:none;font-size:17px;line-height:1;padding:8px 12px;color:#8A8A8E;cursor:pointer;min-width:48px;min-height:48px;display:inline-flex;align-items:center;justify-content:center" aria-label="Session options">···</button>'
+          + '<div style="display:flex;align-items:center;flex-shrink:0">'
+            + '<span class="history-chevron" style="display:inline-flex;align-items:center;justify-content:center;width:44px;min-height:48px;color:#8A8A8E;transition:transform 0.2s ease">' + chevronSVG + '</span>'
+            + '<button type="button" class="btn-ghost history-menu-btn" data-session-menu="' + esc(session.id) + '" style="background:none;border:none;font-size:17px;line-height:1;padding:0;color:#8A8A8E;cursor:pointer;width:44px;min-height:48px;display:inline-flex;align-items:center;justify-content:center" aria-label="Session options">···</button>'
           + '</div>'
         + '</summary>'
         + '<div class="history-session-body" style="padding:0 16px 12px;border-top:1px solid #1C1C1F">' + exRows + '</div>'

@@ -66,12 +66,12 @@
   border: none;
 }
 .history-session-header {
-  height: 64px !important;
+  height: auto !important;
   min-height: 64px !important;
   background: var(--surface) !important;
   border: 1px solid var(--hairline) !important;
   border-radius: var(--r-control) !important;
-  padding: 10px var(--spacing-16) !important;
+  padding: 10px 12px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
@@ -79,6 +79,7 @@
   list-style: none !important;
   user-select: none !important;
   box-sizing: border-box !important;
+  gap: 10px !important;
 }
 .history-session-header::-webkit-details-marker {
   display: none !important;
@@ -91,6 +92,12 @@
   align-items: center;
   color: var(--text-secondary);
   transition: transform var(--motion-normal);
+}
+
+@media (max-width: 370px) {
+  .hist-dur-part {
+    display: none !important;
+  }
 }
 
 /* ── Workout History: Exercise rows & unified set styling ── */
