@@ -52,8 +52,11 @@ export function renderGym() {
 
   var workoutIndex = curWorkout.workoutIndex;
   var session = curWorkout.session || (prog && prog[0]) || { label: 'Workout', exercises: [] };
-  var totalPlanned = sessionSetCount(session, rec);
-  var loggedTotal = (session.exercises || []).reduce(function (total, ex) {
+  var activeExercises = (session.exercises || []).filter(function (ex) {
+    return !(rec.skippedExercises && rec.skippedExercises[ex.id]);
+  });
+  var totalPlanned = sessionSetCount(Object.assign({}, session, { exercises: activeExercises }), rec);
+  var loggedTotal = activeExercises.reduce(function (total, ex) {
     var actualId = (rec.swaps && rec.swaps[ex.id]) || ex.id;
     return total + ((rec.workout || {})[actualId] || []).filter(Boolean).length;
   }, 0);
@@ -228,6 +231,13 @@ export function renderGym() {
     }
 
     // EXPANDED EXERCISE
+    if (rec.skippedExercises && rec.skippedExercises[ex.id]) {
+      return '<section class="gym-ex-skipped" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--surface);border:1px solid var(--hairline);border-radius:14px;margin-bottom:12px">'
+        + '<span style="font-size:15px;color:var(--text-muted);text-decoration:line-through">' + esc(ex.name) + ' (Skipped today)</span>'
+        + '<button type="button" class="btn-text-action unskip-ex-btn" data-unskip-exercise="' + ex.id + '" style="font-size:var(--fs-13);color:var(--lime);background:none;border:none;cursor:pointer;padding:0;font-weight:600">Undo</button>'
+      + '</section>';
+    }
+
     var plannedRows = Array.from({ length: visibleCount }, function (_, i) {
       var logged = sets[i], draft = drafts[i], last = lastSets[i];
       var isCalf = /calf|calves/i.test(ex.id) || /calf|calves/i.test(ex.name);
@@ -237,11 +247,8 @@ export function renderGym() {
       var valueRir = logged ? logged.rir : (draft ? draft.rir : (last ? last.rir : null));
 
       var usePrefill = !logged && !draft && !!last;
-      // Item 2: For calves, remove prefilled ~30kg from home logs, first set uses blank inputs with placeholder "kg"
       if (isCalf && usePrefill && (Number(valueW) === 30 || !valueW)) {
-        usePrefill = false;
-        valueW = '';
-        valueR = '';
+        usePrefill = false; valueW = ''; valueR = '';
       }
 
       var inputW = '';
@@ -260,29 +267,26 @@ export function renderGym() {
 
       var prefillW = (last && last.weight != null) ? (isBW ? 'BW' : String(last.weight)) : (usePrefill ? (valueW != null ? String(valueW) : '') : '');
       var prefillR = (last && last.reps != null) ? String(last.reps) : (usePrefill ? (valueR != null ? String(valueR) : '') : '');
-
       var hasValues = logged || (isBW ? (Number(inputR) > 0 || Number(prefillR) > 0) : ((Number(inputW) > 0 || Number(prefillW) > 0) && (Number(inputR) > 0 || Number(prefillR) > 0)));
 
-      // Item 2: Greyed last-time values as placeholder for each set (e.g. 35 kg x 10)
       var placeholderW = isBW ? 'BW' : (last && last.weight ? (last.weight + ' kg') : 'kg');
+      var displayPlaceholderW = placeholderW.replace(/\s*kg$/i, '');
       var placeholderR = (last && last.reps != null ? String(last.reps) : 'reps');
-
-      // Item 6: Tap-to-cycle RIR text: 3+ > 2 > 1 > F
+      var displayPlaceholderR = placeholderR.replace(/^reps$/i, '—');
       var rirDisplay = valueRir === 0 ? 'F' : (valueRir === 2 ? 'RIR 2' : (valueRir === 3 ? '3+' : 'RIR 1'));
 
-      // Item 1: Set tag field (set 2 has tag "rest-pause (15+5+5, 0 RIR)", extra sets have "extra")
       var tagHTML = '';
       if (i >= plannedCount) {
-        tagHTML = '<div style="display:flex;justify-content:space-between;align-items:center;padding-left:24px;margin-top:-2px;margin-bottom:6px"><span style="font-size:11px;color:#8A8A8E">extra</span><button type="button" class="btn-text-action" data-remove-extra-set="' + ex.id + '" data-set-index="' + i + '" style="font-size:11px;color:#55555A;background:none;border:none;padding:0;cursor:pointer">Remove</button></div>';
+        tagHTML = '<div style="display:flex;justify-content:space-between;align-items:center;padding-left:24px;margin-top:-2px;margin-bottom:6px"><span style="font-size:11px;color:var(--text-secondary)">extra</span><button type="button" class="btn-text-action" data-remove-extra-set="' + ex.id + '" data-set-index="' + i + '" style="font-size:11px;color:var(--text-muted);background:none;border:none;padding:0;cursor:pointer">Remove</button></div>';
       } else if (i === visibleCount - 1 && visibleCount > 1 && !logged) {
-        tagHTML = '<div style="display:flex;justify-content:flex-end;align-items:center;padding-left:24px;margin-top:-2px;margin-bottom:6px"><button type="button" class="btn-text-action" data-reduce-set="' + ex.id + '" style="font-size:11px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">− Remove set ' + (i + 1) + '</button></div>';
+        tagHTML = '<div style="display:flex;justify-content:flex-end;align-items:center;padding-left:24px;margin-top:-2px;margin-bottom:6px"><button type="button" class="btn-text-action" data-reduce-set="' + ex.id + '" style="font-size:11px;color:var(--text-secondary);background:none;border:none;padding:0;cursor:pointer">− Remove set ' + (i + 1) + '</button></div>';
       } else if (ex.setTags && ex.setTags[i]) {
-        tagHTML = '<div style="font-size:11px;color:#8A8A8E;padding-left:24px;margin-top:-2px;margin-bottom:6px">' + esc(ex.setTags[i]) + '</div>';
+        tagHTML = '<div style="font-size:11px;color:var(--text-secondary);padding-left:24px;margin-top:-2px;margin-bottom:6px">' + esc(ex.setTags[i]) + '</div>';
       }
 
-      var rowInner = '<span style="font-size:17px;font-weight:600;color:#8A8A8E;font-variant-numeric:tabular-nums;width:16px;text-align:right">' + (i + 1) + '</span>'
-        + '<input type="text" id="set_weight_' + ex.id + '_' + i + '" placeholder="' + placeholderW + '" class="precision-input set-weight ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillW + '" data-ex="' + ex.id + '" data-set-index="' + i + '" data-is-bw="' + (isBW ? '1' : '0') + '" value="' + inputW + '" inputmode="decimal" enterkeyhint="next">'
-        + '<input type="text" id="set_reps_' + ex.id + '_' + i + '" placeholder="' + placeholderR + '" class="precision-input set-reps ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillR + '" data-ex="' + ex.id + '" data-set-index="' + i + '" value="' + inputR + '" inputmode="numeric" enterkeyhint="next">'
+      var rowInner = '<span class="set-row-num" data-ex-id="' + ex.id + '" data-set-index="' + i + '" data-is-logged="' + (logged ? '1' : '0') + '" title="Long-press for options" style="font-size:17px;font-weight:600;color:var(--text-secondary);font-variant-numeric:tabular-nums;width:24px;text-align:center;cursor:pointer">' + (i + 1) + '</span>'
+        + '<input type="text" id="set_weight_' + ex.id + '_' + i + '" placeholder="' + displayPlaceholderW + '" class="precision-input set-weight ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillW + '" data-ex="' + ex.id + '" data-set-index="' + i + '" data-is-bw="' + (isBW ? '1' : '0') + '" value="' + inputW + '" inputmode="decimal" enterkeyhint="next">'
+        + '<input type="text" id="set_reps_' + ex.id + '_' + i + '" placeholder="' + displayPlaceholderR + '" class="precision-input set-reps ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillR + '" data-ex="' + ex.id + '" data-set-index="' + i + '" value="' + inputR + '" inputmode="numeric" enterkeyhint="next">'
         + '<button type="button" class="rir-cycle-text" data-cycle-rir="' + ex.id + '" data-set-index="' + i + '">' + rirDisplay + '</button>'
         + '<select class="set-rir" data-ex="' + ex.id + '" data-set-index="' + i + '" style="display:none"><option value="3" ' + (valueRir === 3 ? 'selected' : '') + '>3+</option><option value="2" ' + (valueRir === 2 ? 'selected' : '') + '>RIR 2</option><option value="1" ' + (valueRir === 1 || valueRir == null ? 'selected' : '') + '>RIR 1</option><option value="0" ' + (valueRir === 0 ? 'selected' : '') + '>F</option></select>'
         + '<button type="button" class="precision-circle-tap ' + (logged ? 'done' : 'btn-log') + '" ' + (logged ? ('data-quick-edit-logged="' + ex.id + '"') : ('data-logset="' + ex.id + '"')) + ' data-set-index="' + i + '" data-ex-name="' + esc(ex.name) + '" data-weight="' + (logged ? (logged.weight || 0) : '') + '" data-reps="' + (logged ? logged.reps : '') + '" data-rir="' + (logged && logged.rir != null ? logged.rir : '') + '" ' + (!logged && !hasValues ? 'disabled' : '') + ' aria-label="' + (logged ? 'Edit logged set' : 'Log set') + '">'
@@ -298,9 +302,10 @@ export function renderGym() {
       return wDisp + '×' + s.reps;
     }).join(', ') : '';
 
-    var metaLine = targetDisplay + (lastSetsStr ? ' · Last ' + lastSetsStr : '');
+    var metaLine = targetDisplay + (lastSetsStr ? ' · Last time: ' + lastSetsStr : '');
     var swapIconSVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>';
-    var swapBtn = '<button type="button" class="swap-btn" data-swap-orig="' + exOrig.id + '" data-swap-curr="' + ex.id + '" data-muscle="' + (ex.muscle || '') + '" title="Swap exercise" style="background:none;border:none;padding:4px;cursor:pointer;color:#8A8A8E;display:inline-flex;align-items:center;justify-content:center">' + swapIconSVG + '</button>';
+    var swapBtn = '<button type="button" class="swap-btn" data-swap-orig="' + exOrig.id + '" data-swap-curr="' + ex.id + '" data-muscle="' + (ex.muscle || '') + '" title="Swap exercise" style="background:none;border:none;padding:4px;cursor:pointer;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center">' + swapIconSVG + '</button>';
+    var skipBtn = '<button type="button" class="btn-text-action" data-skip-exercise="' + ex.id + '" data-ex-name="' + esc(ex.name) + '" title="Skip exercise today" style="color:var(--text-secondary);font-size:var(--fs-13);background:none;border:none;padding:0 4px;cursor:pointer">Skip today</button>';
 
     var curLoggedSets = ((rec.workout || {})[ex.id] || []).filter(Boolean);
     var bestWeight = lastSets.reduce(function (m, s) { return Math.max(m, Number(s.weight) || 0); }, 0);
@@ -309,33 +314,45 @@ export function renderGym() {
     if (lastSets.length > 0 && curLoggedSets.length > 0) {
       if (isBW) {
         var curTopR = curLoggedSets.reduce(function (m, s) { return Math.max(m, Number(s.reps) || 0); }, 0);
-        if (curTopR > bestReps && bestReps > 0) prStr = '<span style="font-size:11px;color:#C6F432;font-weight:600">' + curTopR + ' reps PR</span>';
+        if (curTopR > bestReps && bestReps > 0) prStr = '<span style="font-size:11px;color:var(--lime);font-weight:600">' + curTopR + ' reps PR</span>';
       } else {
         var curTopW = curLoggedSets.reduce(function (m, s) { return Math.max(m, Number(s.weight) || 0); }, 0);
-        if (curTopW > bestWeight && bestWeight > 0) prStr = '<span style="font-size:11px;color:#C6F432;font-weight:600">' + curTopW + ' kg PR</span>';
+        if (curTopW > bestWeight && bestWeight > 0) prStr = '<span style="font-size:11px;color:var(--lime);font-weight:600">' + curTopW + ' kg PR</span>';
       }
     }
 
-    // Item 3: "1 / 7" as an 11px text2 label above the name
-    return '<section class="gym-ex-section-expanded" id="exsec-' + ex.id + '" style="padding:16px 0 20px;border-bottom:1px solid #222">'
+    var catchupBadge = (!session.isFullBody && (ex.isCatchup || ex.source === 'catchup'))
+      ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--lime);margin-left:8px;vertical-align:middle"><span style="width:6px;height:6px;border-radius:50%;background:var(--lime);display:inline-block"></span>Catch-up</span>'
+      : '';
+
+    var colHeaders = '<div class="set-col-headers" style="display:flex;align-items:center;gap:var(--spacing-8);padding:0 0 6px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">'
+      + '<span style="width:24px;text-align:center">Set</span>'
+      + '<span style="flex:1;text-align:center">Kg</span>'
+      + '<span style="flex:1;text-align:center">Reps</span>'
+      + '<span style="min-width:48px;text-align:center">Rir</span>'
+      + '<span style="width:var(--tap-min)"></span>'
+      + '</div>';
+
+    return '<section class="gym-ex-section-expanded" id="exsec-' + ex.id + '" style="padding:16px 0 20px;border-bottom:1px solid var(--hairline)">'
       + '<div style="margin-bottom:16px">'
-      + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">' + (exIndex + 1) + ' / ' + totalExCount + '</div>'
+      + '<div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">' + (exIndex + 1) + ' / ' + totalExCount + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
-      + '<div style="font-size:28px;line-height:1.15;font-weight:600;color:#F5F5F4;flex:1;word-break:break-word">' + esc(ex.name) + (ex.isCatchup || ex.source === 'catchup' ? ' <span style="display:inline-block;font-size:11px;font-weight:600;color:#0B0B0C;background:#C6F432;border-radius:4px;padding:2px 6px;margin-left:8px;vertical-align:middle">Catch-up</span>' : '') + '</div>'
-      + '<div style="flex-shrink:0">' + swapBtn + '</div>'
+      + '<div style="font-size:28px;line-height:1.15;font-weight:600;color:var(--text);flex:1;word-break:break-word">' + esc(ex.name) + catchupBadge + '</div>'
+      + '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0">' + swapBtn + skipBtn + '</div>'
       + '</div>'
-      + '<div style="font-size:15px;color:#8A8A8E;margin-top:4px">' + esc(metaLine) + '</div>'
+      + '<div style="font-size:15px;color:var(--text-secondary);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + esc(metaLine) + '">' + esc(metaLine) + '</div>'
       + (prStr ? ('<div style="margin-top:4px">' + prStr + '</div>') : '')
       + '</div>'
+      + colHeaders
       + plannedRows
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 4px">'
       + '<div style="display:flex;align-items:center;gap:16px">'
-      + '<button type="button" class="btn-text-action" data-add-set="' + ex.id + '" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">+ Add set</button>'
-      + '<button type="button" class="btn-text-action" data-reduce-set="' + ex.id + '" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0;cursor:pointer">− Reduce set</button>'
+      + '<button type="button" class="btn-text-action" data-add-set="' + ex.id + '" style="color:var(--text);font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">+ Add set</button>'
+      + '<button type="button" class="btn-text-action" data-reduce-set="' + ex.id + '" style="color:var(--text-secondary);font-size:15px;background:none;border:none;padding:0;cursor:pointer">− Remove set</button>'
       + '</div>'
       + '</div>'
-      + '<div class="ex-cues-row" style="margin-top:8px;border-top:1px solid #1C1C1F;padding-top:8px">'
-      + '<button type="button" class="btn-text-action cue-toggle" data-cue-ex="' + ex.id + '" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:4px 0;cursor:pointer;display:flex;align-items:center;gap:4px"><span>Cues</span><span style="font-size:11px">▾</span></button>'
+      + '<div class="ex-cues-row">'
+      + '<button type="button" class="btn-text-action cue-toggle" data-cue-ex="' + ex.id + '" style="color:var(--text-secondary);font-size:15px;background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><span>Cues</span><span style="font-size:11px">▾</span></button>'
       + '<input type="text" class="precision-input ex-note-input" data-ex="' + ex.id + '" placeholder="Technique cue..." value="' + esc((profile && profile.exerciseNotes && profile.exerciseNotes[ex.id]) || '') + '" style="display:none;width:100%;margin-top:8px;text-align:left;padding:0 12px;font-size:15px">'
       + '</div>'
       + '</section>';
@@ -372,21 +389,4 @@ export function renderGym() {
   }
   attachCommonGymHeaderEvents();
   restoreScroll();
-}
-
-export function buildVolumeTable() {
-  var vData = getWeeklyVolume();
-  return '<div style="display:flex;flex-direction:column;gap:8px">'
-    + vData.map(function(v) {
-      var pct = Math.min(100, Math.round((v.sets / 20) * 100));
-      var inRange = v.sets >= 10 && v.sets <= 20;
-      return '<div style="padding:10px 0;border-bottom:1px solid #1C1C1F">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-          + '<span style="font-size:15px;font-weight:600;color:#F5F5F4">' + esc(v.muscle) + '</span>'
-          + '<span class="tabnum" style="font-size:11px;color:' + (inRange ? '#F5F5F4' : '#8A8A8E') + '">' + v.sets + ' / 10–20 sets</span>'
-        + '</div>'
-        + '<div class="prog-line"><div class="prog-line-fill' + (inRange ? ' lime' : '') + '" style="width:' + pct + '%"></div></div>'
-        + '</div>';
-    }).join('')
-    + '</div>';
 }

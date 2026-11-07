@@ -330,11 +330,11 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       var removedSet = (draftRec.workout && draftRec.workout[id]) ? draftRec.workout[id].splice(index, 1)[0] : null;
       saveDayRecord(key, draftRec, { silent: true }); renderGym();
       showUndoToast('Set removed', function() {
-        var restoreRec = dayRecord(key);
-        if (prevP != null) { restoreRec.exercisePlannedSets = restoreRec.exercisePlannedSets || {}; restoreRec.exercisePlannedSets[id] = prevP; }
-        if (removedDraft) { restoreRec.workoutDraft = restoreRec.workoutDraft || {}; restoreRec.workoutDraft[id] = restoreRec.workoutDraft[id] || []; restoreRec.workoutDraft[id].splice(index, 0, removedDraft); }
-        if (removedSet) { restoreRec.workout = restoreRec.workout || {}; restoreRec.workout[id] = restoreRec.workout[id] || []; restoreRec.workout[id].splice(index, 0, removedSet); }
-        saveDayRecord(key, restoreRec, { silent: true }); renderGym();
+        var r = dayRecord(key);
+        if (prevP != null) { r.exercisePlannedSets = r.exercisePlannedSets || {}; r.exercisePlannedSets[id] = prevP; }
+        if (removedDraft) { r.workoutDraft = r.workoutDraft || {}; (r.workoutDraft[id] = r.workoutDraft[id] || []).splice(index, 0, removedDraft); }
+        if (removedSet) { r.workout = r.workout || {}; (r.workout[id] = r.workout[id] || []).splice(index, 0, removedSet); }
+        saveDayRecord(key, r, { silent: true }); renderGym();
       });
     });
   });
@@ -357,6 +357,22 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
     btn.addEventListener('click', function() {
       var cur = dayRecord(key), id = btn.dataset.deleteSet, idx = parseInt(btn.dataset.setIndex, 10);
       if (cur.workout && cur.workout[id]) { cur.workout[id].splice(idx, 1); cur.workoutDone = false; saveDayRecord(key, cur); renderGym(); }
+    });
+  });
+
+  document.querySelectorAll('[data-skip-exercise]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var exId = btn.dataset.skipExercise, exName = btn.dataset.exName || 'Exercise', cur = dayRecord(key);
+      cur.skippedExercises = cur.skippedExercises || {}; cur.skippedExercises[exId] = true; saveDayRecord(key, cur); renderGym();
+      showUndoToast(exName + ' skipped today', function() { var r = dayRecord(key); if (r.skippedExercises) delete r.skippedExercises[exId]; saveDayRecord(key, r); renderGym(); });
+    });
+  });
+
+  document.querySelectorAll('[data-unskip-exercise]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var exId = btn.dataset.unskipExercise, cur = dayRecord(key);
+      if (cur.skippedExercises) delete cur.skippedExercises[exId];
+      saveDayRecord(key, cur); renderGym();
     });
   });
 

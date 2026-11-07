@@ -240,6 +240,7 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   padding: 0 var(--spacing-4) !important;
 }
 .precision-input::placeholder { color: var(--text3) !important; opacity: 1 !important; }
+.precision-input.prefill { color: var(--text3) !important; font-weight: 400 !important; }
 .precision-input:disabled { opacity: 0.75 !important; cursor: default !important; }
 .precision-input.muted-val { color: var(--text2) !important; }
 
@@ -274,8 +275,9 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   border-radius: var(--r-control) !important;
   padding: 0 !important;
 }
-.set-row-precision.is-done .precision-input { opacity: 0.65 !important; color: var(--text2) !important; }
-.set-row-precision.is-done .rir-cycle-text { opacity: 0.65 !important; }
+.set-row-precision.is-done { opacity: 0.75 !important; }
+.set-row-precision.is-done .precision-input { opacity: 0.8 !important; color: var(--text2) !important; }
+.set-row-precision.is-done .rir-cycle-text { opacity: 0.8 !important; }
 .precision-circle-tap {
   width: var(--tap-min) !important;
   height: var(--tap-min) !important;

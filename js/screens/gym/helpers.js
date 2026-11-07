@@ -7,6 +7,7 @@ import { todayKey, dateKey, daysBetween, allDayKeys, esc } from "../../lib/forma
 import { showToast } from "../../components/toast.js";
 import { openGymDateDaySheet } from "./session-sheet.js";
 import { openSplitManagerSheet } from "./plan-editor.js";
+import { getWeeklyVolume } from "../../lib/calc.js";
 
 function triggerRenderGym() {
   if (typeof window !== 'undefined') {
@@ -66,4 +67,21 @@ export function attachCommonGymHeaderEvents() {
   }
   var manageBtn = document.getElementById('manageSplitTopBtn');
   if (manageBtn) manageBtn.onclick = openSplitManagerSheet;
+}
+
+export function buildVolumeTable() {
+  var vData = getWeeklyVolume();
+  return '<div style="display:flex;flex-direction:column;gap:8px">'
+    + vData.map(function(v) {
+      var pct = Math.min(100, Math.round((v.sets / 20) * 100));
+      var inRange = v.sets >= 10 && v.sets <= 20;
+      return '<div style="padding:10px 0;border-bottom:1px solid var(--hairline)">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+          + '<span style="font-size:15px;font-weight:600;color:var(--text)">' + esc(v.muscle) + '</span>'
+          + '<span class="tabnum" style="font-size:11px;color:' + (inRange ? 'var(--text)' : 'var(--text-secondary)') + '">' + v.sets + ' / 10–20 sets</span>'
+        + '</div>'
+        + '<div class="prog-line"><div class="prog-line-fill' + (inRange ? ' lime' : '') + '" style="width:' + pct + '%"></div></div>'
+        + '</div>';
+    }).join('')
+    + '</div>';
 }
