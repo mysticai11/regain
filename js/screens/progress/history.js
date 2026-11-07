@@ -232,9 +232,9 @@ export function weightEntriesHTML(entries) {
     return '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222222">'
       + '<div><div class="tabnum" style="font-size:17px;font-weight:600;color:#F5F5F4;line-height:1.2">' + wStr + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span></div>'
       + '<div style="font-size:11px;color:#8A8A8E;letter-spacing:0.04em;text-transform:uppercase;margin-top:2px">' + esc(dateDisplay) + '</div></div>'
-      + '<div style="display:flex;align-items:center;gap:16px">'
-        + '<button type="button" class="btn-text-action" data-edit-weight="' + esc(e.id) + '" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:8px 0;cursor:pointer">Edit</button>'
-        + '<button type="button" class="btn-text-action" data-delete-weight="' + esc(e.id) + '" style="color:#FF4D4F;font-size:15px;background:none;border:none;padding:8px 0;cursor:pointer">Delete</button>'
+      + '<div style="display:flex;align-items:center;gap:12px">'
+        + '<button type="button" class="btn-text-action" data-edit-weight="' + esc(e.id) + '" style="color:#8A8A8E;font-size:15px;font-weight:500;background:none;border:none;padding:8px 6px;cursor:pointer;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center">Edit</button>'
+        + '<button type="button" class="btn-text-action" data-delete-weight="' + esc(e.id) + '" style="color:#FF4D4F;font-size:15px;font-weight:500;background:none;border:none;padding:8px 6px;cursor:pointer;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center">Delete</button>'
       + '</div></div>';
   }).join('');
   return '<div style="margin-top:24px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
