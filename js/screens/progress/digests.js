@@ -6,6 +6,7 @@ import { getDayTotals, getTargetsForDate } from "../../lib/calc.js";
 import { todayKey, dateKey, addDays, esc, daysBetween } from "../../lib/format.js";
 import { triggerHaptic } from "../../lib/dom.js";
 import { getWeightHistory, buildDotConsistencyCalendarHTML } from "./charts.js";
+import { workoutHistoryHTML } from "./history.js";
 
 export function buildMonthlyDigestHTML(year, month, bgColor) {
   var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -319,6 +320,7 @@ export function buildHistoryScreenHTML(historyTab) {
     + calendarHTML
     + tabsHTML
     + '<div id="historyDigestListContainer">' + listHTML + '</div>'
+    + '<div style="margin-top:24px"><div class="t-label" style="margin-bottom:12px">Logged Sessions</div>' + workoutHistoryHTML() + '</div>'
     + '</div>';
 }
 

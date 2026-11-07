@@ -280,20 +280,23 @@ export function weeklyVolumeChart() {
   var logged = getLoggedWeeklyVolume(), planned = getWeeklyVolume(), plannedByMuscle = {};
   planned.forEach(function(v){ plannedByMuscle[v.muscle] = v.sets; });
   var targetFloor = 10;
-  var rows = logged.map(function(v) {
+  var items = logged.map(function(v) {
     var target = plannedByMuscle[v.muscle] || targetFloor;
-    var pct = Math.min(100, Math.round(v.sets / target * 100)), isDone = v.sets >= target;
-    return '<div style="background:#141416;border-radius:10px;padding:8px 10px">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:600;margin-bottom:5px">'
-        + '<span style="color:#F5F5F4;letter-spacing:0.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(v.muscle) + '</span>'
-        + '<span class="tabnum" style="color:' + (isDone ? '#C6F432' : '#8A8A8E') + ';margin-left:6px">' + v.sets + ' / ' + target + '</span>'
+    return { muscle: v.muscle, sets: v.sets, target: target, pct: Math.min(100, Math.round(v.sets / target * 100)), isDone: v.sets >= target };
+  });
+  items.sort(function(a, b) { return a.isDone !== b.isDone ? (a.isDone ? 1 : -1) : (a.sets / a.target) - (b.sets / b.target); });
+  var rows = items.map(function(v) {
+    return '<div style="background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:10px 14px;margin-bottom:8px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:600;margin-bottom:6px">'
+        + '<span style="color:var(--text);letter-spacing:0.02em">' + esc(v.muscle) + '</span>'
+        + '<span class="tabnum" style="color:' + (v.isDone ? 'var(--lime)' : 'var(--text-secondary)') + '">' + v.sets + ' / ' + v.target + '</span>'
       + '</div>'
-      + '<div style="height:3px;background:#222;border-radius:2px;overflow:hidden">'
-        + '<div style="height:100%;background:' + (isDone ? '#C6F432' : '#8A8A8E') + ';width:' + pct + '%"></div>'
+      + '<div style="height:6px;background:var(--hairline);border-radius:9999px;overflow:hidden">'
+        + '<div style="height:100%;border-radius:9999px;background:' + (v.isDone ? 'var(--lime)' : 'var(--text-secondary)') + ';width:' + v.pct + '%"></div>'
       + '</div>'
       + '</div>';
   }).join('');
-  return '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">' + rows + '</div>';
+  return '<div style="display:flex;flex-direction:column">' + rows + '</div>';
 }
 
 export function nutritionProgressHTML(records) {
@@ -389,6 +392,3 @@ export function nutritionProgressHTML(records) {
 }
 
 export function buildWeeklyDigestHTML() { return ''; }
-
-
-// ─── Native Web Audio Synthesizer & Wake Lock ───

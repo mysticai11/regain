@@ -106,17 +106,14 @@ async function run() {
   assert.ok(!historyScreen.includes('id="weightPlot"'), 'History screen must NOT contain weightPlot');
   assert.ok(!historyScreen.includes('id="liftSelect"'), 'History screen must NOT contain liftSelect');
 
-  // Verify Lifts screen section ordering: History at top, Lift plot middle, Weekly work at bottom
-  const historyIdx = liftsScreen.indexOf('No completed workouts yet') !== -1
-    ? liftsScreen.indexOf('No completed workouts yet')
-    : liftsScreen.indexOf('WEEK ');
+  // Verify Lifts screen section ordering: workout history moved to History screen per Section 4.3; Lifts has Lift plot and Weekly work
+  assert.ok(!liftsScreen.includes('No completed workouts yet') && !liftsScreen.includes('Logged Sessions'), 'Workout history must NOT be on Lifts screen (moved to History per Section 4.3)');
+  assert.ok(historyScreen.includes('No completed workouts yet') || historyScreen.includes('WEEK ') || historyScreen.includes('Logged Sessions'), 'Workout history must be rendered on History screen');
   const liftPlotIdx = liftsScreen.indexOf('id="liftPlot"');
   const weeklyWorkIdx = liftsScreen.indexOf('Weekly work · Sets last 7 days');
 
-  assert.ok(historyIdx !== -1, 'Workout history must be rendered on Lifts screen');
   assert.ok(liftPlotIdx !== -1, 'Lift plot must be rendered on Lifts screen');
   assert.ok(weeklyWorkIdx !== -1, 'Weekly work must be rendered on Lifts screen');
-  assert.ok(historyIdx < liftPlotIdx, 'Workout history must be positioned above Lift progress chart');
   assert.ok(liftPlotIdx < weeklyWorkIdx, 'Weekly work must be positioned at the bottom below Lift progress chart');
 
   console.log('✓ Progress Screen Separation and Lifts Reordering verified with 100% success!');
