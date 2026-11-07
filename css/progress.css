@@ -282,4 +282,75 @@
   white-space: nowrap;
 }
 
+/* F5: Chart animations */
+@keyframes chartLineDraw {
+  0% { stroke-dashoffset: 600; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes pointPopIn {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pointFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes prMarkerPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.chart-line-poly {
+  stroke-dasharray: 600;
+  stroke-dashoffset: 0;
+}
+
+.anim-chart .chart-line-poly {
+  stroke-dashoffset: 600;
+  animation: chartLineDraw var(--dur-500) var(--ease-standard) forwards;
+}
+
+.anim-chart .chart-point-group {
+  opacity: 0;
+  transform: scale(0);
+  animation: pointPopIn var(--dur-150) var(--ease-standard) forwards;
+}
+
+.anim-chart .chart-point-group.chart-point-fade {
+  transform: none;
+  animation: pointFadeIn var(--dur-150) var(--ease-standard) 500ms forwards;
+}
+
+.anim-chart .chart-pr-marker {
+  animation: prMarkerPulse var(--dur-300) var(--ease-standard) 600ms forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-line-poly,
+  .anim-chart .chart-line-poly,
+  .chart-point-group,
+  .anim-chart .chart-point-group,
+  .anim-chart .chart-pr-marker {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+[data-motion-polish="false"] .chart-line-poly,
+[data-motion-polish="false"] .anim-chart .chart-line-poly,
+[data-motion-polish="false"] .chart-point-group,
+[data-motion-polish="false"] .anim-chart .chart-point-group,
+[data-motion-polish="false"] .anim-chart .chart-pr-marker {
+  animation: none !important;
+  stroke-dashoffset: 0 !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 

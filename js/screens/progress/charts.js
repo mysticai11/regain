@@ -152,8 +152,8 @@ export function progressPlot(values, goal, unit, isLift) {
     if (isLift) {
       if (idx === peakIndex || p.v.isPeak) {
         baseFill = '#C6F432';
-        extraDot = '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="6" fill="none" stroke="#C6F432" stroke-width="1.5"/>'
-          + '<text x="' + p.x.toFixed(1) + '" y="' + (p.y - 10).toFixed(1) + '" fill="#C6F432" font-size="11" font-weight="600" text-anchor="middle" font-family="Space Grotesk, sans-serif">PR</text>';
+        extraDot = '<g class="chart-pr-marker" style="transform-origin:' + p.x.toFixed(1) + 'px ' + p.y.toFixed(1) + 'px"><circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="6" fill="none" stroke="#C6F432" stroke-width="1.5"/>'
+          + '<text x="' + p.x.toFixed(1) + '" y="' + (p.y - 10).toFixed(1) + '" fill="#C6F432" font-size="11" font-weight="600" text-anchor="middle" font-family="Space Grotesk, sans-serif">PR</text></g>';
       } else if (p.v.isPR) {
         baseFill = '#C6F432';
         extraDot = '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="5" fill="none" stroke="#C6F432" stroke-width="1.2"/>';
@@ -164,7 +164,8 @@ export function progressPlot(values, goal, unit, isLift) {
       extraDot = '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="5" fill="none" stroke="#F5F5F4" stroke-width="1.5"/>';
     }
 
-    return '<g class="chart-point-group" data-idx="' + idx + '" data-id="' + esc(p.v.id || '') + '" data-val="' + Number(p.v.value).toFixed(1) + '" data-raw-val="' + displayWeight + '" data-unit="' + unitLabel + '" data-date="' + esc(dateLabel) + '" data-set-desc="' + esc(p.v.setDesc || '') + '" data-is-pr="' + (p.v.isPR ? 'true' : 'false') + '" data-avg="' + (p.v.avg != null ? Number(p.v.avg).toFixed(1) : '') + '">'
+    var delayStyle = values.length <= 20 ? ('style="animation-delay:' + (450 + idx * 40) + 'ms;transform-origin:' + p.x.toFixed(1) + 'px ' + p.y.toFixed(1) + 'px"') : ('style="transform-origin:' + p.x.toFixed(1) + 'px ' + p.y.toFixed(1) + 'px"');
+    return '<g class="chart-point-group' + (values.length > 20 ? ' chart-point-fade' : '') + '" ' + delayStyle + ' data-idx="' + idx + '" data-id="' + esc(p.v.id || '') + '" data-val="' + Number(p.v.value).toFixed(1) + '" data-raw-val="' + displayWeight + '" data-unit="' + unitLabel + '" data-date="' + esc(dateLabel) + '" data-set-desc="' + esc(p.v.setDesc || '') + '" data-is-pr="' + (p.v.isPR ? 'true' : 'false') + '" data-avg="' + (p.v.avg != null ? Number(p.v.avg).toFixed(1) : '') + '">'
       + '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="3" fill="' + baseFill + '" stroke="#0B0B0C" stroke-width="1.5"/>'
       + extraDot
       + '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="16" fill="transparent" style="cursor:pointer">'
@@ -201,7 +202,7 @@ export function progressPlot(values, goal, unit, isLift) {
     ? ('<span class="t-micro tabnum" style="color:var(--text-secondary)">' + values.length + ' ' + (values.length === 1 ? 'session' : 'sessions') + ' · ' + esc(deltaFormatted) + '</span>')
     : ('<span class="t-micro tabnum" style="color:var(--text-secondary)">' + values.length + ' ' + (values.length === 1 ? 'entry' : 'entries') + '</span>');
 
-  return '<div class="chart-container" id="' + chartId + '" style="margin-top:0;margin-bottom:12px;user-select:none">'
+  return '<div class="chart-container anim-chart" id="' + chartId + '" style="margin-top:0;margin-bottom:12px;user-select:none">'
     + '<div class="chart-header" style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'
       + headerLeftHTML
       + headerRightHTML
@@ -210,7 +211,7 @@ export function progressPlot(values, goal, unit, isLift) {
       + '<svg viewBox="0 0 340 120" style="width:100%;height:120px;overflow:hidden">'
         + guideLinesHTML
         + goalLineHTML
-        + (values.length > 1 ? '<polyline points="' + poly + '" fill="none" stroke="#F5F5F4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>' : '')
+        + (values.length > 1 ? '<polyline points="' + poly + '" class="chart-line-poly" fill="none" stroke="#F5F5F4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>' : '')
         + dots
         + '<line class="chart-scrub-line" x1="-10" y1="10" x2="-10" y2="110" stroke="#8A8A8E" stroke-width="1" stroke-dasharray="2 2" style="display:none"/>'
       + '</svg>'
