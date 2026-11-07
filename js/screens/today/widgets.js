@@ -359,12 +359,20 @@ export function bindBackupNudgeEvents(exportFn) {
 export function triggerTodayAnimations() {
   var heroNumEl = document.getElementById('todayHeroCalNum');
   if (heroNumEl) {
-    var hVal = heroNumEl.dataset ? heroNumEl.dataset.value : heroNumEl.getAttribute && heroNumEl.getAttribute('data-value');
+    var hVal = heroNumEl.dataset ? heroNumEl.dataset.value : (heroNumEl.getAttribute && heroNumEl.getAttribute('data-value'));
     animateNumber(heroNumEl, 0, parseInt(hVal, 10) || 0, { duration: 300, isTodayHero: true });
   }
   var protNumEl = document.getElementById('todayProtNum');
   if (protNumEl) {
-    var pVal = protNumEl.dataset ? protNumEl.dataset.value : protNumEl.getAttribute && protNumEl.getAttribute('data-value');
+    var pVal = protNumEl.dataset ? protNumEl.dataset.value : (protNumEl.getAttribute && protNumEl.getAttribute('data-value'));
     animateNumber(protNumEl, 0, parseInt(pVal, 10) || 0, { duration: 300, isTodayHero: true });
+  }
+  var cF = document.getElementById('todayCalFill');
+  if (cF && cF.style.transform && cF.style.transform.includes('scaleX(1') && !window._calSheenPlayed) {
+    window._calSheenPlayed = true; if (cF.parentElement) cF.parentElement.classList.add('sheen');
+  }
+  var pF = document.getElementById('todayProtFill');
+  if (pF && pF.style.transform && pF.style.transform.includes('scaleX(1') && !window._protSheenPlayed) {
+    window._protSheenPlayed = true; if (pF.parentElement) pF.parentElement.classList.add('sheen');
   }
 }

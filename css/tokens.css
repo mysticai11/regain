@@ -118,6 +118,7 @@
   --dur-300: 300ms;
   --dur-400: 400ms;
   --dur-500: 500ms;
+  --dur-600: 600ms;
   --dur-700: 700ms;
   --motion-normal: 150ms ease-out;
   --motion-smooth: 200ms var(--ease-m3);
