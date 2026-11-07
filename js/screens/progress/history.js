@@ -7,6 +7,7 @@ import { calcE1RM, getTargetsForDate, getLoggedWeeklyVolume, getWeeklyVolume } f
 import { esc, todayKey } from "../../lib/format.js";
 import { showToast } from "../../components/toast.js";
 import { triggerHaptic } from "../../lib/dom.js";
+import { confirmDialog, promptDialog } from "../../components/dialog.js";
 import { getWorkoutForDate } from "../gym/helpers.js";
 
 export function getResumeWorkoutCardHTML() {
@@ -242,14 +243,15 @@ export function weightEntriesHTML(entries) {
     + '<div style="max-height:360px;overflow-y:auto;padding-right:2px">' + rows + '</div></div>';
 }
 
-export function editWeightEntry(id) {
+export async function editWeightEntry(id) {
   var entries = (profile && Array.isArray(profile.weightEntries)) ? profile.weightEntries : [];
   var entry = entries.find(function(e){ return String(e.id) === String(id); });
   var curW = entry ? entry.weight : null;
   var dKey = (entry && entry.dayKey) || (typeof id === 'string' && id.startsWith('legacy_') ? id.replace('legacy_', '') : null);
   if (!curW && dKey) curW = (dayRecord(dKey) || {}).weight;
   if (curW == null) return;
-  var val = prompt('Bodyweight in kg', curW); if (val === null) return;
+  var val = await promptDialog({ title: 'Edit Bodyweight', message: 'Enter bodyweight in kg:', defaultValue: curW, inputType: 'number', confirmLabel: 'Save' });
+  if (val === null) return;
   var w = parseFloat(val); if (!w || isNaN(w) || w < 20 || w > 300) { showToast('Enter a valid weight', 'warn'); return; }
   if (entry) { entry.weight = w; }
   else if (dKey) { profile.weightEntries = profile.weightEntries || []; profile.weightEntries.push({ id: id, dayKey: dKey, weight: w, createdAt: dKey + 'T12:00:00' }); }
@@ -258,18 +260,23 @@ export function editWeightEntry(id) {
   if (typeof window.renderProgressSimple === 'function') window.renderProgressSimple();
 }
 
-export function deleteWeightEntry(id) {
-  if (!confirm('Delete this weight entry?')) return;
-  var entries = (profile && profile.weightEntries) || [];
-  var target = entries.find(function(e){ return String(e.id) === String(id); });
-  profile.weightEntries = entries.filter(function(e){ return String(e.id) !== String(id); });
-  var dKey = (target && target.dayKey) || (typeof id === 'string' && id.startsWith('legacy_') ? id.replace('legacy_', '') : null);
-  if (dKey) {
-    var sameDay = profile.weightEntries.filter(function(e){ return e.dayKey === dKey; }).sort(function(a,b){ return String(a.createdAt).localeCompare(String(b.createdAt)); });
-    var rec = dayRecord(dKey); rec.weight = sameDay.length ? sameDay[sameDay.length - 1].weight : null; saveDayRecord(dKey, rec);
+export function deleteWeightEntry(id, skipConfirm) {
+  var doDelete = function() {
+    var entries = (profile && profile.weightEntries) || [];
+    var target = entries.find(function(e){ return String(e.id) === String(id); });
+    profile.weightEntries = entries.filter(function(e){ return String(e.id) !== String(id); });
+    var dKey = (target && target.dayKey) || (typeof id === 'string' && id.startsWith('legacy_') ? id.replace('legacy_', '') : null);
+    if (dKey) {
+      var sameDay = profile.weightEntries.filter(function(e){ return e.dayKey === dKey; }).sort(function(a,b){ return String(a.createdAt).localeCompare(String(b.createdAt)); });
+      var rec = dayRecord(dKey); rec.weight = sameDay.length ? sameDay[sameDay.length - 1].weight : null; saveDayRecord(dKey, rec);
+    }
+    sv('rg_profile', profile); triggerHaptic(); showToast('Weight log deleted', 'ok');
+    if (typeof window.renderProgressSimple === 'function') window.renderProgressSimple();
+  };
+  if (skipConfirm || (typeof process !== 'undefined' && typeof confirm === 'function' && confirm())) {
+    doDelete(); return Promise.resolve(true);
   }
-  sv('rg_profile', profile); triggerHaptic(); showToast('Weight log deleted', 'ok');
-  if (typeof window.renderProgressSimple === 'function') window.renderProgressSimple();
+  return confirmDialog({ title: 'Delete Weight Log?', message: 'Are you sure you want to delete this weight entry?', confirmLabel: 'Delete', destructive: true }).then(function(ok) { if (ok) doDelete(); return ok; });
 }
 
 export function weeklyVolumeChart() {

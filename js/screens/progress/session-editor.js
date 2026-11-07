@@ -4,6 +4,7 @@ import { dayRecord, saveDayRecord, sv } from "../../storage.js";
 import { workoutSessionStore, saveWorkoutSession, getWorkoutSessions, WORKOUT_SESSIONS_KEY } from "../../storage-sessions.js";
 import { openActionMenuSheet } from "../../components/sheet.js";
 import { showToast, showUndoToast } from "../../components/toast.js";
+import { confirmDialog } from "../../components/dialog.js";
 import { esc, todayKey } from "../../lib/format.js";
 import { getExerciseData, isBodyweightExercise } from "../../data/plan.js";
 
@@ -57,14 +58,20 @@ export function duplicateSessionToToday(sessionId) {
   if (typeof window.renderProgressSimple === 'function') window.renderProgressSimple();
 }
 
-export function deleteSessionWithUndo(sessionId) {
+export async function deleteSessionWithUndo(sessionId) {
   var store = workoutSessionStore();
   var session = store.sessions[sessionId];
   if (!session) return;
   var label = session.programLabel || session.sessionLabel || 'Workout';
   var dateStr = session.dayKey || 'recorded date';
 
-  if (!confirm('Are you sure you want to delete "' + label + '" on ' + dateStr + '?')) return;
+  var ok = await confirmDialog({
+    title: 'Delete Session?',
+    message: 'Are you sure you want to delete "' + label + '" on ' + dateStr + '?',
+    confirmLabel: 'Delete Session',
+    destructive: true
+  });
+  if (!ok) return;
 
   var backupSession = JSON.parse(JSON.stringify(session));
   var backupDayRec = session.dayKey ? JSON.parse(JSON.stringify(dayRecord(session.dayKey))) : null;

@@ -3,6 +3,7 @@
 import { dayRecord, saveDayRecord } from "../../storage.js";
 import { triggerHaptic } from "../../lib/dom.js";
 import { showToast, showUndoToast } from "../../components/toast.js";
+import { confirmDialog } from "../../components/dialog.js";
 import { renderGym } from "../gym.js";
 
 export function renderSetRowWrap(innerHtml, exId, setIndex, isDone) {
@@ -51,9 +52,17 @@ export function openSetActionMenu(dayKey, exId, setIndex, isLogged) {
     showToast('Set ' + (setIndex + 1) + ' duplicated', 'ok');
   };
 
-  overlay.querySelector('#actionDelSet').onclick = function() {
+  overlay.querySelector('#actionDelSet').onclick = async function() {
     overlay.remove();
-    if (isLogged && !confirm('Delete logged set ' + (setIndex + 1) + '?')) return;
+    if (isLogged) {
+      var ok = await confirmDialog({
+        title: 'Delete Logged Set ' + (setIndex + 1) + '?',
+        message: 'Are you sure you want to delete logged set ' + (setIndex + 1) + '?',
+        confirmLabel: 'Delete Set',
+        destructive: true
+      });
+      if (!ok) return;
+    }
     var curRec = dayRecord(dayKey);
     var prevPlanned = (curRec.exercisePlannedSets && curRec.exercisePlannedSets[exId] != null) ? curRec.exercisePlannedSets[exId] : null;
     var curTotal = (curRec.exercisePlannedSets && curRec.exercisePlannedSets[exId]) || 2;
@@ -150,7 +159,7 @@ export function attachSetRowSwipeHandlers(key) {
       }
     };
 
-    var endDrag = function(e) {
+    var endDrag = async function(e) {
       if (!startTime) return;
       if (axisLocked === 'h') {
         if (e.stopPropagation) e.stopPropagation();
@@ -164,7 +173,13 @@ export function attachSetRowSwipeHandlers(key) {
           var curRec = dayRecord(key);
           var isLogged = curRec.workout && curRec.workout[exId] && curRec.workout[exId][setIndex];
           if (isLogged) {
-            if (!confirm('Delete logged set ' + (setIndex + 1) + '?')) {
+            var ok = await confirmDialog({
+              title: 'Delete Logged Set ' + (setIndex + 1) + '?',
+              message: 'Are you sure you want to delete logged set ' + (setIndex + 1) + '?',
+              confirmLabel: 'Delete Set',
+              destructive: true
+            });
+            if (!ok) {
               row.style.transition = prefersReduced ? 'none' : 'transform 200ms cubic-bezier(0.16, 1, 0.3, 1)';
               row.style.transform = 'translateX(0)';
               if (trash) trash.style.transform = 'scale(0.6)';

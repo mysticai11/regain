@@ -458,6 +458,21 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   to { opacity: 1; }
 }
 
+@keyframes overlayFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes dialogPopIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes dialogPopOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.92); }
+}
+
 @keyframes sheetSlideUp {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
@@ -501,6 +516,105 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
 }
 .sheet-handle { width: 32px; height: 4px; background: var(--hairline); border-radius: var(--r-full); margin: 0 auto var(--spacing-16); }
 .sheet-title { font-size: var(--fs-28); font-weight: 600; color: var(--text); line-height: 1.15; }
+
+/* ── In-App Material Dialog (U1) ── */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: var(--screen-margin);
+  box-sizing: border-box;
+  animation: overlayFadeIn var(--dur-200) var(--ease-standard) forwards;
+}
+.dialog-overlay.is-closing {
+  animation: overlayFadeOut var(--dur-200) var(--ease-standard) forwards;
+}
+.dialog-surface {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sheet);
+  padding: var(--spacing-24);
+  max-width: 400px;
+  width: 100%;
+  box-sizing: border-box;
+  animation: dialogPopIn var(--dur-200) var(--ease-standard) forwards;
+  will-change: transform, opacity;
+}
+.dialog-overlay.is-closing .dialog-surface {
+  animation: dialogPopOut var(--dur-200) var(--ease-standard) forwards;
+}
+.dialog-title {
+  font-size: var(--fs-title);
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+  margin: 0;
+}
+.dialog-message {
+  font-size: var(--fs-15);
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin-top: var(--spacing-12);
+  margin-bottom: 0;
+  word-break: break-word;
+}
+.dialog-input {
+  width: 100%;
+  height: 48px;
+  min-height: 48px;
+  margin-top: var(--spacing-16);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-control);
+  color: var(--text);
+  font-size: var(--fs-17);
+  font-family: inherit;
+  padding: 0 var(--spacing-16);
+  box-sizing: border-box;
+  outline: none;
+}
+.dialog-input:focus {
+  border-color: var(--lime);
+}
+.dialog-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-12);
+  margin-top: var(--spacing-24);
+}
+.dialog-action-btn {
+  background: none;
+  border: none;
+  min-height: var(--tap-min);
+  min-width: var(--tap-min);
+  padding: 0 var(--spacing-12);
+  font-size: var(--fs-15);
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-control);
+  transition: opacity var(--dur-80) var(--ease-standard);
+}
+.dialog-action-btn:active {
+  opacity: 0.7;
+}
+.dialog-action-cancel {
+  color: var(--text-secondary);
+}
+.dialog-action-confirm.is-destructive {
+  color: var(--danger);
+}
+.dialog-action-confirm:not(.is-destructive) {
+  color: var(--lime);
+}
 
 /* ── Toast / Snackbar Notifications (Native Android position above bottom nav) ── */
 .toast-wrap {

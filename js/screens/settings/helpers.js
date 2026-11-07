@@ -2,6 +2,7 @@
 
 import { esc } from "../../lib/format.js";
 import { triggerHaptic } from "../../lib/dom.js";
+import { confirmDialog } from "../../components/dialog.js";
 
 export function renderSwitchHTML(id, isActive, ariaLabel) {
   var trackBg = isActive ? 'var(--lime)' : 'var(--surface-raised)';
@@ -63,7 +64,7 @@ export function bindResetAction(overlay, resetAllData, showToast) {
   if (!resetBtn) return;
   var armed = false;
   var resetTimer = null;
-  resetBtn.addEventListener('click', function() {
+  resetBtn.addEventListener('click', async function() {
     var executeReset = function() {
       resetBtn.disabled = true;
       resetBtn.textContent = 'Resetting…';
@@ -84,7 +85,12 @@ export function bindResetAction(overlay, resetAllData, showToast) {
 
     var confirmed = false;
     try {
-      confirmed = confirm('This will delete all Regain data on this device. Are you sure?');
+      confirmed = await confirmDialog({
+        title: 'Wipe All Data?',
+        message: 'This will delete all Regain data on this device. Are you sure?',
+        confirmLabel: 'Wipe All Data',
+        destructive: true
+      });
     } catch (e) {
       confirmed = false;
     }

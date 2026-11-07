@@ -4,6 +4,7 @@ import { dayRecord, saveDayRecord, getWorkoutSession, saveWorkoutSession, delete
 import { getExerciseData } from "../../data/plan.js";
 import { esc, todayKey } from "../../lib/format.js";
 import { showToast } from "../../components/toast.js";
+import { confirmDialog, promptDialog } from "../../components/dialog.js";
 
 export function openEditWorkoutSheet(sessionId) {
   var store = workoutSessionStore();
@@ -224,10 +225,16 @@ export function openEditWorkoutSheet(sessionId) {
     });
 
     overlay.querySelectorAll('[data-remove-ex-idx]').forEach(function(btn) {
-      btn.onclick = function() {
+      btn.onclick = async function() {
         captureCurrentInputs();
         var eI = parseInt(btn.dataset.removeExIdx, 10);
-        if (confirm('Remove ' + currentExercises[eI].name + ' from this workout?')) {
+        var ok = await confirmDialog({
+          title: 'Remove Exercise?',
+          message: 'Remove ' + currentExercises[eI].name + ' from this workout?',
+          confirmLabel: 'Remove',
+          destructive: true
+        });
+        if (ok) {
           currentExercises.splice(eI, 1);
           renderModalBody();
         }
@@ -248,10 +255,15 @@ export function openEditWorkoutSheet(sessionId) {
 
     var addExBtn = overlay.querySelector('#addExToWorkoutBtn');
     if (addExBtn) {
-      addExBtn.onclick = function() {
+      addExBtn.onclick = async function() {
         captureCurrentInputs();
         var allEx = Object.keys(EXERCISE_LIBRARY || {}).map(function(k){ return EXERCISE_LIBRARY[k]; });
-        var chosenName = prompt('Enter exercise name to add:\n(e.g. Barbell Squat, Pull-ups, Lateral Raises)');
+        var chosenName = await promptDialog({
+          title: 'Add Exercise',
+          message: 'Enter exercise name to add (e.g. Barbell Squat, Pull-ups, Lateral Raises):',
+          placeholder: 'Exercise name',
+          confirmLabel: 'Add'
+        });
         if (!chosenName || !chosenName.trim()) return;
         chosenName = chosenName.trim();
         var found = allEx.find(function(e){ return e.name.toLowerCase() === chosenName.toLowerCase(); });

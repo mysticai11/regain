@@ -10,6 +10,7 @@ import { playSound, triggerHaptic } from "../../lib/dom.js";
 import { showToast, showUndoToast } from "../../components/toast.js";
 import { openSheet, openActionMenuSheet } from "../../components/sheet.js";
 import { openQuickEditSetModal } from "../../components/quick-edit-modal.js";
+import { confirmDialog } from "../../components/dialog.js";
 import { renderGym, buildVolumeTable } from "../gym.js";
 import { chooseWorkoutForDate } from "./session-sheet.js";
 import { openSwapSheet, openPlateCalculator } from "./swap.js";
@@ -35,8 +36,14 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
   if (editRoutineBtn) editRoutineBtn.addEventListener('click', openCustomRoutineManager);
 
   document.querySelectorAll('.remove-routine-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      if (!confirm('Remove this exercise from today\'s routine?')) return;
+    btn.addEventListener('click', async function() {
+      var ok = await confirmDialog({
+        title: 'Remove Exercise?',
+        message: 'Remove this exercise from today\'s routine?',
+        confirmLabel: 'Remove',
+        destructive: true
+      });
+      if (!ok) return;
       var day = new Date(key + 'T00:00:00').getDay();
       profile.customRoutines = profile.customRoutines || {};
       profile.customRoutines[day] = (profile.customRoutines[day] || []).filter(function(ex) { return ex.id !== btn.dataset.exid; });
@@ -383,13 +390,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
     btn.addEventListener('click', function() {
       var cur = dayRecord(key), id = btn.dataset.editSet, idx = parseInt(btn.dataset.setIndex, 10), set = cur.workout && cur.workout[id] && cur.workout[id][idx];
       if (!set) return;
-      var wStr = prompt('Weight (kg)', set.weight), rStr = prompt('Reps', set.reps), rirStr = prompt('RIR (0 = failure, blank = not logged)', set.rir === 0 ? '0' : (set.rir == null ? '' : set.rir));
-      if (wStr === null || rStr === null || rirStr === null) return;
-      var w = parseFloat(wStr), r = parseInt(rStr, 10);
-      if (!w || !r || w <= 0 || r <= 0) { showToast('Enter valid weight and reps', 'warn'); return; }
-      var rir = rirStr.trim() === '' ? null : parseInt(rirStr, 10);
-      if (rir !== null && (isNaN(rir) || rir < 0 || rir > 3)) { showToast('RIR must be blank or 0 to 3', 'warn'); return; }
-      cur.workout[id][idx] = { weight: w, reps: r, rir: rir }; saveDayRecord(key, cur); renderGym();
+      openQuickEditSetModal({ context: 'gym', dayKey: key, exId: id, setIndex: idx, weight: set.weight, reps: set.reps, rir: set.rir });
     });
   });
 

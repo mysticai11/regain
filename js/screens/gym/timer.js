@@ -8,6 +8,7 @@ import { formatDuration, pad, esc } from "../../lib/format.js";
 import { playSound, triggerHaptic, requestWakeLock, releaseWakeLock } from "../../lib/dom.js";
 import { showToast } from "../../components/toast.js";
 import { openActionMenuSheet, openSheet } from "../../components/sheet.js";
+import { confirmDialog, promptDialog } from "../../components/dialog.js";
 import { showWorkoutCelebrationModal } from "./session-sheet.js";
 import { openEditWorkoutSheet } from "./edit-workout.js";
 
@@ -140,19 +141,19 @@ export function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
         {
           label: 'Reset timer',
           destructive: true,
-          action: function() {
-            if (confirm('Reset timer to 0:00? (Logged sets will be kept)')) {
-              var r = dayRecord(dayKey);
-              var m = getSessionMeta(r, programDayIndex);
-              m.startedAt = null;
-              m.pausedAt = null;
-              m.accumulatedPausedMs = 0;
-              m.completedAt = null;
-              m.durationMinutes = 0;
+          action: async function() {
+            var ok = await confirmDialog({
+              title: 'Reset Timer?',
+              message: 'Reset timer to 0:00? (Logged sets will be kept)',
+              confirmLabel: 'Reset Timer',
+              destructive: true
+            });
+            if (ok) {
+              var r = dayRecord(dayKey), m = getSessionMeta(r, programDayIndex);
+              m.startedAt = null; m.pausedAt = null; m.accumulatedPausedMs = 0; m.completedAt = null; m.durationMinutes = 0;
               saveDayRecord(dayKey, r);
               if (workoutTimer.interval) clearInterval(workoutTimer.interval);
-              releaseWakeLock();
-              renderWorkoutTimer(dayKey, r, session, programDayIndex);
+              releaseWakeLock(); renderWorkoutTimer(dayKey, r, session, programDayIndex);
               showToast('Timer reset', 'ok');
             }
           }
@@ -369,22 +370,18 @@ export function endWorkoutSession(dayKey, programDayIndex, session, manualMinute
   releaseWakeLock();
 }
 
-export function setManualSessionDuration(dayKey, session, programDayIndex) {
+export async function setManualSessionDuration(dayKey, session, programDayIndex) {
   var rec = dayRecord(dayKey), meta = getSessionMeta(rec, programDayIndex);
   meta.sessionLabel = meta.sessionLabel || session.label;
   var current = meta.durationMinutes || Math.round(getSessionElapsedSeconds(meta) / 60) || '';
-  var value = prompt('Total session time in minutes', String(current));
+  var value = await promptDialog({ title: 'Session Duration', message: 'Total session time in minutes:', defaultValue: String(current), inputType: 'number', confirmLabel: 'Set Time' });
   if (value === null) return;
   var minutes = Number(value);
-  if (!Number.isFinite(minutes) || minutes < 1 || minutes > 1440) {
-    showToast('Enter a duration from 1 to 1440 minutes', 'warn'); return;
-  }
-  meta.durationMinutes = Math.round(minutes); meta.duration_sec = meta.durationMinutes * 60;
-  meta.sessionLabel = session.label;
+  if (!Number.isFinite(minutes) || minutes < 1 || minutes > 1440) { showToast('Enter a duration from 1 to 1440 minutes', 'warn'); return; }
+  meta.durationMinutes = Math.round(minutes); meta.duration_sec = meta.durationMinutes * 60; meta.sessionLabel = session.label;
   if (!meta.startedAt) meta.completedAt = meta.completedAt || new Date().toISOString();
   meta.updatedAt = new Date().toISOString(); saveDayRecord(dayKey, rec);
-  showToast('Session time saved', 'ok');
-  if (typeof window.renderGym === 'function') window.renderGym();
+  showToast('Session time saved', 'ok'); if (typeof window.renderGym === 'function') window.renderGym();
 }
 
 if (typeof document !== 'undefined' && typeof document.addEventListener === 'function' && typeof window !== 'undefined' && !window._wakeLockVisibilityBound) {

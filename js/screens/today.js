@@ -8,6 +8,7 @@ import { todayKey, dateKey, addDays, esc, currentWeight, formatDuration } from "
 import { getTargetsForDate, getDayTotals, getWeeklyVolume, getLoggedWeeklyVolume, computeStreak, yesterdayMissed, foodMacros, addRecent } from "../lib/calc.js";
 import { playSound, triggerHaptic, ic, showFoodAddedChip } from "../lib/dom.js";
 import { showToast, showUndoToast } from "../components/toast.js";
+import { confirmDialog } from "../components/dialog.js";
 import { buildGauge, statusPill, macroBar } from "../components/gauge.js";
 import { openFoodSearch, openCustomFoodBuilder, openRecipeBuilder, openCustomFoodsManager, openMealEditor, openEditItemSheet } from "./today/food-modal.js";
 import { addQuickFood, getStaplesShelfHTML, getMergedStaples, openPortionSheet, buildWeekDotRowHTML, openWorkoutOverrideSheet, buildCalRingHTML, buildWeightTrendChip, buildBackupNudgeHTML, bindBackupNudgeEvents, triggerTodayAnimations } from "./today/widgets.js";
@@ -206,8 +207,9 @@ export function renderTodaySimple() {
   var todayWeightInput = document.getElementById('todayWeight');
   var saveTodayWeight = document.getElementById('saveTodayWeight');
   var deleteTodayWeightBtn = document.getElementById('deleteTodayWeightBtn');
-  var clearTodayWeight = function() {
-    if (!confirm("Clear weight log (" + rec.weight + " kg)?")) return;
+  var clearTodayWeight = async function() {
+    var ok = await confirmDialog({ title: 'Clear Weight Log?', message: "Clear weight log (" + rec.weight + " kg)?", confirmLabel: 'Clear Log', destructive: true });
+    if (!ok) return;
     rec.weight = null; saveDayRecord(activeDateKey, rec);
     if (profile.weightEntries) { profile.weightEntries = profile.weightEntries.filter(function(e){ return e.dayKey !== activeDateKey; }); sv('rg_profile', profile); }
     triggerHaptic(); showToast('Weight log cleared', 'ok'); renderTodaySimple();

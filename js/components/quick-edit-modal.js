@@ -6,6 +6,7 @@ import { isBodyweightExercise } from "../data/plan.js";
 import { esc, todayKey } from "../lib/format.js";
 import { showToast } from "./toast.js";
 import { triggerHaptic } from "../lib/dom.js";
+import { confirmDialog } from "./dialog.js";
 
 export function openQuickEditSetModal(options) {
   // options: { context: 'history'|'gym', sessionId, dayKey, exId, exName, setIndex, weight, reps, rir }
@@ -152,8 +153,14 @@ export function openQuickEditSetModal(options) {
     rInp.oninput = function() { curR = parseInt(rInp.value, 10) || 1; };
 
     // Delete set
-    overlay.querySelector('#quickDeleteSetBtn').onclick = function() {
-      if (!confirm('Delete Set ' + (options.setIndex + 1) + ' of ' + (options.exName || 'this exercise') + '?')) return;
+    overlay.querySelector('#quickDeleteSetBtn').onclick = async function() {
+      var ok = await confirmDialog({
+        title: 'Delete Set ' + (options.setIndex + 1) + '?',
+        message: 'Are you sure you want to delete Set ' + (options.setIndex + 1) + ' of ' + (options.exName || 'this exercise') + '?',
+        confirmLabel: 'Delete Set',
+        destructive: true
+      });
+      if (!ok) return;
       if (options.context === 'history') {
         var store = workoutSessionStore();
         var session = store.sessions[options.sessionId];

@@ -2,6 +2,7 @@
 
 import { ls, sv, dayRecord, saveDayRecord, SQLiteStorage } from "./storage.js";
 import { showToast } from "./components/toast.js";
+import { confirmDialog } from "./components/dialog.js";
 import { getExerciseData, getActiveProgram } from "./data/plan.js";
 import { getWeekOverrides } from "./storage-catchup.js";
 
@@ -237,48 +238,62 @@ export function migrateWorkoutSessions() {
   sv(WORKOUT_SESSIONS_KEY, store);
 }
 
-export function deleteWorkoutSession(sessionId) {
+export function deleteWorkoutSession(sessionId, skipConfirm) {
   var store = workoutSessionStore();
   var session = store.sessions[sessionId];
   if (!session) {
     showToast('Session not found', 'warn');
-    return;
+    return Promise.resolve(false);
   }
   var label = session.programLabel || session.sessionLabel || 'Workout';
   var dateStr = session.dayKey || 'recorded date';
-  if (!confirm('Are you sure you want to delete "' + label + '" on ' + dateStr + '?\n\nThis will remove all logged sets for this workout.')) {
-    return;
-  }
 
-  delete store.sessions[sessionId];
-  sv(WORKOUT_SESSIONS_KEY, store);
+  var doDelete = function() {
+    delete store.sessions[sessionId];
+    sv(WORKOUT_SESSIONS_KEY, store);
 
-  if (session.dayKey) {
-    var rec = dayRecord(session.dayKey);
-    if (session.exercises && Array.isArray(session.exercises)) {
-      session.exercises.forEach(function (ex) {
-        if (rec.workout && rec.workout[ex.id]) {
-          delete rec.workout[ex.id];
-        }
+    if (session.dayKey) {
+      var rec = dayRecord(session.dayKey);
+      if (session.exercises && Array.isArray(session.exercises)) {
+        session.exercises.forEach(function (ex) {
+          if (rec.workout && rec.workout[ex.id]) {
+            delete rec.workout[ex.id];
+          }
+        });
+      }
+      if (rec.workoutMetaBySession && rec.workoutMetaBySession[String(session.programDay)]) {
+        delete rec.workoutMetaBySession[String(session.programDay)];
+      }
+      var hasRemaining = Object.keys(rec.workout || {}).some(function (k) {
+        return (rec.workout[k] || []).some(Boolean);
       });
+      if (!hasRemaining) {
+        rec.workoutDone = false;
+        rec.workout = {};
+        delete rec.isMerged;
+        delete rec.catchupFrom;
+      }
+      saveDayRecord(session.dayKey, rec);
     }
-    if (rec.workoutMetaBySession && rec.workoutMetaBySession[String(session.programDay)]) {
-      delete rec.workoutMetaBySession[String(session.programDay)];
-    }
-    var hasRemaining = Object.keys(rec.workout || {}).some(function (k) {
-      return (rec.workout[k] || []).some(Boolean);
-    });
-    if (!hasRemaining) {
-      rec.workoutDone = false;
-      rec.workout = {};
-      delete rec.isMerged;
-      delete rec.catchupFrom;
-    }
-    saveDayRecord(session.dayKey, rec);
+
+    showToast('Workout deleted successfully', 'ok');
+    var activeNav = document.querySelector('.nav-btn.active');
+    if (activeNav && activeNav.id === 'navHistory') renderHistory();
+    else if (typeof renderProgressSimple === 'function') renderProgressSimple('lifts');
+    return true;
+  };
+
+  if (skipConfirm || (typeof process !== 'undefined' && typeof confirm === 'function' && confirm())) {
+    return Promise.resolve(doDelete());
   }
 
-  showToast('Workout deleted successfully', 'ok');
-  var activeNav = document.querySelector('.nav-btn.active');
-  if (activeNav && activeNav.id === 'navHistory') renderHistory();
-  else renderProgressSimple('lifts');
+  return confirmDialog({
+    title: 'Delete Session?',
+    message: 'Are you sure you want to delete "' + label + '" on ' + dateStr + '?\n\nThis will remove all logged sets for this workout.',
+    confirmLabel: 'Delete Session',
+    destructive: true
+  }).then(function(ok) {
+    if (ok) return doDelete();
+    return false;
+  });
 }

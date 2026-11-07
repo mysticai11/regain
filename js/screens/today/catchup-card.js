@@ -8,6 +8,7 @@ import { dayRecord, saveDayRecord, allDayKeys } from "../../storage.js";
 import { todayKey, esc } from "../../lib/format.js";
 import { triggerHaptic } from "../../lib/dom.js";
 import { showToast, showUndoToast } from "../../components/toast.js";
+import { confirmDialog } from "../../components/dialog.js";
 import { setTab } from "../../state.js";
 
 export function buildCatchupCardHTML(currentDateKey) {
@@ -112,11 +113,17 @@ export function bindCatchupCardEvents(container, refreshCallback) {
 
   var reviewBtn = container.querySelector('#catchupReviewPlanBtn');
   if (reviewBtn) {
-    reviewBtn.onclick = function() {
+    reviewBtn.onclick = async function() {
       var tKey = todayKey(), decisions = getCatchupDecisions(), weekDays = getWeekDays(tKey);
       var appliedDate = weekDays.find(function(d) { return decisions[d] === 'spread' || decisions[d] === 'slid'; });
       if (!appliedDate) return;
-      if (confirm('Reset catch-up plan for this week?')) {
+      var ok = await confirmDialog({
+        title: 'Reset Plan?',
+        message: 'Reset catch-up plan for this week?',
+        confirmLabel: 'Reset Plan',
+        destructive: true
+      });
+      if (ok) {
         saveWeekOverrides({});
         delete decisions[appliedDate];
         showToast('Catch-up plan reset', 'ok');

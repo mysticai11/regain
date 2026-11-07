@@ -6,6 +6,7 @@ import { getActiveProgram, DEFAULT_5DAY_ROUTINE } from "../../data/plan.js";
 import { validateTrainingDays, canonicalSessionLabel, canonicalSessionName } from "../../lib/schedule.js";
 import { openActionMenuSheet } from "../../components/sheet.js";
 import { showToast } from "../../components/toast.js";
+import { confirmDialog, promptDialog } from "../../components/dialog.js";
 import { esc } from "../../lib/format.js";
 import { openAddExerciseModal, openEditExerciseModal, openSwapExerciseModal } from "./exercise-modal.js";
 import { saveCustomExercise } from "../../data/exercises.js";
@@ -227,8 +228,13 @@ export function openSplitManagerSheet() {
         var dIdx = parseInt(btn.dataset.dayMenu, 10);
         var dayObj = prog[dIdx];
         var menuItems = [
-          { label: 'Rename', action: function () {
-            var n = prompt('Enter name for this workout day:', dayObj.label || '');
+          { label: 'Rename', action: async function () {
+            var n = await promptDialog({
+              title: 'Rename Workout Day',
+              message: 'Enter name for this workout day:',
+              defaultValue: dayObj.label || '',
+              confirmLabel: 'Save'
+            });
             if (n && n.trim()) { dayObj.label = n.trim(); renderSplitUI(); }
           }},
           { label: '+ Add exercise', action: function () {
@@ -241,9 +247,15 @@ export function openSplitManagerSheet() {
         ];
         if (dIdx > 0) menuItems.push({ label: 'Move up', action: function () { var t = prog[dIdx]; prog[dIdx] = prog[dIdx - 1]; prog[dIdx - 1] = t; renderSplitUI(); } });
         if (dIdx < prog.length - 1) menuItems.push({ label: 'Move down', action: function () { var t = prog[dIdx]; prog[dIdx] = prog[dIdx + 1]; prog[dIdx + 1] = t; renderSplitUI(); } });
-        menuItems.push({ label: 'Delete day', destructive: true, action: function () {
+        menuItems.push({ label: 'Delete day', destructive: true, action: async function () {
           if (prog.length <= 1) { showToast('Plan must have at least 1 day', 'warn'); return; }
-          if (!confirm('Delete ' + (dayObj.label || 'this day') + '?')) return;
+          var ok = await confirmDialog({
+            title: 'Delete Day?',
+            message: 'Are you sure you want to delete ' + (dayObj.label || 'this day') + '?',
+            confirmLabel: 'Delete',
+            destructive: true
+          });
+          if (!ok) return;
           prog.splice(dIdx, 1);
           renderSplitUI();
         }});
@@ -273,15 +285,26 @@ export function openSplitManagerSheet() {
       };
     });
 
-    overlay.querySelector('#addNewSplitDayBtn').onclick = function () {
-      var n = prompt('Enter Day Name (e.g. Day ' + (prog.length + 1) + ' — Push):', 'Day ' + (prog.length + 1) + ' — Custom');
+    overlay.querySelector('#addNewSplitDayBtn').onclick = async function () {
+      var n = await promptDialog({
+        title: 'Add Workout Day',
+        message: 'Enter Day Name (e.g. Day ' + (prog.length + 1) + ' — Push):',
+        defaultValue: 'Day ' + (prog.length + 1) + ' — Custom',
+        confirmLabel: 'Add'
+      });
       if (!n || !n.trim()) return;
       prog.push({ label: n.trim(), dayIndex: prog.length, exercises: [] });
       renderSplitUI();
     };
 
-    overlay.querySelector('#resetDefaultSplitBtn').onclick = function () {
-      if (!confirm('Reset back to default 5-Day Muscle-Building Split?')) return;
+    overlay.querySelector('#resetDefaultSplitBtn').onclick = async function () {
+      var ok = await confirmDialog({
+        title: 'Reset Split?',
+        message: 'Reset back to default 5-Day Muscle-Building Split?',
+        confirmLabel: 'Reset',
+        destructive: true
+      });
+      if (!ok) return;
       prog = JSON.parse(JSON.stringify(DEFAULT_5DAY_ROUTINE));
       tdays = [1, 2, 4, 5, 6];
       profile.activeSplitData = prog;
