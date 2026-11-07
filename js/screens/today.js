@@ -1,7 +1,7 @@
 /* Today screen: main dashboard view, daily meal checklist, and bodyweight row */
 
 import { profile, setTab } from "../state.js";
-import { dayRecord, saveDayRecord, ls, sv, allDayKeys, exportData } from "../storage.js";
+import { dayRecord, saveDayRecord, ls, sv, allDayKeys, exportData, getWorkoutSessions } from "../storage.js";
 import { getActiveProgram, getWeeklySchedule, getWorkoutForDate, getNextProgramWorkout, getCurrentWorkout, CAL_TARGET_REST, CAL_TARGET_GYM, PROT_TARGET_REST, PROT_TARGET_GYM } from "../data/plan.js";
 import { DEFAULT_MEAL_PLAN } from "../data/foods.js";
 import { todayKey, dateKey, addDays, esc, currentWeight, formatDuration } from "../lib/format.js";
@@ -75,7 +75,13 @@ export function renderTodaySimple() {
     + (function() {
       var cardInner = '';
       if (!isRest && isSessionDone) {
-        var durMin = (targetRec.workoutMeta && targetRec.workoutMeta.durationMinutes) ? targetRec.workoutMeta.durationMinutes : 35;
+        var wMeta = targetRec.workoutMeta || {};
+        var durSec = wMeta.duration_sec != null ? Number(wMeta.duration_sec) : (wMeta.durationMinutes != null ? Number(wMeta.durationMinutes) * 60 : null);
+        if (durSec == null) {
+          var ms = getWorkoutSessions().find(function(s){ return s.dayKey === activeDateKey; });
+          if (ms) durSec = ms.duration_sec != null ? Number(ms.duration_sec) : (ms.durationMinutes != null ? Number(ms.durationMinutes) * 60 : null);
+        }
+        var durMin = durSec ? Math.round(durSec / 60) : (wMeta.durationMinutes || 45);
         var compSubline = 'Completed · ' + durMin + ' min · ' + loggedSets + (loggedSets === 1 ? ' set' : ' sets');
         cardInner = '<div style="font-size:17px;font-weight:600;color:#F5F5F4;line-height:1.2;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(cleanWorkoutName) + '</div>'
           + '<div style="font-size:15px;color:#8A8A8E;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:16px">' + esc(compSubline) + '</div>'
