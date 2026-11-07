@@ -88,6 +88,56 @@
   border: 1.5px solid var(--text);
 }
 
+/* ── Item 5: Day Circles ── */
+.day-circle {
+  width: 32px;
+  height: 32px;
+  max-width: 36px;
+  border-radius: 50%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  transition: transform 150ms ease, opacity 150ms ease;
+  position: relative;
+  background: transparent;
+}
+.week-strip-cell:active .day-circle {
+  transform: scale(0.92);
+}
+.day-circle--done {
+  background: var(--lime);
+  color: #0B0B0C;
+}
+.day-circle--planned {
+  background: transparent;
+  border: 1.5px solid var(--lime);
+}
+.day-circle--skipped {
+  background: transparent;
+  border: 1px solid var(--cal-ring-skipped);
+  color: var(--text-dim);
+}
+.day-circle--rest {
+  background: var(--surface);
+  border: 1px solid transparent;
+}
+.day-circle.is-today {
+  outline: 1.5px solid #FFFFFF;
+  outline-offset: 2px;
+}
+.day-circle.is-selected:not(.is-today) {
+  border: 1.5px solid #F5F5F4;
+}
+.day-circle-rest-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  display: inline-block;
+}
+
 /* ── Quick-Add Staples Shelf ── */
 .staples-shelf {
   margin-top: var(--spacing-24);

@@ -8,6 +8,7 @@ import { todayKey, dateKey, addDays, esc, currentWeight, goalDirection } from ".
 import { getTargetsForDate, getDayTotals, addRecent } from "../../lib/calc.js";
 import { showToast } from "../../components/toast.js";
 import { ic, animateNumber } from "../../lib/dom.js";
+import { computeWeekStrip } from "../../view/weekStrip.js";
 
 function triggerRenderScreens() {
   if (typeof window !== 'undefined') {
@@ -119,14 +120,12 @@ export function getStaplesShelfHTML() {
 }
 
 export function buildWeekDotRowHTML(dayKey, activeSelectedKey) {
-  var letters = ['M','T','W','T','F','S','S'];
   var offset = Number(window.todayWeekOffset) || 0;
   var targetDay = addDays(dayKey, offset * 7);
   var now = new Date(targetDay + 'T00:00:00');
   var dow = now.getDay();
   var monday = addDays(now, -(dow === 0 ? 6 : dow - 1));
   var sunday = addDays(monday, 6);
-  var cols = [];
 
   var sessionDays = {};
   try {
@@ -137,36 +136,52 @@ export function buildWeekDotRowHTML(dayKey, activeSelectedKey) {
     });
   } catch(e) {}
 
-  for (var d = 0; d < 7; d++) {
-    var day = addDays(monday, d);
-    var k = dateKey(day);
-    var isToday = (k === todayKey());
-    var isSelected = (k === activeSelectedKey);
-    var rec = dayRecord(k);
-    var isTrained = !!sessionDays[k] || (rec && (rec.workoutDone || (rec.workout && Object.keys(rec.workout).some(function(id){return (rec.workout[id]||[]).some(Boolean);}))));
-    var isMerged = (rec && rec.isMerged) || (getCatchupDecisions()[k] === 'merged');
-    var isSlid = (getCatchupDecisions()[k] === 'slid') || (getWeekOverrides()[k] !== undefined && getWeekOverrides()[k] !== 'rest');
+  var dayRecordsMap = {};
+  for (var i = 0; i < 7; i++) {
+    var curK = addDays(monday, i);
+    var rec = dayRecord(curK);
+    if (sessionDays[curK]) {
+      dayRecordsMap[curK] = rec ? Object.assign({}, rec, { workoutDone: true }) : { workoutDone: true };
+    } else if (rec) {
+      dayRecordsMap[curK] = rec;
+    }
+  }
 
-    var dotHTML = '';
-    if (isTrained && isMerged) {
-      dotHTML = '<span title="Merged session" style="width:6px;height:6px;border-radius:50%;background:linear-gradient(90deg, #C6F432 50%, #222 50%);display:inline-block"></span>';
-    } else if (isTrained && isSlid) {
-      dotHTML = '<span title="Moved session" style="width:6px;height:6px;border-radius:50%;background:#C6F432;display:inline-flex;align-items:center;justify-content:center;font-size:11px;line-height:1;color:#0B0B0C;font-weight:900">&rarr;</span>';
-    } else if (isTrained) {
-      dotHTML = '<span style="width:6px;height:6px;border-radius:50%;background:#C6F432;display:inline-block"></span>';
-    } else if (isSelected) {
-      dotHTML = '<span style="width:6px;height:6px;border-radius:50%;border:1.5px solid #F5F5F4;background:transparent;box-sizing:border-box;display:inline-block"></span>';
-    } else if (isToday) {
-      dotHTML = '<span style="width:6px;height:6px;border-radius:50%;border:1.5px solid #F5F5F4;background:transparent;display:inline-block"></span>';
-    } else {
-      dotHTML = '<span style="width:6px;height:6px;border-radius:50%;background:#222;display:inline-block"></span>';
+  var tdays = (profile && profile.trainingDays) || [1, 2, 3, 5, 6];
+  var plannedIndices = tdays.map(function(d) { return (d + 6) % 7; });
+
+  var days = computeWeekStrip({
+    mondayKey: monday,
+    todayDateKey: todayKey(),
+    activeSelectedKey: activeSelectedKey,
+    dayRecordsMap: dayRecordsMap,
+    plannedDayIndices: plannedIndices,
+    overrides: getWeekOverrides(),
+    decisions: getCatchupDecisions()
+  });
+
+  var checkIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  var arrowIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+  var dashIcon = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+
+  var cols = days.map(function(d) {
+    var inner = '';
+    if (d.state === 'done') {
+      inner = d.isSlid ? arrowIcon : checkIcon;
+    } else if (d.state === 'skipped') {
+      inner = dashIcon;
+    } else if (d.state === 'rest') {
+      inner = '<span class="day-circle-rest-dot"></span>';
     }
 
-    cols.push('<div class="week-strip-cell" data-pick-today-strip-date="' + k + '" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0;flex:1">'
-      + '<span style="font-size:11px;font-weight:600;color:' + (isToday || isSelected ? '#F5F5F4' : '#8A8A8E') + ';text-transform:uppercase">' + letters[d] + '</span>'
-      + dotHTML
-      + '</div>');
-  }
+    var circleClass = 'day-circle day-circle--' + d.state + (d.isToday ? ' is-today' : '') + (d.isSelected ? ' is-selected' : '');
+    var letterClass = 'week-strip-letter' + (d.isToday || d.isSelected ? ' is-selected' : '');
+
+    return '<div class="week-strip-cell" data-pick-today-strip-date="' + d.dateKey + '" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0;flex:1">'
+      + '<span class="' + letterClass + '">' + d.dayLetter + '</span>'
+      + '<div class="' + circleClass + '">' + inner + '</div>'
+      + '</div>';
+  });
 
   var monObj = new Date(monday + 'T00:00:00');
   var sunObj = new Date(sunday + 'T00:00:00');
