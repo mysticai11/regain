@@ -9,6 +9,7 @@ import { showToast } from "../../components/toast.js";
 import { triggerHaptic } from "../../lib/dom.js";
 import { confirmDialog, promptDialog } from "../../components/dialog.js";
 import { getWorkoutForDate } from "../gym/helpers.js";
+import { buildNutritionBarChartHTML } from "../../ui/barChart.js";
 
 export function getResumeWorkoutCardHTML() {
   var todayRec = dayRecord(todayKey());
@@ -312,7 +313,10 @@ export function nutritionProgressHTML(records) {
 
   for (var i = 0; i < 7; i++) {
     var curD = new Date(daysAgo6.getFullYear(), daysAgo6.getMonth(), daysAgo6.getDate() + i);
-    var dKey = curD.toISOString().slice(0, 10);
+    var y = curD.getFullYear();
+    var m = String(curD.getMonth() + 1).padStart(2, '0');
+    var d = String(curD.getDate()).padStart(2, '0');
+    var dKey = y + '-' + m + '-' + d;
     var dDay = curD.getDay();
     var letter = letters[(dDay + 6) % 7];
     var targets = getTargetsForDate(dKey);
@@ -326,71 +330,24 @@ export function nutritionProgressHTML(records) {
     dayHits.push({
       key: dKey,
       letter: letter,
-      calHit: calHit,
-      protHit: protHit,
+      kcal: totals.kcal || 0,
+      protein: totals.protein || 0,
+      targets: targets,
       isToday: (dKey === todayKey())
     });
   }
 
-  var dotCells = dayHits.map(function(dh) {
-    var calDot = dh.calHit
-      ? '<span style="width:8px;height:8px;border-radius:50%;background:#C6F432;display:inline-block"></span>'
-      : '<span style="width:8px;height:8px;border-radius:50%;border:1px solid #55555A;background:transparent;box-sizing:border-box;display:inline-block"></span>';
-    var protDot = dh.protHit
-      ? '<span style="width:8px;height:8px;border-radius:2px;background:#F5F5F4;display:inline-block"></span>'
-      : '<span style="width:8px;height:8px;border-radius:2px;border:1px solid #55555A;background:transparent;box-sizing:border-box;display:inline-block"></span>';
+  var dt = getTargetsForDate(todayKey());
+  var activeMetric = (typeof window !== 'undefined' ? window.activeNutritionMetric : null) || 'kcal';
 
-    return '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1">'
-      + '<span style="font-size:11px;font-weight:600;color:' + (dh.isToday ? '#F5F5F4' : '#8A8A8E') + '">' + dh.letter + '</span>'
-      + calDot
-      + protDot
-      + '</div>';
-  }).join('');
+  var chartHTML = buildNutritionBarChartHTML({
+    days: dayHits,
+    activeMetric: activeMetric,
+    targetKcal: dt.kcal,
+    targetProtein: dt.protein
+  });
 
-  var recent = records.slice(-7), days = recent.filter(function(r){ return r.kcal > 0; });
-  var target = 0, proteinTarget = 0;
-  if (days.length) {
-    var totalTargetKcal = 0, totalTargetProt = 0;
-    days.forEach(function(r) {
-      var dt = getTargetsForDate(r.key || todayKey());
-      totalTargetKcal += dt.kcal;
-      totalTargetProt += dt.protein;
-    });
-    target = Math.round(totalTargetKcal / days.length);
-    proteinTarget = Math.round(totalTargetProt / days.length);
-  } else {
-    var dt = getTargetsForDate(todayKey());
-    target = dt.kcal;
-    proteinTarget = dt.protein;
-  }
-  var kcal = days.length ? Math.round(days.reduce(function(sum,r){ return sum + r.kcal; }, 0) / days.length) : 0;
-  var protein = days.length ? Math.round(days.reduce(function(sum,r){ return sum + r.protein; }, 0) / days.length) : 0;
-  var kcalPct = Math.min(100, Math.round(kcal / Math.max(1, target) * 100));
-  var protPct = Math.min(100, Math.round(protein / Math.max(1, proteinTarget) * 100));
-
-  return '<div style="margin-top:8px">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-      + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.08em;text-transform:uppercase">7-Day Hit Rate</span>'
-      + '<span class="tabnum" style="font-size:11px;color:#8A8A8E">' + calHits + '/7 kcal · ' + protHits + '/7 protein</span>'
-    + '</div>'
-    + '<div style="display:flex;align-items:center;gap:12px;font-size:11px;color:#8A8A8E;margin-bottom:10px">'
-      + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#C6F432;display:inline-block"></span> kcal</span>'
-      + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:#F5F5F4;display:inline-block"></span> protein</span>'
-    + '</div>'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:0 4px">' + dotCells + '</div>'
-    + '<div style="border-top:1px solid #1C1C1F;padding-top:12px">'
-      + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
-        + '<span style="font-size:15px;color:#F5F5F4">Avg calories</span>'
-        + '<span class="tabnum" style="font-size:15px;color:#8A8A8E"><span id="progAvgKcalNum" data-value="' + kcal + '">' + kcal.toLocaleString() + '</span> / ' + target.toLocaleString() + ' kcal</span>'
-      + '</div>'
-      + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;margin-bottom:12px;overflow:hidden"><div class="prog-line-fill" style="transform:scaleX(' + (kcalPct / 100) + ');height:100%;border-radius:3px;background:#F5F5F4"></div></div>'
-      + '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
-        + '<span style="font-size:15px;color:#F5F5F4">Avg protein</span>'
-        + '<span class="tabnum" style="font-size:15px;color:#8A8A8E"><span id="progAvgProtNum" data-value="' + protein + '">' + protein + '</span> g / ' + proteinTarget + ' g</span>'
-      + '</div>'
-      + '<div class="prog-line" style="height:6px;border-radius:3px;background:#222;overflow:hidden"><div class="prog-line-fill" style="transform:scaleX(' + (protPct / 100) + ');height:100%;border-radius:3px;background:#F5F5F4"></div></div>'
-    + '</div>'
-    + '</div>';
+  return '<div id="nutritionBarChartContainer">' + chartHTML + '</div>';
 }
 
 export function buildWeeklyDigestHTML() { return ''; }

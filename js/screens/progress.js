@@ -86,6 +86,11 @@ export function renderProgressSimple(mode, historySubTab) {
       entries: entries, records: records, workoutSessions: workoutSessions, profile: profile, todayDateKey: todayKey()
     });
 
+    var nKcal = document.getElementById('nutritionMetricKcalBtn');
+    if (nKcal) nKcal.onclick = function() { triggerHaptic(); window.activeNutritionMetric = 'kcal'; render(); };
+    var nProt = document.getElementById('nutritionMetricProtBtn');
+    if (nProt) nProt.onclick = function() { triggerHaptic(); window.activeNutritionMetric = 'protein'; render(); };
+
     enhanceLiftsTab({
       selected: selected,
       isBW: isBW,
