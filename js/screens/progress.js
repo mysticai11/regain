@@ -36,7 +36,11 @@ export function renderProgressSimple(mode, historySubTab) {
     });
   });
   var exOptions=[]; getActiveProgram().forEach(function(s){s.exercises.forEach(function(e){if(!exOptions.some(function(x){return x.id===e.id;}))exOptions.push(e);});}); allDayKeys().forEach(function(key){Object.keys(dayRecord(key).workout||{}).forEach(function(id){var e=getExerciseData(id);if(e&&!exOptions.some(function(x){return x.id===id;}))exOptions.push(e);});}); workoutSessions.forEach(function(s){ (s.exercises||[]).forEach(function(e){ if(e&&e.id&&!exOptions.some(function(x){return x.id===e.id;})) exOptions.push({id:e.id, name:e.name||e.id}); }); });
-  var selected = (typeof window !== 'undefined' && window.activeProgressExerciseId) || (exOptions.length ? exOptions[0].id : null);
+  var selected = (typeof window !== 'undefined' && window.activeProgressExerciseId) || null;
+  if (!selected && exOptions.length) {
+    var loggedEx = exOptions.find(function(e){ return (exerciseSessionCounts[e.id] || 0) > 0; });
+    selected = loggedEx ? loggedEx.id : exOptions[0].id;
+  }
   var render=function(){
     var rangeEntries=getProgressRows(range,entries), weightValues=getRollingWeightValues(rangeEntries,entries), liftControl=document.getElementById('liftSelect');
     if (liftControl && liftControl.value) selected = liftControl.value;
