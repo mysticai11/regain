@@ -294,11 +294,11 @@ export function buildCalRingHTML(kcalLogged, kcalTarget, protLogged, protTarget,
 
   var rawVal = isOver ? (kcalLogged - kcalTarget) : (remaining > 0 ? remaining : kcalLogged);
   return '<div style="margin-bottom:24px">'
-    + '<div class="t-hero tabnum" id="todayHeroCal"><span id="todayHeroCalNum" data-value="' + rawVal + '">' + heroNumber + '</span></div>'
+    + '<div class="t-display tabnum" id="todayHeroCal" style="font-size:48px"><span id="todayHeroCalNum" data-value="' + rawVal + '">' + heroNumber + '</span></div>'
     + '<div style="font-size:15px;color:#8A8A8E;margin-top:6px">' + heroSub + '</div>'
     + '<div class="prog-line" style="height:6px;border-radius:9999px;background:var(--hairline);margin-top:10px;margin-bottom:20px;overflow:hidden"><div class="prog-line-fill" id="todayCalFill" style="transform:scaleX(' + (calPct / 100) + ');height:100%;border-radius:9999px;background:var(--text)"></div></div>'
     + '<div style="display:flex;align-items:baseline;gap:6px">'
-      + '<span id="todayProtNum" data-value="' + Math.round(protLogged) + '" style="font-size:48px;font-weight:600;color:var(--text);line-height:1;font-variant-numeric:tabular-nums">' + Math.round(protLogged) + '</span>'
+      + '<span id="todayProtNum" data-value="' + Math.round(protLogged) + '" style="font-size:28px;font-weight:600;color:var(--text);line-height:1.1;font-variant-numeric:tabular-nums">' + Math.round(protLogged) + '</span>'
       + '<span style="font-size:15px;color:var(--text-secondary)">/ ' + protTarget + ' g</span>'
     + '</div>'
     + '<div class="prog-line" style="height:6px;border-radius:9999px;background:var(--hairline);margin-top:8px;margin-bottom:20px;overflow:hidden"><div class="prog-line-fill" id="todayProtFill" style="transform:scaleX(' + (protPct / 100) + ');height:100%;border-radius:9999px;background:var(--text)"></div></div>'

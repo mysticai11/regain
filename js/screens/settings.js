@@ -138,8 +138,8 @@ export function openSettings() {
         + renderSwitchHTML('toggleAutoRestBtn', profile.autoStartRestTimer !== false, 'Auto-start rest timer')
       + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
-        + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Slide animations / navigation</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Enable swipe gestures between tabs</div></div>'
-        + renderSwitchHTML('toggleSlideNavBtn', !profile.disableSlideNav, 'Slide animations / navigation')
+        + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Swipe navigation system</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Swipe horizontally to switch tabs and views</div></div>'
+        + renderSwitchHTML('toggleSwipeNavBtn', !(profile.disableSwipeNav || profile.disableSlideNav), 'Swipe navigation system')
       + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
         + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Streak shields</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">' + shields + (shields === 1 ? ' shield' : ' shields') + ' available</div></div>'
@@ -316,17 +316,20 @@ export function openSettings() {
     };
   }
 
-  var toggleSlideNavBtn = overlay.querySelector('#toggleSlideNavBtn');
-  if (toggleSlideNavBtn) {
-    toggleSlideNavBtn.onclick = function() {
+  var toggleSwipeNavBtn = overlay.querySelector('#toggleSwipeNavBtn') || overlay.querySelector('#toggleSlideNavBtn');
+  if (toggleSwipeNavBtn) {
+    toggleSwipeNavBtn.onclick = function() {
       triggerHaptic();
-      profile.disableSlideNav = !profile.disableSlideNav;
+      var isCurrentlyDisabled = !!(profile.disableSwipeNav || profile.disableSlideNav);
+      var nextDisabled = !isCurrentlyDisabled;
+      profile.disableSwipeNav = nextDisabled;
+      profile.disableSlideNav = nextDisabled;
       sv('rg_profile', profile);
       if (typeof document !== 'undefined' && document.documentElement) {
-        document.documentElement.classList.toggle('no-slide-nav', !!profile.disableSlideNav);
+        document.documentElement.classList.toggle('no-slide-nav', nextDisabled);
       }
-      updateSwitchUI(toggleSlideNavBtn, !profile.disableSlideNav);
-      showToast(profile.disableSlideNav ? 'Slide navigation off' : 'Slide navigation on', 'ok');
+      updateSwitchUI(toggleSwipeNavBtn, !nextDisabled);
+      showToast(nextDisabled ? 'Swipe navigation turned off' : 'Swipe navigation turned on', 'ok');
     };
   }
 

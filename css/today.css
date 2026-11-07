@@ -1,7 +1,7 @@
 /* Screen styles: Today screen layout, week strip, staples shelf, food list, and nutrition hero */
 
 #todayHeroCal {
-  font-size: clamp(52px, 14vw, 64px);
+  font-size: var(--fs-48);
   line-height: 1.05;
   letter-spacing: -0.02em;
 }

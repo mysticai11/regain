@@ -151,3 +151,4 @@ Nothing on this checklist may disappear, move out of reach, or behave differentl
    - Debounce Save and ignore identical weight logged within the same minute ("Already logged" toast). Root cause of duplicates resolved.
 3. **Catch-up Miss Resolution Check**:
    - If a workout template scheduled earlier was completed later in the same week, the missed-workout card automatically resolves.
+

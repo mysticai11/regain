@@ -78,6 +78,39 @@ export function renderTab() {
   }
 }
 
+export function initSwipeNavigation() {
+  if (typeof window === 'undefined' || typeof document === 'undefined' || typeof document.addEventListener !== 'function') return;
+  if (window._swipeNavInitialized) return;
+  window._swipeNavInitialized = true;
+
+  var touchStartX = 0, touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    if (profile && (profile.disableSlideNav || profile.disableSwipeNav)) return;
+    if (e.target && e.target.closest && e.target.closest('.overlay, .sheet, .modal-backdrop, .set-row, .set-row-wrap, input, textarea, select')) return;
+    if (e.touches && e.touches[0]) {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', function(e) {
+    if (profile && (profile.disableSlideNav || profile.disableSwipeNav)) return;
+    if (e.target && e.target.closest && e.target.closest('.overlay, .sheet, .modal-backdrop, .set-row, .set-row-wrap, input, textarea, select')) return;
+    if (!e.changedTouches || !e.changedTouches[0]) return;
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    var dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > 75 && Math.abs(dx) > Math.abs(dy) * 1.8) {
+      if (typeof window.setTab === 'function') {
+        if (tab === 'today' && dx < 0) {
+          window.setTab('progress');
+        } else if (tab === 'gym' && dx > 0) {
+          window.setTab('progress');
+        }
+      }
+    }
+  }, { passive: true });
+}
+
 export function initKeyboardHandling() {
   if (typeof window === 'undefined' || typeof document === 'undefined' || typeof document.addEventListener !== 'function') return;
   if (window._keyboardInitialized) return;
@@ -148,6 +181,7 @@ function bootApp() {
   console.log('BOOT: bootApp running');
   initMaterialRipple();
   initKeyboardHandling();
+  initSwipeNavigation();
   SQLiteStorage.init(function () {
     console.log('BOOT: SQLiteStorage init done');
     requestPersistentStorage();
@@ -199,7 +233,7 @@ function onStorageReady() {
       sv('rg_profile', p);
       setProfile(p);
     }
-    if (p && p.disableSlideNav) document.documentElement.classList.add('no-slide-nav');
+    if (p && (p.disableSlideNav || p.disableSwipeNav)) document.documentElement.classList.add('no-slide-nav');
     renderApp();
     subscribe(function() {
       preserveUiStateDuringRender(renderTab);
