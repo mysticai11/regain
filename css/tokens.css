@@ -1,35 +1,36 @@
 /* Design tokens: CSS variables for colors, typography scale, spacing grid, radii, and tap targets */
 :root {
   /* Colors */
-  --bg: #0B0B0C;
+  --bg: #0A0A0B;
   --surface: #141416;
   --surface2: #1C1C1F;
   --surface-raised: #1C1C1F;
   --surface-hi: #1C1C1F;
-  --divider: #222222;
-  --div: #222222;
-  --border: #222222;
-  --border-strong: #222222;
+  --hairline: #26262B;
+  --divider: #26262B;
+  --div: #26262B;
+  --border: #26262B;
+  --border-strong: #26262B;
 
-  --text: #F5F5F4;
+  --text: #F2F2EE;
   --text2: #9E9EA4;
   --text-secondary: #9E9EA4;
   --text3: #71717A;
-  --text-muted: #71717A;
+  --text-muted: #9A9AA2;
   --text-tertiary: #71717A;
 
   /* Accent: Pure Lime with dark text #0B0B0C */
-  --accent: #C6F432;
-  --lime: #C6F432;
-  --accent-dark: #0B0B0C;
-  --lime-border: #C6F432;
-  --amber: #C6F432;
-  --amber-light: #C6F432;
-  --amber-dark: #C6F432;
+  --accent: #C8F53C;
+  --lime: #C8F53C;
+  --accent-dark: #0A0A0B;
+  --lime-border: #C8F53C;
+  --amber: #C8F53C;
+  --amber-light: #C8F53C;
+  --amber-dark: #C8F53C;
 
   /* Destructive */
-  --danger: #FF4D4F;
-  --danger-bg: rgba(255, 77, 79, 0.12);
+  --danger: #FF5A4F;
+  --danger-bg: rgba(255, 90, 79, 0.12);
 
   /* Typography: Single Grotesk family, weights 400/600, tabular numerals on all numbers, no monospace */
   --font-grotesk: 'Space Grotesk', system-ui, -apple-system, sans-serif;
@@ -51,7 +52,6 @@
   --fs-17: 17px;
   --fs-15: 15px;
   --fs-11: 11px;
-  /* Legacy alias compatibility mapped strictly to token scale */
   --fs-24: 28px;
   --fs-20: 17px;
   --fs-14: 15px;
@@ -59,7 +59,7 @@
   --fs-12: 11px;
   --fs-10: 11px;
 
-  /* Spacing Grid: 4 / 8 / 12 / 16 / 24 / 32 / 48, screen margin 20 */
+  /* Spacing Grid: 4 / 8 / 12 / 16 / 20 / 24 / 32 / 48, screen margin 20 */
   --spacing-4: 4px;
   --spacing-8: 8px;
   --spacing-12: 12px;
@@ -80,31 +80,31 @@
   --spacing-xxl: 32px;
   --spacing-hero: 48px;
 
-  /* Geometry & Radii: 20 (surfaces, sheets) and 12 (controls) */
+  /* Geometry & Radii: 20 (cards), 14 (controls), 9999 (chips), 28 (sheet top) */
+  --r-card: 20px;
   --r-surface: 20px;
-  --r-sheet: 20px;
-  --r-control: 12px;
-  --r-chip: 12px;
+  --r-sheet: 28px;
+  --r-control: 14px;
+  --r-chip: 9999px;
   --r-full: 9999px;
   --r-lg: 20px;
-  --r-sm: 12px;
+  --r-sm: 14px;
   --r-xs: 12px;
 
-  /* Layout & Interaction Targets: 48 min */
+  /* Layout & Interaction Targets: 48dp min */
   --tap-min: 48px;
   --tap-compact: 48px;
-  --nav-h: 60px;
+  --nav-h: 64px;
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-l: env(safe-area-inset-left, 0px);
   --safe-r: env(safe-area-inset-right, 0px);
 
-  /* Motion: 150ms ease-out */
-  --motion-fast: 150ms ease-out;
+  /* Android Motion: Standard M3 Easing cubic-bezier(0.2, 0, 0, 1) */
+  --ease-m3: cubic-bezier(0.2, 0, 0, 1);
   --motion-normal: 150ms ease-out;
-  --transition-default: 150ms ease-out;
-
-  /* Material Ripple */
-  --ripple-dark: rgba(255, 255, 255, 0.12);
-  --ripple-lime: rgba(11, 11, 12, 0.15);
+  --motion-sheet: 280ms var(--ease-m3);
+  --motion-tab: 180ms var(--ease-m3);
+  --motion-expand: 180ms var(--ease-m3);
+  --motion-fast: 120ms var(--ease-m3);
 }

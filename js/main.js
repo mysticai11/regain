@@ -199,6 +199,7 @@ function onStorageReady() {
       sv('rg_profile', p);
       setProfile(p);
     }
+    if (p && p.disableSlideNav) document.documentElement.classList.add('no-slide-nav');
     renderApp();
     subscribe(function() {
       preserveUiStateDuringRender(renderTab);
@@ -274,10 +275,10 @@ if (typeof window !== 'undefined') {
 // Hardware and gesture back button handling
 if (typeof window !== 'undefined') {
   var handleBackButtonDismiss = function() {
-    var overlays = document.querySelectorAll('.overlay');
+    var overlays = document.querySelectorAll('.overlay, .sheet-overlay, .modal-backdrop, .quick-edit-modal-backdrop, [role="dialog"]');
     if (overlays && overlays.length > 0) {
       var topOverlay = overlays[overlays.length - 1];
-      var closeBtn = topOverlay.querySelector('#closeSettingsBtn, #closeFoodSearch, #closeExerciseModal, #closeSheetBtn, #closeActionMenuBtn');
+      var closeBtn = topOverlay.querySelector('#closeSettingsBtn, #closeFoodSearch, #closeExerciseModal, #closeSheetBtn, #closeActionMenuBtn, #closeModalBtn, .close-btn');
       if (closeBtn) closeBtn.click();
       else topOverlay.remove();
       return true;

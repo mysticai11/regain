@@ -52,8 +52,13 @@
   box-sizing: border-box !important;
   user-select: none !important;
 }
-.gym-ex-collapsed-row:hover, .gym-ex-collapsed-row:active {
-  background: rgba(255, 255, 255, 0.02);
+@media (hover: hover) {
+  .gym-ex-collapsed-row:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+}
+.gym-ex-collapsed-row:active {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 /* ── Expanded Exercise Section ── */

@@ -86,19 +86,32 @@ button:active:not(:disabled),
 .navitem:active,
 .btn-text-action:active,
 .icon-btn:active,
-.seg-tab-btn:active {
-  transform: scale(0.97);
-  transition: transform 60ms ease-out;
+.seg-tab-btn:active,
+.day-toggle:active,
+.staple-chip:active,
+.food-log-row:active {
+  transform: scale(0.98);
+  transition: transform 80ms var(--ease-m3);
 }
 
 @keyframes appViewEnter {
-  from { opacity: 0.88; transform: translateY(3px); }
+  from { opacity: 0.92; transform: translateY(2px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .app-view,
 .page-enter {
-  animation: appViewEnter 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: appViewEnter 160ms var(--ease-m3) forwards;
+}
+
+/* Option to disable slide navigation & transitions */
+.no-slide-nav .app-view,
+.no-slide-nav .page-enter,
+.no-slide-nav .sheet,
+.no-slide-nav .bottomnav {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
 }
 
 /* Utilities */
