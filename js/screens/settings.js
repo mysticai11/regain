@@ -12,10 +12,19 @@ import { todayKey, esc, currentWeight } from "../lib/format.js";
 import { triggerHaptic } from "../lib/dom.js";
 import { buildCatchupSettingsHTML, bindCatchupSettingsEvents } from "./settings/catchup.js";
 import { renderSwitchHTML, updateSwitchUI, openProfilePickerModal, bindResetAction } from "./settings/helpers.js";
+import { getCatchupSettings } from "../storage-catchup.js";
 
 export function openSettings() {
   if (document.getElementById('settingsOverlay')) return;
-  var weekDaysMeta = [{ js: 1, name: 'Mon' }, { js: 2, name: 'Tue' }, { js: 3, name: 'Wed' }, { js: 4, name: 'Thu' }, { js: 5, name: 'Fri' }, { js: 6, name: 'Sat' }, { js: 0, name: 'Sun' }];
+  var weekDaysMeta = [
+    { js: 1, letter: 'M', name: 'Mon', fullName: 'Monday' },
+    { js: 2, letter: 'T', name: 'Tue', fullName: 'Tuesday' },
+    { js: 3, letter: 'W', name: 'Wed', fullName: 'Wednesday' },
+    { js: 4, letter: 'T', name: 'Thu', fullName: 'Thursday' },
+    { js: 5, letter: 'F', name: 'Fri', fullName: 'Friday' },
+    { js: 6, letter: 'S', name: 'Sat', fullName: 'Saturday' },
+    { js: 0, letter: 'S', name: 'Sun', fullName: 'Sunday' }
+  ];
   var tdays = (profile.trainingDays || [1, 2, 4, 5, 6]).slice();
   var chevronSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
   var overlay = document.createElement('div');
@@ -31,12 +40,20 @@ export function openSettings() {
 
   var getOptLabel = function(opts, val) { var found = opts.find(function(o){ return o.value === val; }); return found ? found.label : val; };
 
+  var formatTrainingSubtitle = function(days) {
+    var count = days.length;
+    var dayOrder = [1, 2, 3, 4, 5, 6, 0];
+    var sorted = dayOrder.filter(function(d){ return days.includes(d); });
+    var names = sorted.map(function(d){
+      var m = weekDaysMeta.find(function(x){ return x.js === d; });
+      return m ? m.name : '';
+    }).filter(Boolean).join(', ');
+    return count + (count === 1 ? ' day a week · ' : ' days a week · ') + names;
+  };
+
   var dayTogglesHTML = weekDaysMeta.map(function(d) {
     var active = tdays.includes(d.js);
-    var actStyle = active
-      ? 'background:rgba(198,244,50,0.12) !important;border:1px solid #C6F432 !important;color:#C6F432 !important;font-weight:600 !important;'
-      : 'background:#141416 !important;border:1px solid #222222 !important;color:#8A8A8E !important;font-weight:500 !important;';
-    return '<button type="button" class="day-toggle settings-day-toggle' + (active ? ' active' : '') + '" data-day="' + d.js + '" style="' + actStyle + 'height:44px;min-height:44px;min-width:0;flex:1;border-radius:10px;font-size:15px;cursor:pointer;padding:0 4px;display:flex;align-items:center;justify-content:center;box-sizing:border-box">' + d.name + '</button>';
+    return '<button type="button" class="day-toggle settings-day-toggle' + (active ? ' active' : '') + '" data-day="' + d.js + '" aria-label="' + esc(d.fullName) + '" aria-pressed="' + (active ? 'true' : 'false') + '">' + d.letter + '</button>';
   }).join('');
 
   overlay.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%;max-height:88vh;overflow-y:auto">'
@@ -88,8 +105,8 @@ export function openSettings() {
     + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Training days</span></div>'
     + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px">'
       + '<div style="font-size:15px;font-weight:600;color:#F5F5F4;margin-bottom:2px">Days you train</div>'
-      + '<div style="font-size:11px;color:#8A8A8E;margin-bottom:14px">Workouts map to your split in weekly sequence</div>'
-      + '<div class="day-toggles" style="display:flex;gap:6px;width:100%">' + dayTogglesHTML + '</div>'
+      + '<div id="trainingDaysSubtitle" style="font-size:11px;color:#8A8A8E;margin-bottom:14px">' + esc(formatTrainingSubtitle(tdays)) + '</div>'
+      + '<div class="settings-day-toggles" style="display:flex;justify-content:space-between;align-items:center;width:100%">' + dayTogglesHTML + '</div>'
     + '</div>'
 
     // PROFILE (Rows with chevron right, opening bottom-sheet picker)
@@ -242,19 +259,26 @@ export function openSettings() {
     btn.addEventListener('click', function() {
       triggerHaptic('selection');
       var d = parseInt(btn.dataset.day, 10);
+      var catchupSettings = getCatchupSettings();
       if (tdays.includes(d)) {
-        if (tdays.length <= 1) { showToast('You need at least 1 training day', 'warn'); return; }
+        if (tdays.length <= 1) {
+          showToast('You need at least 1 training day', 'warn');
+          return;
+        }
         tdays = tdays.filter(function(x){ return x !== d; });
       } else {
+        if (catchupSettings.protectLastRestDay && tdays.length >= 6) {
+          showToast('Keep at least 1 rest day for recovery', 'warn');
+          return;
+        }
         tdays.push(d);
         tdays.sort(function(a,b){ return (a === 0 ? 7 : a) - (b === 0 ? 7 : b); });
       }
       var isAct = tdays.includes(d);
       btn.classList.toggle('active', isAct);
-      btn.style.setProperty('background', isAct ? 'rgba(198,244,50,0.12)' : '#141416', 'important');
-      btn.style.setProperty('border', isAct ? '1px solid #C6F432' : '1px solid #222222', 'important');
-      btn.style.setProperty('color', isAct ? '#C6F432' : '#8A8A8E', 'important');
-      btn.style.setProperty('font-weight', isAct ? '600' : '500', 'important');
+      btn.setAttribute('aria-pressed', isAct ? 'true' : 'false');
+      var sub = overlay.querySelector('#trainingDaysSubtitle');
+      if (sub) sub.textContent = formatTrainingSubtitle(tdays);
       profile.trainingDays = tdays.length ? tdays : [1, 2, 4, 5, 6];
       sv('rg_profile', profile);
       showToast('Saved', 'ok');
