@@ -11,7 +11,7 @@ import { getWeeklyVolume } from "../lib/calc.js";
 import { isBodyweightExercise, getLastSessionSets } from "./gym/sets.js";
 import { renderWorkoutTimer, renderRestTimer, startRestTimer, showFinishWorkoutSheet } from "./gym/timer.js";
 import { chooseWorkoutForDate } from "./gym/session-sheet.js";
-import { getWorkoutForDate, getWorkoutWeek, getCompletedWorkoutCount, getNextProgramWorkout, getActiveWorkoutSession, getSessionMeta, attachCommonGymHeaderEvents, buildVolumeTable } from "./gym/helpers.js";
+import { getWorkoutForDate, getWorkoutWeek, getCompletedWorkoutCount, getNextProgramWorkout, getActiveWorkoutSession, getSessionMeta, attachCommonGymHeaderEvents, buildVolumeTable, buildOverloadAdviceBadgeHTML } from "./gym/helpers.js";
 import { attachGymEvents } from "./gym/events.js";
 import { renderSetRowWrap } from "./gym/swipe-delete.js";
 export * from "./gym/helpers.js"; export * from "./gym/timer.js"; export * from "./gym/sets.js"; export * from "./gym/swap.js"; export * from "./gym/session-sheet.js"; export * from "./gym/plan-editor.js"; export * from "./gym/events.js";
@@ -344,6 +344,7 @@ export function renderGym() {
       + '</div>'
       + '<div style="font-size:15px;color:var(--text-secondary);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + esc(metaLine) + '">' + esc(metaLine) + '</div>'
       + (prStr ? ('<div style="margin-top:4px">' + prStr + '</div>') : '')
+      + buildOverloadAdviceBadgeHTML(ex, lastSets)
       + '</div>'
       + colHeaders
       + plannedRows

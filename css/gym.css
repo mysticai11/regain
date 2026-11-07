@@ -248,5 +248,65 @@
   padding-left: var(--spacing-8);
 }
 
+/* ── Task R2-4: Progressive Overload Advice Badge & Toggle Rationale ── */
+.overload-hint-wrap {
+  margin-top: 6px;
+}
+
+.overload-chip-btn {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 9999px;
+  padding: 0 12px;
+  min-height: 48px;
+  font-size: var(--fs-11);
+  font-weight: 600;
+  color: var(--lime);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+  font-family: inherit;
+}
+
+.overload-chip-btn:active {
+  opacity: 0.82;
+}
+
+.overload-arrow {
+  color: var(--text-secondary);
+  font-size: var(--fs-11);
+  transition: transform 150ms ease;
+}
+
+.overload-chip-btn.is-open .overload-arrow {
+  transform: rotate(180deg);
+}
+
+.overload-rationale {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-control, 12px);
+  padding: 10px 14px;
+  margin-top: 6px;
+  font-size: var(--fs-11);
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.overload-banner {
+  margin: 0;
+  padding: 0;
+  font-size: var(--fs-11);
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.overload-banner strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
 
 

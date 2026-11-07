@@ -8,6 +8,7 @@ import { showToast } from "../../components/toast.js";
 import { openGymDateDaySheet } from "./session-sheet.js";
 import { openSplitManagerSheet } from "./plan-editor.js";
 import { getWeeklyVolume } from "../../lib/calc.js";
+import { getOverloadSuggestion } from "../../lib/progression.js";
 
 function triggerRenderGym() {
   if (typeof window !== 'undefined') {
@@ -67,6 +68,53 @@ export function attachCommonGymHeaderEvents() {
   }
   var manageBtn = document.getElementById('manageSplitTopBtn');
   if (manageBtn) manageBtn.onclick = openSplitManagerSheet;
+  wireOverloadToggleEvents(document);
+}
+
+export function buildOverloadAdviceBadgeHTML(ex, lastSets) {
+  if (!ex || !ex.id) return '';
+  var advice = getOverloadSuggestion(ex.id, ex, lastSets || [], ex.name || '');
+  if (!advice) return '';
+
+  var label = 'Overload Advice';
+  if (advice.type === 'increase_weight') {
+    label = '↑ Increase Weight';
+  } else if (advice.type === 'add_reps') {
+    label = '+ Add Reps';
+  } else if (advice.type === 'science_rec') {
+    label = advice.suggestedWeight ? ('Target: ~' + advice.suggestedWeight + ' kg') : 'Target Advice';
+  } else if (advice.type === 'baseline') {
+    label = 'Target: Baseline';
+  }
+
+  var safeId = esc(ex.id);
+  return '<div class="overload-hint-wrap">'
+    + '<button type="button" class="overload-chip-btn" data-toggle-overload="' + safeId + '" aria-expanded="false" aria-controls="overload-rationale-' + safeId + '">'
+    + '<span>' + esc(label) + '</span>'
+    + '<span class="overload-arrow">▾</span>'
+    + '</button>'
+    + '<div id="overload-rationale-' + safeId + '" class="overload-rationale" style="display:none">'
+    + (advice.bannerHTML || '')
+    + '</div>'
+    + '</div>';
+}
+
+export function wireOverloadToggleEvents(container) {
+  var root = container || (typeof document !== 'undefined' ? document : null);
+  if (!root || typeof root.querySelectorAll !== 'function') return;
+  var btns = root.querySelectorAll('[data-toggle-overload]');
+  btns.forEach(function(btn) {
+    btn.onclick = function(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      var id = btn.dataset.toggleOverload;
+      var el = (typeof document !== 'undefined' && document.getElementById('overload-rationale-' + id));
+      if (!el) return;
+      var isHidden = el.style.display === 'none' || !el.style.display;
+      el.style.display = isHidden ? 'block' : 'none';
+      btn.classList.toggle('is-open', isHidden);
+      btn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    };
+  });
 }
 
 export function buildVolumeTable() {
