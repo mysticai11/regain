@@ -19,7 +19,6 @@ export * from "./progress/history.js";
 export * from "./progress/session-editor.js";
 
 import { setupChartInteractions, openExercisePickerModal } from "./progress/interactions.js";
-export * from "./progress/charts.js?v=4";
 
 export function renderProgressSimple(mode, historySubTab) {
   mode = mode || (typeof window !== 'undefined' ? window.activeProgressSubTab : null) || 'body';
@@ -283,10 +282,12 @@ export function renderProgressSimple(mode, historySubTab) {
   if (contentEl) {
     var touchStartX = 0, touchStartY = 0;
     contentEl.ontouchstart = function(e) {
+      if (profile && profile.disableSlideNav) return;
       if (e.target && (e.target.closest('.set-row') || e.target.closest('.set-row-precision') || e.target.closest('.set-row-wrap'))) return;
       if (e.touches && e.touches[0]) { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }
     };
     contentEl.ontouchend = function(e) {
+      if (profile && profile.disableSlideNav) return;
       if (e.target && (e.target.closest('.set-row') || e.target.closest('.set-row-precision') || e.target.closest('.set-row-wrap'))) return;
       if (!e.changedTouches || !e.changedTouches[0]) return;
       var dx = e.changedTouches[0].clientX - touchStartX, dy = e.changedTouches[0].clientY - touchStartY;

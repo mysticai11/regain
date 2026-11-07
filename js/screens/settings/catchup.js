@@ -2,6 +2,7 @@
 
 import { getCatchupSettings, saveCatchupSettings } from "../../storage-catchup.js";
 import { triggerHaptic } from "../../lib/dom.js";
+import { renderSwitchHTML, updateSwitchUI } from "./helpers.js";
 
 export function buildCatchupSettingsHTML() {
   var s = getCatchupSettings();
@@ -17,20 +18,20 @@ export function buildCatchupSettingsHTML() {
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid #141416">'
         + '<div style="padding-right:12px">'
           + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">Auto-offer catch-up</div>'
-          + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Prompt to slide or merge missed workouts</div>'
+          + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Prompt to spread or slide missed workouts</div>'
         + '</div>'
-        + '<button type="button" class="btn" id="toggleAutoOfferBtn" style="height:36px;min-width:64px;padding:0 14px;border-radius:8px;background:#141416;color:' + (s.autoOffer ? '#C6F432' : '#8A8A8E') + ';font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">' + (s.autoOffer ? 'On' : 'Off') + '</button>'
+        + renderSwitchHTML('toggleAutoOfferBtn', s.autoOffer, 'Auto-offer catch-up')
       + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
         + '<div style="padding-right:12px">'
           + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">Protect rest day</div>'
           + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Keeps Sunday reserved for recovery</div>'
         + '</div>'
-        + '<button type="button" class="btn" id="toggleProtectRestBtn" style="height:36px;min-width:64px;padding:0 14px;border-radius:8px;background:#141416;color:' + (s.protectLastRestDay ? '#C6F432' : '#8A8A8E') + ';font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">' + (s.protectLastRestDay ? 'On' : 'Off') + '</button>'
+        + renderSwitchHTML('toggleProtectRestBtn', s.protectLastRestDay, 'Protect rest day')
       + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
         + '<div style="padding-right:12px">'
-          + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">Max sets on merge</div>'
+          + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">Max sets per session</div>'
           + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Hard cap on combined volume (16–24)</div>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:6px">'
@@ -58,8 +59,7 @@ export function bindCatchupSettingsEvents(container) {
       var cur = getCatchupSettings();
       var next = !cur.autoOffer;
       saveCatchupSettings({ autoOffer: next });
-      autoBtn.textContent = next ? 'On' : 'Off';
-      autoBtn.style.color = next ? '#C6F432' : '#8A8A8E';
+      updateSwitchUI(autoBtn, next);
     };
   }
 
@@ -70,8 +70,7 @@ export function bindCatchupSettingsEvents(container) {
       var cur = getCatchupSettings();
       var next = !cur.protectLastRestDay;
       saveCatchupSettings({ protectLastRestDay: next });
-      protectBtn.textContent = next ? 'On' : 'Off';
-      protectBtn.style.color = next ? '#C6F432' : '#8A8A8E';
+      updateSwitchUI(protectBtn, next);
     };
   }
 

@@ -4,12 +4,14 @@ import { profile, setProfile, setTab } from "../state.js";
 import { sv, ls, dayRecord, saveDayRecord, exportData, importData, resetAllData } from "../storage.js";
 import { DEFAULT_MEAL_PLAN } from "../data/foods.js";
 import { renderApp } from "../main.js";
-import { CAL_TARGET_REST, CAL_TARGET_GYM, PROT_TARGET_REST, PROT_TARGET_GYM, PROGRAM_2DAY, PROGRAM_3DAY, PROGRAM_4DAY, PROGRAM_5DAY, PROGRAM_6DAY, DEFAULT_5DAY_ROUTINE } from "../data/plan.js";
+import { CAL_TARGET_REST, CAL_TARGET_GYM, PROT_TARGET_REST, PROT_TARGET_GYM, DEFAULT_5DAY_ROUTINE } from "../data/plan.js";
 import { showToast } from "../components/toast.js";
 import { openSplitManagerSheet } from "./gym/plan-editor.js";
 import { openCustomFoodsManager } from "./today/food-modal.js";
 import { todayKey, esc, currentWeight } from "../lib/format.js";
+import { triggerHaptic } from "../lib/dom.js";
 import { buildCatchupSettingsHTML, bindCatchupSettingsEvents } from "./settings/catchup.js";
+import { renderSwitchHTML, updateSwitchUI, openProfilePickerModal, bindResetAction } from "./settings/helpers.js";
 
 export function openSettings() {
   if (document.getElementById('settingsOverlay')) return;
@@ -21,13 +23,19 @@ export function openSettings() {
   var equipVal = profile.equipment || 'full', dietVal = profile.dietaryPattern || 'nonveg', goalVal = profile.goal || 'gain', expVal = profile.experience || 'novice', shields = profile.shields || 0;
   var restKcal = profile.calTargetRest || CAL_TARGET_REST, gymKcal = profile.calTargetGym || CAL_TARGET_GYM, restProt = profile.protTargetRest || PROT_TARGET_REST, gymProt = profile.protTargetGym || PROT_TARGET_GYM, targetWeight = profile.targetWeight || 60.0;
 
-  var chevronSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8A8E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:12px;pointer-events:none"><path d="M6 9l6 6 6-6"/></svg>';
+  var goalOptions = [{ value: 'gain', label: 'Build muscle' }, { value: 'loss', label: 'Lose fat' }, { value: 'recomp', label: 'Recomp' }, { value: 'strength', label: 'Strength' }];
+  var equipOptions = [{ value: 'full', label: 'Full Gym' }, { value: 'home', label: 'Home Gym' }, { value: 'db', label: 'Dumbbells Only' }, { value: 'body', label: 'Bodyweight' }];
+  var dietOptions = [{ value: 'nonveg', label: 'Non-Vegetarian' }, { value: 'eggitarian', label: 'Eggitarian' }, { value: 'veg', label: 'Vegetarian' }, { value: 'vegan', label: 'Vegan' }];
+  var expOptions = [{ value: 'novice', label: 'Novice / Intermediate' }, { value: 'advanced', label: 'Advanced' }];
+
+  var getOptLabel = function(opts, val) { var found = opts.find(function(o){ return o.value === val; }); return found ? found.label : val; };
+
   var dayTogglesHTML = weekDaysMeta.map(function(d) {
     var active = tdays.includes(d.js);
     var actStyle = active
-      ? 'background:#F5F5F4 !important;border:none !important;color:#0B0B0C !important;font-weight:600 !important;'
-      : 'background:#1C1C1F !important;border:none !important;color:#55555A !important;font-weight:500 !important;';
-    return '<button type="button" class="day-toggle settings-day-toggle' + (active ? ' active' : '') + '" data-day="' + d.js + '" style="' + actStyle + 'height:44px;min-width:0;width:100%;border-radius:8px;font-size:15px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">' + d.name + '</button>';
+      ? 'background:rgba(200,245,60,0.14) !important;border:1.5px solid var(--lime) !important;color:var(--lime) !important;font-weight:600 !important;'
+      : 'background:transparent !important;border:1px solid var(--hairline) !important;color:var(--text-secondary) !important;font-weight:500 !important;';
+    return '<button type="button" class="day-toggle settings-day-toggle' + (active ? ' active' : '') + '" data-day="' + d.js + '" style="' + actStyle + 'height:44px;min-width:0;width:100%;border-radius:10px;font-size:15px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">' + d.name + '</button>';
   }).join('');
 
   overlay.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%;max-height:88vh;overflow-y:auto">'
@@ -83,55 +91,29 @@ export function openSettings() {
       + '<div class="day-toggles" style="display:grid;grid-template-columns:repeat(7, 1fr);gap:6px;width:100%">' + dayTogglesHTML + '</div>'
     + '</div>'
 
-    // PROFILE (Selects with chevron icon & same height)
+    // PROFILE (Rows with chevron right, opening bottom-sheet picker)
     + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Profile</span></div>'
-    + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px;display:flex;flex-direction:column;gap:14px">'
-      + '<div>'
-        + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Primary Goal</label>'
-        + '<div style="position:relative;display:flex;align-items:center;width:100%">'
-          + '<select id="setGoal" class="precision-select" style="width:100%;height:44px;background:#141416;color:#F5F5F4;border:1px solid #222;border-radius:8px;padding:0 36px 0 12px;font-size:15px;appearance:none;-webkit-appearance:none;cursor:pointer">'
-            + '<option value="gain"' + (goalVal === 'gain' ? ' selected' : '') + '>Build muscle</option>'
-            + '<option value="loss"' + (goalVal === 'loss' ? ' selected' : '') + '>Lose fat</option>'
-            + '<option value="recomp"' + (goalVal === 'recomp' ? ' selected' : '') + '>Recomp</option>'
-            + '<option value="strength"' + (goalVal === 'strength' ? ' selected' : '') + '>Strength</option>'
-          + '</select>'
-          + chevronSVG
-        + '</div>'
+    + '<div style="background:#1C1C1F;border-radius:16px;padding:8px 16px;margin-bottom:24px">'
+      + '<div id="rowPickGoal" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--hairline);cursor:pointer">'
+        + '<span style="font-size:15px;color:var(--text);font-weight:500">Primary Goal</span>'
+        + '<span style="display:flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary)"><span id="valPickGoal">' + esc(getOptLabel(goalOptions, goalVal)) + '</span><span style="font-size:17px">›</span></span>'
       + '</div>'
-      + '<div>'
-        + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Equipment Access</label>'
-        + '<div style="position:relative;display:flex;align-items:center;width:100%">'
-          + '<select id="setEquip" class="precision-select" style="width:100%;height:44px;background:#141416;color:#F5F5F4;border:1px solid #222;border-radius:8px;padding:0 36px 0 12px;font-size:15px;appearance:none;-webkit-appearance:none;cursor:pointer">'
-            + '<option value="full"' + (equipVal === 'full' ? ' selected' : '') + '>Full Gym</option>'
-            + '<option value="home"' + (equipVal === 'home' ? ' selected' : '') + '>Home Gym</option>'
-            + '<option value="db"' + (equipVal === 'db' ? ' selected' : '') + '>Dumbbells Only</option>'
-            + '<option value="body"' + (equipVal === 'body' ? ' selected' : '') + '>Bodyweight</option>'
-          + '</select>'
-          + chevronSVG
-        + '</div>'
+      + '<div id="rowPickEquip" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--hairline);cursor:pointer">'
+        + '<span style="font-size:15px;color:var(--text);font-weight:500">Equipment Access</span>'
+        + '<span style="display:flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary)"><span id="valPickEquip">' + esc(getOptLabel(equipOptions, equipVal)) + '</span><span style="font-size:17px">›</span></span>'
       + '</div>'
-      + '<div>'
-        + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Dietary Pattern</label>'
-        + '<div style="position:relative;display:flex;align-items:center;width:100%">'
-          + '<select id="setDiet" class="precision-select" style="width:100%;height:44px;background:#141416;color:#F5F5F4;border:1px solid #222;border-radius:8px;padding:0 36px 0 12px;font-size:15px;appearance:none;-webkit-appearance:none;cursor:pointer">'
-            + '<option value="nonveg"' + (dietVal === 'nonveg' ? ' selected' : '') + '>Non-Vegetarian</option>'
-            + '<option value="eggitarian"' + (dietVal === 'eggitarian' ? ' selected' : '') + '>Eggitarian</option>'
-            + '<option value="veg"' + (dietVal === 'veg' ? ' selected' : '') + '>Vegetarian</option>'
-            + '<option value="vegan"' + (dietVal === 'vegan' ? ' selected' : '') + '>Vegan</option>'
-          + '</select>'
-          + chevronSVG
-        + '</div>'
+      + '<div id="rowPickDiet" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--hairline);cursor:pointer">'
+        + '<span style="font-size:15px;color:var(--text);font-weight:500">Dietary Pattern</span>'
+        + '<span style="display:flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary)"><span id="valPickDiet">' + esc(getOptLabel(dietOptions, dietVal)) + '</span><span style="font-size:17px">›</span></span>'
       + '</div>'
-      + '<div>'
-        + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Experience Tier</label>'
-        + '<div style="position:relative;display:flex;align-items:center;width:100%">'
-          + '<select id="setExp" class="precision-select" style="width:100%;height:44px;background:#141416;color:#F5F5F4;border:1px solid #222;border-radius:8px;padding:0 36px 0 12px;font-size:15px;appearance:none;-webkit-appearance:none;cursor:pointer">'
-            + '<option value="novice"' + (expVal === 'novice' ? ' selected' : '') + '>Novice / Intermediate</option>'
-            + '<option value="advanced"' + (expVal === 'advanced' ? ' selected' : '') + '>Advanced</option>'
-          + '</select>'
-          + chevronSVG
-        + '</div>'
+      + '<div id="rowPickExp" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;cursor:pointer">'
+        + '<span style="font-size:15px;color:var(--text);font-weight:500">Experience Tier</span>'
+        + '<span style="display:flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary)"><span id="valPickExp">' + esc(getOptLabel(expOptions, expVal)) + '</span><span style="font-size:17px">›</span></span>'
       + '</div>'
+      + '<select id="setGoal" style="display:none">' + goalOptions.map(function(o){ return '<option value="' + o.value + '"' + (goalVal === o.value ? ' selected' : '') + '>' + o.label + '</option>'; }).join('') + '</select>'
+      + '<select id="setEquip" style="display:none">' + equipOptions.map(function(o){ return '<option value="' + o.value + '"' + (equipVal === o.value ? ' selected' : '') + '>' + o.label + '</option>'; }).join('') + '</select>'
+      + '<select id="setDiet" style="display:none">' + dietOptions.map(function(o){ return '<option value="' + o.value + '"' + (dietVal === o.value ? ' selected' : '') + '>' + o.label + '</option>'; }).join('') + '</select>'
+      + '<select id="setExp" style="display:none">' + expOptions.map(function(o){ return '<option value="' + o.value + '"' + (expVal === o.value ? ' selected' : '') + '>' + o.label + '</option>'; }).join('') + '</select>'
     + '</div>'
 
     // PLAN
@@ -141,19 +123,23 @@ export function openSettings() {
         + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">Routine & Split</div>'
         + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Custom 5-day split & exercise catalog</div>'
       + '</div>'
-      + '<button type="button" class="btn" id="openPlanFromSettingsBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#141416;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Edit plan</button>'
+      + '<button type="button" class="btn" id="openPlanFromSettingsBtn" style="white-space:nowrap;height:36px;padding:0 14px;border-radius:8px;background:#141416;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Edit plan</button>'
     + '</div>'
 
-    // ADVANCED (Unified Card with 36px action buttons)
+    // ADVANCED (Unified Card with native switch toggles)
     + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Advanced</span></div>'
     + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid #141416">'
         + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Haptic feedback</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Vibrate on taps and logged sets</div></div>'
-        + '<button type="button" class="btn" id="toggleHapticsBtn" style="height:36px;min-width:64px;padding:0 14px;border-radius:8px;background:#141416;color:' + (profile.hapticsMuted ? '#8A8A8E' : '#C6F432') + ';font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">' + (profile.hapticsMuted ? 'Muted' : 'On') + '</button>'
+        + renderSwitchHTML('toggleHapticsBtn', !profile.hapticsMuted, 'Haptic feedback')
       + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
         + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Auto-start rest timer</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Counts down after saving a set</div></div>'
-        + '<button type="button" class="btn" id="toggleAutoRestBtn" style="height:36px;min-width:64px;padding:0 14px;border-radius:8px;background:#141416;color:' + (profile.autoStartRestTimer === false ? '#8A8A8E' : '#C6F432') + ';font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">' + (profile.autoStartRestTimer === false ? 'Off' : 'On') + '</button>'
+        + renderSwitchHTML('toggleAutoRestBtn', profile.autoStartRestTimer !== false, 'Auto-start rest timer')
+      + '</div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
+        + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Slide animations / navigation</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Enable swipe gestures between tabs</div></div>'
+        + renderSwitchHTML('toggleSlideNavBtn', !profile.disableSlideNav, 'Slide animations / navigation')
       + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
         + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Streak shields</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">' + shields + (shields === 1 ? ' shield' : ' shields') + ' available</div></div>'
@@ -180,8 +166,8 @@ export function openSettings() {
     + '</div>'
     + buildCatchupSettingsHTML()
 
-    // DANGER ZONE
-    + '<div style="margin-top:24px;margin-bottom:8px">'
+    // DANGER ZONE (Separated with distinct margin and clear border)
+    + '<div style="margin-top:36px;padding-top:20px;border-top:1px solid var(--hairline);margin-bottom:8px">'
       + '<span style="font-size:11px;font-weight:600;color:#FF4D4F;text-transform:uppercase;letter-spacing:0.08em">Danger Zone</span>'
     + '</div>'
     + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">'
@@ -225,25 +211,37 @@ export function openSettings() {
     if (el) el.addEventListener('blur', function() { if (saveTargetsOnBlur()) showToast('Saved', 'ok'); });
   });
 
-  ['setGoal', 'setEquip', 'setDiet', 'setExp'].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.addEventListener('change', function() {
-      profile.goal = document.getElementById('setGoal').value;
-      profile.equipment = document.getElementById('setEquip').value;
-      profile.dietaryPattern = document.getElementById('setDiet').value;
-      profile.experience = document.getElementById('setExp').value;
-      sv('rg_profile', profile); showToast('Saved', 'ok');
-    });
-  });
+  var bindPickerRow = function(rowId, valId, selectId, title, options, profKey) {
+    var row = overlay.querySelector('#' + rowId);
+    if (!row) return;
+    row.onclick = function() {
+      openProfilePickerModal({
+        title: title,
+        items: options,
+        currentValue: profile[profKey],
+        onSelect: function(newVal) {
+          profile[profKey] = newVal;
+          sv('rg_profile', profile);
+          var valEl = overlay.querySelector('#' + valId);
+          if (valEl) valEl.textContent = getOptLabel(options, newVal);
+          var selEl = document.getElementById(selectId);
+          if (selEl) selEl.value = newVal;
+          showToast('Saved', 'ok');
+        }
+      });
+    };
+  };
+
+  bindPickerRow('rowPickGoal', 'valPickGoal', 'setGoal', 'Primary Goal', goalOptions, 'goal');
+  bindPickerRow('rowPickEquip', 'valPickEquip', 'setEquip', 'Equipment Access', equipOptions, 'equipment');
+  bindPickerRow('rowPickDiet', 'valPickDiet', 'setDiet', 'Dietary Pattern', dietOptions, 'dietaryPattern');
+  bindPickerRow('rowPickExp', 'valPickExp', 'setExp', 'Experience Tier', expOptions, 'experience');
 
   overlay.querySelectorAll('.day-toggle').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var d = parseInt(btn.dataset.day, 10);
       if (tdays.includes(d)) {
-        if (tdays.length <= 1) {
-          showToast('You need at least 1 training day', 'warn');
-          return;
-        }
+        if (tdays.length <= 1) { showToast('You need at least 1 training day', 'warn'); return; }
         tdays = tdays.filter(function(x){ return x !== d; });
       } else {
         tdays.push(d);
@@ -251,9 +249,9 @@ export function openSettings() {
       }
       var isAct = tdays.includes(d);
       btn.classList.toggle('active', isAct);
-      btn.style.setProperty('background', isAct ? '#F5F5F4' : '#1C1C1F', 'important');
-      btn.style.setProperty('border', 'none', 'important');
-      btn.style.setProperty('color', isAct ? '#0B0B0C' : '#55555A', 'important');
+      btn.style.setProperty('background', isAct ? 'rgba(200,245,60,0.14)' : 'transparent', 'important');
+      btn.style.setProperty('border', isAct ? '1.5px solid var(--lime)' : '1px solid var(--hairline)', 'important');
+      btn.style.setProperty('color', isAct ? 'var(--lime)' : 'var(--text-secondary)', 'important');
       btn.style.setProperty('font-weight', isAct ? '600' : '500', 'important');
       profile.trainingDays = tdays.length ? tdays : [1, 2, 4, 5, 6];
       sv('rg_profile', profile);
@@ -292,20 +290,17 @@ export function openSettings() {
   var saveBtn = overlay.querySelector('#saveSettingsBtn');
   if (saveBtn) {
     saveBtn.addEventListener('click', function() {
-      if (saveTargetsOnBlur()) {
-        showToast('Saved', 'ok');
-        closeSheetFn();
-      }
+      if (saveTargetsOnBlur()) { showToast('Saved', 'ok'); closeSheetFn(); }
     });
   }
 
   var toggleHapticsBtn = overlay.querySelector('#toggleHapticsBtn');
   if (toggleHapticsBtn) {
     toggleHapticsBtn.onclick = function() {
+      triggerHaptic();
       profile.hapticsMuted = !profile.hapticsMuted;
       sv('rg_profile', profile);
-      toggleHapticsBtn.textContent = profile.hapticsMuted ? 'Muted' : 'On';
-      toggleHapticsBtn.style.color = profile.hapticsMuted ? '#8A8A8E' : '#C6F432';
+      updateSwitchUI(toggleHapticsBtn, !profile.hapticsMuted);
       showToast(profile.hapticsMuted ? 'Haptics muted' : 'Haptics active', 'ok');
     };
   }
@@ -313,11 +308,25 @@ export function openSettings() {
   var toggleAutoRestBtn = overlay.querySelector('#toggleAutoRestBtn');
   if (toggleAutoRestBtn) {
     toggleAutoRestBtn.onclick = function() {
+      triggerHaptic();
       profile.autoStartRestTimer = (profile.autoStartRestTimer === false) ? true : false;
       sv('rg_profile', profile);
-      toggleAutoRestBtn.textContent = profile.autoStartRestTimer ? 'On' : 'Off';
-      toggleAutoRestBtn.style.color = profile.autoStartRestTimer ? '#C6F432' : '#8A8A8E';
+      updateSwitchUI(toggleAutoRestBtn, profile.autoStartRestTimer !== false);
       showToast(profile.autoStartRestTimer ? 'Rest timer auto-start on' : 'Rest timer auto-start off', 'ok');
+    };
+  }
+
+  var toggleSlideNavBtn = overlay.querySelector('#toggleSlideNavBtn');
+  if (toggleSlideNavBtn) {
+    toggleSlideNavBtn.onclick = function() {
+      triggerHaptic();
+      profile.disableSlideNav = !profile.disableSlideNav;
+      sv('rg_profile', profile);
+      if (typeof document !== 'undefined' && document.documentElement) {
+        document.documentElement.classList.toggle('no-slide-nav', !!profile.disableSlideNav);
+      }
+      updateSwitchUI(toggleSlideNavBtn, !profile.disableSlideNav);
+      showToast(profile.disableSlideNav ? 'Slide navigation off' : 'Slide navigation on', 'ok');
     };
   }
 
@@ -329,53 +338,7 @@ export function openSettings() {
     }
   });
 
-  var resetBtn = overlay.querySelector('#resetBtn');
-  if (resetBtn) {
-    var armed = false;
-    var resetTimer = null;
-    resetBtn.addEventListener('click', function() {
-      var executeReset = function() {
-        resetBtn.disabled = true;
-        resetBtn.textContent = 'Resetting…';
-        resetAllData().then(function() {
-          window.location.reload();
-        }).catch(function() {
-          showToast('Reset failed. Export a backup and try again.', 'warn');
-          resetBtn.disabled = false;
-          resetBtn.textContent = 'Reset';
-        });
-      };
-
-      if (armed) {
-        if (resetTimer) clearTimeout(resetTimer);
-        executeReset();
-        return;
-      }
-
-      var confirmed = false;
-      try {
-        confirmed = confirm('This will delete all Regain data on this device. Are you sure?');
-      } catch (e) {
-        confirmed = false;
-      }
-
-      if (confirmed) {
-        executeReset();
-      } else {
-        armed = true;
-        resetBtn.textContent = 'Confirm reset';
-        resetBtn.style.background = '#FF4D4F';
-        resetBtn.style.color = '#0B0B0C';
-        showToast('Tap "Confirm reset" to wipe all data', 'warn');
-        resetTimer = setTimeout(function() {
-          armed = false;
-          resetBtn.textContent = 'Reset';
-          resetBtn.style.background = 'transparent';
-          resetBtn.style.color = '#FF4D4F';
-        }, 4500);
-      }
-    });
-  }
+  bindResetAction(overlay, resetAllData, showToast);
 
   var openPlanBtn = overlay.querySelector('#openPlanFromSettingsBtn');
   if (openPlanBtn) {
