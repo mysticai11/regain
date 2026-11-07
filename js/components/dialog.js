@@ -98,7 +98,7 @@ export function confirmDialog(options) {
     document.body.appendChild(overlay);
     activeDialog = overlay;
     setTimeout(function() {
-      if (confirmBtn) confirmBtn.focus();
+      if (confirmBtn && typeof confirmBtn.focus === 'function') confirmBtn.focus();
     }, 40);
   });
 }
@@ -203,9 +203,9 @@ export function promptDialog(options) {
     document.body.appendChild(overlay);
     activeDialog = overlay;
     setTimeout(function() {
-      if (input) {
+      if (input && typeof input.focus === 'function') {
         input.focus();
-        if (input.select && typeof input.select === 'function') input.select();
+        if (typeof input.select === 'function') input.select();
       }
     }, 50);
   });

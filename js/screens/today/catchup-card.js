@@ -9,6 +9,7 @@ import { todayKey, esc } from "../../lib/format.js";
 import { triggerHaptic } from "../../lib/dom.js";
 import { showToast, showUndoToast } from "../../components/toast.js";
 import { confirmDialog } from "../../components/dialog.js";
+import { openThisWeeksPlanSheet } from "./review-plan-sheet.js";
 import { setTab } from "../../state.js";
 
 export function buildCatchupCardHTML(currentDateKey) {
@@ -21,7 +22,7 @@ export function buildCatchupCardHTML(currentDateKey) {
   allDayKeys().forEach(function (k) { records[k] = dayRecord(k); });
 
   var weekDays = getWeekDays(tKey);
-  var appliedDate = weekDays.find(function(d) { return decisions[d] === 'spread' || decisions[d] === 'slid'; });
+  var appliedDate = weekDays.find(function(d) { return decisions[d] === 'spread' || decisions[d] === 'slid' || decisions[d] === 'merged'; });
   if (appliedDate) {
     var appliedDec = decisions[appliedDate];
     var isFb = weekDays.some(function(d) { return overrides[d] && overrides[d].isFullBody; });
@@ -30,7 +31,9 @@ export function buildCatchupCardHTML(currentDateKey) {
     var dayShort = isSameDay ? (new Date(tKey + 'T00:00:00')).toLocaleDateString('en-GB', { weekday: 'short' }) : ('Applied ' + aObj.toLocaleDateString('en-GB', { weekday: 'short' }));
     var planSummary = appliedDec === 'slid'
       ? ('Schedule shifted +1d · ' + dayShort)
-      : (isFb ? ('Full-body week · ' + dayShort) : ('Volume spread across week · ' + dayShort));
+      : (appliedDec === 'merged'
+        ? ('Merged workout · ' + dayShort)
+        : (isFb ? ('Full-body week · ' + dayShort) : ('Volume spread across week · ' + dayShort)));
 
     var checkSVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
 
@@ -113,22 +116,12 @@ export function bindCatchupCardEvents(container, refreshCallback) {
 
   var reviewBtn = container.querySelector('#catchupReviewPlanBtn');
   if (reviewBtn) {
-    reviewBtn.onclick = async function() {
-      var tKey = todayKey(), decisions = getCatchupDecisions(), weekDays = getWeekDays(tKey);
-      var appliedDate = weekDays.find(function(d) { return decisions[d] === 'spread' || decisions[d] === 'slid'; });
-      if (!appliedDate) return;
-      var ok = await confirmDialog({
-        title: 'Reset Plan?',
-        message: 'Reset catch-up plan for this week?',
-        confirmLabel: 'Reset Plan',
-        destructive: true
+    reviewBtn.onclick = function() {
+      triggerHaptic();
+      openThisWeeksPlanSheet({
+        currentDateKey: todayKey(),
+        refreshCallback: refreshCallback
       });
-      if (ok) {
-        saveWeekOverrides({});
-        delete decisions[appliedDate];
-        showToast('Catch-up plan reset', 'ok');
-        if (typeof refreshCallback === 'function') refreshCallback();
-      }
     };
   }
 
