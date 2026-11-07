@@ -93,6 +93,48 @@
   transition: transform var(--motion-normal);
 }
 
+/* ── Workout History: Exercise rows & set styling ── */
+.history-session-body > div {
+  padding: 12px 0 !important;
+  border-bottom: 1px solid var(--hairline) !important;
+  box-sizing: border-box !important;
+}
+.history-session-body > div:last-child {
+  border-bottom: none !important;
+}
+.history-set-row {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 2px 0 !important;
+  font-size: var(--fs-15) !important;
+  color: var(--text-secondary) !important;
+  font-variant-numeric: tabular-nums !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+.history-set-row > span {
+  font-size: var(--fs-15) !important;
+  color: var(--text-secondary) !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.history-session-body div[style*="flex-wrap"] {
+  gap: var(--spacing-8) !important;
+  padding: 2px 0 !important;
+}
+.history-session-body div[style*="flex-wrap"] .history-set-row {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  justify-content: flex-start !important;
+}
+.history-session-body div[style*="flex-wrap"] .history-set-row:not(:last-child)::after {
+  content: '·';
+  margin-left: var(--spacing-8);
+  color: var(--text-tertiary);
+}
+
 /* ── Volume Table ── */
 .vol-table {
   width: 100%;
