@@ -169,4 +169,36 @@
   display: block;
 }
 
+/* F7: Rest Timer visual styling */
+.rest-timer-bar-fill {
+  transition: transform 1s linear;
+}
+
+@keyframes timerScalePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.pulse-countdown {
+  display: inline-block;
+  animation: timerScalePulse var(--dur-300) var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rest-timer-bar-fill {
+    transition: none !important;
+  }
+  .pulse-countdown {
+    animation: none !important;
+  }
+}
+
+[data-motion-polish="false"] .rest-timer-bar-fill {
+  transition: none !important;
+}
+[data-motion-polish="false"] .pulse-countdown {
+  animation: none !important;
+}
+
 

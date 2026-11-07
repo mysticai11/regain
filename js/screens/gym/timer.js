@@ -254,15 +254,17 @@ export function renderRestTimer() {
   var secs = restTimer.remaining % 60;
   var timeStr = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
 
-  var countdownEl = document.getElementById('restTimerCountdown');
-  var pauseEl = document.getElementById('pauseRestBtn');
+  var countdownEl = document.getElementById('restTimerCountdown'), pauseEl = document.getElementById('pauseRestBtn'), barFill = document.getElementById('restTimerBarFill');
+  if (barFill) { var tot = restTimer.totalDuration || restTimer.defaultDuration || 90; barFill.style.transform = 'scaleX(' + Math.max(0, Math.min(1, restTimer.remaining / tot)) + ')'; }
   if (countdownEl && pauseEl) {
     countdownEl.textContent = timeStr;
+    countdownEl.classList.toggle('pulse-countdown', restTimer.remaining <= 3 && restTimer.remaining > 0);
     pauseEl.textContent = restTimer.isPaused ? 'Resume' : 'Pause';
     return;
   }
 
-  wrap.innerHTML = '<div class="rest-timer-dock" id="restTimerDock" style="position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 8px);left:16px;right:16px;max-width:448px;margin:0 auto;height:48px;box-sizing:border-box;background:#141416;border:1px solid #1C1C1F;border-radius:16px;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;z-index:150;contain:layout paint;will-change:transform,opacity;pointer-events:auto">'
+  wrap.innerHTML = '<div class="rest-timer-dock" id="restTimerDock" style="position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 8px);left:16px;right:16px;max-width:448px;margin:0 auto;height:48px;box-sizing:border-box;background:#141416;border:1px solid #1C1C1F;border-radius:16px;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;z-index:150;contain:layout paint;will-change:transform,opacity;pointer-events:auto;overflow:hidden">'
+    + '<div class="rest-timer-bar" style="position:absolute;top:0;left:0;right:0;height:2px;overflow:hidden;background:#222"><div class="rest-timer-bar-fill" id="restTimerBarFill" style="height:100%;width:100%;background:#C6F432;transform-origin:left;transform:scaleX(1)"></div></div>'
     + '<div style="display:flex;align-items:center;gap:8px">'
       + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Rest</span>'
       + '<span id="restTimerCountdown" style="font-size:17px;font-weight:600;color:#C6F432;font-variant-numeric:tabular-nums;width:52px;display:inline-block;text-align:center">' + timeStr + '</span>'
@@ -337,7 +339,7 @@ export function startRestTimer(seconds) {
         clearInterval(restTimer.interval);
         restTimer.endAt = 0;
         playSound('timer_done');
-        triggerHaptic();
+        triggerHaptic('success');
         showToast('Rest complete! Ready for next set.', 'ok');
       }
       renderRestTimer();
