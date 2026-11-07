@@ -18,6 +18,7 @@ export * from "./progress/charts.js?v=4"; export * from "./progress/history.js";
 
 import { setupChartInteractions, openExercisePickerModal } from "./progress/interactions.js";
 import { decideSwipe, SWIPE_NAV_SCOPE, showGestureDebug } from "../lib/gesture.js";
+import { renderLineChart } from "../ui/lineChart.js";
 
 export function renderProgressSimple(mode, historySubTab) {
   mode = mode || (typeof window !== 'undefined' ? window.activeProgressSubTab : null) || 'body';
@@ -51,7 +52,20 @@ export function renderProgressSimple(mode, historySubTab) {
     var weightPlot=document.getElementById('weightPlot');
     if(weightPlot) {
       weightPlot.innerHTML = progressPlot(weightValues, (profile && profile.targetWeight) || null, 'kg', false);
-      setupChartInteractions(weightPlot);
+      if (weightValues && weightValues.length && typeof document.createElementNS === 'function' && typeof weightPlot.appendChild === 'function') {
+        var chartData = weightValues.map(function(w) {
+          return { t: new Date(w.dateKey + 'T12:00:00').getTime(), v: Number(w.value), label: w.dateKey };
+        });
+        renderLineChart({
+          container: weightPlot,
+          data: chartData,
+          height: 180,
+          unit: 'kg',
+          ariaLabel: 'Body weight history'
+        });
+      } else {
+        setupChartInteractions(weightPlot);
+      }
     }
     var weightEntriesContainer = document.getElementById('weightEntriesContainer');
     if (weightEntriesContainer) {

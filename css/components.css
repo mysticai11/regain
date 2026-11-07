@@ -1104,4 +1104,19 @@ body.kb-open .sheet {
   border-radius: 12px;
 }
 
+/* ── Item 2: Chart Readout Pill ── */
+.chart-readout-pill {
+  position: absolute;
+  pointer-events: none;
+  background: var(--surface2, #1C1C1F);
+  border: 1px solid var(--hairline, #222222);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: var(--fs-11);
+  color: var(--text, #F5F5F4);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+
 
