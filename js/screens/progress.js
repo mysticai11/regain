@@ -186,7 +186,7 @@ export function renderProgressSimple(mode, historySubTab) {
       + '<span class="t-label">Bodyweight</span>'
       + '<span class="t-micro">' + (profile && profile.targetWeight ? ('Target ' + profile.targetWeight + ' kg') : '') + '</span>'
     + '</div>'
-    + '<div class="t-display" style="margin-bottom:14px">' + (current != null ? (current.toFixed(1) + '<span style="font-size:15px;color:var(--text-secondary);margin-left:4px">kg</span>') : '<span style="font-size:17px;font-weight:500;color:#8A8A8E">No data yet</span>') + '</div>'
+    + '<div class="t-display" style="margin-bottom:14px">' + (current != null ? ('<span id="progBodyweightVal" class="tabnum" data-value="' + current.toFixed(1) + '">' + current.toFixed(1) + '</span><span style="font-size:15px;color:var(--text-secondary);margin-left:4px">kg</span>') : '<span style="font-size:17px;font-weight:500;color:#8A8A8E">No data yet</span>') + '</div>'
     + '<div class="seg-range" style="display:flex;gap:24px;align-items:center;margin-bottom:16px">'
       + '<button type="button" class="range-btn active" data-range="4w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:600;color:#F5F5F4;border-bottom:2px solid #F5F5F4;cursor:pointer">4W</button>'
       + '<button type="button" class="range-btn" data-range="12w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">12W</button>'
@@ -264,10 +264,9 @@ export function renderProgressSimple(mode, historySubTab) {
   document.getElementById('bodyProgressBtn').onclick = function() { if (mode !== 'body') { triggerHaptic(); renderProgressSimple('body'); } };
   document.getElementById('liftProgressBtn').onclick = function() { if (mode !== 'lifts') { triggerHaptic(); renderProgressSimple('lifts'); } };
   document.getElementById('historyProgressBtn').onclick = function() { if (mode !== 'history') { triggerHaptic(); renderProgressSimple('history'); } };
-
-  var aK = document.getElementById('progAvgKcalNum'), aP = document.getElementById('progAvgProtNum');
-  if (aK) { var vK = aK.dataset ? aK.dataset.value : (aK.getAttribute && aK.getAttribute('data-value')); animateNumber(aK, 0, parseInt(vK, 10) || 0, { duration: 600 }); }
-  if (aP) { var vP = aP.dataset ? aP.dataset.value : (aP.getAttribute && aP.getAttribute('data-value')); animateNumber(aP, 0, parseInt(vP, 10) || 0, { duration: 600 }); }
+  var aK = document.getElementById('progAvgKcalNum'), aP = document.getElementById('progAvgProtNum'), aB = document.getElementById('progBodyweightVal');
+  var getV = function(el) { return el && el.dataset ? el.dataset.value : (el && el.getAttribute ? el.getAttribute('data-value') : null); };
+  if (aK) animateNumber(aK, 0, parseInt(getV(aK), 10) || 0, { duration: 300 }); if (aP) animateNumber(aP, 0, parseInt(getV(aP), 10) || 0, { duration: 300 }); if (aB) animateNumber(aB, 0, parseFloat(getV(aB)) || 0, { duration: 300, decimals: 1 });
 
   if (mode === 'history') {
     wireHistoryScreenEvents(document.getElementById('content'), function(newTab) {

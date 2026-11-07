@@ -258,33 +258,62 @@ export function triggerHaptic(type) {
 }
 
 var lastShownNumbers = new Map();
+var activeNumberRafs = new Map();
+var sessionCountUpDone = false;
 
 export function animateNumber(el, from, to, opts) {
   if (!el) return;
   opts = opts || {};
-  var duration = opts.duration != null ? opts.duration : 600;
+  var duration = opts.duration != null ? opts.duration : 300;
   var key = el.id || (el.dataset && el.dataset.animKey) || el;
+  var isDecimals = opts.decimals === 1;
 
   var prefersReduced = false;
   if (typeof window !== 'undefined' && window.matchMedia) {
     prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
+  if (typeof window !== 'undefined' && window.MOTION_POLISH_ENABLED === false) {
+    prefersReduced = true;
+  }
 
   from = Number(from) || 0;
   to = Number(to) || 0;
 
+  var formatVal = function(v) { return isDecimals ? v.toFixed(1) : v.toLocaleString(); };
+  if (el.setAttribute) el.setAttribute('aria-label', formatVal(to));
+  if (el.style) el.style.fontVariantNumeric = 'tabular-nums';
+
   var lastVal = lastShownNumbers.get(key);
   if (lastVal !== undefined && lastVal === to) {
-    el.textContent = to.toLocaleString();
+    el.textContent = formatVal(to);
     return;
   }
+
+  if (activeNumberRafs.has(key)) {
+    if (typeof cancelAnimationFrame !== 'undefined') {
+      cancelAnimationFrame(activeNumberRafs.get(key));
+    }
+    activeNumberRafs.delete(key);
+  }
+
+  var isFirstPaint = (lastVal === undefined);
+  if (isFirstPaint) {
+    var allowFirstPaint = opts.duration === 600 || (opts.isTodayHero && !sessionCountUpDone);
+    if (opts.isTodayHero) sessionCountUpDone = true;
+    if (!allowFirstPaint) {
+      lastShownNumbers.set(key, to);
+      el.textContent = formatVal(to);
+      return;
+    }
+  }
+
   if (lastVal !== undefined) {
     from = lastVal;
   }
   lastShownNumbers.set(key, to);
 
   if (prefersReduced || duration <= 0 || typeof requestAnimationFrame === 'undefined') {
-    el.textContent = to.toLocaleString();
+    el.textContent = formatVal(to);
     return;
   }
 
@@ -293,15 +322,34 @@ export function animateNumber(el, from, to, opts) {
     if (!startTime) startTime = timestamp;
     var progress = Math.min((timestamp - startTime) / duration, 1);
     var ease = 1 - Math.pow(1 - progress, 3);
-    var current = Math.round(from + (to - from) * ease);
-    el.textContent = current.toLocaleString();
+    var current = isDecimals ? (from + (to - from) * ease) : Math.round(from + (to - from) * ease);
+    el.textContent = formatVal(current);
     if (progress < 1) {
-      requestAnimationFrame(step);
+      var handle = requestAnimationFrame(step);
+      activeNumberRafs.set(key, handle);
     } else {
-      el.textContent = to.toLocaleString();
+      activeNumberRafs.delete(key);
+      el.textContent = formatVal(to);
     }
   }
-  requestAnimationFrame(step);
+  var initHandle = requestAnimationFrame(step);
+  activeNumberRafs.set(key, initHandle);
+}
+
+export function showFoodAddedChip(kcal) {
+  if (typeof document === 'undefined') return;
+  var heroEl = document.getElementById('todayHeroCal');
+  if (!heroEl) return;
+  var prev = document.getElementById('foodAddedFloatChip');
+  if (prev && prev.parentNode) prev.remove();
+  var chip = document.createElement('span');
+  chip.id = 'foodAddedFloatChip';
+  chip.className = 'food-added-chip tabnum';
+  chip.textContent = '+' + Math.round(kcal);
+  heroEl.appendChild(chip);
+  setTimeout(function() {
+    if (chip && chip.parentNode) chip.remove();
+  }, 700);
 }
 
 export function initMaterialRipple() {

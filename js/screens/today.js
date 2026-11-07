@@ -6,7 +6,7 @@ import { getActiveProgram, getWeeklySchedule, getWorkoutForDate, getNextProgramW
 import { DEFAULT_MEAL_PLAN } from "../data/foods.js";
 import { todayKey, dateKey, addDays, esc, currentWeight, formatDuration } from "../lib/format.js";
 import { getTargetsForDate, getDayTotals, getWeeklyVolume, getLoggedWeeklyVolume, computeStreak, yesterdayMissed, foodMacros, addRecent } from "../lib/calc.js";
-import { playSound, triggerHaptic, ic } from "../lib/dom.js";
+import { playSound, triggerHaptic, ic, showFoodAddedChip } from "../lib/dom.js";
 import { showToast, showUndoToast } from "../components/toast.js";
 import { buildGauge, statusPill, macroBar } from "../components/gauge.js";
 import { openFoodSearch, openCustomFoodBuilder, openRecipeBuilder, openCustomFoodsManager, openMealEditor, openEditItemSheet } from "./today/food-modal.js";
@@ -265,7 +265,7 @@ export function renderTodaySimple() {
       });
       saveDayRecord(activeDateKey, currentRec);
       addRecent(item.name, item.kcal, item.protein, item.carbs || 0, item.fat || 0);
-      playSound('set_logged'); triggerHaptic(); renderTodaySimple();
+      playSound('set_logged'); triggerHaptic(); renderTodaySimple(); showFoodAddedChip(Math.round(item.kcal * mult));
       showUndoToast('Logged ' + portionLabel + item.name + ' (' + +(item.protein * mult).toFixed(1) + 'g P)', function () {
         var undoRec = dayRecord(activeDateKey);
         if (undoRec.extra && undoRec.extra.length > insertIdx) {
@@ -362,7 +362,7 @@ export function addFoodToDay(key, food, servings) {
   rec.extra.push({ name: food.name + (servings !== 1 ? ' ×' + servings : ''), kcal: m.kcal, protein: m.protein, carbs: m.carbs, fat: m.fat, servings: 1 });
   saveDayRecord(key, rec); addRecent(food.name, m.kcal, m.protein, m.carbs, m.fat);
   if (profile) { profile.xp = (profile.xp || 0) + 5; sv('rg_profile', profile); }
-  renderTodaySimple();
+  renderTodaySimple(); showFoodAddedChip(m.kcal);
 }
 
 export function migrateFoodTotals() {

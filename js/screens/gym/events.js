@@ -150,8 +150,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
           return (rec.workout[actualId] || []).filter(Boolean).length >= target;
         });
         if (allDone && !rec.workoutDone) {
-          rec.workoutDone = true; profile.xp = (profile.xp || 0) + 30; sv('rg_profile', profile);
-          showToast('Session complete.', 'ok');
+          rec.workoutDone = true; profile.xp = (profile.xp || 0) + 30; sv('rg_profile', profile); showToast('Session complete.', 'ok');
         } else { profile.xp = (profile.xp || 0) + 3; sv('rg_profile', profile); }
         saveDayRecord(key, rec, { silent: true });
         renderGym();

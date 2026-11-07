@@ -360,11 +360,11 @@ export function triggerTodayAnimations() {
   var heroNumEl = document.getElementById('todayHeroCalNum');
   if (heroNumEl) {
     var hVal = heroNumEl.dataset ? heroNumEl.dataset.value : heroNumEl.getAttribute && heroNumEl.getAttribute('data-value');
-    animateNumber(heroNumEl, 0, parseInt(hVal, 10) || 0, { duration: 600 });
+    animateNumber(heroNumEl, 0, parseInt(hVal, 10) || 0, { duration: 300, isTodayHero: true });
   }
   var protNumEl = document.getElementById('todayProtNum');
   if (protNumEl) {
     var pVal = protNumEl.dataset ? protNumEl.dataset.value : protNumEl.getAttribute && protNumEl.getAttribute('data-value');
-    animateNumber(protNumEl, 0, parseInt(pVal, 10) || 0, { duration: 600 });
+    animateNumber(protNumEl, 0, parseInt(pVal, 10) || 0, { duration: 300, isTodayHero: true });
   }
 }

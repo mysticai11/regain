@@ -352,6 +352,41 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
 [data-motion-polish="false"] .just-completed .check-path {
   animation: none !important;
 }
+
+/* F3: Food added float chip */
+.food-added-chip {
+  position: absolute;
+  top: 0;
+  margin-left: var(--spacing-8);
+  font-size: var(--fs-15);
+  font-weight: 600;
+  color: var(--lime);
+  pointer-events: none;
+  animation: floatChipUp var(--dur-700) var(--ease-decelerate) forwards;
+}
+
+@keyframes floatChipUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .food-added-chip {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+}
+
+[data-motion-polish="false"] .food-added-chip {
+  animation: none !important;
+  opacity: 0 !important;
+}
 .rir-cycle-text {
   height: var(--tap-min) !important;
   background: none !important;
