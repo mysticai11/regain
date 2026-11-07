@@ -68,7 +68,10 @@ export function renderGym() {
     + '<button type="button" id="gymDateSelectBtn" style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;cursor:pointer;text-align:left">'
     + headerDateStr + ' · WEEK ' + workoutWeek
     + '</button>'
+    + '<div style="display:flex;align-items:center;gap:14px">'
     + '<button type="button" id="manageSplitTopBtn" style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;cursor:pointer">Plan</button>'
+    + '<button class="icon-btn" id="settingsBtn" aria-label="Settings">' + ic('settings') + '</button>'
+    + '</div>'
     + '</div>'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px">'
     + '<div style="font-size:28px;line-height:1.15;font-weight:600;color:#F5F5F4;flex:1;word-break:break-word">' + esc(activeCleanName) + '</div>'

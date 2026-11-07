@@ -294,7 +294,7 @@ export function animateNumber(el, from, to, opts) {
 }
 
 export function initMaterialRipple() {
-  if (typeof document === 'undefined') return;
+  if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') return;
   if (document._rippleInitialized) return;
   document._rippleInitialized = true;
 

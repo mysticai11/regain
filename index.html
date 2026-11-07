@@ -41,13 +41,13 @@ if ('serviceWorker' in navigator) {
   if ('caches' in window) {
     caches.keys().then(function(keys) {
       keys.forEach(function(k) {
-        if (k !== 'tally-v19') caches.delete(k);
+        if (k !== 'regain-v20') caches.delete(k);
       });
     });
   }
 }
 </script>
-<script type="module" src="js/main.js?v=19"></script>
+<script type="module" src="js/main.js?v=20"></script>
 </body>
 </html>
 

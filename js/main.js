@@ -79,7 +79,7 @@ export function renderTab() {
 }
 
 export function initKeyboardHandling() {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (typeof window === 'undefined' || typeof document === 'undefined' || typeof document.addEventListener !== 'function') return;
   if (window._keyboardInitialized) return;
   window._keyboardInitialized = true;
 
@@ -204,11 +204,13 @@ function onStorageReady() {
     subscribe(function() {
       preserveUiStateDuringRender(renderTab);
     });
-    if (location.hash === '#gym') { setTab('gym'); renderTab(); }
-    else if (location.hash === '#progress') { setTab('progress'); renderTab(); }
-    else if (location.hash === '#settings') { openSettings(); }
-    else if (location.hash === '#checkin' || location.search.indexOf('checkin') > -1) {
-      openCheckinSheet(todayKey());
+    if (typeof location !== 'undefined') {
+      if (location.hash === '#gym') { setTab('gym'); renderTab(); }
+      else if (location.hash === '#progress') { setTab('progress'); renderTab(); }
+      else if (location.hash === '#settings') { openSettings(); }
+      else if (location.hash === '#checkin' || (location.search && location.search.indexOf('checkin') > -1)) {
+        openCheckinSheet(todayKey());
+      }
     }
   }
   initEdgeToEdgeAndSplash();
@@ -217,7 +219,7 @@ function onStorageReady() {
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('sw.js?v=tally-v15').then(function (reg) {
+    navigator.serviceWorker.register('sw.js?v=regain-v20').then(function (reg) {
       if (!reg) return;
       var showUpdateBanner = function () {
         if (document.getElementById('swUpdateBanner')) return;
@@ -311,7 +313,7 @@ if (typeof window !== 'undefined') {
 }
 
 // Global delegated event listeners for resilient tap handling
-if (typeof document !== 'undefined') {
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
   document.addEventListener('click', function(e) {
     var settingsBtn = e.target.closest('#settingsBtn, .settings-btn');
     if (settingsBtn) {

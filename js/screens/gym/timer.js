@@ -385,7 +385,7 @@ export function setManualSessionDuration(dayKey, session, programDayIndex) {
   if (typeof window.renderGym === 'function') window.renderGym();
 }
 
-if (typeof document !== 'undefined' && typeof window !== 'undefined' && !window._wakeLockVisibilityBound) {
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function' && typeof window !== 'undefined' && !window._wakeLockVisibilityBound) {
   window._wakeLockVisibilityBound = true;
   document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'hidden') releaseWakeLock();

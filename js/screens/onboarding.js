@@ -57,42 +57,47 @@ export function renderOnboarding() {
     + '<button class="btn btn-primary" style="margin-top:28px" id="obStartBtn">Start tracking</button>'
     + '</div>';
 
-  document.getElementById('obStartBtn').addEventListener('click', function() {
-    var name = (document.getElementById('obName').value.trim()) || 'You';
-    var w = parseFloat(document.getElementById('obWeight').value);
-    if (!w || w < 30 || w > 250) { showToast('Enter a valid starting weight', 'warn'); return; }
-    var targetW = parseFloat(document.getElementById('obTargetWeight').value);
-    var goal = document.getElementById('obGoal').value;
-    if (!targetW || targetW < 30 || targetW > 250 || (goal === 'loss' && targetW >= w) || (goal !== 'loss' && targetW <= w)) {
-      showToast(goal === 'loss' ? 'Loss goal must be below starting weight' : 'Goal weight must be above starting weight', 'warn');
-      return;
-    }
-    
-    var equip = document.getElementById('obEquipment').value;
-    var diet = document.getElementById('obDiet').value;
-    var newProfile = {
-      name: name,
-      startDate: todayKey(),
-      startWeight: w,
-      targetWeight: targetW,
-      goal: goal,
-      calTargetRest: goal === 'loss' ? 2500 : CAL_TARGET_REST,
-      calTargetGym: goal === 'loss' ? 2700 : CAL_TARGET_GYM,
-      protTargetRest: PROT_TARGET_REST,
-      protTargetGym: PROT_TARGET_GYM,
-      trainingDays: [1,2,3,5,6],
-      programSplit: 'iron5day',
-      equipment: equip,
-      dietaryPattern: diet,
-      experience: 'novice',
-      xp: 0,
-      shields: 1,
-      version: 4,
-      mealPlan: JSON.parse(JSON.stringify(DEFAULT_MEAL_PLAN))
+  var startBtn = document.getElementById('obStartBtn');
+  if (startBtn) {
+    var onStart = function() {
+      var name = (document.getElementById('obName').value.trim()) || 'You';
+      var w = parseFloat(document.getElementById('obWeight').value);
+      if (!w || w < 30 || w > 250) { showToast('Enter a valid starting weight', 'warn'); return; }
+      var targetW = parseFloat(document.getElementById('obTargetWeight').value);
+      var goal = document.getElementById('obGoal').value;
+      if (!targetW || targetW < 30 || targetW > 250 || (goal === 'loss' && targetW >= w) || (goal !== 'loss' && targetW <= w)) {
+        showToast(goal === 'loss' ? 'Loss goal must be below starting weight' : 'Goal weight must be above starting weight', 'warn');
+        return;
+      }
+      
+      var equip = document.getElementById('obEquipment').value;
+      var diet = document.getElementById('obDiet').value;
+      var newProfile = {
+        name: name,
+        startDate: todayKey(),
+        startWeight: w,
+        targetWeight: targetW,
+        goal: goal,
+        calTargetRest: goal === 'loss' ? 2500 : CAL_TARGET_REST,
+        calTargetGym: goal === 'loss' ? 2700 : CAL_TARGET_GYM,
+        protTargetRest: PROT_TARGET_REST,
+        protTargetGym: PROT_TARGET_GYM,
+        trainingDays: [1,2,3,5,6],
+        programSplit: 'iron5day',
+        equipment: equip,
+        dietaryPattern: diet,
+        experience: 'novice',
+        xp: 0,
+        shields: 1,
+        version: 4,
+        mealPlan: JSON.parse(JSON.stringify(DEFAULT_MEAL_PLAN))
+      };
+      setProfile(newProfile);
+      sv('rg_profile', newProfile);
+      var firstDay = dayRecord(todayKey()); firstDay.weight = w; saveDayRecord(todayKey(), firstDay);
+      renderApp();
     };
-    setProfile(newProfile);
-    sv('rg_profile', newProfile);
-    var firstDay = dayRecord(todayKey()); firstDay.weight = w; saveDayRecord(todayKey(), firstDay);
-    renderApp();
-  });
+    if (typeof startBtn.addEventListener === 'function') startBtn.addEventListener('click', onStart);
+    else startBtn.onclick = onStart;
+  }
 }

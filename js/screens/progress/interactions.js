@@ -4,7 +4,7 @@ import { esc } from "../../lib/format.js";
 import { deleteWeightEntry } from "./history.js";
 
 export function setupChartInteractions(container) {
-  if (!container) return;
+  if (!container || typeof container.querySelector !== 'function') return;
   var chart = container.querySelector('.chart-container');
   if (!chart) return;
   var svg = chart.querySelector('svg');
@@ -59,9 +59,11 @@ export function setupChartInteractions(container) {
   });
 
   svg.addEventListener('pointerleave', resetPoint);
-  document.addEventListener('click', function(e) {
-    if (!chart.contains(e.target)) resetPoint();
-  });
+  if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+    document.addEventListener('click', function(e) {
+      if (!chart.contains(e.target)) resetPoint();
+    });
+  }
 }
 
 export function openExercisePickerModal(options) {
