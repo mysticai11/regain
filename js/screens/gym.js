@@ -11,7 +11,7 @@ import { getWeeklyVolume } from "../lib/calc.js";
 import { isBodyweightExercise, getLastSessionSets } from "./gym/sets.js";
 import { renderWorkoutTimer, renderRestTimer, startRestTimer, showFinishWorkoutSheet } from "./gym/timer.js";
 import { chooseWorkoutForDate } from "./gym/session-sheet.js";
-import { getWorkoutForDate, getWorkoutWeek, getCompletedWorkoutCount, getNextProgramWorkout, getActiveWorkoutSession, getSessionMeta, attachCommonGymHeaderEvents } from "./gym/helpers.js";
+import { getWorkoutForDate, getWorkoutWeek, getCompletedWorkoutCount, getNextProgramWorkout, getActiveWorkoutSession, getSessionMeta, attachCommonGymHeaderEvents, buildVolumeTable } from "./gym/helpers.js";
 import { attachGymEvents } from "./gym/events.js";
 import { renderSetRowWrap } from "./gym/swipe-delete.js";
 export * from "./gym/helpers.js"; export * from "./gym/timer.js"; export * from "./gym/sets.js";
