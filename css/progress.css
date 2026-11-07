@@ -93,46 +93,111 @@
   transition: transform var(--motion-normal);
 }
 
-/* ── Workout History: Exercise rows & set styling ── */
+/* ── Workout History: Exercise rows & unified set styling ── */
+.history-session-body {
+  padding: 0 16px !important;
+}
+
 .history-session-body > div {
-  padding: 12px 0 !important;
+  padding: 14px 0 !important;
   border-bottom: 1px solid var(--hairline) !important;
   box-sizing: border-box !important;
 }
+
 .history-session-body > div:last-child {
   border-bottom: none !important;
 }
-.history-set-row {
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  padding: 2px 0 !important;
-  font-size: var(--fs-15) !important;
-  color: var(--text-secondary) !important;
-  font-variant-numeric: tabular-nums !important;
-  box-shadow: none !important;
+
+/* Exercise header row: exercise name + badges (PR / Progress) */
+.history-session-body > div > div:first-child {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
+  gap: var(--spacing-8) !important;
+  margin-bottom: var(--spacing-4) !important;
 }
-.history-set-row > span {
+
+.history-session-body > div > div:first-child > div:first-child {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--spacing-8) !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  overflow: hidden !important;
+}
+
+.history-session-body > div > div:first-child > div:first-child > span:first-child {
   font-size: var(--fs-15) !important;
-  color: var(--text-secondary) !important;
+  font-weight: 600 !important;
+  color: var(--text) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Container for mixed sets: stack vertically with 4px line gap */
+.history-session-body div[style*="flex-wrap"] {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  gap: var(--spacing-4) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Unified set row (both uniform and mixed sets) */
+.history-set-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 2px 0 !important;
+  min-height: 24px !important;
+  font-size: var(--fs-17) !important;
+  font-weight: 400 !important;
+  color: var(--text) !important;
+  font-variant-numeric: tabular-nums !important;
+  cursor: pointer !important;
+}
+
+/* Set details text (first child span): uniform & mixed */
+.history-set-row > span:first-child {
+  font-size: var(--fs-17) !important;
+  font-weight: 400 !important;
+  color: var(--text) !important;
+  font-variant-numeric: tabular-nums !important;
+  line-height: 1.3 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* RIR Badge (second child span if present): right-aligned, identical size & style */
+.history-set-row > span:not(:first-child) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1px 6px !important;
+  min-width: 18px !important;
+  border-radius: 4px !important;
+  background: var(--surface-raised) !important;
+  font-size: var(--fs-11) !important;
+  font-weight: 600 !important;
+  margin-left: auto !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
   font-variant-numeric: tabular-nums !important;
 }
-.history-session-body div[style*="flex-wrap"] {
-  gap: var(--spacing-8) !important;
-  padding: 2px 0 !important;
-}
-.history-session-body div[style*="flex-wrap"] .history-set-row {
-  display: inline-flex !important;
-  align-items: baseline !important;
-  justify-content: flex-start !important;
-}
-.history-session-body div[style*="flex-wrap"] .history-set-row:not(:last-child)::after {
-  content: '·';
-  margin-left: var(--spacing-8);
-  color: var(--text-tertiary);
+
+.history-set-row:active {
+  opacity: 0.7;
 }
 
 /* ── Volume Table ── */
