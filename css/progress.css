@@ -360,4 +360,54 @@
   transform: none !important;
 }
 
+/* U5: Lifts Summary Card */
+.lift-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  box-sizing: border-box;
+}
+.lift-summary-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.lift-summary-col:not(:last-child) {
+  border-right: 1px solid var(--hairline);
+  padding-right: 12px;
+}
+.lift-summary-col:not(:first-child) {
+  padding-left: 12px;
+}
+.lift-summary-label {
+  font-size: var(--fs-11);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  margin-bottom: 6px;
+  white-space: nowrap;
+}
+.lift-summary-value {
+  font-size: var(--fs-24);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  white-space: nowrap;
+}
+.lift-summary-unit {
+  font-size: var(--fs-14);
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin-left: 2px;
+}
+
 

@@ -67,26 +67,19 @@ export function renderProgressSimple(mode, historySubTab) {
     if (liftSummaryCard) {
       if (liftValues.length > 0) {
         var allTimePeak = liftValues.find(function(v){ return v.isPeak; }) || liftValues[liftValues.length - 1];
-        var latestEntry = liftValues[liftValues.length - 1];
-        var firstEntry = liftValues[0];
-        var gain = latestEntry.value - firstEntry.value;
-        var u = isBW ? 'reps' : 'kg';
-        var gainStr = (gain >= 0 ? '+' : '') + (isBW ? Math.round(gain) : gain.toFixed(1)) + ' ' + u;
-
-        liftSummaryCard.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:14px 16px;margin-bottom:14px;text-align:left">'
-          + '<div>'
-            + '<div class="t-micro" style="color:var(--text-secondary);font-size:11px;letter-spacing:0.04em;text-transform:uppercase">Best (est. 1RM)</div>'
-            + '<div class="tabnum" style="font-size:28px;font-weight:600;color:var(--text);line-height:1.15;margin-top:4px;white-space:nowrap">' + (isBW ? Math.round(allTimePeak.value) : allTimePeak.value.toFixed(1)) + '<span style="font-size:15px;color:var(--text-secondary);font-weight:400;margin-left:2px">' + u + '</span></div>'
-          + '</div>'
-          + '<div>'
-            + '<div class="t-micro" style="color:var(--text-secondary);font-size:11px;letter-spacing:0.04em;text-transform:uppercase">Latest</div>'
-            + '<div class="tabnum" style="font-size:28px;font-weight:600;color:var(--text);line-height:1.15;margin-top:4px;white-space:nowrap">' + (isBW ? Math.round(latestEntry.value) : latestEntry.value.toFixed(1)) + '<span style="font-size:15px;color:var(--text-secondary);font-weight:400;margin-left:2px">' + u + '</span></div>'
-          + '</div>'
-          + '<div>'
-            + '<div class="t-micro" style="color:var(--text-secondary);font-size:11px;letter-spacing:0.04em;text-transform:uppercase">Change</div>'
-            + '<div class="tabnum" style="font-size:28px;font-weight:600;color:' + (gain >= 0 ? 'var(--lime)' : 'var(--text)') + ';line-height:1.15;margin-top:4px;white-space:nowrap">' + gainStr + '</div>'
-          + '</div>'
-          + '</div>';
+        var latestEntry = liftValues[liftValues.length - 1], firstEntry = liftValues[0];
+        var gainRaw = latestEntry.value - firstEntry.value, gainVal = isBW ? Math.round(gainRaw) : Number(gainRaw.toFixed(1));
+        if (Math.abs(gainVal) < 0.0001) gainVal = 0;
+        var u = isBW ? 'reps' : 'kg', changeColor = gainVal > 0 ? 'var(--lime)' : (gainVal < 0 ? 'var(--text)' : 'var(--text-secondary)');
+        var gainStr = (gainVal > 0 ? '+' : '') + (isBW ? gainVal : gainVal.toFixed(1));
+        var peakVal = isBW ? Math.round(allTimePeak.value) : allTimePeak.value.toFixed(1);
+        var curVal = isBW ? Math.round(latestEntry.value) : latestEntry.value.toFixed(1);
+        var unitHTML = '<span class="lift-summary-unit">' + u + '</span>';
+        liftSummaryCard.innerHTML = '<div class="lift-summary-grid">'
+          + '<div class="lift-summary-col"><div class="lift-summary-label">BEST 1RM</div><div class="lift-summary-value" style="color:var(--text)">' + peakVal + unitHTML + '</div></div>'
+          + '<div class="lift-summary-col"><div class="lift-summary-label">LATEST</div><div class="lift-summary-value" style="color:var(--text)">' + curVal + unitHTML + '</div></div>'
+          + '<div class="lift-summary-col"><div class="lift-summary-label">CHANGE</div><div class="lift-summary-value" style="color:' + changeColor + '">' + gainStr + unitHTML + '</div></div>'
+        + '</div>';
       } else {
         liftSummaryCard.innerHTML = '';
       }
@@ -95,8 +88,10 @@ export function renderProgressSimple(mode, historySubTab) {
     var liftPlot = document.getElementById('liftPlot');
     if (liftPlot) {
       if (liftValues.length < 2) {
-        var exNameDisplay = selectedExData ? selectedExData.name : 'this exercise';
-        liftPlot.innerHTML = '<div style="height:60px;min-height:60px;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:0 16px;color:var(--text-secondary);font-size:15px;text-align:center">Log 2+ sessions of ' + esc(exNameDisplay) + ' to see your strength trend.</div>';
+        liftPlot.innerHTML = '<div style="background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:20px;text-align:center">'
+          + '<div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px">Log 2+ sessions to see your trend</div>'
+          + '<div style="font-size:var(--fs-13);color:var(--text-secondary)">Track this exercise across workouts to view strength curves and estimated 1RM.</div>'
+        + '</div>';
       } else {
         var rangeLiftValues = getProgressRows(liftRange, liftValues);
         liftPlot.innerHTML = progressPlot(rangeLiftValues.length ? rangeLiftValues : liftValues, null, isBW ? 'reps' : 'kg', true);
@@ -230,9 +225,9 @@ export function renderProgressSimple(mode, historySubTab) {
     + '<div id="liftPlot"></div>'
     + '</div>';
   var weeklyWorkBlock = '<div style="margin-top:24px">'
-    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">'
-      + '<span class="t-label">Weekly work · Sets last 7 days</span>'
-      + '<span class="t-micro tabnum" style="color:var(--text-secondary)">Targets vary by muscle</span>'
+    + '<div style="margin-bottom:10px">'
+      + '<div style="font-size:17px;font-weight:600;color:var(--text)" aria-label="Weekly work · Sets last 7 days">Weekly sets</div>'
+      + '<div style="font-size:var(--fs-13);color:var(--text-secondary);margin-top:2px">Last 7 days · targets vary by muscle</div>'
     + '</div>'
     + weeklyVolumeChart()
     + '</div>';
