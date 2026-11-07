@@ -38,18 +38,13 @@ export function renderProgressSimple(mode, historySubTab) {
       }
     });
   });
-  var exOptions=[]; getActiveProgram().forEach(function(s){s.exercises.forEach(function(e){if(!exOptions.some(function(x){return x.id===e.id;}))exOptions.push(e);});});
-  allDayKeys().forEach(function(key){Object.keys(dayRecord(key).workout||{}).forEach(function(id){var e=getExerciseData(id);if(e&&!exOptions.some(function(x){return x.id===id;}))exOptions.push(e);});});
-  workoutSessions.forEach(function(s){ (s.exercises||[]).forEach(function(e){ if(e&&e.id&&!exOptions.some(function(x){return x.id===e.id;})) exOptions.push({id:e.id, name:e.name||e.id}); }); });
+  var exOptions=[]; getActiveProgram().forEach(function(s){s.exercises.forEach(function(e){if(!exOptions.some(function(x){return x.id===e.id;}))exOptions.push(e);});}); allDayKeys().forEach(function(key){Object.keys(dayRecord(key).workout||{}).forEach(function(id){var e=getExerciseData(id);if(e&&!exOptions.some(function(x){return x.id===id;}))exOptions.push(e);});}); workoutSessions.forEach(function(s){ (s.exercises||[]).forEach(function(e){ if(e&&e.id&&!exOptions.some(function(x){return x.id===e.id;})) exOptions.push({id:e.id, name:e.name||e.id}); }); });
   var selected = (typeof window !== 'undefined' && window.activeProgressExerciseId) || (exOptions.length ? exOptions[0].id : null);
   var render=function(){
-    var rangeEntries=getProgressRows(range,entries), weightValues=getRollingWeightValues(rangeEntries,entries);
-    var liftControl=document.getElementById('liftSelect');
+    var rangeEntries=getProgressRows(range,entries), weightValues=getRollingWeightValues(rangeEntries,entries), liftControl=document.getElementById('liftSelect');
     if (liftControl && liftControl.value) selected = liftControl.value;
     else if (!selected && exOptions.length) selected = exOptions[0].id;
-    var selectedExData = selected ? getExerciseData(selected) : null;
-    var isBW = selected ? isBodyweightExercise(selected, selectedExData ? selectedExData.name : '') : false;
-    var liftValues = getLiftHistory(selected);
+    var selectedExData = selected ? getExerciseData(selected) : null, isBW = selected ? isBodyweightExercise(selected, selectedExData ? selectedExData.name : '') : false, liftValues = getLiftHistory(selected);
 
     var weightPlot=document.getElementById('weightPlot');
     if(weightPlot) {
@@ -320,19 +315,30 @@ export function renderProgressSimple(mode, historySubTab) {
       render();
     };
   });
-  var saveWeight=document.getElementById('saveProgressWeight');
+  var saveWeight=document.getElementById('saveProgressWeight'), isSavingWeight = false;
   if(saveWeight) {
     saveWeight.onclick = function() {
+      if (isSavingWeight) return;
       var pInp = document.getElementById('progressWeight');
       var value = pInp ? parseFloat((pInp.value || '').trim().replace(',', '.')) : NaN;
       if(!value || isNaN(value) || value < 20 || value > 300) { showToast('Enter a valid weight', 'warn'); return; }
+      var now = Date.now(), nowISO = new Date(now).toISOString(), nowMin = nowISO.slice(0, 16);
       profile.weightEntries = profile.weightEntries || [];
-      profile.weightEntries.push({ id: 'weight_' + Date.now(), dayKey: todayKey(), weight: value, createdAt: new Date().toISOString() });
-      sv('rg_profile', profile);
-      var r = dayRecord(todayKey()); r.weight = value; saveDayRecord(todayKey(), r);
-      triggerHaptic();
-      showToast('Weight saved', 'ok');
-      renderProgressSimple('body');
+      var isDup = profile.weightEntries.some(function(e) {
+        return Number(e.weight) === Number(value) && e.dayKey === todayKey() && (e.createdAt || '').slice(0, 16) === nowMin;
+      });
+      if (isDup) { showToast('Already logged', 'ok'); return; }
+      isSavingWeight = true; if (saveWeight.setAttribute) saveWeight.setAttribute('disabled', 'true');
+      try {
+        profile.weightEntries.push({ id: 'weight_' + now, dayKey: todayKey(), weight: value, createdAt: nowISO });
+        sv('rg_profile', profile);
+        var r = dayRecord(todayKey()); r.weight = value; saveDayRecord(todayKey(), r);
+        triggerHaptic();
+        showToast('Weight saved', 'ok');
+        renderProgressSimple('body');
+      } finally {
+        setTimeout(function() { isSavingWeight = false; if (saveWeight && saveWeight.removeAttribute) saveWeight.removeAttribute('disabled'); }, 300);
+      }
     };
   }
   var liftSelect=document.getElementById('liftSelect');
