@@ -57,3 +57,4 @@ test('V1: Templates apply field container pattern across views', () => {
   assert.match(foodModalJS, /<div class="field"><input[^>]*id="cfGrams"[\s\S]*class="field-unit">g<\/span><\/div>/i, 'Custom food grams uses .field');
   assert.match(foodModalJS, /<div class="field"><input[^>]*id="cfKcal"[\s\S]*class="field-unit">kcal<\/span><\/div>/i, 'Custom food kcal uses .field');
 });
+

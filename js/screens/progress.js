@@ -277,11 +277,9 @@ export function renderProgressSimple(mode, historySubTab) {
         if (res.direction === 'LEFT') {
           if (mode === 'body') { triggerHaptic(); renderProgressSimple('lifts'); }
           else if (mode === 'lifts') { triggerHaptic(); renderProgressSimple('history'); }
-          else if (mode === 'history' && SWIPE_NAV_SCOPE === 'all-tabs' && typeof window.setTab === 'function') { window.setTab('gym'); }
         } else if (res.direction === 'RIGHT') {
           if (mode === 'history') { triggerHaptic(); renderProgressSimple('lifts'); }
           else if (mode === 'lifts') { triggerHaptic(); renderProgressSimple('body'); }
-          else if (mode === 'body' && SWIPE_NAV_SCOPE === 'all-tabs' && typeof window.setTab === 'function') { window.setTab('today'); }
         }
       }
     };

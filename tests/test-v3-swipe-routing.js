@@ -142,3 +142,22 @@ test('V3: Gesture cooldown and owner state helpers', () => {
   releaseGestureOwner();
   assert.strictEqual(decideSwipe({ startTarget: { closest: () => null }, startX: 100, currentX: 250, pointers: 1, activeTab: 'progress', isCooldown: false }).action, 'NAVIGATE');
 });
+
+test('V3: Slide navigation strictly scoped to progress subtabs (Body, Lifts, History)', async () => {
+  const fs = await import('node:fs');
+  const mainJs = fs.readFileSync('js/main.js', 'utf8');
+  const progressJs = fs.readFileSync('js/screens/progress.js', 'utf8');
+
+  // Verify initSwipeNavigation does not attach document swipe listeners for top-level tabs
+  const initSwipeMatch = mainJs.match(/export function initSwipeNavigation\(\)\s*\{([\s\S]*?)\}/);
+  assert.ok(initSwipeMatch, 'initSwipeNavigation exists');
+  assert.doesNotMatch(initSwipeMatch[1], /document\.addEventListener\(['"]touch/i, 'initSwipeNavigation does not attach global touch listeners');
+  assert.doesNotMatch(initSwipeMatch[1], /window\.setTab/, 'initSwipeNavigation does not navigate tabs');
+
+  // Verify progress.js strictly switches between body, lifts, and history without rolling to today/gym
+  assert.doesNotMatch(progressJs, /window\.setTab\(['"]gym['"]\)/, 'progress.js does not swipe navigate to gym');
+  assert.doesNotMatch(progressJs, /window\.setTab\(['"]today['"]\)/, 'progress.js does not swipe navigate to today');
+  assert.match(progressJs, /renderProgressSimple\(['"]lifts['"]\)/, 'progress switches to lifts');
+  assert.match(progressJs, /renderProgressSimple\(['"]history['"]\)/, 'progress switches to history');
+  assert.match(progressJs, /renderProgressSimple\(['"]body['"]\)/, 'progress switches to body');
+});

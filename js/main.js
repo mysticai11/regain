@@ -10,7 +10,6 @@ import { renderTodaySimple, migrateFoodTotals, openCheckinSheet } from "./screen
 import { renderProgressSimple } from "./screens/progress.js?v=4";
 import { renderGym } from "./screens/gym.js";
 import { renderOnboarding, openSettings } from "./screens/settings.js";
-import { decideSwipe, SWIPE_NAV_SCOPE, showGestureDebug } from "./lib/gesture.js";
 import { openEditWorkoutSheet, openSplitManagerSheet } from "./screens/gym/plan-editor.js";
 import { openGymDateDaySheet, chooseWorkoutForDate } from "./screens/gym/session-sheet.js";
 import { openSwapSheet } from "./screens/gym/swap.js";
@@ -82,43 +81,10 @@ export function renderTab() {
 }
 
 export function initSwipeNavigation() {
-  if (typeof window === 'undefined' || typeof document === 'undefined' || typeof document.addEventListener !== 'function') return;
-  if (window._swipeNavInitialized) return;
+  // Slide navigation is scoped strictly to Progress sub-tabs (Body / Lifts / History).
+  // Top-level tabs (Today, Gym, Progress) are tap-only via bottom navigation.
+  if (typeof window === 'undefined') return;
   window._swipeNavInitialized = true;
-
-  var touchStartX = 0, touchStartY = 0, startTarget = null;
-  document.addEventListener('touchstart', function(e) {
-    if (profile && (profile.disableSlideNav || profile.disableSwipeNav)) return;
-    if (e.touches && e.touches[0]) {
-      startTarget = e.target;
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-    }
-  }, { passive: true });
-
-  document.addEventListener('touchend', function(e) {
-    if (profile && (profile.disableSlideNav || profile.disableSwipeNav)) return;
-    if (!e.changedTouches || !e.changedTouches[0]) return;
-    var res = decideSwipe({
-      startTarget: startTarget,
-      startX: touchStartX,
-      startY: touchStartY,
-      currentX: e.changedTouches[0].clientX,
-      currentY: e.changedTouches[0].clientY,
-      pointers: (e.touches ? e.touches.length : 0) + 1,
-      activeTab: tab,
-      scope: SWIPE_NAV_SCOPE,
-      screenWidth: window.innerWidth
-    });
-    showGestureDebug('MainSwipe: ' + res.action + ' (' + res.reason + ')');
-    if (res.action === 'NAVIGATE' && typeof window.setTab === 'function') {
-      if (tab === 'today' && res.direction === 'LEFT') {
-        window.setTab('progress');
-      } else if (tab === 'gym' && res.direction === 'RIGHT') {
-        window.setTab('progress');
-      }
-    }
-  }, { passive: true });
 }
 
 export function initKeyboardHandling() {

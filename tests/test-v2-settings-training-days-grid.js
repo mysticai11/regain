@@ -25,3 +25,4 @@ test('V2: Settings training days grid layout and circular styling', () => {
   // Verify template does not force inline display:flex
   assert.doesNotMatch(settingsJS, /class="settings-day-toggles"[^>]*display:flex/i, 'settings-day-toggles must not have inline display:flex');
 });
+
