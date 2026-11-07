@@ -14,8 +14,7 @@ import { chooseWorkoutForDate } from "./gym/session-sheet.js";
 import { getWorkoutForDate, getWorkoutWeek, getCompletedWorkoutCount, getNextProgramWorkout, getActiveWorkoutSession, getSessionMeta, attachCommonGymHeaderEvents, buildVolumeTable } from "./gym/helpers.js";
 import { attachGymEvents } from "./gym/events.js";
 import { renderSetRowWrap } from "./gym/swipe-delete.js";
-export * from "./gym/helpers.js"; export * from "./gym/timer.js"; export * from "./gym/sets.js";
-export * from "./gym/swap.js"; export * from "./gym/session-sheet.js"; export * from "./gym/plan-editor.js"; export * from "./gym/events.js";
+export * from "./gym/helpers.js"; export * from "./gym/timer.js"; export * from "./gym/sets.js"; export * from "./gym/swap.js"; export * from "./gym/session-sheet.js"; export * from "./gym/plan-editor.js"; export * from "./gym/events.js";
 
 export function renderGym() {
   var contentEl = document.getElementById('content');
@@ -33,8 +32,7 @@ export function renderGym() {
   var completedInCycle = completedCount % cycleWorkouts;
 
   // Day names and month names for strict "WED 4 NOV · WEEK 1" format
-  var dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-  var monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  var dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'], monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
   var headerDateStr = dayNames[activeDate.getDay()] + ' ' + activeDate.getDate() + ' ' + monthNames[activeDate.getMonth()];
   var formattedSessionDate = activeDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
 
@@ -45,10 +43,7 @@ export function renderGym() {
     dayNum: rec.selectedDayNumber != null ? rec.selectedDayNumber : defaultScheduleDay
   };
 
-  // Clean workout name for the selected day
-  var activeCleanName = curWorkout.isRest
-    ? 'Scheduled Rest Day'
-    : (curWorkout.cleanName || 'Workout');
+  var activeCleanName = curWorkout.isRest ? 'Scheduled Rest Day' : (curWorkout.cleanName || 'Workout');
 
   var workoutIndex = curWorkout.workoutIndex;
   var session = curWorkout.session || (prog && prog[0]) || { label: 'Workout', exercises: [] };
@@ -61,9 +56,9 @@ export function renderGym() {
     return total + ((rec.workout || {})[actualId] || []).filter(Boolean).length;
   }, 0);
 
-  // Precision Gym Header (Item 5: 11px label "WED 4 NOV · WEEK 1", 28px title, "3 / 12 sets" right in text2, session timer below)
+  // Precision Gym Header (Item 5: 11px label "WED 4 NOV · WEEK 1", 28px title, "3 / 12 sets" right in text2)
   var gymHeaderUnifiedHTML =
-    '<div class="gym-header-unified" style="margin-bottom:24px">'
+    '<div class="gym-header-unified" style="margin-bottom:16px">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
     + '<button type="button" id="gymDateSelectBtn" style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;cursor:pointer;text-align:left">'
     + headerDateStr + ' · WEEK ' + workoutWeek
@@ -77,8 +72,13 @@ export function renderGym() {
     + '<div style="font-size:28px;line-height:1.15;font-weight:600;color:#F5F5F4;min-width:200px;flex:1 1 auto;word-break:break-word">' + esc(activeCleanName) + '</div>'
     + (!activeSched.isRest ? ('<span style="font-size:15px;color:#8A8A8E;font-variant-numeric:tabular-nums;flex-shrink:0" id="gymSetProgress">' + loggedTotal + ' / ' + totalPlanned + ' sets</span>') : '')
     + '</div>'
-    + (!activeSched.isRest ? '<div class="session-timer-dock" id="sessionTimer" style="display:flex;align-items:center;justify-content:space-between;padding-top:2px"></div>' : '')
     + '</div>';
+
+  var progressRatio = totalPlanned > 0 ? Math.min(1, loggedTotal / totalPlanned) : (rec.workoutDone ? 1 : 0);
+  var sessionStatusText = rec.workoutDone ? 'Completed' : (loggedTotal > 0 ? 'In progress' : 'Scheduled');
+  var sessionBarHTML = !activeSched.isRest
+    ? ('<div class="gym-session-bar" id="gymSessionBar"><div style="min-width:0;flex:1"><div style="font-size:15px;font-weight:600;color:#F5F5F4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(activeCleanName) + '</div><div class="t-micro tabnum" id="sessionBarSetProgress" style="color:#8A8A8E;margin-top:2px">' + loggedTotal + ' / ' + totalPlanned + ' sets · ' + sessionStatusText + '</div></div><div id="sessionTimer" class="session-timer-dock" style="display:flex;align-items:center;flex-shrink:0"></div><div class="gym-session-bar-progress"><div class="gym-session-bar-progress-fill" id="sessionBarProgressFill" style="transform:scaleX(' + progressRatio + ')"></div></div></div>')
+    : '';
 
   var dateBannerHTML = !isActualToday
     ? ('<div class="gym-date-banner" style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#1C1C1F;border-radius:12px"><span style="font-size:11px;color:#8A8A8E">Logging for <strong style="color:#F5F5F4">' + esc(formattedSessionDate) + '</strong></span><button type="button" class="btn-ghost" id="gymDateResetBtn" style="background:none;border:none;font-size:11px;color:#F5F5F4;font-weight:600;cursor:pointer">Jump to Today</button></div>')
@@ -182,16 +182,16 @@ export function renderGym() {
   // Accordion: determine currently expanded exercise ID
   var expandedExId = window.activeExpandedExId;
   var exists = uniqueExercises.some(function (e) { return e.id === expandedExId; });
+  var firstIncomplete = uniqueExercises.find(function (e) {
+    var actualId = (rec.swaps && rec.swaps[e.id]) || e.id;
+    var loggedSets = ((rec.workout || {})[actualId] || []).filter(Boolean).length;
+    var target = (rec.exercisePlannedSets && rec.exercisePlannedSets[actualId] != null) ? rec.exercisePlannedSets[actualId] : (e.sets || 2);
+    return loggedSets < target;
+  });
+  var currentExId = firstIncomplete ? firstIncomplete.id : null;
   if (expandedExId !== 'all') {
     if (!expandedExId || !exists) {
-      // Find first exercise that has remaining unlogged sets
-      var firstIncomplete = uniqueExercises.find(function (e) {
-        var actualId = (rec.swaps && rec.swaps[e.id]) || e.id;
-        var loggedSets = ((rec.workout || {})[actualId] || []).filter(Boolean).length;
-        var target = (rec.exercisePlannedSets && rec.exercisePlannedSets[actualId] != null) ? rec.exercisePlannedSets[actualId] : (e.sets || 2);
-        return loggedSets < target;
-      });
-      expandedExId = firstIncomplete ? firstIncomplete.id : (uniqueExercises[0] ? uniqueExercises[0].id : null);
+      expandedExId = currentExId || (uniqueExercises[0] ? uniqueExercises[0].id : null);
       window.activeExpandedExId = expandedExId;
     }
   }
@@ -201,6 +201,7 @@ export function renderGym() {
 
   var exHTML = uniqueExercises.map(function (exOrig, exIndex) {
     var exId = (rec.swaps && rec.swaps[exOrig.id]) ? rec.swaps[exOrig.id] : exOrig.id;
+    var isCurrent = (exOrig.id === currentExId || exId === currentExId);
     var ex = Object.assign({}, getExerciseData(exId) || {}, exOrig);
     var isBW = isBodyweightExercise(ex.id, ex.name);
     var sets = (rec.workout || {})[ex.id] || [];
@@ -220,7 +221,7 @@ export function renderGym() {
 
     // Item 4: Collapsed 56px row when not the active exercise
     if (!isCurrentExpanded) {
-      return '<div class="gym-ex-collapsed-row" data-expand-ex="' + ex.id + '" style="min-height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;cursor:pointer;padding:8px 0;box-sizing:border-box">'
+      return '<div class="gym-ex-collapsed-row' + (isCurrent ? ' is-current' : '') + '" data-expand-ex="' + ex.id + '" style="min-height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;cursor:pointer;padding:8px 0;box-sizing:border-box">'
         + '<div style="display:flex;align-items:center;gap:12px;min-width:0;flex:1">'
         + '<span style="font-size:17px;font-weight:600;color:#8A8A8E;font-variant-numeric:tabular-nums;width:20px;text-align:right;flex-shrink:0">' + (exIndex + 1) + '</span>'
         + '<span style="font-size:17px;font-weight:600;color:#F5F5F4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25;word-break:break-word">' + esc(ex.name) + (ex.isCatchup || ex.source === 'catchup' ? ' <span style="font-size:11px;font-weight:600;color:#0B0B0C;background:#C6F432;border-radius:4px;padding:2px 6px;margin-left:6px;vertical-align:middle">Catch-up</span>' : '') + '</span>'
@@ -334,7 +335,7 @@ export function renderGym() {
       + '<span style="width:var(--tap-min)"></span>'
       + '</div>';
 
-    return '<section class="gym-ex-section-expanded" id="exsec-' + ex.id + '" style="padding:16px 0 12px;border-bottom:1px solid var(--hairline)">'
+    return '<section class="gym-ex-section-expanded' + (isCurrent ? ' is-current' : '') + '" id="exsec-' + ex.id + '" style="padding:16px 0 12px;border-bottom:1px solid var(--hairline)">'
       + '<div style="margin-bottom:16px">'
       + '<div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">' + (exIndex + 1) + ' / ' + totalExCount + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
@@ -374,6 +375,7 @@ export function renderGym() {
     '<div class="gym-page" style="padding-bottom:120px">'
     + dateBannerHTML
     + gymHeaderUnifiedHTML
+    + sessionBarHTML
     + expandToggleHTML
     + exHTML
     + finishCardHTML
