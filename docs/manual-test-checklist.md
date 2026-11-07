@@ -120,3 +120,62 @@ Follow this checklist to verify all Round 1 visual upgrades on desktop Chrome or
 - [ ] Workout history and e1RM calculations match original figures.
 - [ ] Export Backup produces a valid JSON file matching existing backup schema.
 - [ ] All code conforms to Chromium 100+ WebView restrictions (zero `:has()`, zero CSS nesting, zero top-level await).
+
+---
+
+## 8. Round 2: Weekly Stat Tiles & Sparklines (Task R2-2)
+- [ ] Go to **Progress** tab $\rightarrow$ **Body** sub-tab.
+- [ ] Scroll between **Weight Logs** and **Nutrition Logs**:
+  - 6 stat tiles appear in a responsive 2-column grid:
+    1. **Weight Change**: Net 7-day $\Delta$ kg + 7-point mini sparkline with endpoint dot.
+    2. **Avg Daily Intake**: 7-day average calories vs daily target + sparkline.
+    3. **Avg Daily Protein**: 7-day average protein vs daily target + sparkline.
+    4. **Workouts Completed**: Total sessions completed this week vs planned target.
+    5. **Total Volume Lifted**: Total cumulative tonnage (kg) across all sets logged this week.
+    6. **Daily Consistency**: Percentage of days hitting calories and protein goals.
+  - Sparklines render with smooth cubic bezier curves and lime terminal indicator dots without jitter.
+
+---
+
+## 9. Round 2: 7-Day Nutrition Bar Chart & Dual Metric Switch (Task R2-3)
+- [ ] Go to **Progress** tab $\rightarrow$ **Body** sub-tab $\rightarrow$ scroll to **Nutrition Logs**.
+- [ ] **Dual Metric Switch**:
+  - Segmented control toggles between **Calories (kcal)** and **Protein (g)**.
+  - Tapping either segment updates bars with an 8-column layout (Mon..Sun + Target benchmark).
+- [ ] **Visual Targets & States**:
+  - Horizontal target benchmark line labeled with exact daily target (e.g. `2,800 kcal` or `140 g`).
+  - Bars reaching target display with solid lime accent fill (`#C6F432`).
+  - Days below target display with subtle surface fill (`#1C1C1F`) and hairline border.
+- [ ] **Scrub Readout**:
+  - Drag finger or pointer across the bars: guideline appears with floating tooltip showing day name, date, and exact intake vs goal.
+
+---
+
+## 10. Round 2: Progressive Overload Advisory Engine in Gym Logger (Task R2-4)
+- [ ] Go to **Gym** tab $\rightarrow$ expand any exercise with prior history (or imported fixture).
+- [ ] **Overload Advice Chip**:
+  - Below the exercise target metadata, an overload advice chip button appears (e.g. `↑ Increase Weight ▾` or `+ Add Reps ▾` or `Target: ~X kg ▾`).
+  - Minimum tap height is 48px with accessible contrast.
+- [ ] **Toggle Interaction**:
+  - Tap the chip: expands the rationale banner explaining why the weight increase or rep increment was recommended based on previous performance.
+  - Tap the chip again: smoothly collapses the rationale banner.
+  - **CRITICAL CHECK**: Verify that tapping the chip does **NOT** pre-populate or mutate the weight, reps, or RIR inputs of the current session. All inputs remain completely controlled by the lifter.
+
+---
+
+## 11. Round 2: Version Watermark & Cache Busting (Task R2-5)
+- [ ] Open **Settings** (gear icon in header).
+- [ ] Scroll to the bottom below the **Done** button:
+  - Cleanly centered version watermark displays: `Regain · v2.0.0`.
+- [ ] Service worker cache verification:
+  - Cache name in `sw.js` is updated to `regain-v2.0.0`.
+  - Upgrading from previous version activates cleanly without stale cached JS or CSS assets.
+
+---
+
+## 12. Round 2: GitHub Actions Automated CI & APK Signing (Task R2-1)
+- [ ] Inspect `.github/workflows/build-apk.yml`:
+  - Release signing uses repository secrets when configured: `RELEASE_KEYSTORE_BASE64`, `RELEASE_KEYSTORE_PASSWORD`, `RELEASE_KEY_ALIAS`, `RELEASE_KEY_PASSWORD`.
+  - If secrets are not configured, builds safely fall back to debug signing to guarantee workflow success.
+  - Artifact upload produces `app-debug.apk` or `app-release.apk` with monotonically incremented version codes based on `github.run_number`.
+
