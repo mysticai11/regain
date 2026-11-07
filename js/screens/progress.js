@@ -19,6 +19,7 @@ export * from "./progress/charts.js?v=4"; export * from "./progress/history.js";
 import { setupChartInteractions, openExercisePickerModal } from "./progress/interactions.js";
 import { decideSwipe, SWIPE_NAV_SCOPE, showGestureDebug } from "../lib/gesture.js";
 import { renderLineChart } from "../ui/lineChart.js";
+import { enhanceLiftsTab } from "./progress/lifts.js";
 
 export function renderProgressSimple(mode, historySubTab) {
   mode = mode || (typeof window !== 'undefined' ? window.activeProgressSubTab : null) || 'body';
@@ -28,6 +29,8 @@ export function renderProgressSimple(mode, historySubTab) {
   var entries=getWeightHistory(), records=allDayKeys().map(function(k){var r=dayRecord(k),t=getDayTotals(k);return {key:k,weight:r.weight,kcal:t.kcal,protein:t.protein};});
   var workoutSessions=getWorkoutSessions().filter(function(session){return (session.exercises||[]).some(function(exercise){return (exercise.sets||[]).some(Boolean);});});
   var current=entries.length?entries[entries.length-1].weight:null, range='4w', liftRange='4w';
+  var activeLiftMetric = (typeof window !== 'undefined' ? window.activeLiftMetric : null) || 'e1rm';
+  var liftSessionsMaxShown = (typeof window !== 'undefined' ? window.liftSessionsMaxShown : null) || 8;
   var exerciseSessionCounts = {};
   allDayKeys().forEach(function(k) {
     var wo = (dayRecord(k) || {}).workout || {};
@@ -78,41 +81,24 @@ export function renderProgressSimple(mode, historySubTab) {
       });
     }
 
-    var liftSummaryCard = document.getElementById('liftSummaryCard');
-    if (liftSummaryCard) {
-      if (liftValues.length > 0) {
-        var allTimePeak = liftValues.find(function(v){ return v.isPeak; }) || liftValues[liftValues.length - 1];
-        var latestEntry = liftValues[liftValues.length - 1], firstEntry = liftValues[0];
-        var gainRaw = latestEntry.value - firstEntry.value, gainVal = isBW ? Math.round(gainRaw) : Number(gainRaw.toFixed(1));
-        if (Math.abs(gainVal) < 0.0001) gainVal = 0;
-        var u = isBW ? 'reps' : 'kg', changeColor = gainVal > 0 ? 'var(--lime)' : (gainVal < 0 ? 'var(--text)' : 'var(--text-secondary)');
-        var gainStr = (gainVal > 0 ? '+' : '') + (isBW ? gainVal : gainVal.toFixed(1));
-        var peakVal = isBW ? Math.round(allTimePeak.value) : allTimePeak.value.toFixed(1);
-        var curVal = isBW ? Math.round(latestEntry.value) : latestEntry.value.toFixed(1);
-        var unitHTML = '<span class="lift-summary-unit">' + u + '</span>';
-        liftSummaryCard.innerHTML = '<div class="lift-summary-grid">'
-          + '<div class="lift-summary-col"><div class="lift-summary-label">BEST 1RM</div><div class="lift-summary-value" style="color:var(--text)">' + peakVal + unitHTML + '</div></div>'
-          + '<div class="lift-summary-col"><div class="lift-summary-label">LATEST</div><div class="lift-summary-value" style="color:var(--text)">' + curVal + unitHTML + '</div></div>'
-          + '<div class="lift-summary-col"><div class="lift-summary-label">CHANGE</div><div class="lift-summary-value" style="color:' + changeColor + '">' + gainStr + unitHTML + '</div></div>'
-        + '</div>';
-      } else {
-        liftSummaryCard.innerHTML = '';
+    enhanceLiftsTab({
+      selected: selected,
+      isBW: isBW,
+      liftRange: liftRange,
+      liftValues: liftValues,
+      activeMetric: activeLiftMetric,
+      maxSessionsShown: liftSessionsMaxShown,
+      onMetricChange: function(newMetric) {
+        activeLiftMetric = newMetric;
+        if (typeof window !== 'undefined') window.activeLiftMetric = newMetric;
+        render();
+      },
+      onShowAllSessions: function() {
+        liftSessionsMaxShown = 20;
+        if (typeof window !== 'undefined') window.liftSessionsMaxShown = 20;
+        render();
       }
-    }
-
-    var liftPlot = document.getElementById('liftPlot');
-    if (liftPlot) {
-      if (liftValues.length < 2) {
-        liftPlot.innerHTML = '<div style="background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:20px;text-align:center">'
-          + '<div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px">Log 2+ sessions to see your trend</div>'
-          + '<div style="font-size:var(--fs-13);color:var(--text-secondary)">Track this exercise across workouts to view strength curves and estimated 1RM.</div>'
-        + '</div>';
-      } else {
-        var rangeLiftValues = getProgressRows(liftRange, liftValues);
-        liftPlot.innerHTML = progressPlot(rangeLiftValues.length ? rangeLiftValues : liftValues, null, isBW ? 'reps' : 'kg', true);
-        setupChartInteractions(liftPlot);
-      }
-    }
+    });
     var direction=goalDirection(), latest=weightValues.length?weightValues[weightValues.length-1].value:null;
     var trend=weightValues.length>1?latest-weightValues[0].value:0;
 
@@ -233,12 +219,15 @@ export function renderProgressSimple(mode, historySubTab) {
       + exOptions.map(function(e){ return '<option value="' + e.id + '" ' + (e.id === curExObj.id ? 'selected' : '') + '>' + esc(e.name) + '</option>'; }).join('')
     + '</select>'
     + '<div id="liftSummaryCard"></div>'
+    + '<div id="liftMetricSegContainer" style="margin-bottom:14px"></div>'
     + '<div class="seg-range" style="display:flex;gap:24px;align-items:center;margin-bottom:14px">'
       + '<button type="button" class="lift-range-btn active" data-lift-range="4w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:600;color:var(--text);border-bottom:2px solid var(--text);cursor:pointer;height:36px">4W</button>'
       + '<button type="button" class="lift-range-btn" data-lift-range="12w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;cursor:pointer;height:36px">12W</button>'
       + '<button type="button" class="lift-range-btn" data-lift-range="all" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;cursor:pointer;height:36px">All</button>'
     + '</div>'
     + '<div id="liftPlot" data-gesture-owner="chart"></div>'
+    + '<div id="liftPersonalBestsCard"></div>'
+    + '<div id="liftRecentSessionsFeed"></div>'
     + '</div>';
   var weeklyWorkBlock = '<div style="margin-top:24px">'
     + '<div style="margin-bottom:10px">'

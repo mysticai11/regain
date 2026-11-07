@@ -24,17 +24,23 @@ export function createSegmented({
 
   var container = document.createElement('div');
   container.className = 'seg';
-  container.setAttribute('role', 'tablist');
-  if (ariaLabel) {
-    container.setAttribute('aria-label', ariaLabel);
+  if (typeof container.setAttribute === 'function') {
+    container.setAttribute('role', 'tablist');
+    if (ariaLabel) container.setAttribute('aria-label', ariaLabel);
+    container.setAttribute('data-gesture-owner', '');
   }
-  container.setAttribute('data-gesture-owner', '');
-  container.style.setProperty('--n', String(options.length));
+  if (container.style && typeof container.style.setProperty === 'function') {
+    container.style.setProperty('--n', String(options.length));
+  }
 
   var thumb = document.createElement('span');
   thumb.className = 'seg__thumb';
-  thumb.setAttribute('aria-hidden', 'true');
-  container.appendChild(thumb);
+  if (typeof thumb.setAttribute === 'function') {
+    thumb.setAttribute('aria-hidden', 'true');
+  }
+  if (typeof container.appendChild === 'function') {
+    container.appendChild(thumb);
+  }
 
   var buttons = [];
   var currentValue = (value !== undefined && options.some(function(o) { return o.value === value; }))
@@ -51,12 +57,19 @@ export function createSegmented({
   function applySelection(val, focusBtn) {
     var idx = getIndex(val);
     currentValue = options[idx].value;
-    container.style.setProperty('--i', String(idx));
+    if (container.style && typeof container.style.setProperty === 'function') {
+      container.style.setProperty('--i', String(idx));
+    }
 
     buttons.forEach(function(btn, i) {
       var isSelected = (i === idx);
-      btn.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-      btn.setAttribute('tabindex', isSelected ? '0' : '-1');
+      if (typeof btn.setAttribute === 'function') {
+        btn.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+        btn.setAttribute('tabindex', isSelected ? '0' : '-1');
+      }
+      if (btn.classList && typeof btn.classList.toggle === 'function') {
+        btn.classList.toggle('active', isSelected);
+      }
       if (isSelected && focusBtn && typeof btn.focus === 'function') {
         btn.focus();
       }
@@ -67,15 +80,21 @@ export function createSegmented({
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'seg__btn';
-    btn.setAttribute('role', 'tab');
-    btn.dataset.value = String(opt.value);
-    btn.dataset.index = String(index);
+    if (typeof btn.setAttribute === 'function') {
+      btn.setAttribute('role', 'tab');
+    }
+    if (btn.dataset) {
+      btn.dataset.value = String(opt.value);
+      btn.dataset.index = String(index);
+    }
     btn.textContent = opt.label;
     if (opt.id) {
       btn.id = opt.id;
     }
     buttons.push(btn);
-    container.appendChild(btn);
+    if (typeof container.appendChild === 'function') {
+      container.appendChild(btn);
+    }
   });
 
   applySelection(currentValue, false);
@@ -83,9 +102,9 @@ export function createSegmented({
   function handleClick(e) {
     var target = e.target;
     var btn = target && typeof target.closest === 'function' ? target.closest('.seg__btn') : null;
-    if (!btn || !container.contains(btn)) return;
+    if (!btn || (typeof container.contains === 'function' && !container.contains(btn))) return;
 
-    var selectedVal = btn.dataset.value;
+    var selectedVal = (btn.dataset && btn.dataset.value) || btn.value;
     if (selectedVal === currentValue) return;
 
     applySelection(selectedVal, false);
@@ -124,8 +143,10 @@ export function createSegmented({
     }
   }
 
-  container.addEventListener('click', handleClick);
-  container.addEventListener('keydown', handleKeyDown);
+  if (typeof container.addEventListener === 'function') {
+    container.addEventListener('click', handleClick);
+    container.addEventListener('keydown', handleKeyDown);
+  }
 
   return {
     el: container,
@@ -138,8 +159,10 @@ export function createSegmented({
       applySelection(newVal, false);
     },
     destroy: function() {
-      container.removeEventListener('click', handleClick);
-      container.removeEventListener('keydown', handleKeyDown);
+      if (typeof container.removeEventListener === 'function') {
+        container.removeEventListener('click', handleClick);
+        container.removeEventListener('keydown', handleKeyDown);
+      }
       buttons.length = 0;
     }
   };
