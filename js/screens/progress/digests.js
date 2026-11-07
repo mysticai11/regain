@@ -7,6 +7,7 @@ import { todayKey, dateKey, addDays, esc, daysBetween } from "../../lib/format.j
 import { triggerHaptic } from "../../lib/dom.js";
 import { getWeightHistory, buildDotConsistencyCalendarHTML } from "./charts.js";
 import { workoutHistoryHTML } from "./history.js";
+import { openDayDetailSheet } from "./day-detail-sheet.js";
 
 export function buildMonthlyDigestHTML(year, month, bgColor) {
   var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -26,18 +27,11 @@ export function buildMonthlyDigestHTML(year, month, bgColor) {
     });
   } catch(e) {}
 
-  var trainedCount = 0;
-  var plannedCount = 0;
-  var totalKcal = 0;
-  var totalProt = 0;
-  var foodDays = 0;
+  var trainedCount = 0, plannedCount = 0, totalKcal = 0, totalProt = 0, foodDays = 0;
 
   for (var d = 1; d <= totalDaysInMonth; d++) {
-    var mStr = (month + 1 < 10 ? '0' : '') + (month + 1);
-    var dStr = (d < 10 ? '0' : '') + d;
-    var k = year + '-' + mStr + '-' + dStr;
-    var curD = new Date(year, month, d);
-    var dow = curD.getDay();
+    var k = year + '-' + (month + 1 < 10 ? '0' : '') + (month + 1) + '-' + (d < 10 ? '0' : '') + d;
+    var dow = new Date(year, month, d).getDay();
 
     if (tdays.includes(dow) && k <= todayStr) plannedCount++;
     var rec = dayRecord(k);
@@ -144,6 +138,8 @@ export function buildWeeklyDigestHTML() {
 
   var weekBlocks = [];
 
+  var chevronRightSVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
+
   for (var w = numWeeks - 1; w >= 0; w--) {
     var monKey = addDays(firstMon, w * 7);
     var sunKey = addDays(monKey, 6);
@@ -180,7 +176,6 @@ export function buildWeeklyDigestHTML() {
       var isSched = profileTrainingDays.includes(curDayObj.getDay());
 
       if (isTrained) {
-        var chevronRightSVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
         trainedRows.push('<div class="list-row" data-jump-day="' + dKey + '" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #1C1C1F;cursor:pointer">'
           + '<div style="flex:1;min-width:0;overflow:hidden">'
             + '<div style="font-size:15px;font-weight:600;color:#F5F5F4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(woLabel || 'Workout') + '</div>'
@@ -191,9 +186,13 @@ export function buildWeeklyDigestHTML() {
       } else {
         if (isSched && dKey <= todayKey()) skippedDaysCount++;
         else pureRestCount++;
-        restRows.push('<div class="list-row" data-jump-day="' + dKey + '" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1C1C1F;cursor:pointer;color:#8A8A8E;font-size:11px">'
-          + '<span>' + esc(dayName) + ' · ' + (isSched ? 'Skipped' : 'Rest') + (t.kcal > 0 ? (' · ' + t.kcal + ' kcal') : '') + '</span>'
-          + '<span style="font-size:15px">›</span>'
+        var statusLabel = (isSched && dKey <= todayKey()) ? 'Skipped' : 'Rest';
+        restRows.push('<div class="list-row rest-skipped-row" data-inspect-day="' + dKey + '" data-jump-day="' + dKey + '" style="display:flex;justify-content:space-between;align-items:center;min-height:56px;height:56px;box-sizing:border-box;border-bottom:1px solid #1C1C1F;cursor:pointer;padding:0">'
+          + '<div style="flex:1;min-width:0;overflow:hidden">'
+            + '<div style="font-size:15px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(dayName) + '</div>'
+            + '<div style="font-size:11px;color:var(--text-secondary);margin-top:2px;font-variant-numeric:tabular-nums">' + esc(statusLabel) + (t.kcal > 0 ? (' · ' + t.kcal + ' kcal') : '') + '</div>'
+          + '</div>'
+          + '<span style="display:inline-flex;align-items:center;justify-content:center;color:#8A8A8E;width:32px;height:32px;flex-shrink:0">' + chevronRightSVG + '</span>'
           + '</div>');
       }
     }
@@ -230,10 +229,17 @@ export function buildWeeklyDigestHTML() {
 
     var sessionCountStr = wSessions.length + (wSessions.length === 1 ? ' session' : ' sessions');
     var setsCountStr = totalSets + (totalSets === 1 ? ' set' : ' sets');
-    var cardHeaderStr = 'Week ' + weekNum + ' · ' + sessionCountStr + ' · ' + setsCountStr;
+    var sameMonth = monObj.getMonth() === sunObj.getMonth();
+    var rangeTitle = sameMonth
+      ? (monObj.getDate() + ' - ' + sunObj.getDate() + ' ' + sunObj.toLocaleDateString('en-GB', { month: 'short' }))
+      : (monObj.getDate() + ' ' + monObj.toLocaleDateString('en-GB', { month: 'short' }) + ' - ' + sunObj.getDate() + ' ' + sunObj.toLocaleDateString('en-GB', { month: 'short' }));
+    var headerSubtitle = sessionCountStr + ' · ' + setsCountStr;
 
     weekBlocks.push('<div style="background:#141416;border-radius:16px;padding:16px;margin-bottom:14px;text-align:left">'
-      + '<div style="font-size:17px;font-weight:600;color:#F5F5F4;margin-bottom:12px">' + esc(cardHeaderStr) + '</div>'
+      + '<div style="margin-bottom:12px">'
+        + '<div style="font-size:17px;font-weight:600;color:var(--text);line-height:1.2">' + esc(rangeTitle) + '</div>'
+        + '<div style="font-size:11px;color:var(--text-secondary);margin-top:2px">' + esc(headerSubtitle) + '</div>'
+      + '</div>'
       + '<div style="display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;align-items:center;background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-bottom:12px;text-align:center">'
         + '<div><div style="font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.04em;text-transform:uppercase">Volume</div><div class="tabnum" style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + esc(volDisp) + '</div></div>'
         + '<div style="width:1px;height:28px;background:#222222"></div>'
@@ -285,7 +291,13 @@ export function openHistoryArchiveModal(defaultTab) {
     overlay.querySelectorAll('[data-jump-day]').forEach(function(btn) {
       btn.onclick = function(e) {
         if (e && e.stopPropagation) e.stopPropagation();
-        triggerHaptic(); overlay.remove(); window.activeTodaySelectedDateKey = btn.dataset.jumpDay;
+        triggerHaptic();
+        if (btn.dataset.inspectDay) {
+          openDayDetailSheet(btn.dataset.inspectDay);
+          return;
+        }
+        overlay.remove();
+        window.activeTodaySelectedDateKey = btn.dataset.jumpDay;
         if (typeof window !== 'undefined' && typeof window.setTab === 'function') { window.setTab('today'); }
         else { setTab('today'); if (typeof window !== 'undefined' && typeof window.renderTab === 'function') window.renderTab(); }
       };
@@ -330,28 +342,13 @@ export function buildHistoryScreenHTML(historyTab) {
 export function wireHistoryScreenEvents(container, onTabSwitch, onMonthChange) {
   if (!container || typeof container.querySelector !== 'function') return;
   var prevM = container.querySelector('#prevProgressMonthBtn');
-  if (prevM) prevM.onclick = function() {
-    triggerHaptic();
-    window.activeProgressMonthOffset = (window.activeProgressMonthOffset || 0) - 1;
-    if (typeof onMonthChange === 'function') onMonthChange();
-  };
+  if (prevM) prevM.onclick = function() { triggerHaptic(); window.activeProgressMonthOffset = (window.activeProgressMonthOffset || 0) - 1; if (typeof onMonthChange === 'function') onMonthChange(); };
   var nextM = container.querySelector('#nextProgressMonthBtn');
-  if (nextM) nextM.onclick = function() {
-    triggerHaptic();
-    window.activeProgressMonthOffset = (window.activeProgressMonthOffset || 0) + 1;
-    if (typeof onMonthChange === 'function') onMonthChange();
-  };
-
+  if (nextM) nextM.onclick = function() { triggerHaptic(); window.activeProgressMonthOffset = (window.activeProgressMonthOffset || 0) + 1; if (typeof onMonthChange === 'function') onMonthChange(); };
   var wBtn = container.querySelector('#historyTabWeeksBtn');
-  if (wBtn) wBtn.onclick = function() {
-    triggerHaptic();
-    if (typeof onTabSwitch === 'function') onTabSwitch('weeks');
-  };
+  if (wBtn) wBtn.onclick = function() { triggerHaptic(); if (typeof onTabSwitch === 'function') onTabSwitch('weeks'); };
   var mBtn = container.querySelector('#historyTabMonthsBtn');
-  if (mBtn) mBtn.onclick = function() {
-    triggerHaptic();
-    if (typeof onTabSwitch === 'function') onTabSwitch('months');
-  };
+  if (mBtn) mBtn.onclick = function() { triggerHaptic(); if (typeof onTabSwitch === 'function') onTabSwitch('months'); };
 
   container.querySelectorAll('[data-toggle-digest]').forEach(function(el) {
     el.onclick = function() {
@@ -364,6 +361,10 @@ export function wireHistoryScreenEvents(container, onTabSwitch, onMonthChange) {
     btn.onclick = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
       triggerHaptic();
+      if (btn.dataset.inspectDay) {
+        openDayDetailSheet(btn.dataset.inspectDay);
+        return;
+      }
       window.activeTodaySelectedDateKey = btn.dataset.jumpDay;
       if (typeof window !== 'undefined' && typeof window.setTab === 'function') {
         window.setTab('today');
