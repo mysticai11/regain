@@ -166,13 +166,13 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
 
       if (savedOk) {
         try {
-          triggerHaptic('medium');
           var prRes = checkExercisePR(id, w, r, key);
           if (prRes.isPR) {
-            playSound('workout_complete');
+            triggerHaptic('success'); playSound('workout_complete');
+            if (rowEl) { rowEl.classList.add('pr-moment'); var b = document.createElement('span'); b.className = 'set-pr-badge anim-pr'; b.textContent = 'PR'; rowEl.appendChild(b); }
             var prTxt = prRes.type === 'weight' ? (w + 'kg × ' + r + ' (Weight PR)') : (prRes.type === 'reps' ? ((w > 0 ? (w + 'kg × ') : '') + r + ' reps (Rep PR)') : ((w > 0 ? (w + 'kg × ' + r) : (r + ' reps')) + ' (' + prRes.current.toFixed(1) + 'kg e1RM)'));
             showToast('PR: ' + (exObj.name || 'Lift') + ': ' + prTxt, 'ok');
-          } else { playSound('set_logged'); }
+          } else { triggerHaptic('medium'); playSound('set_logged'); }
         } catch(sensErr) {}
         try {
           if (profile && profile.autoStartRestTimer !== false) {

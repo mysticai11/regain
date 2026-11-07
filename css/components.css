@@ -387,6 +387,52 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   animation: none !important;
   opacity: 0 !important;
 }
+
+/* F6: PR Moment */
+.set-pr-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-11);
+  font-weight: 600;
+  color: var(--accent-dark);
+  background: var(--lime);
+  border-radius: 4px;
+  padding: 2px 6px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.set-pr-badge.anim-pr {
+  animation: prBadgeScaleIn var(--dur-150) var(--ease-standard) forwards;
+}
+
+@keyframes prBadgeScaleIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes prRingPulse {
+  0% { outline: 2px solid var(--lime); outline-offset: 0px; }
+  70% { outline: 2px solid rgba(198, 244, 50, 0.4); outline-offset: 4px; }
+  100% { outline: 2px solid transparent; outline-offset: 6px; }
+}
+
+.set-row-precision.pr-moment {
+  animation: prRingPulse var(--dur-300) var(--ease-standard) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .set-row-precision.pr-moment,
+  .set-pr-badge.anim-pr {
+    animation: none !important;
+  }
+}
+
+[data-motion-polish="false"] .set-row-precision.pr-moment,
+[data-motion-polish="false"] .set-pr-badge.anim-pr {
+  animation: none !important;
+}
 .rir-cycle-text {
   height: var(--tap-min) !important;
   background: none !important;

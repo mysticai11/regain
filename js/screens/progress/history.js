@@ -185,7 +185,7 @@ export function workoutHistoryHTML() {
             + '<div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 auto;overflow:hidden">'
               + '<span style="font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(exData.name) + '</span>'
               + progressTagHTML
-              + (isPrInSession ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#C6F432;letter-spacing:0.08em;text-transform:uppercase;flex-shrink:0"><span style="width:5px;height:5px;border-radius:50%;background:#C6F432;display:inline-block"></span>PR</span>' : '')
+              + (isPrInSession ? '<span class="set-pr-badge" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#C6F432;letter-spacing:0.08em;text-transform:uppercase;flex-shrink:0"><span style="width:5px;height:5px;border-radius:50%;background:#C6F432;display:inline-block"></span>PR</span>' : '')
             + '</div>'
             + '<span style="font-size:11px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0">' + esc(summaryText) + '</span>'
           + '</div>'
