@@ -14,13 +14,8 @@ import { chooseWorkoutForDate } from "./gym/session-sheet.js";
 import { getWorkoutForDate, getWorkoutWeek, getCompletedWorkoutCount, getNextProgramWorkout, getActiveWorkoutSession, getSessionMeta, attachCommonGymHeaderEvents } from "./gym/helpers.js";
 import { attachGymEvents } from "./gym/events.js";
 import { renderSetRowWrap } from "./gym/swipe-delete.js";
-export * from "./gym/helpers.js";
-export * from "./gym/timer.js";
-export * from "./gym/sets.js";
-export * from "./gym/swap.js";
-export * from "./gym/session-sheet.js";
-export * from "./gym/plan-editor.js";
-export * from "./gym/events.js";
+export * from "./gym/helpers.js"; export * from "./gym/timer.js"; export * from "./gym/sets.js";
+export * from "./gym/swap.js"; export * from "./gym/session-sheet.js"; export * from "./gym/plan-editor.js"; export * from "./gym/events.js";
 
 export function renderGym() {
   var contentEl = document.getElementById('content');
@@ -43,13 +38,9 @@ export function renderGym() {
   var headerDateStr = dayNames[activeDate.getDay()] + ' ' + activeDate.getDate() + ' ' + monthNames[activeDate.getMonth()];
   var formattedSessionDate = activeDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
 
-  // Determine active schedule day (1..7) and derived current workout
-  var defaultScheduleDay = currentD === 0 ? 7 : currentD;
-  var weeklySched = getWeeklySchedule();
-  var curWorkout = getCurrentWorkout(key);
+  var defaultScheduleDay = currentD === 0 ? 7 : currentD, weeklySched = getWeeklySchedule(), curWorkout = getCurrentWorkout(key);
   var activeSched = {
-    isRest: curWorkout.isRest,
-    workoutIndex: curWorkout.workoutIndex,
+    isRest: curWorkout.isRest, workoutIndex: curWorkout.workoutIndex,
     label: curWorkout.isRest ? 'Rest Day' : (curWorkout.session ? curWorkout.session.label : 'Workout'),
     dayNum: rec.selectedDayNumber != null ? rec.selectedDayNumber : defaultScheduleDay
   };
@@ -61,7 +52,7 @@ export function renderGym() {
 
   var workoutIndex = curWorkout.workoutIndex;
   var session = curWorkout.session || (prog && prog[0]) || { label: 'Workout', exercises: [] };
-  var totalPlanned = sessionSetCount(session);
+  var totalPlanned = sessionSetCount(session, rec);
   var loggedTotal = (session.exercises || []).reduce(function (total, ex) {
     var actualId = (rec.swaps && rec.swaps[ex.id]) || ex.id;
     return total + ((rec.workout || {})[actualId] || []).filter(Boolean).length;
@@ -191,7 +182,8 @@ export function renderGym() {
       var firstIncomplete = uniqueExercises.find(function (e) {
         var actualId = (rec.swaps && rec.swaps[e.id]) || e.id;
         var loggedSets = ((rec.workout || {})[actualId] || []).filter(Boolean).length;
-        return loggedSets < (e.sets || 2);
+        var target = (rec.exercisePlannedSets && rec.exercisePlannedSets[actualId] != null) ? rec.exercisePlannedSets[actualId] : (e.sets || 2);
+        return loggedSets < target;
       });
       expandedExId = firstIncomplete ? firstIncomplete.id : (uniqueExercises[0] ? uniqueExercises[0].id : null);
       window.activeExpandedExId = expandedExId;
@@ -208,7 +200,8 @@ export function renderGym() {
     var sets = (rec.workout || {})[ex.id] || [];
     var drafts = (rec.workoutDraft || {})[ex.id] || [];
     var lastSets = getLastSessionSets(ex.id, rec);
-    var plannedCount = (exOrig && exOrig.sets != null) ? exOrig.sets : ((ex && ex.sets != null) ? ex.sets : 2);
+    var basePlanned = (exOrig && exOrig.sets != null) ? exOrig.sets : ((ex && ex.sets != null) ? ex.sets : 2);
+    var plannedCount = (rec.exercisePlannedSets && rec.exercisePlannedSets[ex.id] != null) ? rec.exercisePlannedSets[ex.id] : basePlanned;
     var completedSets = sets.filter(Boolean);
     var manualExtra = 0;
     for (var dI = plannedCount; dI < drafts.length; dI++) {
@@ -275,16 +268,14 @@ export function renderGym() {
       var placeholderR = (last && last.reps != null ? String(last.reps) : 'reps');
 
       // Item 6: Tap-to-cycle RIR text: 3+ > 2 > 1 > F
-      var rirDisplay = 'RIR 1';
-      if (valueRir === 0) rirDisplay = 'F';
-      else if (valueRir === 1) rirDisplay = 'RIR 1';
-      else if (valueRir === 2) rirDisplay = 'RIR 2';
-      else if (valueRir === 3) rirDisplay = '3+';
+      var rirDisplay = valueRir === 0 ? 'F' : (valueRir === 2 ? 'RIR 2' : (valueRir === 3 ? '3+' : 'RIR 1'));
 
       // Item 1: Set tag field (set 2 has tag "rest-pause (15+5+5, 0 RIR)", extra sets have "extra")
       var tagHTML = '';
       if (i >= plannedCount) {
         tagHTML = '<div style="display:flex;justify-content:space-between;align-items:center;padding-left:24px;margin-top:-2px;margin-bottom:6px"><span style="font-size:11px;color:#8A8A8E">extra</span><button type="button" class="btn-text-action" data-remove-extra-set="' + ex.id + '" data-set-index="' + i + '" style="font-size:11px;color:#55555A;background:none;border:none;padding:0;cursor:pointer">Remove</button></div>';
+      } else if (i === visibleCount - 1 && visibleCount > 1 && !logged) {
+        tagHTML = '<div style="display:flex;justify-content:flex-end;align-items:center;padding-left:24px;margin-top:-2px;margin-bottom:6px"><button type="button" class="btn-text-action" data-reduce-set="' + ex.id + '" style="font-size:11px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">− Remove set ' + (i + 1) + '</button></div>';
       } else if (ex.setTags && ex.setTags[i]) {
         tagHTML = '<div style="font-size:11px;color:#8A8A8E;padding-left:24px;margin-top:-2px;margin-bottom:6px">' + esc(ex.setTags[i]) + '</div>';
       }
@@ -293,12 +284,7 @@ export function renderGym() {
         + '<input type="text" id="set_weight_' + ex.id + '_' + i + '" placeholder="' + placeholderW + '" class="precision-input set-weight ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillW + '" data-ex="' + ex.id + '" data-set-index="' + i + '" data-is-bw="' + (isBW ? '1' : '0') + '" value="' + inputW + '" inputmode="decimal" enterkeyhint="next">'
         + '<input type="text" id="set_reps_' + ex.id + '_' + i + '" placeholder="' + placeholderR + '" class="precision-input set-reps ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillR + '" data-ex="' + ex.id + '" data-set-index="' + i + '" value="' + inputR + '" inputmode="numeric" enterkeyhint="next">'
         + '<button type="button" class="rir-cycle-text" data-cycle-rir="' + ex.id + '" data-set-index="' + i + '">' + rirDisplay + '</button>'
-        + '<select class="set-rir" data-ex="' + ex.id + '" data-set-index="' + i + '" style="display:none">'
-        + '<option value="3" ' + (valueRir === 3 ? 'selected' : '') + '>3+</option>'
-        + '<option value="2" ' + (valueRir === 2 ? 'selected' : '') + '>RIR 2</option>'
-        + '<option value="1" ' + (valueRir === 1 || valueRir == null ? 'selected' : '') + '>RIR 1</option>'
-        + '<option value="0" ' + (valueRir === 0 ? 'selected' : '') + '>F</option>'
-        + '</select>'
+        + '<select class="set-rir" data-ex="' + ex.id + '" data-set-index="' + i + '" style="display:none"><option value="3" ' + (valueRir === 3 ? 'selected' : '') + '>3+</option><option value="2" ' + (valueRir === 2 ? 'selected' : '') + '>RIR 2</option><option value="1" ' + (valueRir === 1 || valueRir == null ? 'selected' : '') + '>RIR 1</option><option value="0" ' + (valueRir === 0 ? 'selected' : '') + '>F</option></select>'
         + '<button type="button" class="precision-circle-tap ' + (logged ? 'done' : 'btn-log') + '" ' + (logged ? ('data-quick-edit-logged="' + ex.id + '"') : ('data-logset="' + ex.id + '"')) + ' data-set-index="' + i + '" data-ex-name="' + esc(ex.name) + '" data-weight="' + (logged ? (logged.weight || 0) : '') + '" data-reps="' + (logged ? logged.reps : '') + '" data-rir="' + (logged && logged.rir != null ? logged.rir : '') + '" ' + (!logged && !hasValues ? 'disabled' : '') + ' aria-label="' + (logged ? 'Edit logged set' : 'Log set') + '">'
           + '<span class="precision-circle ' + (logged ? 'done' : '') + '">' + (logged ? '✓' : '') + '</span>'
         + '</button>';
@@ -313,7 +299,6 @@ export function renderGym() {
     }).join(', ') : '';
 
     var metaLine = targetDisplay + (lastSetsStr ? ' · Last ' + lastSetsStr : '');
-    // Item 7: "Alt" becomes a small swap SVG icon beside the name
     var swapIconSVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>';
     var swapBtn = '<button type="button" class="swap-btn" data-swap-orig="' + exOrig.id + '" data-swap-curr="' + ex.id + '" data-muscle="' + (ex.muscle || '') + '" title="Swap exercise" style="background:none;border:none;padding:4px;cursor:pointer;color:#8A8A8E;display:inline-flex;align-items:center;justify-content:center">' + swapIconSVG + '</button>';
 
@@ -324,14 +309,10 @@ export function renderGym() {
     if (lastSets.length > 0 && curLoggedSets.length > 0) {
       if (isBW) {
         var curTopR = curLoggedSets.reduce(function (m, s) { return Math.max(m, Number(s.reps) || 0); }, 0);
-        if (curTopR > bestReps && bestReps > 0) {
-          prStr = '<span style="font-size:11px;color:#C6F432;font-weight:600">' + curTopR + ' reps PR</span>';
-        }
+        if (curTopR > bestReps && bestReps > 0) prStr = '<span style="font-size:11px;color:#C6F432;font-weight:600">' + curTopR + ' reps PR</span>';
       } else {
         var curTopW = curLoggedSets.reduce(function (m, s) { return Math.max(m, Number(s.weight) || 0); }, 0);
-        if (curTopW > bestWeight && bestWeight > 0) {
-          prStr = '<span style="font-size:11px;color:#C6F432;font-weight:600">' + curTopW + ' kg PR</span>';
-        }
+        if (curTopW > bestWeight && bestWeight > 0) prStr = '<span style="font-size:11px;color:#C6F432;font-weight:600">' + curTopW + ' kg PR</span>';
       }
     }
 
@@ -348,7 +329,10 @@ export function renderGym() {
       + '</div>'
       + plannedRows
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 4px">'
+      + '<div style="display:flex;align-items:center;gap:16px">'
       + '<button type="button" class="btn-text-action" data-add-set="' + ex.id + '" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">+ Add set</button>'
+      + '<button type="button" class="btn-text-action" data-reduce-set="' + ex.id + '" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0;cursor:pointer">− Reduce set</button>'
+      + '</div>'
       + '</div>'
       + '<div class="ex-cues-row" style="margin-top:8px;border-top:1px solid #1C1C1F;padding-top:8px">'
       + '<button type="button" class="btn-text-action cue-toggle" data-cue-ex="' + ex.id + '" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:4px 0;cursor:pointer;display:flex;align-items:center;gap:4px"><span>Cues</span><span style="font-size:11px">▾</span></button>'

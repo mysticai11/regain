@@ -18,9 +18,12 @@ export function canonicalSessionLabel(session, index) {
   return 'Day ' + num + ' — ' + name;
 }
 
-export function sessionSetCount(session) {
+export function sessionSetCount(session, rec) {
   if (!session || !Array.isArray(session.exercises)) return 0;
   return session.exercises.reduce(function (total, ex) {
+    if (rec && rec.exercisePlannedSets && rec.exercisePlannedSets[ex.id] != null) {
+      return total + Number(rec.exercisePlannedSets[ex.id]);
+    }
     var s = ex && ex.sets != null ? Number(ex.sets) : 2;
     return total + (isNaN(s) || s < 1 ? 2 : s);
   }, 0);

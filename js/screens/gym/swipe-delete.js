@@ -141,6 +141,9 @@ export function attachSetRowSwipeHandlers(key) {
 
             setTimeout(function() {
               var curRec = dayRecord(key);
+              var prevPlanned = (curRec.exercisePlannedSets && curRec.exercisePlannedSets[exId] != null) ? curRec.exercisePlannedSets[exId] : null;
+              curRec.exercisePlannedSets = curRec.exercisePlannedSets || {};
+              curRec.exercisePlannedSets[exId] = Math.max(1, totalCount - 1);
               var removedDraft = (curRec.workoutDraft && curRec.workoutDraft[exId]) ? curRec.workoutDraft[exId].splice(setIndex, 1)[0] : null;
               var removedSet = (curRec.workout && curRec.workout[exId]) ? curRec.workout[exId].splice(setIndex, 1)[0] : null;
               saveDayRecord(key, curRec);
@@ -148,6 +151,12 @@ export function attachSetRowSwipeHandlers(key) {
 
               showUndoToast('Set removed', function() {
                 var restoreRec = dayRecord(key);
+                if (prevPlanned != null) {
+                  restoreRec.exercisePlannedSets = restoreRec.exercisePlannedSets || {};
+                  restoreRec.exercisePlannedSets[exId] = prevPlanned;
+                } else if (restoreRec.exercisePlannedSets) {
+                  delete restoreRec.exercisePlannedSets[exId];
+                }
                 if (removedDraft) {
                   restoreRec.workoutDraft = restoreRec.workoutDraft || {};
                   restoreRec.workoutDraft[exId] = restoreRec.workoutDraft[exId] || [];

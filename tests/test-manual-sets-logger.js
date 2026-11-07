@@ -134,7 +134,7 @@ assert.strictEqual(state.visibleCount, 3, 'After logging Set 3, visible count re
 console.log('✓ After logging Set 3: visible count remains 3 (NO auto Set 4!).');
 
 // 5. Test removing the extra set
-console.log('\n[5/5] Testing removing the extra set...');
+console.log('\n[5/6] Testing removing the extra set...');
 rec.workout[ex1.id].splice(2, 1);
 saveDayRecord(dateKey, rec);
 
@@ -142,6 +142,45 @@ state = computeVisibleCount(ex1, ex1.id, rec);
 assert.strictEqual(state.completedCount, 2);
 assert.strictEqual(state.visibleCount, 2, 'After removing extra set, visible count returns to 2');
 console.log('✓ Extra set removed cleanly: visible count returns to 2.');
+
+// 6. Test reducing planned sets for Full-Body / Catch-up workouts (e.g. from 3 down to 2)
+console.log('\n[6/6] Testing manual set reduction for Full-Body / Catch-up exercises (3 sets -> 2 sets)...');
+const fbEx = { id: 'fb_bench', sets: 3 };
+const computeVisibleWithPlannedReduction = function(exOrig, currentRec) {
+  const basePlanned = (exOrig && exOrig.sets != null) ? exOrig.sets : 2;
+  const plannedCount = (currentRec.exercisePlannedSets && currentRec.exercisePlannedSets[exOrig.id] != null) ? currentRec.exercisePlannedSets[exOrig.id] : basePlanned;
+  const sets = (currentRec.workout || {})[exOrig.id] || [];
+  const completedSets = sets.filter(Boolean);
+  return {
+    plannedCount,
+    completedCount: completedSets.length,
+    visibleCount: Math.max(plannedCount, completedSets.length),
+    isCompleted: completedSets.length >= plannedCount && plannedCount > 0
+  };
+};
+
+let fbState = computeVisibleWithPlannedReduction(fbEx, rec);
+assert.strictEqual(fbState.plannedCount, 3);
+assert.strictEqual(fbState.visibleCount, 3);
+assert.strictEqual(fbState.isCompleted, false);
+
+// User clicks "- Reduce set" or "- Remove set 3"
+rec.exercisePlannedSets = rec.exercisePlannedSets || {};
+rec.exercisePlannedSets[fbEx.id] = 2;
+saveDayRecord(dateKey, rec);
+
+fbState = computeVisibleWithPlannedReduction(fbEx, rec);
+assert.strictEqual(fbState.plannedCount, 2, 'Planned count should now be reduced to 2');
+assert.strictEqual(fbState.visibleCount, 2, 'Visible count should now be 2');
+
+// Log 2 sets
+rec.workout[fbEx.id] = [{ weight: 80, reps: 10, rir: 2 }, { weight: 80, reps: 8, rir: 1 }];
+saveDayRecord(dateKey, rec);
+
+fbState = computeVisibleWithPlannedReduction(fbEx, rec);
+assert.strictEqual(fbState.completedCount, 2);
+assert.strictEqual(fbState.isCompleted, true, 'Exercise must be marked completed after 2 sets when planned is reduced to 2');
+console.log('✓ Manual set reduction from 3 to 2 sets succeeds and correctly completes at 2 sets.');
 
 console.log('\n======================================================');
 console.log(' ALL WORKOUT LOGGER MANUAL SETS TESTS PASSED (100%)! ');

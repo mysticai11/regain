@@ -36,12 +36,8 @@ export function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
   // Timer states: idle, running, paused, finished
   var isIdle = !meta.startedAt && !meta.durationMinutes && !meta.completedAt;
   var isFinished = !!meta.completedAt || (meta.durationMinutes > 0 && !meta.startedAt);
-  var isPaused = !!meta.pausedAt && !isFinished;
-  var isRunning = !!meta.startedAt && !isPaused && !isFinished;
-
-  if (isRunning) {
-    requestWakeLock();
-  }
+  var isPaused = !!meta.pausedAt && !isFinished, isRunning = !!meta.startedAt && !isPaused && !isFinished;
+  if (isRunning) requestWakeLock();
 
   var elapsedSec = getSessionElapsedSeconds(meta);
   var elapsedFormatted = Math.floor(elapsedSec / 60) + ':' + pad(elapsedSec % 60);
@@ -372,23 +368,19 @@ export function endWorkoutSession(dayKey, programDayIndex, session, manualMinute
 }
 
 export function setManualSessionDuration(dayKey, session, programDayIndex) {
-  var rec = dayRecord(dayKey);
-  var meta = getSessionMeta(rec, programDayIndex);
+  var rec = dayRecord(dayKey), meta = getSessionMeta(rec, programDayIndex);
   meta.sessionLabel = meta.sessionLabel || session.label;
   var current = meta.durationMinutes || Math.round(getSessionElapsedSeconds(meta) / 60) || '';
   var value = prompt('Total session time in minutes', String(current));
   if (value === null) return;
   var minutes = Number(value);
   if (!Number.isFinite(minutes) || minutes < 1 || minutes > 1440) {
-    showToast('Enter a duration from 1 to 1440 minutes', 'warn');
-    return;
+    showToast('Enter a duration from 1 to 1440 minutes', 'warn'); return;
   }
-  meta.durationMinutes = Math.round(minutes);
-  meta.duration_sec = meta.durationMinutes * 60;
+  meta.durationMinutes = Math.round(minutes); meta.duration_sec = meta.durationMinutes * 60;
   meta.sessionLabel = session.label;
   if (!meta.startedAt) meta.completedAt = meta.completedAt || new Date().toISOString();
-  meta.updatedAt = new Date().toISOString();
-  saveDayRecord(dayKey, rec);
+  meta.updatedAt = new Date().toISOString(); saveDayRecord(dayKey, rec);
   showToast('Session time saved', 'ok');
   if (typeof window.renderGym === 'function') window.renderGym();
 }
