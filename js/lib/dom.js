@@ -48,7 +48,7 @@ var SQLiteStorage = {
   
   init: function(callback) {
     var self = this;
-    if (window.Capacitor && window.Capacitor.isPluginAvailable('CapacitorSQLite')) {
+    if (window.Capacitor && typeof window.Capacitor.isPluginAvailable === 'function' && window.Capacitor.isPluginAvailable('CapacitorSQLite') && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorSQLite && typeof window.Capacitor.Plugins.CapacitorSQLite.createConnection === 'function') {
       try {
         var sqlite = window.Capacitor.Plugins.CapacitorSQLite;
         sqlite.createConnection({ database: 'regain_storage', version: 1, encrypted: false, mode: 'no-encryption' })

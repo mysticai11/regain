@@ -58,3 +58,4 @@ assert.ok(dummyContent.innerHTML.includes('Weekly volume targets'), 'Content mus
 assert.ok(dummyContent.innerHTML.includes('prog-line'), 'Volume table must render progress bars');
 
 console.log('✓ Gym Rest Day render test passed successfully without errors');
+

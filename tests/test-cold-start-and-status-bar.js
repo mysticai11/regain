@@ -22,10 +22,11 @@ assert.strictEqual(capConfig.plugins.StatusBar.style, 'DARK', 'Status bar style 
 let statusBarConfig = null;
 let splashHideConfig = null;
 
+const store = {};
 global.localStorage = {
-  getItem: () => null,
-  setItem: () => {},
-  removeItem: () => {}
+  getItem: (k) => store[k] || null,
+  setItem: (k, v) => { store[k] = String(v); },
+  removeItem: (k) => { delete store[k]; }
 };
 
 global.window = {
@@ -33,7 +34,7 @@ global.window = {
   addEventListener: () => {},
   removeEventListener: () => {},
   Capacitor: {
-    isPluginAvailable: () => true,
+    isPluginAvailable: (plugin) => plugin === 'StatusBar' || plugin === 'SplashScreen' || plugin === 'Keyboard',
     Plugins: {
       StatusBar: {
         setOverlaysWebView: (opts) => { statusBarConfig = opts; },
@@ -53,7 +54,7 @@ global.window = {
 global.document = {
   readyState: 'complete',
   addEventListener: () => {},
-  getElementById: () => ({ innerHTML: '', addEventListener: () => {}, querySelectorAll: () => [], appendChild: () => {} }),
+  getElementById: () => null,
   querySelectorAll: () => []
 };
 
@@ -62,8 +63,8 @@ initEdgeToEdgeAndSplash();
 
 assert.deepStrictEqual(statusBarConfig, { overlay: true }, 'StatusBar overlay configured');
 
-setTimeout(() => {
-  assert.ok(splashHideConfig, 'SplashScreen.hide was called');
-  assert.strictEqual(splashHideConfig.fadeOutDuration, 150, 'Fadeout duration is 150ms');
-  console.log('✓ All Cold Start & Status Bar tests passed successfully!');
-}, 80);
+await new Promise((resolve) => setTimeout(resolve, 100));
+
+assert.ok(splashHideConfig, 'SplashScreen.hide was called');
+assert.strictEqual(splashHideConfig.fadeOutDuration, 150, 'Fadeout duration is 150ms');
+console.log('✓ All Cold Start & Status Bar tests passed successfully!');

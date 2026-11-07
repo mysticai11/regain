@@ -185,10 +185,10 @@ function bootApp() {
   });
 }
 
-if (typeof window !== 'undefined') {
-  if (document.readyState === 'loading') {
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  if (typeof document !== 'undefined' && document.readyState === 'loading') {
     window.addEventListener('DOMContentLoaded', bootApp);
-  } else {
+  } else if (typeof document !== 'undefined' && document.getElementById && document.getElementById('app')) {
     bootApp();
   }
 }

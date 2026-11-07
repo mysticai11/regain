@@ -140,6 +140,8 @@ assert.ok(dayRecord('2026-11-03').foodLog.length === 1, 'Day 3 added in merge');
 
 // 6. Test Atomic Rollback on failure
 let rollbackTriggered = false;
+const origConsoleError = console.error;
+console.error = () => {};
 try {
   const badPayload = {
     get profile() { throw new Error('Simulated failure during restore'); }
@@ -147,6 +149,8 @@ try {
   await applyRestore(badPayload, 'replace');
 } catch (e) {
   rollbackTriggered = true;
+} finally {
+  console.error = origConsoleError;
 }
 assert.ok(rollbackTriggered, 'Error caught during restore');
 // Verify snapshot rollback restored existing profile
