@@ -202,6 +202,102 @@ input[type=number], input[type=text], input[type=password], input[type=date], se
 input:focus, select:focus, textarea:focus { border: none; outline: none; }
 input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayWeight::placeholder { color: var(--text3) !important; opacity: 1 !important; }
 
+/* ── Unified Input Field Container (V1) ── */
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: 56px;
+  padding: 0 var(--spacing-8) 0 var(--spacing-16);
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1.5px solid transparent;
+  box-sizing: border-box;
+  transition: border-color var(--dur-150) var(--ease-standard);
+}
+.sheet .field,
+.modal-card .field {
+  background: var(--surface2);
+  min-height: 48px;
+  border-radius: 12px;
+}
+.field:focus-within,
+.field:has(:focus-visible) {
+  border-color: var(--lime);
+}
+.field input {
+  flex: 1 1 0%;
+  min-width: 0;
+  height: 100%;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  font-family: inherit;
+  font-size: var(--fs-17);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.field input:focus,
+.field input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+.field-unit {
+  flex: none;
+  font-size: var(--fs-15);
+  color: var(--text-secondary);
+  pointer-events: none;
+  user-select: none;
+}
+.field-btn {
+  flex: none;
+  min-width: 72px;
+  white-space: nowrap;
+}
+.field-num {
+  height: 48px;
+  min-height: 48px;
+  background: var(--surface);
+  border: 1.5px solid var(--hairline);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-4);
+  cursor: text;
+  box-sizing: border-box;
+  transition: border-color var(--dur-150) var(--ease-standard);
+}
+.field-num:focus-within,
+.field-num:has(:focus-visible) {
+  border-color: var(--lime);
+}
+.field-num input {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  font-family: inherit;
+  font-size: var(--fs-17);
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  padding: 0 !important;
+}
+.field-num input:focus,
+.field-num input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
 /* ── SegmentedText ── */
 .segmented-text { display: flex; align-items: center; gap: var(--spacing-24); border-bottom: 1px solid var(--divider); box-sizing: border-box; }
 .seg-tab-btn, .seg-text-item {
@@ -226,7 +322,7 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   height: 42px !important;
   min-height: 42px !important;
   background: var(--surface2) !important;
-  border: none !important;
+  border: 1.5px solid transparent !important;
   border-radius: var(--r-control) !important;
   color: var(--text) !important;
   font-size: var(--fs-17) !important;
@@ -235,10 +331,18 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   font-variant-numeric: tabular-nums !important;
   text-align: center !important;
   outline: none !important;
+  box-shadow: none !important;
   flex: 1 1 0% !important;
   min-width: 0 !important;
   box-sizing: border-box !important;
   padding: 0 var(--spacing-4) !important;
+  transition: border-color var(--dur-150) var(--ease-standard);
+}
+.precision-input:focus,
+.precision-input:focus-visible {
+  border-color: var(--lime) !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 .precision-input::placeholder { color: var(--text3) !important; opacity: 1 !important; }
 .precision-input.prefill { color: var(--text3) !important; font-weight: 400 !important; }

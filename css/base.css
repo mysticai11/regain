@@ -83,6 +83,13 @@ textarea:focus-visible,
   outline-offset: 2px !important;
 }
 
+.field input:focus-visible,
+.field-num input:focus-visible,
+.precision-input:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
+}
+
 /* F1: Global Press Feel */
 button:not(:disabled):not([disabled]),
 .btn:not(:disabled):not([disabled]),

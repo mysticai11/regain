@@ -115,10 +115,10 @@ export function renderTodaySimple() {
           + '<span style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8A8A8E;text-transform:uppercase">WEIGHT</span>'
           + (bwValue ? '<button type="button" class="btn-text-action" id="deleteTodayWeightBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0;min-height:48px;cursor:pointer;display:inline-flex;align-items:center">Clear</button>' : '')
         + '</div>'
-        + '<div style="display:flex;align-items:center;height:56px;background:#141416;border:1px solid #1C1C1F;border-radius:16px;padding:0 16px;box-sizing:border-box">'
-          + '<input type="number" id="todayWeight" step="0.1" inputmode="decimal" placeholder="' + bwPlaceholder + '" value="' + bwValue + '" style="flex:1;min-width:0;height:100%;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;color:#F5F5F4;background:transparent;border:none;outline:none;padding:0">'
-          + '<span style="font-size:15px;color:#8A8A8E;margin-right:12px">kg</span>'
-          + '<button type="button" id="saveTodayWeight" style="height:38px;padding:0 14px;border-radius:8px;font-size:15px;font-weight:600;' + saveStyle + '">' + saveLabel + '</button>'
+        + '<div class="field">'
+          + '<input type="number" id="todayWeight" step="0.1" inputmode="decimal" placeholder="' + bwPlaceholder + '" value="' + bwValue + '">'
+          + '<span class="field-unit">kg</span>'
+          + '<button type="button" class="field-btn" id="saveTodayWeight" style="height:38px;padding:0 14px;border-radius:8px;font-size:15px;font-weight:600;' + saveStyle + '">' + saveLabel + '</button>'
         + '</div></div>';
     })()
     + getStaplesShelfHTML()

@@ -79,6 +79,7 @@ export async function captureItem(prefix, screen = 'today') {
   await new Promise(r => server.listen(8097, r));
 
   const captures = [
+    { name: `${prefix}-320x640.png`, w: 320, h: 640, scale: 1 },
     { name: `${prefix}-360x800.png`, w: 360, h: 800, scale: 1 },
     { name: `${prefix}-393x852.png`, w: 393, h: 852, scale: 1 },
     { name: `${prefix}-412x915.png`, w: 412, h: 915, scale: 1 },
