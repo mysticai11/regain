@@ -7,6 +7,7 @@ import { getExerciseData, isBodyweightExercise } from "../../data/plan.js";
 import { calcE1RM } from "../../lib/calc.js";
 import { getEquivalentExerciseIds } from "../gym/sets.js";
 import { ic } from "../../lib/dom.js";
+import { computeCalendarGrid } from "../../view/calendarGrid.js";
 
 export function getWeightHistory() {
   var entries = (profile && Array.isArray(profile.weightEntries)) ? profile.weightEntries.slice() : [];
@@ -229,10 +230,10 @@ export function buildDotConsistencyCalendarHTML() {
   var dObj = new Date(now.getFullYear(), now.getMonth() + offset, 1);
   var year = dObj.getFullYear();
   var month = dObj.getMonth();
-  var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  var monthName = monthNames[month];
 
-  var tdays = (profile && profile.trainingDays) || [1,2,3,5,6];
+  var tdays = (profile && profile.trainingDays) || [1, 2, 3, 5, 6];
+  var plannedIndices = tdays.map(function(d) { return (d + 6) % 7; });
+
   var sessionDays = {};
   try {
     getWorkoutSessions().forEach(function(s) {
@@ -242,78 +243,72 @@ export function buildDotConsistencyCalendarHTML() {
     });
   } catch (e) {}
 
-  var trainedCount = 0;
-  var plannedCount = 0;
-  var dots = [];
-
-  var firstDay = new Date(year, month, 1), lastDay = new Date(year, month + 1, 0);
-  var totalDaysInMonth = lastDay.getDate(), firstDow = firstDay.getDay();
-  var leadSpaces = (firstDow === 0) ? 6 : firstDow - 1;
-
-  for (var s = 0; s < leadSpaces; s++) {
-    dots.push('<span style="width:6px;height:6px;display:inline-block;visibility:hidden;pointer-events:none"></span>');
-  }
-
-  for (var d = 1; d <= totalDaysInMonth; d++) {
-    var curD = new Date(year, month, d), mStr = (month + 1 < 10 ? '0' : '') + (month + 1), dStr = (d < 10 ? '0' : '') + d;
-    var key = year + '-' + mStr + '-' + dStr, dDow = curD.getDay(), isTrainingDay = tdays.includes(dDow);
-    if (isTrainingDay && key <= todayStr) plannedCount++;
-    var rec = dayRecord(key), trained = !!sessionDays[key] || (rec && (rec.workoutDone || (rec.workout && Object.keys(rec.workout).some(function(k){return (rec.workout[k]||[]).some(Boolean);}))));
-    var isToday = (key === todayStr);
-    if (trained) trainedCount++;
-
-    var dotStyle = 'display:inline-block;box-sizing:border-box;border-radius:50%;', dayTitle = key;
-    if (trained) {
-      dotStyle += isToday ? 'width:8px;height:8px;background:#C6F432;border:1.5px solid #F5F5F4;' : 'width:6px;height:6px;background:#C6F432;';
-      dayTitle += isToday ? ' (Today · Logged)' : ' (Logged)';
-    } else if (isToday) {
-      dotStyle += 'width:8px;height:8px;background:#F5F5F4;';
-      dayTitle += isTrainingDay ? ' (Today · Training)' : ' (Today · Rest)';
-    } else if (key > todayStr) {
-      dotStyle += 'width:4px;height:4px;background:#55555A;opacity:0.35;';
-    } else if (isTrainingDay) {
-      dotStyle += 'width:6px;height:6px;background:transparent;border:1px solid #55555A;';
-      dayTitle += ' (Skipped)';
-    } else {
-      dotStyle += 'width:4px;height:4px;background:#55555A;';
-      dayTitle += ' (Rest)';
+  var recordsMap = {};
+  allDayKeys().forEach(function(k) {
+    var rec = dayRecord(k);
+    if (rec) recordsMap[k] = rec;
+  });
+  Object.keys(sessionDays).forEach(function(k) {
+    if (!recordsMap[k]) {
+      recordsMap[k] = { workoutDone: true };
+    } else if (!recordsMap[k].workoutDone) {
+      recordsMap[k] = Object.assign({}, recordsMap[k], { workoutDone: true });
     }
-    dots.push('<span class="dot-cell" style="' + dotStyle + '" title="' + esc(dayTitle) + '"></span>');
-  }
+  });
 
-  var trailSpaces = (7 - ((leadSpaces + totalDaysInMonth) % 7)) % 7;
-  for (var t = 0; t < trailSpaces; t++) {
-    dots.push('<span style="width:6px;height:6px;display:inline-block;visibility:hidden;pointer-events:none"></span>');
-  }
-
-  var dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  var lettersRow = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;justify-items:center;align-items:center;margin-bottom:6px">'
-    + dayLetters.map(function(ch) { return '<span style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1">' + ch + '</span>'; }).join('')
-    + '</div>';
-
-  var legendHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:16px;font-size:11px;color:#8A8A8E">'
-    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:#C6F432;display:inline-block"></span> Trained<span style="display:none">logged</span></span>'
-    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:4px;height:4px;border-radius:50%;background:#55555A;display:inline-block"></span> Rest<span style="display:none">rest</span></span>'
-    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;border:1px solid #C6F432;background:transparent;box-sizing:border-box;display:inline-block"></span> Planned<span style="border:1px solid #55555A;display:none">skipped</span></span>'
-    + '</div>';
+  var grid = computeCalendarGrid({
+    year: year,
+    monthIndex: month,
+    dayRecordsMap: recordsMap,
+    plannedDayIndices: plannedIndices,
+    todayDateKey: todayStr
+  });
 
   var canGoNext = offset < 0;
   var chevronLeft = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
   var chevronRight = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
   var navRow = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%">'
     + '<button type="button" class="btn-ghost" id="prevProgressMonthBtn" style="color:#F5F5F4;background:none;border:none;width:48px;height:48px;min-width:48px;min-height:48px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer" aria-label="Previous month">' + chevronLeft + '</button>'
-    + '<span style="font-size:17px;font-weight:600;color:#F5F5F4;text-align:center">' + monthName + ' ' + year + '</span>'
+    + '<span style="font-size:17px;font-weight:600;color:#F5F5F4;text-align:center">' + grid.monthLabel + '</span>'
     + (canGoNext
       ? '<button type="button" class="btn-ghost" id="nextProgressMonthBtn" style="color:#F5F5F4;background:none;border:none;width:48px;height:48px;min-width:48px;min-height:48px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer" aria-label="Next month">' + chevronRight + '</button>'
       : '<button type="button" class="btn-ghost" disabled style="opacity:0.3;cursor:default;color:#8A8A8E;background:none;border:none;width:48px;height:48px;min-width:48px;min-height:48px;display:inline-flex;align-items:center;justify-content:center" aria-label="Next month (disabled)">' + chevronRight + '</button>')
     + '</div>';
 
+  var dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  var lettersRow = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;justify-items:center;align-items:center;margin-bottom:6px">'
+    + dayLetters.map(function(ch) { return '<span style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1">' + ch + '</span>'; }).join('')
+    + '</div>';
+
+  var cellsHTML = grid.cells.map(function(cell) {
+    if (cell.empty) {
+      return '<span class="cal-cell empty" style="visibility:hidden;pointer-events:none"></span>';
+    }
+    var titleSuffix = 'Rest';
+    if (cell.state === 'trained') titleSuffix = cell.isToday ? 'Today · Logged' : 'Logged';
+    else if (cell.state === 'planned') titleSuffix = cell.isToday ? 'Today · Training' : 'Planned';
+    else if (cell.state === 'skipped') titleSuffix = 'Skipped';
+    else if (cell.isToday) titleSuffix = 'Today · Rest';
+
+    var cls = 'cal-cell dot-cell cal-cell--' + cell.state + (cell.isToday ? ' is-today' : '') + (cell.isInteractive ? ' is-interactive' : '');
+    var disabledAttr = cell.isInteractive ? '' : ' disabled';
+    return '<button type="button" class="' + cls + '" data-jump-day="' + cell.dateKey + '" data-inspect-day="' + cell.dateKey + '" title="' + cell.dateKey + ' (' + titleSuffix + ')"' + disabledAttr + '>'
+      + cell.dayNumber
+      + '</button>';
+  }).join('');
+
+  var legendHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:16px;font-size:11px;color:#8A8A8E">'
+    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:4px;background:#C6F432;display:inline-block"></span> Trained<span style="display:none">logged</span></span>'
+    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:4px;background:#55555A;display:inline-block"></span> Rest<span style="display:none">rest</span></span>'
+    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:4px;border:1.5px solid var(--cal-ring-planned, rgba(198,244,50,0.6));background:transparent;box-sizing:border-box;display:inline-block"></span> Planned<span style="border:1px solid #55555A;display:none">skipped</span></span>'
+    + '</div>';
+
   return '<div style="margin-bottom:24px">'
     + navRow
-    + '<div style="text-align:center;font-size:11px;color:#8A8A8E;margin-top:2px;margin-bottom:12px;font-variant-numeric:tabular-nums">' + trainedCount + ' of ' + plannedCount + ' planned so far</div>'
+    + '<div style="text-align:center;font-size:11px;color:#8A8A8E;margin-top:2px;margin-bottom:12px;font-variant-numeric:tabular-nums">' + grid.stats.trainedCount + ' of ' + grid.stats.plannedCount + ' planned so far</div>'
     + lettersRow
-    + '<div class="dot-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;justify-items:center;align-items:center;padding:2px 0">'
-      + dots.join('')
+    + '<div class="cal-grid dot-grid">'
+      + cellsHTML
     + '</div>'
     + legendHTML
     + '</div>';
