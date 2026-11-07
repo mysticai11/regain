@@ -2,7 +2,7 @@
 
 import { detectMissedDay, planSlide, planSpreadAcrossWeek, buildMergedSession } from "../../lib/catchup.js";
 import { getWeekOverrides, saveWeekOverrides, getCatchupDecisions, setCatchupDecision, getCatchupSettings } from "../../storage-catchup.js";
-import { scheduledSessionFor, canonicalSessionName, canonicalSessionLabel } from "../../lib/schedule.js";
+import { scheduledSessionFor, canonicalSessionName, canonicalSessionLabel, getWeekDays } from "../../lib/schedule.js";
 import { getActiveProgram, getWeeklySchedule } from "../../data/plan.js";
 import { dayRecord, saveDayRecord, allDayKeys } from "../../storage.js";
 import { todayKey, esc } from "../../lib/format.js";
@@ -15,108 +15,112 @@ export function buildCatchupCardHTML(currentDateKey) {
   var settings = getCatchupSettings();
   if (!settings.autoOffer) return '';
 
-  var prog = getActiveProgram();
-  var overrides = getWeekOverrides();
-  var decisions = getCatchupDecisions();
-
-  // Build records map for the current week
+  var prog = getActiveProgram(), overrides = getWeekOverrides(), decisions = getCatchupDecisions();
   var records = {};
-  allDayKeys().forEach(function (k) {
-    records[k] = dayRecord(k);
-  });
+  allDayKeys().forEach(function (k) { records[k] = dayRecord(k); });
 
-  var detection = detectMissedDay(tKey, {
-    prog: prog,
-    weekOverrides: overrides,
-    decisions: decisions,
-    records: records
-  });
-
-  if (!detection.missed || !detection.date || !detection.session) {
-    return '';
+  var weekDays = getWeekDays(tKey);
+  var appliedDate = weekDays.find(function(d) { return decisions[d] === 'spread' || decisions[d] === 'slid'; });
+  if (appliedDate) {
+    var appliedDec = decisions[appliedDate];
+    var isFb = weekDays.some(function(d) { return overrides[d] && overrides[d].isFullBody; });
+    var appliedText = appliedDec === 'slid' ? 'Schedule shifted +1d' : (isFb ? 'Full-body week applied' : 'Volume spread across week');
+    return '<div class="catchup-applied-pill" style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:8px 14px;margin-bottom:16px;min-height:40px">'
+      + '<div style="display:flex;align-items:center;gap:8px">'
+        + '<span style="color:var(--lime);font-size:var(--fs-13);font-weight:600">✓</span>'
+        + '<span style="font-size:var(--fs-13);font-weight:500;color:var(--text);white-space:nowrap">Plan applied · ' + esc(appliedText) + '</span>'
+      + '</div>'
+      + '<button type="button" class="btn-text-action" id="catchupReviewPlanBtn" style="font-size:var(--fs-13);color:var(--text-secondary);font-weight:600;padding:4px 0;background:none;border:none;cursor:pointer">Review</button>'
+    + '</div>';
   }
 
-  var missedDate = detection.date;
-  var missedSession = detection.session;
-  var missedName = canonicalSessionName(missedSession);
+  var detection = detectMissedDay(tKey, { prog: prog, weekOverrides: overrides, decisions: decisions, records: records });
+  if (!detection.missed || !detection.date || !detection.session) return '';
 
+  var missedDate = detection.date, missedSession = detection.session, missedName = canonicalSessionName(missedSession);
   var dObj = new Date(missedDate + 'T00:00:00');
   var missedDayFormatted = dObj.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
 
   var spreadPlan = planSpreadAcrossWeek(tKey, {
-    prog: prog,
-    trainingDays: [1, 2, 4, 5, 6],
-    weekOverrides: overrides,
-    records: records,
-    decisions: decisions,
+    prog: prog, trainingDays: [1, 2, 4, 5, 6], weekOverrides: overrides, records: records, decisions: decisions,
     protectLastRestDay: settings.protectLastRestDay
   });
 
-  // Check slide feasibility
-  var slidePlan = planSlide(tKey, missedDate, {
-    prog: prog,
-    weekOverrides: overrides,
-    protectLastRestDay: settings.protectLastRestDay
-  });
+  var slidePlan = planSlide(tKey, missedDate, { prog: prog, weekOverrides: overrides, protectLastRestDay: settings.protectLastRestDay });
 
-  var slideBtnHTML = slidePlan.valid
-    ? ('<button type="button" class="btn" id="catchupSlideBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 14px;border-radius:8px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Slide schedule</button>')
-    : ('<button type="button" class="btn" disabled style="height:36px;padding:0 14px;border-radius:8px;background:#1C1C1F;color:#55555A;font-size:15px;font-weight:600;border:1px solid #222;cursor:not-allowed" title="' + esc(slidePlan.reason) + '">Slide unavailable</button>');
+  var fullBodyBadge = spreadPlan.isFullBody
+    ? '<span style="font-size:11px;font-weight:600;color:var(--bg);background:var(--lime);border-radius:9999px;padding:2px 8px;white-space:nowrap">Full-body week</span>'
+    : '';
 
-  var slideDesc = slidePlan.valid ? 'Shift remaining workouts right by 1 day' : slidePlan.reason;
+  var planTitle = spreadPlan.isFullBody
+    ? (spreadPlan.remainingDays.length <= 1 ? 'This week: 1 full-body session' : 'This week: 2 full-body sessions')
+    : 'Spread volume across the week';
 
   var previewHTML = spreadPlan.preview && spreadPlan.preview.length
-    ? ('<div style="background:#0B0B0C;border-radius:8px;padding:8px 12px;margin-top:6px;font-size:11px;color:#8A8A8E;line-height:1.4">'
+    ? ('<div id="catchupInlinePreview" style="display:none;background:var(--bg);border-radius:10px;padding:8px 12px;margin-top:10px;font-size:11px;color:var(--text-secondary);line-height:1.4">'
       + spreadPlan.preview.map(function(line) { return '<div>• ' + esc(line) + '</div>'; }).join('')
       + '</div>')
     : '';
 
-  var fullBodyBadge = spreadPlan.isFullBody
-    ? '<span style="font-size:11px;font-weight:600;color:#0B0B0C;background:#C6F432;border-radius:4px;padding:2px 6px;margin-left:8px;vertical-align:middle">Full-body week</span>'
-    : '';
-
-  return '<div class="catchup-card" style="background:#141416;border:1px solid #1C1C1F;border-radius:20px;padding:18px 20px;margin-bottom:20px">'
-    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px">'
-      + '<div>'
-        + '<div style="font-size:11px;font-weight:600;color:#C6F432;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Missed Workout Detected' + fullBodyBadge + '</div>'
-        + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">' + esc(missedName) + '</div>'
-        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Scheduled on ' + esc(missedDayFormatted) + '</div>'
-      + '</div>'
-      + '<button type="button" id="catchupSkipBtn" data-missed-date="' + missedDate + '" style="background:none;border:none;color:#8A8A8E;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;cursor:pointer;padding:4px 0">Skip</button>'
+  return '<div class="catchup-card" style="background:var(--surface);border:1px solid var(--hairline);border-radius:20px;padding:16px;margin-bottom:20px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+      + '<span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">Missed ' + esc(missedDayFormatted) + ' · ' + esc(missedName) + '</span>'
+      + fullBodyBadge
     + '</div>'
-    + '<div style="font-size:15px;color:#8A8A8E;line-height:1.4;margin-bottom:16px">Recover missed volume smoothly across the remaining week:</div>'
-    + '<div style="display:flex;flex-direction:column;gap:10px">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;background:#1C1C1F;border-radius:12px;padding:12px 14px">'
-        + '<div style="flex:1;min-width:0;padding-right:12px">'
-          + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">Spread across the week</div>'
-          + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Restore volume as +1 set on remaining days</div>'
-          + previewHTML
-        + '</div>'
-        + '<button type="button" class="btn" id="catchupSpreadBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 14px;border-radius:8px;background:#C6F432;color:#0B0B0C;font-size:15px;font-weight:600;border:none;cursor:pointer;flex-shrink:0">Spread</button>'
+    + '<div style="font-size:17px;font-weight:600;color:var(--text);line-height:1.2;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(planTitle) + '</div>'
+    + '<div style="font-size:var(--fs-13);color:var(--text-secondary);margin-bottom:12px">Restore volume as +1 set on remaining days</div>'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">'
+      + '<div style="display:flex;align-items:center;gap:8px">'
+        + '<button type="button" class="btn btn-primary" id="catchupSpreadBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 14px;border-radius:10px;background:var(--lime);color:var(--bg);font-size:var(--fs-13);font-weight:600;border:none;cursor:pointer">Spread</button>'
+        + (slidePlan.valid
+          ? ('<button type="button" class="btn" id="catchupSlideBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 12px;border-radius:10px;background:var(--surface-raised);color:var(--text);font-size:var(--fs-13);font-weight:600;border:1px solid var(--hairline);cursor:pointer">Slide schedule</button>')
+          : ('<button type="button" class="btn" disabled style="height:36px;padding:0 12px;border-radius:10px;background:var(--surface-raised);color:var(--text-muted);font-size:var(--fs-13);font-weight:600;border:1px solid var(--hairline);cursor:not-allowed">Slide</button>'))
       + '</div>'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;background:#1C1C1F;border-radius:12px;padding:12px 14px">'
-        + '<div style="flex:1;min-width:0;padding-right:12px">'
-          + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">Slide schedule</div>'
-          + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">' + esc(slideDesc) + '</div>'
-        + '</div>'
-        + slideBtnHTML
+      + '<div style="display:flex;align-items:center;gap:12px">'
+        + (spreadPlan.preview && spreadPlan.preview.length ? '<button type="button" id="catchupTogglePlanBtn" style="background:none;border:none;color:var(--lime);font-size:var(--fs-13);font-weight:600;cursor:pointer;padding:0">See plan ▾</button>' : '')
+        + '<button type="button" id="catchupLateLogBtn" data-missed-date="' + missedDate + '" style="background:none;border:none;color:var(--text-secondary);font-size:var(--fs-13);font-weight:500;cursor:pointer;padding:0">Log it late</button>'
+        + '<button type="button" id="catchupSkipBtn" data-missed-date="' + missedDate + '" style="background:none;border:none;color:var(--text-secondary);font-size:var(--fs-13);font-weight:500;cursor:pointer;padding:0">Skip</button>'
       + '</div>'
     + '</div>'
-    + '<div style="display:flex;justify-content:center;margin-top:14px">'
-      + '<button type="button" id="catchupLateLogBtn" data-missed-date="' + missedDate + '" style="background:none;border:none;color:#8A8A8E;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;cursor:pointer;padding:4px 8px">Log it late (' + esc(missedDayFormatted) + ') &rarr;</button>'
-    + '</div>'
+    + previewHTML
     + '</div>';
 }
 
 export function bindCatchupCardEvents(container, refreshCallback) {
   if (!container || typeof container.querySelector !== 'function') return;
 
+  var togglePlanBtn = container.querySelector('#catchupTogglePlanBtn');
+  if (togglePlanBtn) {
+    togglePlanBtn.onclick = function() {
+      var prev = container.querySelector('#catchupInlinePreview');
+      if (prev) {
+        var isHidden = prev.style.display === 'none';
+        prev.style.display = isHidden ? 'block' : 'none';
+        togglePlanBtn.textContent = isHidden ? 'Hide plan ▴' : 'See plan ▾';
+      }
+    };
+  }
+
+  var reviewBtn = container.querySelector('#catchupReviewPlanBtn');
+  if (reviewBtn) {
+    reviewBtn.onclick = function() {
+      var tKey = todayKey(), decisions = getCatchupDecisions(), weekDays = getWeekDays(tKey);
+      var appliedDate = weekDays.find(function(d) { return decisions[d] === 'spread' || decisions[d] === 'slid'; });
+      if (!appliedDate) return;
+      if (confirm('Reset catch-up plan for this week?')) {
+        saveWeekOverrides({});
+        delete decisions[appliedDate];
+        showToast('Catch-up plan reset', 'ok');
+        if (typeof refreshCallback === 'function') refreshCallback();
+      }
+    };
+  }
+
   var skipBtn = container.querySelector('#catchupSkipBtn');
   if (skipBtn) {
     skipBtn.onclick = function () {
       triggerHaptic();
-      var mDate = skipBtn.dataset.missedDate;
-      setCatchupDecision(mDate, 'skipped');
+      setCatchupDecision(skipBtn.dataset.missedDate, 'skipped');
       showToast('Missed workout skipped', 'ok');
       if (typeof refreshCallback === 'function') refreshCallback();
     };
@@ -126,8 +130,7 @@ export function bindCatchupCardEvents(container, refreshCallback) {
   if (lateLogBtn) {
     lateLogBtn.onclick = function () {
       triggerHaptic();
-      var mDate = lateLogBtn.dataset.missedDate;
-      window.activeGymDateKey = mDate;
+      window.activeGymDateKey = lateLogBtn.dataset.missedDate;
       setTab('gym');
     };
   }
@@ -136,22 +139,12 @@ export function bindCatchupCardEvents(container, refreshCallback) {
   if (slideBtn) {
     slideBtn.onclick = function () {
       triggerHaptic();
-      var mDate = slideBtn.dataset.missedDate;
-      var tKey = todayKey();
+      var mDate = slideBtn.dataset.missedDate, tKey = todayKey();
       var prevOverrides = Object.assign({}, getWeekOverrides());
       var prevDecision = getCatchupDecisions()[mDate];
       var settings = getCatchupSettings();
-
-      var slidePlan = planSlide(tKey, mDate, {
-        prog: getActiveProgram(),
-        weekOverrides: prevOverrides,
-        protectLastRestDay: settings.protectLastRestDay
-      });
-
-      if (!slidePlan.valid) {
-        showToast(slidePlan.reason || 'Could not slide schedule', 'warn');
-        return;
-      }
+      var slidePlan = planSlide(tKey, mDate, { prog: getActiveProgram(), weekOverrides: prevOverrides, protectLastRestDay: settings.protectLastRestDay });
+      if (!slidePlan.valid) { showToast(slidePlan.reason || 'Could not slide schedule', 'warn'); return; }
 
       saveWeekOverrides(slidePlan.newWeekOverrides);
       setCatchupDecision(mDate, 'slid');
@@ -159,13 +152,8 @@ export function bindCatchupCardEvents(container, refreshCallback) {
 
       showUndoToast('Schedule shifted by 1 day', function undo() {
         saveWeekOverrides(prevOverrides);
-        if (prevDecision !== undefined) {
-          setCatchupDecision(mDate, prevDecision);
-        } else {
-          var decs = getCatchupDecisions();
-          delete decs[mDate];
-          saveWeekOverrides(prevOverrides);
-        }
+        if (prevDecision !== undefined) setCatchupDecision(mDate, prevDecision);
+        else { var decs = getCatchupDecisions(); delete decs[mDate]; saveWeekOverrides(prevOverrides); }
         if (typeof refreshCallback === 'function') refreshCallback();
       });
     };
@@ -175,52 +163,31 @@ export function bindCatchupCardEvents(container, refreshCallback) {
   if (spreadBtn) {
     spreadBtn.onclick = function () {
       triggerHaptic();
-      var mDate = spreadBtn.dataset.missedDate;
-      var tKey = todayKey();
+      var mDate = spreadBtn.dataset.missedDate, tKey = todayKey();
       var prevOverrides = Object.assign({}, getWeekOverrides());
       var prevDecision = getCatchupDecisions()[mDate];
       var settings = getCatchupSettings();
-
       var spreadPlan = planSpreadAcrossWeek(tKey, {
-        prog: getActiveProgram(),
-        trainingDays: [1, 2, 4, 5, 6],
-        weekOverrides: prevOverrides,
-        protectLastRestDay: settings.protectLastRestDay
+        prog: getActiveProgram(), trainingDays: [1, 2, 4, 5, 6], weekOverrides: prevOverrides, protectLastRestDay: settings.protectLastRestDay
       });
 
-      if (!spreadPlan.valid) {
-        showToast(spreadPlan.reason || 'Could not spread workout volume', 'warn');
-        return;
-      }
+      if (!spreadPlan.valid) { showToast(spreadPlan.reason || 'Could not spread workout volume', 'warn'); return; }
 
       var newOverrides = Object.assign({}, prevOverrides, spreadPlan.assignments);
       saveWeekOverrides(newOverrides);
       setCatchupDecision(mDate, 'spread');
-
       Object.keys(spreadPlan.assignments).forEach(function(dKey) {
-        var rec = dayRecord(dKey);
-        rec.isMerged = true;
-        rec.catchupFrom = mDate;
-        saveDayRecord(dKey, rec, { silent: true });
+        var rec = dayRecord(dKey); rec.isMerged = true; rec.catchupFrom = mDate; saveDayRecord(dKey, rec, { silent: true });
       });
 
       if (typeof refreshCallback === 'function') refreshCallback();
-
       var toastMsg = spreadPlan.isFullBody ? 'Switched to Full-Body schedule' : 'Volume distributed across remaining days';
       showUndoToast(toastMsg, function undo() {
         saveWeekOverrides(prevOverrides);
-        if (prevDecision !== undefined) {
-          setCatchupDecision(mDate, prevDecision);
-        } else {
-          var decs = getCatchupDecisions();
-          delete decs[mDate];
-          saveWeekOverrides(prevOverrides);
-        }
+        if (prevDecision !== undefined) setCatchupDecision(mDate, prevDecision);
+        else { var decs = getCatchupDecisions(); delete decs[mDate]; saveWeekOverrides(prevOverrides); }
         Object.keys(spreadPlan.assignments).forEach(function(dKey) {
-          var r = dayRecord(dKey);
-          delete r.isMerged;
-          delete r.catchupFrom;
-          saveDayRecord(dKey, r, { silent: true });
+          var r = dayRecord(dKey); delete r.isMerged; delete r.catchupFrom; saveDayRecord(dKey, r, { silent: true });
         });
         if (typeof refreshCallback === 'function') refreshCallback();
       });
@@ -229,24 +196,13 @@ export function bindCatchupCardEvents(container, refreshCallback) {
 }
 
 export function openMergePreviewSheet(todayDateKey, missedDateKey, onCompleted) {
-  var tKey = todayDateKey || todayKey();
-  var prog = getActiveProgram();
-  var overrides = getWeekOverrides();
-  var settings = getCatchupSettings();
-
+  var tKey = todayDateKey || todayKey(), prog = getActiveProgram(), overrides = getWeekOverrides(), settings = getCatchupSettings();
   var todaySched = scheduledSessionFor(tKey, { prog: prog, weekOverrides: overrides, rec: dayRecord(tKey) });
   var missedSched = scheduledSessionFor(missedDateKey, { prog: prog, weekOverrides: overrides, rec: dayRecord(missedDateKey) });
+  var tPlan = todaySched.session || (prog && prog[0]), mPlan = missedSched.session || (prog && prog[1]);
 
-  var tPlan = todaySched.session || (prog && prog[0]);
-  var mPlan = missedSched.session || (prog && prog[1]);
-
-  var mergeRes = buildMergedSession(tPlan, mPlan, {}, {}, {
-    maxSets: settings.maxSets,
-    setsPerAddedExercise: settings.setsPerExercise
-  });
-
+  var mergeRes = buildMergedSession(tPlan, mPlan, {}, {}, { maxSets: settings.maxSets, setsPerAddedExercise: settings.setsPerExercise });
   var workingSession = JSON.parse(JSON.stringify(mergeRes.mergedSession));
-
   var overlay = document.createElement('div');
   overlay.className = 'overlay';
   overlay.id = 'mergePreviewOverlay';
@@ -257,43 +213,36 @@ export function openMergePreviewSheet(todayDateKey, missedDateKey, onCompleted) 
     var estMin = Math.round(totalSets * 3.5);
 
     var addedRowsHTML = addedItems.map(function (ex, idx) {
-      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #222">'
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--hairline)">'
         + '<div style="flex:1;min-width:0;padding-right:8px">'
-          + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">' + esc(ex.name) + '</div>'
-          + '<div style="font-size:11px;color:#C6F432;margin-top:2px">Catch-up · ' + (ex.muscle || '') + '</div>'
+          + '<div style="font-size:15px;font-weight:600;color:var(--text)">' + esc(ex.name) + '</div>'
+          + '<div style="font-size:11px;color:var(--lime);margin-top:2px">Catch-up · ' + (ex.muscle || '') + '</div>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:8px">'
-          + '<button type="button" class="btn set-step-down" data-ex-idx="' + idx + '" style="width:28px;height:28px;border-radius:6px;background:#1C1C1F;color:#F5F5F4;border:1px solid #222;font-size:15px;font-weight:600;cursor:pointer;padding:0">-</button>'
-          + '<span style="font-size:15px;font-weight:600;color:#F5F5F4;width:24px;text-align:center;font-variant-numeric:tabular-nums">' + ex.sets + '</span>'
-          + '<button type="button" class="btn set-step-up" data-ex-idx="' + idx + '" style="width:28px;height:28px;border-radius:6px;background:#1C1C1F;color:#F5F5F4;border:1px solid #222;font-size:15px;font-weight:600;cursor:pointer;padding:0">+</button>'
-          + '<button type="button" class="btn set-step-remove" data-ex-idx="' + idx + '" style="background:none;border:none;color:#FF4D4F;font-size:11px;font-weight:600;cursor:pointer;padding:4px 6px">Remove</button>'
-        + '</div>'
-        + '</div>';
+          + '<button type="button" class="btn set-step-down" data-ex-idx="' + idx + '" style="width:28px;height:28px;border-radius:6px;background:var(--surface-raised);color:var(--text);border:1px solid var(--hairline);font-size:15px;font-weight:600;cursor:pointer;padding:0">-</button>'
+          + '<span style="font-size:15px;font-weight:600;color:var(--text);width:24px;text-align:center;font-variant-numeric:tabular-nums">' + ex.sets + '</span>'
+          + '<button type="button" class="btn set-step-up" data-ex-idx="' + idx + '" style="width:28px;height:28px;border-radius:6px;background:var(--surface-raised);color:var(--text);border:1px solid var(--hairline);font-size:15px;font-weight:600;cursor:pointer;padding:0">+</button>'
+          + '<button type="button" class="btn set-step-remove" data-ex-idx="' + idx + '" style="background:none;border:none;color:var(--danger);font-size:11px;font-weight:600;cursor:pointer;padding:4px 6px">Remove</button>'
+        + '</div></div>';
     }).join('');
 
     var droppedHTML = mergeRes.droppedReason
-      ? ('<div style="font-size:11px;color:#8A8A8E;line-height:1.4;margin-top:12px;background:#1C1C1F;border-radius:8px;padding:8px 12px">' + esc(mergeRes.droppedReason) + '</div>')
-      : '';
+      ? ('<div style="font-size:11px;color:var(--text-secondary);line-height:1.4;margin-top:12px;background:var(--surface-raised);border-radius:8px;padding:8px 12px">' + esc(mergeRes.droppedReason) + '</div>') : '';
 
-    return '<div class="sheet" style="background:#141416;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%;max-height:85vh;overflow-y:auto">'
+    return '<div class="sheet" style="background:var(--surface);border-radius:28px 28px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%;max-height:85vh;overflow-y:auto">'
       + '<div class="sheet-handle"></div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
-        + '<span style="font-size:28px;font-weight:600;color:#F5F5F4">Merged Workout</span>'
-        + '<button type="button" id="closeMergeSheetBtn" style="background:none;border:none;color:#8A8A8E;font-size:15px;cursor:pointer;padding:4px 0">Cancel</button>'
+        + '<span style="font-size:28px;font-weight:600;color:var(--text)">Merged Workout</span>'
+        + '<button type="button" id="closeMergeSheetBtn" style="background:none;border:none;color:var(--text-secondary);font-size:15px;cursor:pointer;padding:4px 0">Cancel</button>'
       + '</div>'
-      + '<div style="font-size:15px;color:#8A8A8E;line-height:1.4;margin-bottom:16px">'
-        + 'Adding key volume from <b>' + esc(canonicalSessionName(mPlan)) + '</b> to <b>' + esc(canonicalSessionName(tPlan)) + '</b>.'
+      + '<div style="font-size:15px;color:var(--text-secondary);line-height:1.4;margin-bottom:16px">Adding key volume from <b>' + esc(canonicalSessionName(mPlan)) + '</b> to <b>' + esc(canonicalSessionName(tPlan)) + '</b>.</div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface-raised);border-radius:12px;padding:12px 14px;margin-bottom:16px">'
+        + '<span style="font-size:15px;font-weight:600;color:var(--text)">Total Volume</span>'
+        + '<span style="font-size:15px;font-weight:600;color:var(--lime);font-variant-numeric:tabular-nums">' + totalSets + ' sets · ~' + estMin + ' min</span>'
       + '</div>'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;background:#1C1C1F;border-radius:12px;padding:12px 14px;margin-bottom:16px">'
-        + '<span style="font-size:15px;font-weight:600;color:#F5F5F4">Total Volume</span>'
-        + '<span style="font-size:15px;font-weight:600;color:#C6F432;font-variant-numeric:tabular-nums">' + totalSets + ' sets · ~' + estMin + ' min</span>'
-      + '</div>'
-      + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Added Volume (Adjustable)</div>'
-      + '<div style="margin-bottom:12px">' + addedRowsHTML + '</div>'
-      + droppedHTML
-      + '<div style="margin-top:24px">'
-        + '<button type="button" class="btn" id="confirmMergeBtn" style="width:100%;height:48px;border-radius:12px;background:#C6F432;color:#0B0B0C;border:none;font-size:15px;font-weight:600;cursor:pointer">Start Merged Workout</button>'
-      + '</div>'
+      + '<div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Added Volume (Adjustable)</div>'
+      + '<div style="margin-bottom:12px">' + addedRowsHTML + '</div>' + droppedHTML
+      + '<div style="margin-top:24px"><button type="button" class="btn" id="confirmMergeBtn" style="width:100%;height:48px;border-radius:12px;background:var(--lime);color:var(--bg);border:none;font-size:15px;font-weight:600;cursor:pointer">Start Merged Workout</button></div>'
       + '</div>';
   }
 
@@ -302,23 +251,14 @@ export function openMergePreviewSheet(todayDateKey, missedDateKey, onCompleted) 
 
   function attachSheetEvents() {
     var closeBtn = overlay.querySelector('#closeMergeSheetBtn');
-    if (closeBtn) {
-      closeBtn.onclick = function () {
-        triggerHaptic();
-        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-      };
-    }
+    if (closeBtn) closeBtn.onclick = function () { triggerHaptic(); if (overlay.parentNode) overlay.parentNode.removeChild(overlay); };
 
     overlay.querySelectorAll('.set-step-down').forEach(function (btn) {
       btn.onclick = function () {
         triggerHaptic();
         var idx = Number(btn.dataset.exIdx);
         var addedExs = workingSession.exercises.filter(function (e) { return e.isCatchup; });
-        if (addedExs[idx] && addedExs[idx].sets > 1) {
-          addedExs[idx].sets -= 1;
-          overlay.innerHTML = renderSheetContent();
-          attachSheetEvents();
-        }
+        if (addedExs[idx] && addedExs[idx].sets > 1) { addedExs[idx].sets -= 1; overlay.innerHTML = renderSheetContent(); attachSheetEvents(); }
       };
     });
 
@@ -327,30 +267,21 @@ export function openMergePreviewSheet(todayDateKey, missedDateKey, onCompleted) 
         triggerHaptic();
         var idx = Number(btn.dataset.exIdx);
         var addedExs = workingSession.exercises.filter(function (e) { return e.isCatchup; });
-        if (addedExs[idx] && addedExs[idx].sets < 5) {
-          addedExs[idx].sets += 1;
-          overlay.innerHTML = renderSheetContent();
-          attachSheetEvents();
-        }
+        if (addedExs[idx] && addedExs[idx].sets < 5) { addedExs[idx].sets += 1; overlay.innerHTML = renderSheetContent(); attachSheetEvents(); }
       };
     });
 
     overlay.querySelectorAll('.set-step-remove').forEach(function (btn) {
       btn.onclick = function () {
         triggerHaptic();
-        var idx = Number(btn.dataset.exIdx);
-        var addedCount = 0;
+        var idx = Number(btn.dataset.exIdx), addedCount = 0;
         for (var i = 0; i < workingSession.exercises.length; i++) {
           if (workingSession.exercises[i].isCatchup) {
-            if (addedCount === idx) {
-              workingSession.exercises.splice(i, 1);
-              break;
-            }
+            if (addedCount === idx) { workingSession.exercises.splice(i, 1); break; }
             addedCount++;
           }
         }
-        overlay.innerHTML = renderSheetContent();
-        attachSheetEvents();
+        overlay.innerHTML = renderSheetContent(); attachSheetEvents();
       };
     });
 
@@ -359,18 +290,13 @@ export function openMergePreviewSheet(todayDateKey, missedDateKey, onCompleted) 
       confirmBtn.onclick = function () {
         triggerHaptic();
         if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-
         var prevOverrides = Object.assign({}, getWeekOverrides());
         var prevDecision = getCatchupDecisions()[missedDateKey];
-
         var newOverrides = Object.assign({}, prevOverrides);
         newOverrides[tKey] = workingSession;
         saveWeekOverrides(newOverrides);
         setCatchupDecision(missedDateKey, 'merged');
-        var rec = dayRecord(tKey);
-        rec.isMerged = true;
-        rec.catchupFrom = missedDateKey;
-        saveDayRecord(tKey, rec);
+        var rec = dayRecord(tKey); rec.isMerged = true; rec.catchupFrom = missedDateKey; saveDayRecord(tKey, rec);
         window.activeGymDateKey = tKey;
         if (typeof onCompleted === 'function') onCompleted();
         setTab('gym');
@@ -379,14 +305,11 @@ export function openMergePreviewSheet(todayDateKey, missedDateKey, onCompleted) 
           saveWeekOverrides(prevOverrides);
           if (prevDecision !== undefined) setCatchupDecision(missedDateKey, prevDecision);
           else { var decs = getCatchupDecisions(); delete decs[missedDateKey]; saveWeekOverrides(prevOverrides); }
-          var r = dayRecord(tKey);
-          delete r.isMerged; delete r.catchupFrom;
-          saveDayRecord(tKey, r);
+          var r = dayRecord(tKey); delete r.isMerged; delete r.catchupFrom; saveDayRecord(tKey, r);
           if (typeof onCompleted === 'function') onCompleted();
         });
       };
     }
   }
-
   attachSheetEvents();
 }
