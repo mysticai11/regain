@@ -33,10 +33,14 @@ export function getLoggedWeeklyVolume() {
       var ex = getExerciseData(id);
       if (!ex) return;
       var count = workout[id].filter(Boolean).length;
+      var seen = {};
       String(ex.muscle || '').toLowerCase().split(',').forEach(function(mu) {
         var t = mu.trim();
         var mapped = (t==='quads'||t==='glutes')?'Quads / Glutes':(t==='forearms'?'Forearms':t.replace(/^./,function(c){return c.toUpperCase();}));
-        if (totals[mapped] != null) totals[mapped] += count;
+        if (!seen[mapped] && totals[mapped] != null) {
+          seen[mapped] = true;
+          totals[mapped] += count;
+        }
       });
     });
   });
