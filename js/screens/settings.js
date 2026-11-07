@@ -17,6 +17,7 @@ export function openSettings() {
   if (document.getElementById('settingsOverlay')) return;
   var weekDaysMeta = [{ js: 1, name: 'Mon' }, { js: 2, name: 'Tue' }, { js: 3, name: 'Wed' }, { js: 4, name: 'Thu' }, { js: 5, name: 'Fri' }, { js: 6, name: 'Sat' }, { js: 0, name: 'Sun' }];
   var tdays = (profile.trainingDays || [1, 2, 4, 5, 6]).slice();
+  var chevronSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
   var overlay = document.createElement('div');
   overlay.className = 'overlay';
   overlay.id = 'settingsOverlay';
@@ -33,9 +34,9 @@ export function openSettings() {
   var dayTogglesHTML = weekDaysMeta.map(function(d) {
     var active = tdays.includes(d.js);
     var actStyle = active
-      ? 'background:rgba(200,245,60,0.14) !important;border:1.5px solid var(--lime) !important;color:var(--lime) !important;font-weight:600 !important;'
-      : 'background:transparent !important;border:1px solid var(--hairline) !important;color:var(--text-secondary) !important;font-weight:500 !important;';
-    return '<button type="button" class="day-toggle settings-day-toggle' + (active ? ' active' : '') + '" data-day="' + d.js + '" style="' + actStyle + 'height:44px;min-width:0;width:100%;border-radius:10px;font-size:15px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">' + d.name + '</button>';
+      ? 'background:rgba(198,244,50,0.12) !important;border:1px solid #C6F432 !important;color:#C6F432 !important;font-weight:600 !important;'
+      : 'background:#141416 !important;border:1px solid #222222 !important;color:#8A8A8E !important;font-weight:500 !important;';
+    return '<button type="button" class="day-toggle settings-day-toggle' + (active ? ' active' : '') + '" data-day="' + d.js + '" style="' + actStyle + 'height:44px;min-height:44px;min-width:0;flex:1;border-radius:10px;font-size:15px;cursor:pointer;padding:0 4px;display:flex;align-items:center;justify-content:center;box-sizing:border-box">' + d.name + '</button>';
   }).join('');
 
   overlay.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%;max-height:88vh;overflow-y:auto">'
@@ -88,27 +89,27 @@ export function openSettings() {
     + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px">'
       + '<div style="font-size:15px;font-weight:600;color:#F5F5F4;margin-bottom:2px">Days you train</div>'
       + '<div style="font-size:11px;color:#8A8A8E;margin-bottom:14px">Workouts map to your split in weekly sequence</div>'
-      + '<div class="day-toggles" style="display:grid;grid-template-columns:repeat(7, 1fr);gap:6px;width:100%">' + dayTogglesHTML + '</div>'
+      + '<div class="day-toggles" style="display:flex;gap:6px;width:100%">' + dayTogglesHTML + '</div>'
     + '</div>'
 
     // PROFILE (Rows with chevron right, opening bottom-sheet picker)
     + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Profile</span></div>'
     + '<div style="background:#1C1C1F;border-radius:16px;padding:8px 16px;margin-bottom:24px">'
-      + '<div id="rowPickGoal" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--hairline);cursor:pointer">'
-        + '<span style="font-size:15px;color:var(--text);font-weight:500">Primary Goal</span>'
-        + '<span style="display:flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary)"><span id="valPickGoal">' + esc(getOptLabel(goalOptions, goalVal)) + '</span><span style="font-size:17px">›</span></span>'
+      + '<div id="rowPickGoal" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;gap:12px;border-bottom:1px solid var(--hairline);cursor:pointer">'
+        + '<span style="font-size:15px;color:var(--text);font-weight:500;flex-shrink:0">Primary Goal</span>'
+        + '<div style="display:flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary);flex:1;min-width:0;justify-content:flex-end"><span id="valPickGoal" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right">' + esc(getOptLabel(goalOptions, goalVal)) + '</span><span style="display:inline-flex;align-items:center;flex-shrink:0">' + chevronSVG + '</span></div>'
       + '</div>'
-      + '<div id="rowPickEquip" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--hairline);cursor:pointer">'
-        + '<span style="font-size:15px;color:var(--text);font-weight:500">Equipment Access</span>'
-        + '<span style="display:flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary)"><span id="valPickEquip">' + esc(getOptLabel(equipOptions, equipVal)) + '</span><span style="font-size:17px">›</span></span>'
+      + '<div id="rowPickEquip" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;gap:12px;border-bottom:1px solid var(--hairline);cursor:pointer">'
+        + '<span style="font-size:15px;color:var(--text);font-weight:500;flex-shrink:0">Equipment Access</span>'
+        + '<div style="display:flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary);flex:1;min-width:0;justify-content:flex-end"><span id="valPickEquip" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right">' + esc(getOptLabel(equipOptions, equipVal)) + '</span><span style="display:inline-flex;align-items:center;flex-shrink:0">' + chevronSVG + '</span></div>'
       + '</div>'
-      + '<div id="rowPickDiet" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--hairline);cursor:pointer">'
-        + '<span style="font-size:15px;color:var(--text);font-weight:500">Dietary Pattern</span>'
-        + '<span style="display:flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary)"><span id="valPickDiet">' + esc(getOptLabel(dietOptions, dietVal)) + '</span><span style="font-size:17px">›</span></span>'
+      + '<div id="rowPickDiet" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;gap:12px;border-bottom:1px solid var(--hairline);cursor:pointer">'
+        + '<span style="font-size:15px;color:var(--text);font-weight:500;flex-shrink:0">Dietary Pattern</span>'
+        + '<div style="display:flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary);flex:1;min-width:0;justify-content:flex-end"><span id="valPickDiet" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right">' + esc(getOptLabel(dietOptions, dietVal)) + '</span><span style="display:inline-flex;align-items:center;flex-shrink:0">' + chevronSVG + '</span></div>'
       + '</div>'
-      + '<div id="rowPickExp" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;cursor:pointer">'
-        + '<span style="font-size:15px;color:var(--text);font-weight:500">Experience Tier</span>'
-        + '<span style="display:flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary)"><span id="valPickExp">' + esc(getOptLabel(expOptions, expVal)) + '</span><span style="font-size:17px">›</span></span>'
+      + '<div id="rowPickExp" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;gap:12px;cursor:pointer">'
+        + '<span style="font-size:15px;color:var(--text);font-weight:500;flex-shrink:0">Experience Tier</span>'
+        + '<div style="display:flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary);flex:1;min-width:0;justify-content:flex-end"><span id="valPickExp" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right">' + esc(getOptLabel(expOptions, expVal)) + '</span><span style="display:inline-flex;align-items:center;flex-shrink:0">' + chevronSVG + '</span></div>'
       + '</div>'
       + '<select id="setGoal" style="display:none">' + goalOptions.map(function(o){ return '<option value="' + o.value + '"' + (goalVal === o.value ? ' selected' : '') + '>' + o.label + '</option>'; }).join('') + '</select>'
       + '<select id="setEquip" style="display:none">' + equipOptions.map(function(o){ return '<option value="' + o.value + '"' + (equipVal === o.value ? ' selected' : '') + '>' + o.label + '</option>'; }).join('') + '</select>'
@@ -170,12 +171,12 @@ export function openSettings() {
     + '<div style="margin-top:36px;padding-top:20px;border-top:1px solid var(--hairline);margin-bottom:8px">'
       + '<span style="font-size:11px;font-weight:600;color:#FF4D4F;text-transform:uppercase;letter-spacing:0.08em">Danger Zone</span>'
     + '</div>'
-    + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">'
-      + '<div>'
+    + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;gap:16px">'
+      + '<div style="flex:1;min-width:0;margin-right:16px">'
         + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">Reset all data</div>'
-        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Irreversibly delete all workout & nutrition logs</div>'
+        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px;line-height:1.4">Irreversibly delete all workout & nutrition logs</div>'
       + '</div>'
-      + '<button type="button" id="resetBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#141416;border:1px solid #FF4D4F;color:#FF4D4F;font-size:15px;font-weight:600;cursor:pointer">Reset</button>'
+      + '<button type="button" id="resetBtn" style="white-space:nowrap;flex-shrink:0;height:36px;padding:0 14px;border-radius:8px;background:#141416;border:1px solid #FF4D4F;color:#FF4D4F;font-size:15px;font-weight:600;cursor:pointer">Reset</button>'
     + '</div>'
 
     // BOTTOM CLOSE / DONE BUTTON
@@ -249,9 +250,9 @@ export function openSettings() {
       }
       var isAct = tdays.includes(d);
       btn.classList.toggle('active', isAct);
-      btn.style.setProperty('background', isAct ? 'rgba(200,245,60,0.14)' : 'transparent', 'important');
-      btn.style.setProperty('border', isAct ? '1.5px solid var(--lime)' : '1px solid var(--hairline)', 'important');
-      btn.style.setProperty('color', isAct ? 'var(--lime)' : 'var(--text-secondary)', 'important');
+      btn.style.setProperty('background', isAct ? 'rgba(198,244,50,0.12)' : '#141416', 'important');
+      btn.style.setProperty('border', isAct ? '1px solid #C6F432' : '1px solid #222222', 'important');
+      btn.style.setProperty('color', isAct ? '#C6F432' : '#8A8A8E', 'important');
       btn.style.setProperty('font-weight', isAct ? '600' : '500', 'important');
       profile.trainingDays = tdays.length ? tdays : [1, 2, 4, 5, 6];
       sv('rg_profile', profile);

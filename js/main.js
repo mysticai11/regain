@@ -86,7 +86,7 @@ export function initSwipeNavigation() {
   var touchStartX = 0, touchStartY = 0;
   document.addEventListener('touchstart', function(e) {
     if (profile && (profile.disableSlideNav || profile.disableSwipeNav)) return;
-    if (e.target && e.target.closest && e.target.closest('.overlay, .sheet, .modal-backdrop, .set-row, .set-row-wrap, input, textarea, select')) return;
+    if (e.target && e.target.closest && e.target.closest('.overlay, .sheet, .modal-backdrop, .set-row, .set-row-wrap, input, textarea, select, .staples-shelf, .staples-chip-row, .staple-chip')) return;
     if (e.touches && e.touches[0]) {
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
@@ -95,7 +95,7 @@ export function initSwipeNavigation() {
 
   document.addEventListener('touchend', function(e) {
     if (profile && (profile.disableSlideNav || profile.disableSwipeNav)) return;
-    if (e.target && e.target.closest && e.target.closest('.overlay, .sheet, .modal-backdrop, .set-row, .set-row-wrap, input, textarea, select')) return;
+    if (e.target && e.target.closest && e.target.closest('.overlay, .sheet, .modal-backdrop, .set-row, .set-row-wrap, input, textarea, select, .staples-shelf, .staples-chip-row, .staple-chip')) return;
     if (!e.changedTouches || !e.changedTouches[0]) return;
     var dx = e.changedTouches[0].clientX - touchStartX;
     var dy = e.changedTouches[0].clientY - touchStartY;
