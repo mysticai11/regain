@@ -17,7 +17,7 @@ const today = todayKey();
 globalThis.localStorage.setItem('rg_profile', JSON.stringify({
   name: 'Tester',
   programSplit: '5day',
-  trainingDays: [1, 2, 4, 5, 6],
+  trainingDays: [0, 1, 2, 3, 4],
   currentWeight: 54.0,
   targetWeight: 60.0
 }));
@@ -25,6 +25,7 @@ globalThis.localStorage.setItem('rg_profile', JSON.stringify({
 // Session with 2700 seconds (45 min)
 const dayRec = {
   workoutDone: true,
+  selectedWorkout: 0,
   workoutMeta: {
     duration_sec: 2700
   },

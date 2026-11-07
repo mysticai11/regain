@@ -6,12 +6,13 @@ console.log('--- Testing Weekly Volume Deduplication for Compound Muscle Groups 
 globalThis.localStorage = {
   _store: {},
   getItem(k) { return this._store[k] || null; },
-  setItem(k, v) { this._store[k] = String(v); },
-  removeItem(k) { delete this._store[k]; },
+  setItem(k, v) { this._store[k] = String(v); this[k] = String(v); },
+  removeItem(k) { delete this._store[k]; delete this[k]; },
   clear() { this._store = {}; }
 };
 
-const today = new Date().toISOString().slice(0, 10);
+const { todayKey } = await import('../js/lib/format.js');
+const today = todayKey();
 
 // Log 3 leg press sets for today (leg_press has muscle: 'quads,glutes')
 const dayRec = {
