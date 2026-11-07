@@ -266,9 +266,9 @@ export function openHistoryArchiveModal(defaultTab) {
       + '</div>'
       + '<button type="button" class="btn-text-action" id="closeHistoryArchiveBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:6px 0;cursor:pointer">Done</button>'
     + '</div>'
-    + '<div class="seg-tabs" style="display:flex;width:100%;height:40px;box-sizing:border-box;background:#141416;border:1px solid #1C1C1F;border-radius:9999px;padding:4px;gap:6px;margin-bottom:14px">'
-      + '<button type="button" class="seg-tab-btn' + (defaultTab === 'weeks' ? ' active' : '') + '" id="archiveTabWeeksBtn" style="flex:1;min-width:0;height:100%;border:none;border-radius:9999px;font-size:15px;font-weight:600;background:' + (defaultTab === 'weeks' ? '#1C1C1F' : 'transparent') + ';color:' + (defaultTab === 'weeks' ? '#F5F5F4' : '#8A8A8E') + '">Past Weeks</button>'
-      + '<button type="button" class="seg-tab-btn' + (defaultTab === 'months' ? ' active' : '') + '" id="archiveTabMonthsBtn" style="flex:1;min-width:0;height:100%;border:none;border-radius:9999px;font-size:15px;font-weight:600;background:' + (defaultTab === 'months' ? '#1C1C1F' : 'transparent') + ';color:' + (defaultTab === 'months' ? '#F5F5F4' : '#8A8A8E') + '">Past Months</button>'
+    + '<div class="history-segmented-control" style="margin-bottom:14px">'
+      + '<button type="button" class="history-segment-btn' + (defaultTab === 'weeks' ? ' active' : '') + '" id="archiveTabWeeksBtn">Past Weeks</button>'
+      + '<button type="button" class="history-segment-btn' + (defaultTab === 'months' ? ' active' : '') + '" id="archiveTabMonthsBtn">Past Months</button>'
     + '</div>'
     + '<div id="archiveScrollArea" style="overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding-right:2px"></div>'
     + '</div>';
@@ -295,8 +295,8 @@ export function openHistoryArchiveModal(defaultTab) {
   function renderTab(tab) {
     var area = overlay.querySelector('#archiveScrollArea'); if (!area) return;
     var wBtn = overlay.querySelector('#archiveTabWeeksBtn'), mBtn = overlay.querySelector('#archiveTabMonthsBtn');
-    if (wBtn) { wBtn.classList.toggle('active', tab === 'weeks'); wBtn.style.background = (tab === 'weeks') ? '#1C1C1F' : 'transparent'; wBtn.style.color = (tab === 'weeks') ? '#F5F5F4' : '#8A8A8E'; }
-    if (mBtn) { mBtn.classList.toggle('active', tab === 'months'); mBtn.style.background = (tab === 'months') ? '#1C1C1F' : 'transparent'; mBtn.style.color = (tab === 'months') ? '#F5F5F4' : '#8A8A8E'; }
+    if (wBtn) wBtn.classList.toggle('active', tab === 'weeks');
+    if (mBtn) mBtn.classList.toggle('active', tab === 'months');
     area.innerHTML = (tab === 'weeks') ? buildWeeklyDigestHTML() : buildAllMonthsHistoryHTML();
     wireInteractions();
   }
@@ -314,9 +314,9 @@ export function openHistoryArchiveModal(defaultTab) {
 export function buildHistoryScreenHTML(historyTab) {
   historyTab = historyTab || 'weeks';
   var calendarHTML = buildDotConsistencyCalendarHTML();
-  var tabsHTML = '<div class="seg-pill" style="display:flex;width:100%;height:40px;box-sizing:border-box;background:#141416;border:1px solid #1C1C1F;border-radius:9999px;padding:4px;gap:6px;margin:16px 0">'
-    + '<button type="button" class="btn-text-action" id="historyTabWeeksBtn" style="flex:1;min-width:0;height:100%;border:none;border-radius:9999px;padding:0;font-size:15px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:' + (historyTab === 'weeks' ? '#1C1C1F' : 'transparent') + ';color:' + (historyTab === 'weeks' ? '#F5F5F4' : '#8A8A8E') + '">Past Weeks</button>'
-    + '<button type="button" class="btn-text-action" id="historyTabMonthsBtn" style="flex:1;min-width:0;height:100%;border:none;border-radius:9999px;padding:0;font-size:15px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:' + (historyTab === 'months' ? '#1C1C1F' : 'transparent') + ';color:' + (historyTab === 'months' ? '#F5F5F4' : '#8A8A8E') + '">Past Months</button>'
+  var tabsHTML = '<div class="history-segmented-control">'
+    + '<button type="button" class="history-segment-btn' + (historyTab === 'weeks' ? ' active' : '') + '" id="historyTabWeeksBtn">Past Weeks</button>'
+    + '<button type="button" class="history-segment-btn' + (historyTab === 'months' ? ' active' : '') + '" id="historyTabMonthsBtn">Past Months</button>'
     + '</div>';
   var listHTML = (historyTab === 'weeks') ? buildWeeklyDigestHTML() : buildAllMonthsHistoryHTML();
   return '<div class="app-view" style="padding-bottom:calc(32px + var(--safe-b))">'
