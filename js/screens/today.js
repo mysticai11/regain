@@ -125,6 +125,24 @@ export function renderTodaySimple() {
     + buildCatchupCardHTML(key)
     + '<div id="calRingMount" style="cursor:pointer" title="View Nutrition">' + calRingHTML + '</div>'
     + insightHTML
+    + '<div class="quick-actions-grid" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:10px;margin-bottom:20px">'
+      + '<button type="button" id="qaFoodBtn" class="qa-btn" style="background:var(--accent-primary);color:#000000;border:none;border-radius:14px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;box-shadow:var(--glow-violet);transition:transform 0.15s ease">'
+        + '<span style="display:inline-flex;align-items:center;justify-content:center">' + ic('apple', 20) + '</span>'
+        + '<span style="font-size:12px;font-weight:700;letter-spacing:0.02em">Food</span>'
+      + '</button>'
+      + '<button type="button" id="qaWorkoutBtn" class="qa-btn" style="background:var(--surface);color:var(--text);border:1px solid var(--hairline);border-radius:14px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:transform 0.15s ease">'
+        + '<span style="display:inline-flex;align-items:center;justify-content:center;color:var(--text)">' + ic('barbell', 20) + '</span>'
+        + '<span style="font-size:12px;font-weight:600;letter-spacing:0.02em">Workout</span>'
+      + '</button>'
+      + '<button type="button" id="qaWeightBtn" class="qa-btn" style="background:var(--surface);color:var(--text);border:1px solid var(--hairline);border-radius:14px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:transform 0.15s ease">'
+        + '<span style="display:inline-flex;align-items:center;justify-content:center;color:var(--text)">' + ic('trend_up', 20) + '</span>'
+        + '<span style="font-size:12px;font-weight:600;letter-spacing:0.02em">Weight</span>'
+      + '</button>'
+      + '<button type="button" id="qaStepsBtn" class="qa-btn" style="background:var(--surface);color:var(--text);border:1px solid var(--hairline);border-radius:14px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:transform 0.15s ease">'
+        + '<span style="display:inline-flex;align-items:center;justify-content:center;color:var(--text)">' + ic('flame', 20) + '</span>'
+        + '<span style="font-size:12px;font-weight:600;letter-spacing:0.02em">Steps</span>'
+      + '</button>'
+    + '</div>'
     + activityGridHTML
     + weekDotHTML
     + (function() {
@@ -181,6 +199,30 @@ export function renderTodaySimple() {
       window.renderApp();
     };
   }
+
+  var qaFood = document.getElementById('qaFoodBtn');
+  if (qaFood) qaFood.onclick = function() {
+    triggerHaptic();
+    setTab('nutrition');
+    window.renderApp();
+  };
+  var qaWorkout = document.getElementById('qaWorkoutBtn');
+  if (qaWorkout) qaWorkout.onclick = function() {
+    triggerHaptic();
+    setTab('gym');
+    window.renderApp();
+  };
+  var qaWeight = document.getElementById('qaWeightBtn');
+  if (qaWeight) qaWeight.onclick = function() {
+    triggerHaptic();
+    openTodayWeightModal(activeDateKey);
+  };
+  var qaSteps = document.getElementById('qaStepsBtn');
+  if (qaSteps) qaSteps.onclick = function() {
+    triggerHaptic();
+    var editSteps = document.getElementById('editTodayStepsBtn');
+    if (editSteps) editSteps.click();
+  };
 
   bindBackupNudgeEvents(exportData);
   bindCatchupCardEvents(contentEl, renderTodaySimple);

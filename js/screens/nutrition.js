@@ -168,3 +168,4 @@ export function migrateFoodTotals() {
   });
   sv('rg_food_totals_v2', true);
 }
+

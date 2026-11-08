@@ -1,5 +1,6 @@
 /* Design tokens: CSS variables for colors, typography scale, spacing grid, radii, and tap targets */
-:root {
+:root,
+[data-theme="dark"] {
   /* Backgrounds */
   --bg: #0D0D12; /* Deep, rich charcoal/black */
   --surface: #1A1A24; /* Card background: slightly lighter dark gray */
@@ -54,12 +55,96 @@
   --focus-ring: 2px solid var(--accent-primary);
   --disabled-opacity: 0.38;
 
-  /* Typography: Plus Jakarta Sans / Grotesk family, native weights, tabular numerals on all numbers */
-  --font-primary: 'Plus Jakarta Sans', 'Space Grotesk', system-ui, -apple-system, sans-serif;
-  --font-grotesk: var(--font-primary);
-  --font-family: var(--font-primary);
-  --font-display: var(--font-primary);
-  --font-body: var(--font-primary);
+  /* Depth & Glow Tokens */
+  --card-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --glow-violet: 0 0 15px rgba(139, 92, 246, 0.4);
+  --dot-glow-primary: 0 0 8px rgba(139, 92, 246, 0.8);
+  --dot-glow-danger: 0 0 8px rgba(255, 77, 79, 0.8);
+  --weekly-sets-gradient: linear-gradient(90deg, #8B5CF6, #D946EF);
+
+  /* Round 1 UI Tokens */
+  --seg-track: #0B0B0C;
+  --seg-thumb: #1C1C1F;
+  --seg-thumb-text: #F5F5F4;
+  --chart-grid: rgba(255, 255, 255, 0.06);
+  --chart-line: #F5F5F4;
+  --chart-fill-top: rgba(245, 245, 244, 0.14);
+  --chart-fill-bottom: rgba(245, 245, 244, 0);
+  --cal-ring-planned: rgba(139, 92, 246, 0.6);
+  --cal-ring-skipped: #3A3A40;
+}
+
+[data-theme="light"] {
+  --bg: #FFFFFF;
+  --surface: #F4F4F5;
+  --surface2: #E4E4E7;
+  --surface-raised: #FFFFFF;
+  --surface-hi: #F4F4F5;
+  --hairline: rgba(0, 0, 0, 0.08);
+  --divider: rgba(0, 0, 0, 0.08);
+  --div: rgba(0, 0, 0, 0.08);
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.15);
+
+  --text: #09090B;
+  --text2: #52525B;
+  --text-secondary: #71717A;
+  --text3: #A1A1AA;
+  --text-muted: #71717A;
+  --text-tertiary: #A1A1AA;
+  --text-dim: #A1A1AA;
+
+  --accent-primary: #8B5CF6;
+  --accent-glow: rgba(139, 92, 246, 0.25);
+  --accent-secondary: #06B6D4;
+  --accent-cyan: #06B6D4;
+  --accent-pink: #EC4899;
+  --sparkline-weight: #8B5CF6;
+  --sparkline-nutrition: #06B6D4;
+  --sparkline-activity: #EC4899;
+  --icon-glow-violet: 0 0 12px rgba(139, 92, 246, 0.15);
+  --icon-glow-blue: 0 0 12px rgba(6, 182, 212, 0.15);
+  --input-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+  --pr-badge-shadow: 0 2px 8px rgba(236, 72, 153, 0.2);
+  --accent: var(--accent-primary);
+  --lime: var(--accent-primary);
+  --accent-dark: #FFFFFF;
+  --lime-border: var(--accent-primary);
+  --accent-blue: var(--accent-secondary);
+  --amber: var(--accent-primary);
+  --amber-light: var(--accent-primary);
+  --amber-dark: var(--accent-primary);
+  --glow-lime: var(--accent-glow);
+  --lime-glow: var(--accent-glow);
+
+  --danger: #FF4D4F;
+  --danger-bg: rgba(255, 77, 79, 0.10);
+
+  --state-pressed: rgba(0, 0, 0, 0.05);
+  --state-pressed-lime: rgba(139, 92, 246, 0.12);
+  --focus-ring: 2px solid var(--accent-primary);
+  --disabled-opacity: 0.38;
+
+  --card-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --glow-violet: 0 0 15px rgba(139, 92, 246, 0.25);
+  --dot-glow-primary: 0 0 8px rgba(139, 92, 246, 0.6);
+  --dot-glow-danger: 0 0 8px rgba(255, 77, 79, 0.6);
+  --weekly-sets-gradient: linear-gradient(90deg, #8B5CF6, #D946EF);
+
+  --seg-track: #E4E4E7;
+  --seg-thumb: #FFFFFF;
+  --seg-thumb-text: #09090B;
+  --chart-grid: rgba(0, 0, 0, 0.06);
+  --chart-line: #09090B;
+  --chart-fill-top: rgba(139, 92, 246, 0.15);
+  --chart-fill-bottom: rgba(139, 92, 246, 0);
+  --cal-ring-planned: rgba(139, 92, 246, 0.5);
+  --cal-ring-skipped: #E4E4E7;
+}
+
+:root {
 
   /* Canonical Type Sizes: hero (96), 64, display (48), title (28), body (17), label (15), small (12), caption (11) */
   --fs-hero: 96px;

@@ -226,6 +226,7 @@ export function setProfile(p) {
     if (p.heightCm == null) p.heightCm = 175;
     if (p.age == null) p.age = 25;
     if (p.gender == null) p.gender = 'male';
+    if (!p.theme) p.theme = 'dark';
     if (Array.isArray(p.customStaples)) {
       var seenStaple = {};
       p.customStaples = p.customStaples.filter(function(s) {
@@ -235,9 +236,24 @@ export function setProfile(p) {
         return true;
       });
     }
+    if (typeof document !== 'undefined' && document.documentElement && typeof document.documentElement.setAttribute === 'function') {
+      document.documentElement.setAttribute('data-theme', p.theme);
+    }
   }
   profile = p;
   if (typeof window !== 'undefined') window.profile = p;
+}
+
+export function setTheme(newTheme) {
+  var t = (newTheme === 'light') ? 'light' : 'dark';
+  if (profile) {
+    profile.theme = t;
+    sv('rg_profile', profile);
+  }
+  if (typeof document !== 'undefined' && document.documentElement && typeof document.documentElement.setAttribute === 'function') {
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  scheduleNotification();
 }
 
 export function getTab() {

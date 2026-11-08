@@ -14,6 +14,7 @@ import { renderOnboarding, openSettings } from "./screens/settings.js";
 import { openEditWorkoutSheet, openSplitManagerSheet } from "./screens/gym/plan-editor.js";
 import { openGymDateDaySheet, chooseWorkoutForDate } from "./screens/gym/session-sheet.js";
 import { openSwapSheet } from "./screens/gym/swap.js";
+import { openQuickActionSheet } from "./ui/fab-sheet.js";
 
 export function renderApp() {
   if (!profile) {
@@ -39,8 +40,13 @@ export function renderApp() {
       + '<span class="nav-pill-wrap"><span class="nav-pill"></span><span class="nav-icon nav-icon-outline">' + ic('chart') + '</span><span class="nav-icon nav-icon-filled">' + ic('chart_filled') + '</span></span>'
       + '<span class="tab-item-label">Progress</span>'
     + '</button>'
-    + '</nav>';
+    + '</nav>'
+    + '<button type="button" id="globalFabBtn" class="fab-btn" aria-label="Quick Action" style="position:fixed;bottom:calc(72px + env(safe-area-inset-bottom, 10px));left:50%;transform:translateX(-50%);width:50px;height:50px;border-radius:50%;background:var(--accent-primary);color:#FFFFFF;border:none;box-shadow:var(--glow-violet);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:90;transition:transform 0.2s cubic-bezier(0.16,1,0.3,1)">'
+      + '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>'
+    + '</button>';
   renderTab();
+  var fab = document.getElementById('globalFabBtn');
+  if (fab) fab.onclick = function() { triggerHaptic(); openQuickActionSheet(); };
   document.querySelectorAll('.navitem').forEach(function (btn) {
     btn.addEventListener('click', function () {
       triggerHaptic();
@@ -257,7 +263,7 @@ function dismissSplash() {
   if (splash) {
     setTimeout(function () {
       if (splash.classList && splash.classList.add) {
-        splash.classList.add('fade-out', 'opacity-0');
+        splash.classList.add('splash-hidden', 'fade-out', 'opacity-0');
       }
       if (document.body && document.body.style) document.body.style.overflow = '';
       setTimeout(function () {
@@ -266,8 +272,8 @@ function dismissSplash() {
         } else if (splash && splash.style) {
           splash.style.display = 'none';
         }
-      }, 400);
-    }, 600);
+      }, 600);
+    }, 1000);
   } else {
     if (document.body && document.body.style) document.body.style.overflow = '';
   }
@@ -319,18 +325,11 @@ if (typeof window !== 'undefined') {
     }
     renderTab();
   };
-  window.openEditWorkoutSheet = openEditWorkoutSheet;
-  window.openSettings = openSettings;
-  window.renderApp = renderApp;
-  window.renderTab = renderTab;
-  window.renderTodaySimple = renderTodaySimple;
-  window.renderGym = renderGym;
-  window.renderProgressSimple = renderProgressSimple;
-  window.renderProgress = renderProgressSimple;
-  window.chooseWorkoutForDate = chooseWorkoutForDate;
-  window.openGymDateDaySheet = openGymDateDaySheet;
-  window.openSwapSheet = openSwapSheet;
-  window.openSplitManagerSheet = openSplitManagerSheet;
+  Object.assign(window, {
+    openEditWorkoutSheet, openSettings, renderApp, renderTab, renderTodaySimple,
+    renderGym, renderProgressSimple, renderProgress: renderProgressSimple,
+    chooseWorkoutForDate, openGymDateDaySheet, openSwapSheet, openSplitManagerSheet
+  });
 }
 
 // Hardware and gesture back button handling

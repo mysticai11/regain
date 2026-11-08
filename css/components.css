@@ -886,7 +886,9 @@ body.kb-open .tab-bar,
 body.kb-open .bottom-nav,
 body.keyboard-open .bottomnav,
 body.keyboard-open .tab-bar,
-body.keyboard-open .bottom-nav {
+body.keyboard-open .bottom-nav,
+body.kb-open #globalFabBtn,
+body.keyboard-open #globalFabBtn {
   transform: translateY(150%);
   opacity: 0;
   pointer-events: none;

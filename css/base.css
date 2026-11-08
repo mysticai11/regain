@@ -277,34 +277,31 @@ html[data-motion-polish="true"] .page-enter > *:nth-child(6) { animation: cardEn
 #app-splash {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 99999;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   background: radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.15) 0%, #09090B 60%);
-  transition: opacity 0.4s ease;
-  pointer-events: auto;
-}
-#app-splash.fade-out,
-#app-splash.opacity-0 {
-  opacity: 0;
-  pointer-events: none;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s;
 }
 .splash-logo {
   width: 120px;
   height: 120px;
   object-fit: contain;
-  animation: logoPulse 1.5s infinite alternate ease-in-out;
+  opacity: 0;
+  transform: scale(0.85);
+  animation: logoIntro 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-@keyframes logoPulse {
-  0% {
-    transform: scale(0.95);
-    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.3));
-  }
-  100% {
-    transform: scale(1.05);
-    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.5));
-  }
+@keyframes logoIntro {
+  0% { opacity: 0; transform: scale(0.85); filter: drop-shadow(0 0 0px rgba(139, 92, 246, 0)); }
+  100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 25px rgba(139, 92, 246, 0.6)); }
+}
+.splash-hidden,
+#app-splash.fade-out,
+#app-splash.opacity-0 {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none;
 }
 ::selection {
   background: var(--surface2);

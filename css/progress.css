@@ -537,32 +537,35 @@
 }
 
 .cal-cell--trained {
-  background: var(--accent-primary) !important;
-  color: var(--text) !important;
-  font-weight: 600 !important;
-  box-shadow: 0 0 8px var(--accent-glow) !important;
+  background: rgba(139, 92, 246, 0.25) !important;
+  color: var(--accent-primary) !important;
+  font-weight: 700 !important;
 }
 
 .cal-cell--planned {
   background: transparent !important;
-  border: 1.5px solid var(--accent-primary) !important;
-  color: var(--text) !important;
+  border: 1px solid var(--text-dim) !important;
+  color: var(--text-secondary) !important;
 }
 
 .cal-cell--skipped {
   background: transparent !important;
-  border: 1px dashed #55555A !important;
-  color: #55555A !important;
+  border: 1px dashed var(--text-dim) !important;
+  color: var(--text-dim) !important;
 }
 
 .cal-cell--rest {
   background: transparent !important;
-  color: #55555A !important;
+  color: var(--text-dim) !important;
 }
 
 .cal-cell.is-today {
-  outline: 2px solid #FFFFFF !important;
-  outline-offset: 1px !important;
+  background: var(--accent-primary) !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0 0 12px var(--accent-glow) !important;
 }
 
 .cal-cell.empty {

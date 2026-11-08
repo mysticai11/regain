@@ -1,6 +1,6 @@
 /* Settings screen: targets, training days, plan picker, profile, and onboarding modal */
 
-import { profile, setProfile, setTab } from "../state.js";
+import { profile, setProfile, setTab, setTheme } from "../state.js";
 import { sv, ls, dayRecord, saveDayRecord, exportData, importData, resetAllData } from "../storage.js";
 import { DEFAULT_MEAL_PLAN } from "../data/foods.js";
 import { renderApp } from "../main.js";
@@ -140,6 +140,16 @@ export function openSettings() {
         + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Custom 5-day split & exercise catalog</div>'
       + '</div>'
       + '<button type="button" class="btn" id="openPlanFromSettingsBtn" style="white-space:nowrap;height:36px;padding:0 14px;border-radius:8px;background:#141416;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Edit plan</button>'
+    + '</div>'
+
+    // APPEARANCE (Theme Mode)
+    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Appearance</span></div>'
+    + '<div style="background:#1C1C1F;border-radius:16px;padding:14px 16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">'
+      + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Theme</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Dark & light mode</div></div>'
+      + '<div style="display:inline-flex;background:#141416;border-radius:10px;padding:3px;gap:4px">'
+        + '<button type="button" id="themeDarkBtn" style="border:none;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;' + (profile.theme !== 'light' ? 'background:var(--accent-primary);color:#0B0B0C;' : 'background:transparent;color:#8A8A8E;') + '">Dark</button>'
+        + '<button type="button" id="themeLightBtn" style="border:none;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;' + (profile.theme === 'light' ? 'background:var(--accent-primary);color:#0B0B0C;' : 'background:transparent;color:#8A8A8E;') + '">Light</button>'
+      + '</div>'
     + '</div>'
 
     // ADVANCED (Unified Card with native switch toggles)
@@ -321,69 +331,49 @@ export function openSettings() {
     });
   }
 
+  var themeDarkBtn = overlay.querySelector('#themeDarkBtn'), themeLightBtn = overlay.querySelector('#themeLightBtn');
+  if (themeDarkBtn && themeLightBtn) {
+    themeDarkBtn.onclick = function() { setTheme('dark'); overlay.remove(); openSettings(); };
+    themeLightBtn.onclick = function() { setTheme('light'); overlay.remove(); openSettings(); };
+  }
+
   var toggleHapticsBtn = overlay.querySelector('#toggleHapticsBtn');
   if (toggleHapticsBtn) {
     toggleHapticsBtn.onclick = function() {
-      triggerHaptic('selection');
-      profile.hapticsMuted = !profile.hapticsMuted;
-      sv('rg_profile', profile);
-      updateSwitchUI(toggleHapticsBtn, !profile.hapticsMuted);
-      showToast(profile.hapticsMuted ? 'Haptics muted' : 'Haptics active', 'ok');
+      triggerHaptic('selection'); profile.hapticsMuted = !profile.hapticsMuted; sv('rg_profile', profile);
+      updateSwitchUI(toggleHapticsBtn, !profile.hapticsMuted); showToast(profile.hapticsMuted ? 'Haptics muted' : 'Haptics active', 'ok');
     };
   }
 
   var toggleAutoRestBtn = overlay.querySelector('#toggleAutoRestBtn');
   if (toggleAutoRestBtn) {
     toggleAutoRestBtn.onclick = function() {
-      triggerHaptic('selection');
-      profile.autoStartRestTimer = (profile.autoStartRestTimer === false) ? true : false;
-      sv('rg_profile', profile);
-      updateSwitchUI(toggleAutoRestBtn, profile.autoStartRestTimer !== false);
-      showToast(profile.autoStartRestTimer ? 'Rest timer auto-start on' : 'Rest timer auto-start off', 'ok');
+      triggerHaptic('selection'); profile.autoStartRestTimer = (profile.autoStartRestTimer === false); sv('rg_profile', profile);
+      updateSwitchUI(toggleAutoRestBtn, profile.autoStartRestTimer !== false); showToast(profile.autoStartRestTimer ? 'Rest timer auto-start on' : 'Rest timer auto-start off', 'ok');
     };
   }
 
   var toggleSwipeNavBtn = overlay.querySelector('#toggleSwipeNavBtn') || overlay.querySelector('#toggleSlideNavBtn');
   if (toggleSwipeNavBtn) {
     toggleSwipeNavBtn.onclick = function() {
-      triggerHaptic('selection');
-      var isCurrentlyDisabled = !!(profile.disableSwipeNav || profile.disableSlideNav);
-      var nextDisabled = !isCurrentlyDisabled;
-      profile.disableSwipeNav = nextDisabled;
-      profile.disableSlideNav = nextDisabled;
-      sv('rg_profile', profile);
-      if (typeof document !== 'undefined' && document.documentElement) {
-        document.documentElement.classList.toggle('no-slide-nav', nextDisabled);
-      }
-      updateSwitchUI(toggleSwipeNavBtn, !nextDisabled);
-      showToast(nextDisabled ? 'Swipe navigation turned off' : 'Swipe navigation turned on', 'ok');
+      triggerHaptic('selection'); var isOff = !(profile.disableSwipeNav || profile.disableSlideNav);
+      profile.disableSwipeNav = isOff; profile.disableSlideNav = isOff; sv('rg_profile', profile);
+      if (typeof document !== 'undefined' && document.documentElement) document.documentElement.classList.toggle('no-slide-nav', isOff);
+      updateSwitchUI(toggleSwipeNavBtn, !isOff); showToast(isOff ? 'Swipe navigation turned off' : 'Swipe navigation turned on', 'ok');
     };
   }
 
   overlay.querySelector('#buyShieldBtn').addEventListener('click', function() {
     if ((profile.xp || 0) >= 100) {
-      profile.xp -= 100; profile.shields = (profile.shields || 0) + 1;
-      sv('rg_profile', profile); overlay.remove(); openSettings();
-      showToast('Streak shield purchased!', 'ok');
+      profile.xp -= 100; profile.shields = (profile.shields || 0) + 1; sv('rg_profile', profile); overlay.remove(); openSettings(); showToast('Streak shield purchased!', 'ok');
     }
   });
 
   bindResetAction(overlay, resetAllData, showToast);
-
-  var openPlanBtn = overlay.querySelector('#openPlanFromSettingsBtn');
-  if (openPlanBtn) {
-    openPlanBtn.addEventListener('click', function() { overlay.remove(); openSplitManagerSheet(); });
-  }
-
-  var editFoodsBtn = overlay.querySelector('#editCustomFoodsBtn');
-  if (editFoodsBtn) {
-    editFoodsBtn.addEventListener('click', function() { overlay.remove(); openCustomFoodsManager(); });
-  }
-
-  var expBtn = overlay.querySelector('#exportBtn');
-  if (expBtn) expBtn.addEventListener('click', exportData);
-  var impBtn = overlay.querySelector('#importBtn');
-  if (impBtn) impBtn.addEventListener('click', importData);
+  var openPlanBtn = overlay.querySelector('#openPlanFromSettingsBtn'); if (openPlanBtn) openPlanBtn.onclick = function() { overlay.remove(); openSplitManagerSheet(); };
+  var editFoodsBtn = overlay.querySelector('#editCustomFoodsBtn'); if (editFoodsBtn) editFoodsBtn.onclick = function() { overlay.remove(); openCustomFoodsManager(); };
+  var expBtn = overlay.querySelector('#exportBtn'); if (expBtn) expBtn.onclick = exportData;
+  var impBtn = overlay.querySelector('#importBtn'); if (impBtn) impBtn.onclick = importData;
 }
 
 export * from "./onboarding.js";

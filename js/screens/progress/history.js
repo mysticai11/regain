@@ -76,9 +76,23 @@ export function workoutHistoryHTML() {
     var totalSetsInWeek = group.sessions.reduce(function(acc, s) {
       return acc + (s.exercises || []).reduce(function(a, ex) { return a + (ex.sets || []).filter(Boolean).length; }, 0);
     }, 0);
+    var weeklyVol = group.sessions.reduce(function(acc, s) {
+      return acc + (s.exercises || []).reduce(function(a, ex) {
+        return a + (ex.sets || []).reduce(function(v, st) {
+          return v + ((Number(st && st.weight) || 0) * (Number(st && st.reps) || 0));
+        }, 0);
+      }, 0);
+    }, 0);
     var weekNum = wkIdx + 1;
 
-    html += '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin:' + (wkIdx === 0 ? '4' : '24') + 'px 0 12px">WEEK ' + weekNum + ' · ' + group.sessions.length + (group.sessions.length === 1 ? ' SESSION' : ' SESSIONS') + ' · ' + totalSetsInWeek + ' SETS</div>';
+    html += '<div style="margin:' + (wkIdx === 0 ? '4' : '20') + 'px 0 12px">'
+      + '<div style="font-size:11px;font-weight:700;color:var(--text-secondary);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px">WEEK ' + weekNum + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+        + '<span style="background:var(--surface2);border:1px solid var(--hairline);padding:4px 10px;border-radius:9999px;font-size:12px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + group.sessions.length + (group.sessions.length === 1 ? ' session' : ' sessions') + '</span>'
+        + '<span style="background:var(--surface2);border:1px solid var(--hairline);padding:4px 10px;border-radius:9999px;font-size:12px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + totalSetsInWeek + ' sets</span>'
+        + (weeklyVol > 0 ? ('<span style="background:var(--surface2);border:1px solid var(--hairline);padding:4px 10px;border-radius:9999px;font-size:12px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + Math.round(weeklyVol).toLocaleString() + ' kg vol</span>') : '')
+      + '</div>'
+    + '</div>';
 
     group.sessions.forEach(function(session, sIdx) {
       var allSessionIdx = sessions.indexOf(session);
@@ -162,7 +176,7 @@ export function workoutHistoryHTML() {
         var exVol = sets.reduce(function(acc, s) { return acc + ((Number(s.weight) || 0) * (Number(s.reps) || 0)); }, 0);
         var volStr = exVol > 0 ? (' · ' + (exVol % 1 === 0 ? exVol : parseFloat(exVol.toFixed(1))) + ' kg') : '';
         var summaryText = sets.length + (sets.length === 1 ? ' set' : ' sets') + volStr;
-        var tableHeaderHTML = '<div class="history-set-table-head" style="display:grid;grid-template-columns:36px 1fr 1fr 48px;align-items:center;padding-bottom:4px;margin-bottom:2px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">'
+        var tableHeaderHTML = '<div class="history-set-table-head" style="display:grid;grid-template-columns:40px 1fr 1fr 40px;align-items:center;padding:4px 0;margin-bottom:2px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">'
           + '<span>Set</span><span style="text-align:right">kg</span><span style="text-align:right">Reps</span><span style="text-align:right">RIR</span></div>';
         var setRowsHTML = sets.map(function(s, sIdx2) {
           var wNum = Number(s.weight) || 0;
@@ -173,19 +187,19 @@ export function workoutHistoryHTML() {
           var rirCell = rirVal != null
             ? ('<span class="hist-rir-badge" style="display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;min-width:18px;border-radius:4px;background:var(--surface-raised);font-size:11px;font-weight:600;color:' + (rirVal === 'F' ? 'var(--lime)' : 'var(--text-secondary)') + '">' + esc(rirVal) + '</span>')
             : '<span style="color:var(--text-tertiary);font-size:15px;line-height:1">–</span>';
-          return '<div class="history-set-row" data-quick-edit-set="1" data-session-id="' + esc(session.id) + '" data-ex-id="' + esc(exItem.id) + '" data-ex-name="' + esc(exData.name) + '" data-set-idx="' + sIdx2 + '" data-weight="' + (s.weight || 0) + '" data-reps="' + (s.reps || 0) + '" data-rir="' + (s.rir == null ? '' : s.rir) + '" style="display:grid;grid-template-columns:36px 1fr 1fr 48px;align-items:center;min-height:40px;height:42px;cursor:pointer">'
+          return '<div class="history-set-row" data-quick-edit-set="1" data-session-id="' + esc(session.id) + '" data-ex-id="' + esc(exItem.id) + '" data-ex-name="' + esc(exData.name) + '" data-set-idx="' + sIdx2 + '" data-weight="' + (s.weight || 0) + '" data-reps="' + (s.reps || 0) + '" data-rir="' + (s.rir == null ? '' : s.rir) + '" style="display:grid;grid-template-columns:40px 1fr 1fr 40px;align-items:center;min-height:38px;height:40px;cursor:pointer">'
             + '<span style="font-size:15px;color:var(--text-secondary);font-variant-numeric:tabular-nums">' + (sIdx2 + 1) + '</span>'
             + '<span style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;text-align:right">' + esc(wDisp) + '</span>'
             + '<span style="font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;text-align:right">' + rVal + '</span>'
             + '<div style="display:flex;justify-content:flex-end;align-items:center">' + rirCell + '</div></div>';
         }).join('');
         var isLast = exIdx === exercises.length - 1;
-        return '<div style="padding:14px 0;' + (isLast ? '' : 'border-bottom:1px solid var(--hairline)') + '">'
+        return '<div style="padding:12px 0;' + (isLast ? '' : 'border-bottom:1px solid var(--hairline)') + '">'
           + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px">'
             + '<div style="display:flex;align-items:flex-start;gap:8px;min-width:0;flex:1">'
               + '<span class="history-ex-num" style="display:inline-block;width:24px;min-width:24px;flex-shrink:0;font-size:15px;color:var(--text-secondary);font-variant-numeric:tabular-nums;margin-top:1px">' + (exIdx + 1) + '</span>'
               + '<div style="min-width:0;flex:1">'
-                + '<div class="history-ex-name" style="font-size:15px;font-weight:600;color:var(--text);line-height:1.25;word-break:break-word">' + esc(exData.name) + '</div>'
+                + '<div class="history-ex-name" style="font-size:15px;font-weight:600;color:var(--text);line-height:1.25;word-break:break-word;background:transparent">' + esc(exData.name) + '</div>'
                 + ((progressTagHTML || isPrInSession) ? ('<div style="display:flex;align-items:center;gap:6px;margin-top:4px">' + progressTagHTML + (isPrInSession ? '<span class="set-pr-badge" style="position:static;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--accent-pink);background:rgba(236,72,153,0.15);padding:1px 6px;border-radius:4px;letter-spacing:0.06em;text-transform:uppercase">PR<!-- border-radius:50%;background:#C6F432;display:inline-block"></span>PR --></span>' : '') + '</div>') : '')
               + '</div>'
             + '</div>'
@@ -196,35 +210,31 @@ export function workoutHistoryHTML() {
 
       var chevronSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
       var isFirstInWeek = (sIdx === 0 && wkIdx === 0);
-      var durPart = durText ? ('<span class="hist-dur-part" style="background:var(--surface2);padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + esc(durText) + '</span>') : '';
-      var setsPill = '<span style="background:var(--surface2);padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + totalSets + (totalSets === 1 ? ' set' : ' sets') + '</span>';
-      var volPill = totalVol > 0 ? ('<span style="background:var(--surface2);padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + Math.round(totalVol).toLocaleString() + ' kg vol</span>') : '';
+      var durPart = durText ? ('<span class="hist-dur-part" style="background:var(--surface2);border:1px solid var(--hairline);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + esc(durText) + '</span>') : '';
+      var setsPill = '<span style="background:var(--surface2);border:1px solid var(--hairline);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + totalSets + (totalSets === 1 ? ' set' : ' sets') + '</span>';
+      var volPill = totalVol > 0 ? ('<span style="background:var(--surface2);border:1px solid var(--hairline);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + Math.round(totalVol).toLocaleString() + ' kg vol</span>') : '';
       var pillsHTML = '<div class="history-card-subline" style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap;white-space:nowrap">'
         + setsPill + volPill + durPart
         + '<span style="display:none">' + esc(baseStatsText) + '</span>'
       + '</div>';
 
       html += '<div class="history-session-card-wrap metric-card" style="position:relative;margin-bottom:24px;padding-left:26px">'
-        + '<span class="history-timeline-dot" style="position:absolute;left:2px;top:28px;width:12px;height:12px;border-radius:50%;background:var(--accent-primary);box-shadow:var(--dot-glow-primary, 0 0 8px var(--accent-primary));display:inline-block;z-index:2"></span>'
-        + '<details class="history-session-details" ' + (isFirstInWeek ? 'open' : '') + ' style="margin-bottom:0;background:linear-gradient(135deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.01) 100%),var(--surface);border:1px solid var(--hairline);border-radius:var(--r-card,16px);box-shadow:var(--card-shadow, 0 4px 16px rgba(0,0,0,0.3));overflow:hidden">'
-        + '<summary class="history-session-header" style="min-height:64px;height:auto;padding:12px 14px;display:flex;align-items:center;cursor:pointer;list-style:none;user-select:none;box-sizing:border-box;gap:8px">'
-          + '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;width:44px;text-align:center">'
-            + '<div style="font-size:11px;font-weight:600;color:var(--text-secondary);line-height:1.1;letter-spacing:0.04em;text-transform:uppercase">' + esc(dayLabel) + '</div>'
-            + '<div style="font-size:28px;font-weight:700;color:var(--text);line-height:1;font-variant-numeric:tabular-nums;margin:1px 0">' + String(dObj.getDate()) + '</div>'
-            + '<div style="font-size:11px;font-weight:600;color:var(--text-secondary);line-height:1.1;letter-spacing:0.04em;text-transform:uppercase">' + esc(monLabel) + '</div>'
-          + '</div>'
-          + '<div style="flex:1;min-width:0;overflow:hidden">'
-            + '<div class="history-session-title" style="font-size:17px;font-weight:700;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25;word-break:break-word">' + esc(cleanTitle) + '</div>'
+        + '<span class="history-timeline-line" style="position:absolute;left:7px;top:0;bottom:-24px;width:2px;background:var(--hairline);z-index:1"></span>'
+        + '<span class="history-timeline-dot" style="position:absolute;left:2px;top:24px;width:12px;height:12px;border-radius:50%;background:var(--accent-primary);box-shadow:var(--dot-glow-primary, 0 0 8px var(--accent-primary));display:inline-block;z-index:2"></span>'
+        + '<details class="history-session-details" ' + (isFirstInWeek ? 'open' : '') + ' style="margin-bottom:0;background:#141416;border:1px solid var(--hairline);border-radius:12px;box-shadow:var(--card-shadow, 0 4px 16px rgba(0,0,0,0.3));overflow:hidden">'
+        + '<summary class="history-session-header" style="min-height:64px;height:auto;padding:14px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;cursor:pointer;list-style:none;user-select:none;box-sizing:border-box;background:#141416;border-radius:12px">'
+          + '<div style="flex:1;min-width:0;padding-right:12px">'
+            + '<div style="font-size:11px;font-weight:700;color:var(--text-secondary);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">' + esc(dayLabel) + ' ' + dObj.getDate() + ' ' + esc(monLabel) + '</div>'
+            + '<div class="history-session-title" style="font-size:17px;font-weight:700;color:var(--text);line-height:1.25;margin-bottom:8px;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">' + esc(cleanTitle) + '</div>'
             + pillsHTML
           + '</div>'
-          + '<div style="display:flex;align-items:center;flex-shrink:0">'
-            + '<span class="history-chevron" style="display:inline-flex;align-items:center;justify-content:center;width:44px;min-height:48px;color:var(--text-secondary);transition:transform 0.2s ease">' + chevronSVG + '</span>'
-            + '<span style="display:inline-block;width:44px;min-height:48px;flex-shrink:0" aria-hidden="true"></span>'
+          + '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0;margin-top:2px">'
+            + '<span class="history-chevron" style="display:inline-flex;align-items:center;justify-content:center;width:44px;min-height:44px;color:var(--text-secondary);transition:transform 0.2s ease">' + chevronSVG + '</span>'
           + '</div>'
         + '</summary>'
         + '<div class="history-session-body" style="padding:0 16px 14px;border-top:1px solid var(--hairline)">' + exRows + '</div>'
         + '</details>'
-        + '<button type="button" class="btn-ghost history-menu-btn" data-session-menu="' + esc(session.id) + '" style="position:absolute;top:8px;right:10px;background:none;border:none;font-size:17px;line-height:1;padding:0;color:var(--text-secondary);cursor:pointer;width:44px;min-height:48px;display:inline-flex;align-items:center;justify-content:center;z-index:2" aria-label="Session options">···</button>'
+        + '<button type="button" class="btn-ghost history-menu-btn" data-session-menu="' + esc(session.id) + '" style="position:absolute;top:10px;right:44px;background:none;border:none;font-size:17px;line-height:1;padding:0;color:var(--text-secondary);cursor:pointer;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;z-index:2" aria-label="Session options">···</button>'
         + '</div>';
     });
   });

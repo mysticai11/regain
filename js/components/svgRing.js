@@ -4,7 +4,7 @@ export function buildSegmentedRing(opts) {
   var options = opts || {};
   var progress = Math.max(0, Number(options.progress) || 0);
   var size = Number(options.size) || 240;
-  var strokeWidth = Number(options.strokeWidth) || 14;
+  var strokeWidth = Number(options.strokeWidth) || 16;
   var centerHTML = options.centerHTML || '';
 
   var center = size / 2;
@@ -12,12 +12,7 @@ export function buildSegmentedRing(opts) {
   var circumference = 2 * Math.PI * radius;
   var clampedProgress = Math.min(100, progress);
 
-  // 4 large track segments separated by clean gaps
-  var gap = 8;
-  var segLen = Math.max(1, (circumference - (4 * gap)) / 4);
-  var trackDashArray = segLen.toFixed(2) + ' ' + gap;
-
-  // Active stroke calculation
+  // Active stroke calculation (continuous progress arc)
   var arcLength = (clampedProgress / 100) * circumference;
   var activeDashArray = arcLength.toFixed(3) + ' ' + circumference.toFixed(3);
 
@@ -49,7 +44,7 @@ export function buildSegmentedRing(opts) {
           + '<feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#FFFFFF" flood-opacity="0.9"/>'
         + '</filter>'
       + '</defs>'
-      + '<circle cx="' + center + '" cy="' + center + '" r="' + radius.toFixed(3) + '" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="' + strokeWidth + '" stroke-dasharray="' + trackDashArray + '" stroke-linecap="round" />'
+      + '<circle cx="' + center + '" cy="' + center + '" r="' + radius.toFixed(3) + '" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="' + strokeWidth + '" stroke-linecap="round" />'
       + (clampedProgress > 0
           ? ('<circle cx="' + center + '" cy="' + center + '" r="' + radius.toFixed(3) + '" fill="none" stroke="#8B5CF6" stroke-width="' + (strokeWidth + 4) + '" stroke-linecap="round" stroke-dasharray="' + activeDashArray + '" opacity="0.3" filter="url(#ringBloom)" />'
             + '<circle cx="' + center + '" cy="' + center + '" r="' + radius.toFixed(3) + '" fill="none" stroke="url(#ringLinearGrad)" stroke-width="' + strokeWidth + '" stroke-linecap="round" stroke-dasharray="' + activeDashArray + '" filter="url(#ringDropShadow)" />'

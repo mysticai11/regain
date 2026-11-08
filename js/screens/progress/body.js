@@ -36,18 +36,18 @@ export function weightEntriesHTML(entries) {
     var dateDisplay = (dateLabel + (timeLabel ? ' · ' + timeLabel : '')).toUpperCase();
     var wNum = Number(e.weight);
     var wStr = !isNaN(wNum) ? wNum.toFixed(1) : String(e.weight);
-    return '<div class="weight-entry-wrapper" style="position:relative;overflow:hidden;border-radius:12px;margin-bottom:8px">'
-      + '<div class="swipe-delete-bg" style="position:absolute;inset:0;background:var(--danger);display:flex;align-items:center;justify-content:flex-end;padding-right:16px;border-radius:12px;z-index:1">'
-        + '<button type="button" class="btn-swipe-delete" data-delete-weight="' + esc(e.id) + '" aria-label="Delete weight" style="background:none;border:none;color:#FFFFFF;font-size:15px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px">'
-          + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Delete</button>'
+    return '<div class="swipe-container" style="position:relative;overflow:hidden;border-radius:12px;margin-bottom:8px">'
+      + '<div class="delete-action" style="position:absolute;inset:0;background:var(--danger);display:flex;align-items:center;justify-content:flex-end;border-radius:12px;z-index:1">'
+        + '<button type="button" class="btn-swipe-delete" data-delete-weight="' + esc(e.id) + '" aria-label="Delete weight" style="background:none;border:none;color:#FFFFFF;cursor:pointer;padding:0 24px;display:flex;align-items:center;justify-content:center;height:100%;font-size:0;line-height:0">'
+          + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Delete</button>'
       + '</div>'
-      + '<div class="weight-entry-card" data-weight-id="' + esc(e.id) + '" style="position:relative;z-index:2;background:rgba(255,255,255,0.03);border-radius:12px;padding:12px 16px;border:1px solid var(--hairline);transition:transform 0.2s cubic-bezier(0.2,0,0,1);cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center">'
+      + '<div class="swipe-content weight-entry-card" data-weight-id="' + esc(e.id) + '" style="position:relative;z-index:2;background:var(--surface2);border-radius:12px;padding:14px 18px;border:1px solid var(--hairline);transition:transform 0.25s cubic-bezier(0.2,0,0,1);cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center">'
         + '<div>'
           + '<div class="tabnum" style="font-size:var(--fs-20, 20px);font-weight:700;color:var(--text);line-height:1.2">' + wStr + ' <span style="font-size:15px;color:var(--text-secondary);font-weight:400">kg</span></div>'
           + '<div style="font-size:11px;font-weight:600;color:var(--text-secondary);letter-spacing:0.08em;text-transform:uppercase;margin-top:4px">' + esc(dateDisplay) + '</div>'
         + '</div>'
-        + '<div style="display:flex;align-items:center;gap:6px;color:var(--text-dim);font-size:11px;font-weight:600">'
-          + '<span style="letter-spacing:0.04em">DOUBLE-TAP TO EDIT</span>'
+        + '<div style="display:flex;align-items:center;color:var(--text-dim);opacity:0.6">'
+          + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
         + '</div>'
       + '</div>'
     + '</div>';
@@ -105,15 +105,15 @@ export function bindWeightListGestures(container) {
     }, { passive: true });
 
     card.addEventListener('touchend', function() {
-      card.style.transition = 'transform 0.2s cubic-bezier(0.2,0,0,1)';
+      card.style.transition = 'transform 0.25s cubic-bezier(0.2,0,0,1)';
       var deltaX = currentX - startX;
-      if (deltaX < -80) {
+      if (deltaX < -110) {
         card.style.transform = 'translateX(-100%)';
         setTimeout(function() {
           deleteWeightEntry(id, true);
         }, 180);
-      } else if (deltaX < -40) {
-        card.style.transform = 'translateX(-76px)';
+      } else if (deltaX < -45) {
+        card.style.transform = 'translateX(-80px)';
       } else {
         card.style.transform = 'translateX(0px)';
       }
