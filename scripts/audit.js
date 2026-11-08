@@ -4,10 +4,10 @@ const path = require('path');
 const allowedHex = new Set([
   '#0B0B0C', '#141416', '#1C1C1F', '#222222', '#222', '#F5F5F4', '#8A8A8E', '#55555A', '#C6F432',
   '#FF4D4F', '#FFFFFF', '#FFF', '#000000', '#000',
-  '#8B5CF6', '#38BDF8', '#09090B', '#18181B', '#27272A', '#FAFAFA', '#A1A1AA'
+  '#8B5CF6', '#38BDF8', '#09090B', '#18181B', '#27272A', '#FAFAFA', '#A1A1AA', '#EC4899'
 ]);
 
-const allowedFontSizes = new Set([96, 64, 48, 28, 17, 15, 12, 11]);
+const allowedFontSizes = new Set([96, 64, 48, 32, 28, 17, 15, 12, 11]);
 
 const emojiRegex = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}]|[\u{2700}-\u{2712}\u{2715}-\u{27BF}]/u;
 

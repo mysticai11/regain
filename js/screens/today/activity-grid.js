@@ -9,8 +9,10 @@ import { showToast } from "../../components/toast.js";
 export function buildActivityInsightHTML(stepBurn, workoutBurn) {
   var earned = (Number(stepBurn) || 0) + (Number(workoutBurn) || 0);
   if (earned <= 100) return '';
-  return '<div class="metric-card" style="margin-bottom:16px;padding:12px 16px;display:flex;align-items:center;gap:10px">'
-    + '<span style="color:var(--accent-primary);display:inline-flex">' + ic('flame', 18) + '</span>'
+  return '<div class="metric-card" style="margin-bottom:16px;padding:12px 16px;display:flex;align-items:center;gap:12px">'
+    + '<div style="width:32px;height:32px;border-radius:10px;background:rgba(139,92,246,0.15);color:var(--accent-primary);display:flex;align-items:center;justify-content:center;box-shadow:var(--icon-glow-violet);flex-shrink:0">'
+      + ic('flame', 16)
+    + '</div>'
     + '<span style="font-size:var(--fs-caption);font-weight:600;color:var(--accent-primary);letter-spacing:0.02em">You earned +' + earned.toLocaleString() + ' kcal from activity today!</span>'
   + '</div>';
 }
@@ -36,10 +38,13 @@ export function buildActivityGridHTML(data) {
   return '<div class="activity-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px">'
     /* Card 1: Steps */
     + '<div class="metric-card" id="activityCardSteps" style="padding:14px 16px;cursor:pointer">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
-        + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.06em;color:var(--text-secondary);text-transform:uppercase">STEPS</span>'
-        + '<button type="button" id="editTodayStepsBtn" class="btn-text-action" style="font-size:var(--fs-caption);color:var(--accent-primary);background:none;border:none;padding:0;cursor:pointer;font-weight:600">Edit</button>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+        + '<div style="width:32px;height:32px;border-radius:10px;background:rgba(139,92,246,0.15);color:var(--accent-primary);display:flex;align-items:center;justify-content:center;box-shadow:var(--icon-glow-violet);flex-shrink:0">'
+          + ic('bolt', 16)
+        + '</div>'
+        + '<button type="button" id="editTodayStepsBtn" class="btn-text-action" style="font-size:var(--fs-caption);color:var(--accent-primary);background:none;border:none;padding:2px 6px;cursor:pointer;font-weight:600">Edit</button>'
       + '</div>'
+      + '<div style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.08em;color:var(--text-secondary);text-transform:uppercase;margin-bottom:4px">STEPS</div>'
       + '<div style="font-size:var(--fs-28);font-weight:700;color:var(--text);line-height:1.1;font-variant-numeric:tabular-nums;margin-bottom:6px">'
         + steps.toLocaleString()
       + '</div>'
@@ -51,10 +56,12 @@ export function buildActivityGridHTML(data) {
 
     /* Card 2: Active Burn */
     + '<div class="metric-card" style="padding:14px 16px">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
-        + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.06em;color:var(--accent-secondary);text-transform:uppercase">ACTIVE BURN</span>'
-        + '<span style="color:var(--accent-secondary);display:inline-flex">' + ic('flame', 14) + '</span>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+        + '<div style="width:32px;height:32px;border-radius:10px;background:rgba(56,189,248,0.15);color:var(--accent-secondary);display:flex;align-items:center;justify-content:center;box-shadow:var(--icon-glow-blue);flex-shrink:0">'
+          + ic('flame', 16)
+        + '</div>'
       + '</div>'
+      + '<div style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.08em;color:var(--accent-secondary);text-transform:uppercase;margin-bottom:4px">ACTIVE BURN</div>'
       + '<div style="font-size:var(--fs-28);font-weight:700;color:var(--text);line-height:1.1;font-variant-numeric:tabular-nums;margin-bottom:6px">'
         + burnDisplay
       + '</div>'
@@ -63,10 +70,12 @@ export function buildActivityGridHTML(data) {
 
     /* Card 3: Weight */
     + '<div class="metric-card" style="padding:14px 16px">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
-        + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.06em;color:var(--text-secondary);text-transform:uppercase">BODYWEIGHT</span>'
-        + '<span style="color:var(--text-secondary);display:inline-flex">' + ic('trend_up', 14) + '</span>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+        + '<div style="width:32px;height:32px;border-radius:10px;background:rgba(139,92,246,0.15);color:var(--accent-primary);display:flex;align-items:center;justify-content:center;box-shadow:var(--icon-glow-violet);flex-shrink:0">'
+          + ic('trend_up', 16)
+        + '</div>'
       + '</div>'
+      + '<div style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.08em;color:var(--text-secondary);text-transform:uppercase;margin-bottom:4px">BODYWEIGHT</div>'
       + '<div style="font-size:var(--fs-28);font-weight:700;color:var(--text);line-height:1.1;font-variant-numeric:tabular-nums;margin-bottom:6px">'
         + esc(weightDisplay)
       + '</div>'
@@ -75,10 +84,12 @@ export function buildActivityGridHTML(data) {
 
     /* Card 4: Workouts / Weekly Sets */
     + '<div class="metric-card" style="padding:14px 16px">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
-        + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.06em;color:var(--text-secondary);text-transform:uppercase">WEEKLY SETS</span>'
-        + '<span style="color:var(--text-secondary);display:inline-flex">' + ic('chart', 14) + '</span>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+        + '<div style="width:32px;height:32px;border-radius:10px;background:rgba(139,92,246,0.15);color:var(--accent-primary);display:flex;align-items:center;justify-content:center;box-shadow:var(--icon-glow-violet);flex-shrink:0">'
+          + ic('chart', 16)
+        + '</div>'
       + '</div>'
+      + '<div style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.08em;color:var(--text-secondary);text-transform:uppercase;margin-bottom:4px">WEEKLY SETS</div>'
       + '<div style="font-size:var(--fs-28);font-weight:700;color:var(--text);line-height:1.1;font-variant-numeric:tabular-nums;margin-bottom:6px">'
         + weeklySets + (weeklySets === 1 ? ' set' : ' sets')
       + '</div>'

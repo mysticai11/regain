@@ -24,6 +24,9 @@
   --accent-primary: #8B5CF6; /* Violet */
   --accent-glow: rgba(139, 92, 246, 0.4); /* For SVG Glows */
   --accent-secondary: #38BDF8; /* Soft Blue for Activity */
+  --accent-pink: #EC4899; /* Radiant Pink for Hero Ring Gradient */
+  --icon-glow-violet: 0 0 12px rgba(139, 92, 246, 0.25);
+  --icon-glow-blue: 0 0 12px rgba(56, 189, 248, 0.25);
   --accent: var(--accent-primary);
   --lime: var(--accent-primary);
   --accent-dark: #09090B;
@@ -45,16 +48,18 @@
   --focus-ring: 2px solid var(--accent-primary);
   --disabled-opacity: 0.38;
 
-  /* Typography: Single Grotesk family, weights 400/600, tabular numerals on all numbers, no monospace */
-  --font-grotesk: 'Space Grotesk', system-ui, -apple-system, sans-serif;
-  --font-family: var(--font-grotesk);
-  --font-display: var(--font-grotesk);
-  --font-body: var(--font-grotesk);
+  /* Typography: Plus Jakarta Sans / Grotesk family, native weights, tabular numerals on all numbers */
+  --font-primary: 'Plus Jakarta Sans', 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --font-grotesk: var(--font-primary);
+  --font-family: var(--font-primary);
+  --font-display: var(--font-primary);
+  --font-body: var(--font-primary);
 
   /* Canonical Type Sizes: hero (96), 64, display (48), title (28), body (17), label (15), small (12), caption (11) */
   --fs-hero: 96px;
   --fs-64: 64px;
   --fs-48: 48px;
+  --fs-32: 32px;
   --fs-title: 28px;
   --fs-body: 17px;
   --fs-label: 15px;

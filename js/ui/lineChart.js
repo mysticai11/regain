@@ -55,6 +55,11 @@ export function renderLineChart({
     container.style.touchAction = 'pan-y';
     container.style.userSelect = 'none';
     container.style.webkitUserSelect = 'none';
+    container.style.background = 'linear-gradient(180deg, rgba(24, 24, 27, 0.45) 0%, rgba(9, 9, 11, 0.65) 100%)';
+    container.style.borderRadius = '16px';
+    container.style.border = '1px solid rgba(255, 255, 255, 0.04)';
+    container.style.boxSizing = 'border-box';
+    container.style.padding = '4px 0';
   }
   if (typeof container.setAttribute === 'function') {
     container.setAttribute('data-gesture-owner', '');
@@ -113,7 +118,7 @@ export function renderLineChart({
       return;
     }
 
-    // 1. Defs gradient
+    // 1. Defs gradient & glow filters
     var defs = document.createElementNS(svgNS, 'defs');
     var grad = document.createElementNS(svgNS, 'linearGradient');
     grad.setAttribute('id', 'chartGrad_' + chartId);
@@ -124,16 +129,31 @@ export function renderLineChart({
 
     var stop1 = document.createElementNS(svgNS, 'stop');
     stop1.setAttribute('offset', '0%');
-    stop1.setAttribute('stop-color', 'var(--chart-fill-top, rgba(245, 245, 244, 0.14))');
+    stop1.setAttribute('stop-color', 'rgba(139, 92, 246, 0.3)');
     stop1.setAttribute('stop-opacity', '1');
     grad.appendChild(stop1);
 
     var stop2 = document.createElementNS(svgNS, 'stop');
     stop2.setAttribute('offset', '100%');
-    stop2.setAttribute('stop-color', 'var(--chart-fill-bottom, rgba(245, 245, 244, 0))');
+    stop2.setAttribute('stop-color', 'rgba(139, 92, 246, 0)');
     stop2.setAttribute('stop-opacity', '0');
     grad.appendChild(stop2);
     defs.appendChild(grad);
+
+    var orbFilter = document.createElementNS(svgNS, 'filter');
+    orbFilter.setAttribute('id', 'chartOrbGlow_' + chartId);
+    orbFilter.setAttribute('x', '-60%');
+    orbFilter.setAttribute('y', '-60%');
+    orbFilter.setAttribute('width', '220%');
+    orbFilter.setAttribute('height', '220%');
+    var feDrop = document.createElementNS(svgNS, 'feDropShadow');
+    feDrop.setAttribute('dx', '0');
+    feDrop.setAttribute('dy', '0');
+    feDrop.setAttribute('stdDeviation', '4');
+    feDrop.setAttribute('flood-color', '#8B5CF6');
+    feDrop.setAttribute('flood-opacity', '0.8');
+    orbFilter.appendChild(feDrop);
+    defs.appendChild(orbFilter);
     svg.appendChild(defs);
 
     // 2. Horizontal grid lines & Y-axis labels
@@ -145,8 +165,7 @@ export function renderLineChart({
       gridLine.setAttribute('y1', String(tk.y));
       gridLine.setAttribute('x2', String(width - 16));
       gridLine.setAttribute('y2', String(tk.y));
-      gridLine.setAttribute('stroke', 'var(--chart-grid, rgba(255, 255, 255, 0.06))');
-      gridLine.setAttribute('stroke-dasharray', '2 4');
+      gridLine.setAttribute('stroke', 'rgba(255, 255, 255, 0.03)');
       gridLine.setAttribute('stroke-width', '1');
       svg.appendChild(gridLine);
 
@@ -207,14 +226,38 @@ export function renderLineChart({
       svg.appendChild(line);
     }
 
-    // Single point center dot
-    if (currentGeom.isSingle && currentGeom.points[0]) {
-      var sDot = document.createElementNS(svgNS, 'circle');
-      sDot.setAttribute('cx', String(currentGeom.points[0].x));
-      sDot.setAttribute('cy', String(currentGeom.points[0].y));
-      sDot.setAttribute('r', '5');
-      sDot.setAttribute('fill', 'var(--accent-primary)');
-      svg.appendChild(sDot);
+    // Data points along line
+    if (currentGeom.points && currentGeom.points.length > 0) {
+      var pts = currentGeom.points;
+      for (var pi = 0; pi < pts.length; pi++) {
+        var isLast = (pi === pts.length - 1);
+        if (isLast) {
+          var halo = document.createElementNS(svgNS, 'circle');
+          halo.setAttribute('cx', String(pts[pi].x));
+          halo.setAttribute('cy', String(pts[pi].y));
+          halo.setAttribute('r', '8');
+          halo.setAttribute('fill', 'rgba(139, 92, 246, 0.25)');
+          svg.appendChild(halo);
+
+          var lastDot = document.createElementNS(svgNS, 'circle');
+          lastDot.setAttribute('cx', String(pts[pi].x));
+          lastDot.setAttribute('cy', String(pts[pi].y));
+          lastDot.setAttribute('r', '5');
+          lastDot.setAttribute('fill', '#FFFFFF');
+          lastDot.setAttribute('stroke', 'var(--accent-primary, #8B5CF6)');
+          lastDot.setAttribute('stroke-width', '2');
+          lastDot.setAttribute('filter', 'url(#chartOrbGlow_' + chartId + ')');
+          svg.appendChild(lastDot);
+        } else {
+          var dot = document.createElementNS(svgNS, 'circle');
+          dot.setAttribute('cx', String(pts[pi].x));
+          dot.setAttribute('cy', String(pts[pi].y));
+          dot.setAttribute('r', '3');
+          dot.setAttribute('fill', '#FFFFFF');
+          dot.setAttribute('opacity', '0.75');
+          svg.appendChild(dot);
+        }
+      }
     }
 
     // 5. Scrub overlay elements

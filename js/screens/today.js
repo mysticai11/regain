@@ -84,20 +84,20 @@ export function renderTodaySimple() {
   var insightHTML = buildActivityInsightHTML(totalBurn.stepBurn, totalBurn.workoutBurn);
 
   var quickActionsHTML = '<div class="today-quick-actions" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:10px;margin-bottom:24px">'
-    + '<button type="button" class="btn btn-action-card" id="todayQuickLogFoodBtn" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:74px;padding:12px 6px;border-radius:18px;background:var(--accent-primary);color:var(--text);border:none;box-shadow:0 4px 16px var(--accent-glow);cursor:pointer">'
+    + '<button type="button" class="btn btn-action-card" id="todayQuickLogFoodBtn" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:76px;padding:12px 6px;border-radius:18px;background:var(--accent-primary);color:var(--text);border:none;box-shadow:0 4px 16px var(--accent-glow);cursor:pointer">'
       + '<span style="display:inline-flex;align-items:center;justify-content:center;color:var(--text)">' + ic('plus', 20) + '</span>'
       + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.02em">Food</span>'
     + '</button>'
-    + '<button type="button" class="btn btn-action-card" id="todayQuickLogWorkoutBtn" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:74px;padding:12px 6px;border-radius:18px;background:var(--surface);color:var(--text);border:1px solid var(--hairline);cursor:pointer">'
-      + '<span style="display:inline-flex;align-items:center;justify-content:center;color:var(--text-secondary)">' + ic('barbell', 20) + '</span>'
+    + '<button type="button" class="btn btn-action-card" id="todayQuickLogWorkoutBtn" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:76px;padding:12px 6px;border-radius:18px;background:var(--surface2);color:var(--text);border:1px solid var(--hairline);cursor:pointer">'
+      + '<span style="display:inline-flex;align-items:center;justify-content:center;color:var(--text)">' + ic('barbell', 20) + '</span>'
       + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.02em">Workout</span>'
     + '</button>'
-    + '<button type="button" class="btn btn-action-card" id="todayQuickLogWeightBtn" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:74px;padding:12px 6px;border-radius:18px;background:var(--surface);color:var(--text);border:1px solid var(--hairline);cursor:pointer">'
-      + '<span style="display:inline-flex;align-items:center;justify-content:center;color:var(--text-secondary)">' + ic('trend_up', 20) + '</span>'
+    + '<button type="button" class="btn btn-action-card" id="todayQuickLogWeightBtn" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:76px;padding:12px 6px;border-radius:18px;background:var(--surface2);color:var(--text);border:1px solid var(--hairline);cursor:pointer">'
+      + '<span style="display:inline-flex;align-items:center;justify-content:center;color:var(--text)">' + ic('trend_up', 20) + '</span>'
       + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.02em">Weight</span>'
     + '</button>'
-    + '<button type="button" class="btn btn-action-card" id="todayQuickLogStepsBtn" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:74px;padding:12px 6px;border-radius:18px;background:var(--surface);color:var(--text);border:1px solid var(--hairline);cursor:pointer">'
-      + '<span style="display:inline-flex;align-items:center;justify-content:center;color:var(--text-secondary)">' + ic('flame', 20) + '</span>'
+    + '<button type="button" class="btn btn-action-card" id="todayQuickLogStepsBtn" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:76px;padding:12px 6px;border-radius:18px;background:var(--surface2);color:var(--text);border:1px solid var(--hairline);cursor:pointer">'
+      + '<span style="display:inline-flex;align-items:center;justify-content:center;color:var(--text)">' + ic('flame', 20) + '</span>'
       + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.02em">Steps</span>'
     + '</button>'
   + '</div>';
@@ -125,13 +125,15 @@ export function renderTodaySimple() {
 
   var contentEl = document.getElementById('content');
   var prevScroll = (typeof window !== 'undefined' && (window.scrollY || window.pageYOffset || (document.documentElement ? document.documentElement.scrollTop : 0) || (document.body ? document.body.scrollTop : 0))) || (contentEl ? contentEl.scrollTop : 0);
+  var userInitial = (profile && profile.name && profile.name.trim()) ? profile.name.trim().charAt(0).toUpperCase() : '';
+  var avatarInner = userInitial || ic('user', 18);
   contentEl.innerHTML =
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">'
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">'
     + '<div>'
-      + '<h1 style="font-size:28px;font-weight:700;color:var(--text);letter-spacing:-0.02em;margin:0;line-height:1.2">Today</h1>'
-      + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--text-secondary);text-transform:uppercase;margin-top:2px">' + esc(todayHeaderDateStr) + '</div>'
+      + '<h1 style="font-size:32px;font-weight:800;color:var(--text);letter-spacing:-0.03em;margin:0;line-height:1.1">Today</h1>'
+      + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--text-secondary);text-transform:uppercase;margin-top:4px">' + esc(todayHeaderDateStr) + '</div>'
     + '</div>'
-    + '<button class="icon-btn" id="settingsBtn" aria-label="Settings">' + ic('settings') + '</button>'
+    + '<button class="profile-avatar-btn" id="settingsBtn" aria-label="Profile and Settings" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,rgba(139,92,246,0.3) 0%,rgba(56,189,248,0.2) 100%);border:1px solid rgba(255,255,255,0.12);color:var(--text);font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3);flex-shrink:0">' + avatarInner + '</button>'
     + '</div>'
     + pastDateBanner
     + buildBackupNudgeHTML()

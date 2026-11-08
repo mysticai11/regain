@@ -16,9 +16,8 @@ html {
 }
 
 body {
-  background: 
-    radial-gradient(circle at 50% -10%, rgba(139, 92, 246, 0.15) 0%, transparent 60%),
-    var(--bg);
+  background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.15) 0%, rgba(9, 9, 11, 1) 50%);
+  background-color: var(--bg);
   background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-family);
@@ -51,15 +50,15 @@ body {
 }
 
 /* Typography scale: 96 / 48 / 28 / 17 / 15 / 11 */
-.t-hero    { font-size: var(--fs-96); line-height: 1.0; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
-.t-display { font-size: var(--fs-48); line-height: 1.05; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
-.t-title   { font-size: var(--fs-28); line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; }
+.t-hero    { font-size: var(--fs-96); line-height: 1.0; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.t-display { font-size: var(--fs-48); line-height: 1.05; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.t-title   { font-size: var(--fs-28); line-height: 1.15; font-weight: 700; letter-spacing: -0.02em; }
 .t-body    { font-size: var(--fs-17); line-height: 1.35; font-weight: 400; }
 .t-sub     { font-size: var(--fs-15); line-height: 1.4; font-weight: 400; color: var(--text2); }
 .t-caption { font-size: var(--fs-11); line-height: 1.25; font-weight: 400; color: var(--text3); }
-.t-micro   { font-size: var(--fs-11); line-height: 1.25; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
-.t-label   { font-size: var(--fs-11); line-height: 1.25; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text2); }
-.eyebrow   { font-size: var(--fs-11); font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
+.t-micro   { font-size: var(--fs-11); line-height: 1.25; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); }
+.t-label   { font-size: var(--fs-11); line-height: 1.25; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); }
+.eyebrow   { font-size: var(--fs-11); font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; }
 .tabnum    { font-variant-numeric: tabular-nums; }
 
 /* Numeric inputs, stats, and tables default to tabular numerals */
