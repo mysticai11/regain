@@ -34,7 +34,9 @@ export function renderLineChart({
   height = 180,
   unit = 'kg',
   ariaLabel = 'Progress Chart',
-  color = 'var(--chart-line, #F5F5F4)'
+  color = 'var(--chart-line, #F5F5F4)',
+  onPoint = null,
+  onReset = null
 } = {}) {
   if (!container || typeof document === 'undefined' || typeof document.createElementNS !== 'function' || typeof container.appendChild !== 'function') {
     return { update: function(){}, destroy: function(){} };
@@ -45,12 +47,14 @@ export function renderLineChart({
   var lastWidth = container.clientWidth || 320;
   var activePointIndex = -1;
   var isScrubbing = false;
+  var hideTimeout = null;
+  function clearHideTimeout() { if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; } }
 
   if (container.style) {
     container.style.position = 'relative';
     container.style.width = '100%';
     container.style.maxWidth = '100%';
-    container.style.overflow = 'hidden';
+    container.style.overflow = 'visible';
     container.style.height = height + 'px';
     container.style.touchAction = 'pan-y';
     container.style.userSelect = 'none';
@@ -80,9 +84,7 @@ export function renderLineChart({
   pill.style.position = 'absolute';
   pill.style.pointerEvents = 'none';
   pill.style.opacity = '0';
-  pill.style.transform = 'translate(-50%, -100%)';
-  pill.style.marginTop = '-10px';
-  pill.style.zIndex = '10';
+  pill.style.zIndex = '20';
   pill.style.transition = 'opacity 150ms ease';
 
   container.innerHTML = '';
@@ -118,40 +120,22 @@ export function renderLineChart({
       return;
     }
 
+    function setAttrs(el, attrs) {
+      for (var k in attrs) el.setAttribute(k, String(attrs[k]));
+      return el;
+    }
+
     // 1. Defs gradient & glow filters
     var defs = document.createElementNS(svgNS, 'defs');
-    var grad = document.createElementNS(svgNS, 'linearGradient');
-    grad.setAttribute('id', 'chartGrad_' + chartId);
-    grad.setAttribute('x1', '0');
-    grad.setAttribute('y1', '0');
-    grad.setAttribute('x2', '0');
-    grad.setAttribute('y2', '1');
-
-    var stop1 = document.createElementNS(svgNS, 'stop');
-    stop1.setAttribute('offset', '0%');
-    stop1.setAttribute('stop-color', 'rgba(139, 92, 246, 0.3)');
-    stop1.setAttribute('stop-opacity', '1');
+    var grad = setAttrs(document.createElementNS(svgNS, 'linearGradient'), { id: 'chartGrad_' + chartId, x1: '0', y1: '0', x2: '0', y2: '1' });
+    var stop1 = setAttrs(document.createElementNS(svgNS, 'stop'), { offset: '0%', 'stop-color': 'rgba(139, 92, 246, 0.3)', 'stop-opacity': '1' });
+    var stop2 = setAttrs(document.createElementNS(svgNS, 'stop'), { offset: '100%', 'stop-color': 'rgba(139, 92, 246, 0)', 'stop-opacity': '0' });
     grad.appendChild(stop1);
-
-    var stop2 = document.createElementNS(svgNS, 'stop');
-    stop2.setAttribute('offset', '100%');
-    stop2.setAttribute('stop-color', 'rgba(139, 92, 246, 0)');
-    stop2.setAttribute('stop-opacity', '0');
     grad.appendChild(stop2);
     defs.appendChild(grad);
 
-    var orbFilter = document.createElementNS(svgNS, 'filter');
-    orbFilter.setAttribute('id', 'chartOrbGlow_' + chartId);
-    orbFilter.setAttribute('x', '-60%');
-    orbFilter.setAttribute('y', '-60%');
-    orbFilter.setAttribute('width', '220%');
-    orbFilter.setAttribute('height', '220%');
-    var feDrop = document.createElementNS(svgNS, 'feDropShadow');
-    feDrop.setAttribute('dx', '0');
-    feDrop.setAttribute('dy', '0');
-    feDrop.setAttribute('stdDeviation', '4');
-    feDrop.setAttribute('flood-color', '#8B5CF6');
-    feDrop.setAttribute('flood-opacity', '0.8');
+    var orbFilter = setAttrs(document.createElementNS(svgNS, 'filter'), { id: 'chartOrbGlow_' + chartId, x: '-60%', y: '-60%', width: '220%', height: '220%' });
+    var feDrop = setAttrs(document.createElementNS(svgNS, 'feDropShadow'), { dx: '0', dy: '0', stdDeviation: '4', 'flood-color': '#8B5CF6', 'flood-opacity': '0.8' });
     orbFilter.appendChild(feDrop);
     defs.appendChild(orbFilter);
     svg.appendChild(defs);
@@ -160,22 +144,9 @@ export function renderLineChart({
     var ticks = currentGeom.yTicks || [];
     for (var i = 0; i < ticks.length; i++) {
       var tk = ticks[i];
-      var gridLine = document.createElementNS(svgNS, 'line');
-      gridLine.setAttribute('x1', '52');
-      gridLine.setAttribute('y1', String(tk.y));
-      gridLine.setAttribute('x2', String(width - 16));
-      gridLine.setAttribute('y2', String(tk.y));
-      gridLine.setAttribute('stroke', 'rgba(255, 255, 255, 0.03)');
-      gridLine.setAttribute('stroke-width', '1');
+      var gridLine = setAttrs(document.createElementNS(svgNS, 'line'), { x1: '52', y1: tk.y, x2: width - 16, y2: tk.y, stroke: 'rgba(255, 255, 255, 0.03)', 'stroke-width': '1' });
       svg.appendChild(gridLine);
-
-      var tickText = document.createElementNS(svgNS, 'text');
-      tickText.setAttribute('x', '44');
-      tickText.setAttribute('y', String(tk.y + 4));
-      tickText.setAttribute('text-anchor', 'end');
-      tickText.setAttribute('fill', 'var(--text-muted, #8A8A8E)');
-      tickText.setAttribute('font-size', '11');
-      tickText.setAttribute('font-weight', '400');
+      var tickText = setAttrs(document.createElementNS(svgNS, 'text'), { x: '44', y: tk.y + 4, 'text-anchor': 'end', fill: 'var(--text-muted, #8A8A8E)', 'font-size': '11', 'font-weight': '400' });
       tickText.textContent = tk.text;
       svg.appendChild(tickText);
     }
@@ -184,45 +155,26 @@ export function renderLineChart({
     var xTicks = currentGeom.xTicks || [];
     for (var xi = 0; xi < xTicks.length; xi++) {
       var xt = xTicks[xi];
-      var xText = document.createElementNS(svgNS, 'text');
       var anchor = 'middle';
       var posX = xt.x;
       if (xTicks.length > 1) {
-        if (xi === 0) {
-          anchor = 'start';
-          posX = 52;
-        } else if (xi === xTicks.length - 1) {
-          anchor = 'end';
-          posX = width - 16;
-        }
+        if (xi === 0) { anchor = 'start'; posX = 52; }
+        else if (xi === xTicks.length - 1) { anchor = 'end'; posX = width - 16; }
       }
-      xText.setAttribute('x', String(posX));
-      xText.setAttribute('y', String(height - 4));
-      xText.setAttribute('text-anchor', anchor);
-      xText.setAttribute('fill', 'var(--text-muted, #8A8A8E)');
-      xText.setAttribute('font-size', '11');
-      xText.setAttribute('font-weight', '400');
+      var xText = setAttrs(document.createElementNS(svgNS, 'text'), { x: posX, y: height - 4, 'text-anchor': anchor, fill: 'var(--text-muted, #8A8A8E)', 'font-size': '11', 'font-weight': '400' });
       xText.textContent = formatShortDate(xt.t);
       svg.appendChild(xText);
     }
 
     // 3. Area path
     if (currentGeom.areaPath) {
-      var area = document.createElementNS(svgNS, 'path');
-      area.setAttribute('d', currentGeom.areaPath);
-      area.setAttribute('fill', 'url(#chartGrad_' + chartId + ')');
+      var area = setAttrs(document.createElementNS(svgNS, 'path'), { d: currentGeom.areaPath, fill: 'url(#chartGrad_' + chartId + ')' });
       svg.appendChild(area);
     }
 
     // 4. Line curve
     if (currentGeom.linePath) {
-      var line = document.createElementNS(svgNS, 'path');
-      line.setAttribute('d', currentGeom.linePath);
-      line.setAttribute('fill', 'none');
-      line.setAttribute('stroke', color);
-      line.setAttribute('stroke-width', '2.5');
-      line.setAttribute('stroke-linecap', 'round');
-      line.setAttribute('stroke-linejoin', 'round');
+      var line = setAttrs(document.createElementNS(svgNS, 'path'), { d: currentGeom.linePath, fill: 'none', stroke: color, 'stroke-width': '2.5', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
       svg.appendChild(line);
     }
 
@@ -232,47 +184,23 @@ export function renderLineChart({
       for (var pi = 0; pi < pts.length; pi++) {
         var isLast = (pi === pts.length - 1);
         if (isLast) {
-          var halo = document.createElementNS(svgNS, 'circle');
-          halo.setAttribute('cx', String(pts[pi].x));
-          halo.setAttribute('cy', String(pts[pi].y));
-          halo.setAttribute('r', '8');
-          halo.setAttribute('fill', 'rgba(139, 92, 246, 0.25)');
+          var halo = setAttrs(document.createElementNS(svgNS, 'circle'), { cx: pts[pi].x, cy: pts[pi].y, r: '8', fill: 'rgba(139, 92, 246, 0.25)' });
           svg.appendChild(halo);
-
-          var lastDot = document.createElementNS(svgNS, 'circle');
-          lastDot.setAttribute('cx', String(pts[pi].x));
-          lastDot.setAttribute('cy', String(pts[pi].y));
-          lastDot.setAttribute('r', '5');
-          lastDot.setAttribute('fill', '#FFFFFF');
-          lastDot.setAttribute('stroke', 'var(--accent-primary, #8B5CF6)');
-          lastDot.setAttribute('stroke-width', '2');
-          lastDot.setAttribute('filter', 'url(#chartOrbGlow_' + chartId + ')');
+          var lastDot = setAttrs(document.createElementNS(svgNS, 'circle'), { cx: pts[pi].x, cy: pts[pi].y, r: '5', fill: '#FFFFFF', stroke: 'var(--accent-primary, #8B5CF6)', 'stroke-width': '2', filter: 'url(#chartOrbGlow_' + chartId + ')' });
           svg.appendChild(lastDot);
         } else {
-          var dot = document.createElementNS(svgNS, 'circle');
-          dot.setAttribute('cx', String(pts[pi].x));
-          dot.setAttribute('cy', String(pts[pi].y));
-          dot.setAttribute('r', '3');
-          dot.setAttribute('fill', '#FFFFFF');
-          dot.setAttribute('opacity', '0.75');
+          var dot = setAttrs(document.createElementNS(svgNS, 'circle'), { cx: pts[pi].x, cy: pts[pi].y, r: '3', fill: '#FFFFFF', opacity: '0.75' });
           svg.appendChild(dot);
         }
       }
     }
 
     // 5. Scrub overlay elements
-    var scrubLine = document.createElementNS(svgNS, 'line');
-    scrubLine.setAttribute('stroke', 'var(--hairline, #222222)');
-    scrubLine.setAttribute('stroke-dasharray', '2 2');
-    scrubLine.setAttribute('stroke-width', '1');
+    var scrubLine = setAttrs(document.createElementNS(svgNS, 'line'), { stroke: 'var(--hairline, #222222)', 'stroke-dasharray': '2 2', 'stroke-width': '1' });
     scrubLine.style.display = 'none';
     svg.appendChild(scrubLine);
 
-    var scrubDot = document.createElementNS(svgNS, 'circle');
-    scrubDot.setAttribute('r', '6');
-    scrubDot.setAttribute('fill', 'var(--accent-primary)');
-    scrubDot.setAttribute('stroke', 'var(--bg, #0B0B0C)');
-    scrubDot.setAttribute('stroke-width', '2');
+    var scrubDot = setAttrs(document.createElementNS(svgNS, 'circle'), { r: '6', fill: 'var(--accent-primary)', stroke: 'var(--bg, #0B0B0C)', 'stroke-width': '2' });
     scrubDot.style.display = 'none';
     svg.appendChild(scrubDot);
 
@@ -320,12 +248,35 @@ export function renderLineChart({
     var dateLabel = pt.label || formatShortDate(pt.t);
     var formattedVal = (pt.v % 1 === 0) ? String(pt.v) : pt.v.toFixed(1);
     pill.innerHTML = '<span style="font-weight:600;color:var(--text)">' + formattedVal + '</span> <span style="color:var(--text-secondary)">' + unit + '</span> · <span style="color:var(--text-muted)">' + dateLabel + '</span>';
-    pill.style.left = pt.x + 'px';
-    pill.style.top = pt.y + 'px';
+
+    var curW = (rect && rect.width) || (container && container.clientWidth) || lastWidth || 320;
+    var transX = '-50%';
+    var posX = pt.x;
+    if (pt.x > curW - 85) {
+      transX = '-100%';
+      posX = Math.min(pt.x + 4, curW - 8);
+    } else if (pt.x < 85) {
+      transX = '0%';
+      posX = Math.max(pt.x - 4, 8);
+    }
+
+    var isNearTop = pt.y < 54;
+    var transY = isNearTop ? '0%' : '-100%';
+    var posY = isNearTop ? (pt.y + 12) : (pt.y - 10);
+
+    pill.style.left = posX + 'px';
+    pill.style.top = posY + 'px';
+    pill.style.transform = 'translate(' + transX + ', ' + transY + ')';
+    pill.style.marginTop = '0px';
     pill.style.opacity = '1';
+
+    if (typeof onPoint === 'function') {
+      onPoint(pt, { formattedVal: formattedVal, dateLabel: dateLabel, unit: unit });
+    }
   }
 
   function handlePointerDown(e) {
+    clearHideTimeout();
     if (e.target && typeof e.target.setPointerCapture === 'function' && e.pointerId) {
       try { e.target.setPointerCapture(e.pointerId); } catch(err) {}
     }
@@ -333,18 +284,34 @@ export function renderLineChart({
     handlePointerMove(e);
   }
 
-  function handlePointerUp() {
-    isScrubbing = false;
+  function hideReadout() {
     activePointIndex = -1;
     pill.style.opacity = '0';
     if (svg._scrubLine) svg._scrubLine.style.display = 'none';
     if (svg._scrubDot) svg._scrubDot.style.display = 'none';
+    if (typeof onReset === 'function') onReset();
+  }
+
+  function handlePointerUp() {
+    isScrubbing = false;
+    clearHideTimeout();
+    hideTimeout = setTimeout(hideReadout, 3500);
+  }
+
+  function handleOutsideTap(e) {
+    if (container && !container.contains(e.target)) {
+      clearHideTimeout();
+      hideReadout();
+    }
   }
 
   svg.addEventListener('pointerdown', handlePointerDown);
   svg.addEventListener('pointermove', handlePointerMove);
   svg.addEventListener('pointerup', handlePointerUp);
   svg.addEventListener('pointercancel', handlePointerUp);
+  if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+    document.addEventListener('pointerdown', handleOutsideTap);
+  }
 
   var resizeObserver = null;
   if (typeof ResizeObserver !== 'undefined') {
@@ -366,6 +333,10 @@ export function renderLineChart({
       renderChart();
     },
     destroy: function() {
+      clearHideTimeout();
+      if (typeof document !== 'undefined' && typeof document.removeEventListener === 'function') {
+        document.removeEventListener('pointerdown', handleOutsideTap);
+      }
       if (resizeObserver) {
         resizeObserver.disconnect();
         resizeObserver = null;

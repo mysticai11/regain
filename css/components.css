@@ -1214,6 +1214,8 @@ body.kb-open .sheet {
   color: var(--text, #F5F5F4);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  box-shadow: var(--card-shadow, 0 8px 24px rgba(0, 0, 0, 0.4));
+  z-index: 20;
 }
 
 

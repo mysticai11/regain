@@ -58,9 +58,9 @@ export function renderProgressSimple(mode, historySubTab) {
       if (weightValues && weightValues.length && typeof document.createElementNS === 'function' && typeof weightPlot.appendChild === 'function') {
         var firstVal = Number(weightValues[0].rawWeight || weightValues[0].value), lastVal = Number(weightValues[weightValues.length - 1].rawWeight || weightValues[weightValues.length - 1].value);
         var delta = lastVal - firstVal, deltaSign = delta > 0 ? '+' : '', deltaFormatted = weightValues.length > 1 ? (delta === 0 ? '0.0 kg' : (deltaSign + delta.toFixed(1) + ' kg')) : 'First entry';
-        var headerHTML = '<div class="chart-header" style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'
-          + '<span class="chart-readout tabnum" style="font-size:15px;color:#F5F5F4">' + esc(deltaFormatted) + ' <span style="font-size:11px;color:#8A8A8E;letter-spacing:0.04em">' + (weightValues.length > 1 ? 'change since start' : '') + '</span></span>'
-          + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + weightValues.length + ' ' + (weightValues.length === 1 ? 'entry' : 'entries') + '</span></div>';
+        var headerHTML = '<div class="chart-header" style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;min-width:0">'
+          + '<span class="chart-readout tabnum" style="font-size:15px;color:#F5F5F4;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:12px">' + esc(deltaFormatted) + ' <span style="font-size:11px;color:#8A8A8E;letter-spacing:0.04em">' + (weightValues.length > 1 ? 'change since start' : '') + '</span></span>'
+          + '<span class="t-micro tabnum" style="color:var(--text-secondary);flex-shrink:0">' + weightValues.length + ' ' + (weightValues.length === 1 ? 'entry' : 'entries') + '</span></div>';
         weightPlot.innerHTML = headerHTML + '<div id="weightLineCanvas" style="position:relative;width:100%;height:180px"></div>';
         var canvas = document.getElementById('weightLineCanvas');
         var chartData = weightValues.map(function(w, idx) {
@@ -68,7 +68,21 @@ export function renderProgressSimple(mode, historySubTab) {
           if (isNaN(tMs)) tMs = Date.now() + idx * 1000;
           return { t: tMs + idx * 1000, v: Number(w.value), label: w.dateKey };
         });
-        renderLineChart({ container: canvas || weightPlot, data: chartData, height: 180, unit: 'kg', ariaLabel: 'Body weight history' });
+        renderLineChart({
+          container: canvas || weightPlot,
+          data: chartData,
+          height: 180,
+          unit: 'kg',
+          ariaLabel: 'Body weight history',
+          onPoint: function(pt, info) {
+            var rEl = weightPlot.querySelector('.chart-readout');
+            if (rEl) rEl.innerHTML = '<span style="color:var(--text);font-weight:700">' + esc(info.formattedVal) + ' ' + esc(info.unit) + '</span> <span style="font-size:11px;color:var(--text-secondary);margin-left:4px">(' + esc(info.dateLabel) + ')</span>';
+          },
+          onReset: function() {
+            var rEl = weightPlot.querySelector('.chart-readout');
+            if (rEl) rEl.innerHTML = esc(deltaFormatted) + ' <span style="font-size:11px;color:#8A8A8E;letter-spacing:0.04em">' + (weightValues.length > 1 ? 'change since start' : '') + '</span>';
+          }
+        });
       } else {
         weightPlot.innerHTML = progressPlot(weightValues, (profile && profile.targetWeight) || null, 'kg', false);
         setupChartInteractions(weightPlot);
@@ -77,12 +91,8 @@ export function renderProgressSimple(mode, historySubTab) {
     var weightEntriesContainer = document.getElementById('weightEntriesContainer');
     if (weightEntriesContainer) {
       weightEntriesContainer.innerHTML = weightEntriesHTML(entries);
-      weightEntriesContainer.querySelectorAll('[data-edit-weight]').forEach(function(btn){
-        btn.onclick = function(){ editWeightEntry(btn.dataset.editWeight); };
-      });
-      weightEntriesContainer.querySelectorAll('[data-delete-weight]').forEach(function(btn){
-        btn.onclick = function(){ deleteWeightEntry(btn.dataset.deleteWeight); };
-      });
+      weightEntriesContainer.querySelectorAll('[data-edit-weight]').forEach(function(btn){ btn.onclick = function(){ editWeightEntry(btn.dataset.editWeight); }; });
+      weightEntriesContainer.querySelectorAll('[data-delete-weight]').forEach(function(btn){ btn.onclick = function(){ deleteWeightEntry(btn.dataset.deleteWeight); }; });
     }
 
     enhanceProgressBodyTiles(document.getElementById('weeklyStatTilesContainer'), {
@@ -100,22 +110,9 @@ export function renderProgressSimple(mode, historySubTab) {
     }
 
     enhanceLiftsTab({
-      selected: selected,
-      isBW: isBW,
-      liftRange: liftRange,
-      liftValues: liftValues,
-      activeMetric: activeLiftMetric,
-      maxSessionsShown: liftSessionsMaxShown,
-      onMetricChange: function(newMetric) {
-        activeLiftMetric = newMetric;
-        if (typeof window !== 'undefined') window.activeLiftMetric = newMetric;
-        render();
-      },
-      onShowAllSessions: function() {
-        liftSessionsMaxShown = 20;
-        if (typeof window !== 'undefined') window.liftSessionsMaxShown = 20;
-        render();
-      }
+      selected: selected, isBW: isBW, liftRange: liftRange, liftValues: liftValues, activeMetric: activeLiftMetric, maxSessionsShown: liftSessionsMaxShown,
+      onMetricChange: function(newMetric) { activeLiftMetric = newMetric; if (typeof window !== 'undefined') window.activeLiftMetric = newMetric; render(); },
+      onShowAllSessions: function() { liftSessionsMaxShown = 20; if (typeof window !== 'undefined') window.liftSessionsMaxShown = 20; render(); }
     });
     var direction=goalDirection(), latest=weightValues.length?weightValues[weightValues.length-1].value:null;
     var trend=weightValues.length>1?latest-weightValues[0].value:0;
