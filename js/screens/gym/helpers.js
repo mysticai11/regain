@@ -1,7 +1,7 @@
 /* Gym screen helpers: schedule date resolution, workout week, and session metadata */
 
 import { profile } from "../../state.js";
-import { dayRecord, saveDayRecord, getWorkoutSessions, getWorkoutSession, workoutSessionId } from "../../storage.js";
+import { dayRecord, saveDayRecord, getWorkoutSessions, getWorkoutSession, workoutSessionId, sv } from "../../storage.js";
 import { getActiveProgram, getWeeklySchedule } from "../../data/plan.js";
 import { todayKey, dateKey, daysBetween, allDayKeys, esc } from "../../lib/format.js";
 import { showToast } from "../../components/toast.js";
@@ -132,4 +132,29 @@ export function buildVolumeTable() {
         + '</div>';
     }).join('')
     + '</div>';
+}
+
+export function addExerciseToActiveWorkout(newEx, key, programDayIndex) {
+  if (!newEx) return;
+  var r = dayRecord(key); r.workout = r.workout || {};
+  var targetSets = parseInt(newEx.sets, 10) || 2;
+  r.exercisePlannedSets = r.exercisePlannedSets || {};
+  r.exercisePlannedSets[newEx.id] = targetSets;
+  if (r.skippedExercises && r.skippedExercises[newEx.id]) delete r.skippedExercises[newEx.id];
+  if (typeof profile !== 'undefined' && profile) {
+    profile.activeSplitData = profile.activeSplitData || JSON.parse(JSON.stringify(getActiveProgram()));
+    if (programDayIndex != null && profile.activeSplitData[programDayIndex]) {
+      var exists = profile.activeSplitData[programDayIndex].exercises.some(function(e) { return e.id === newEx.id; });
+      if (!exists) {
+        profile.activeSplitData[programDayIndex].exercises.push({
+          id: newEx.id, name: newEx.name, muscle: newEx.muscle || 'other', sets: targetSets,
+          reps: newEx.reps || '8–12', rir: '1–2', rest: newEx.rest || 90, type: newEx.type || 'compound'
+        });
+        sv('rg_profile', profile);
+      }
+    }
+  }
+  saveDayRecord(key, r);
+  if (typeof window !== 'undefined' && typeof window.renderGym === 'function') window.renderGym();
+  showToast(newEx.name + ' added to workout', 'ok');
 }

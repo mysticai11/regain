@@ -1,4 +1,4 @@
-/* Gym edit workout sheet: edit logged sets and session details */
+/* Gym edit workout sheet: clean, on-brand workout and set editing */
 
 import { dayRecord, saveDayRecord, getWorkoutSession, saveWorkoutSession, deleteWorkoutSession, workoutSessionStore, sv, WORKOUT_SESSIONS_KEY } from "../../storage.js";
 import { getExerciseData, isBodyweightExercise, getActiveProgram } from "../../data/plan.js";
@@ -68,90 +68,72 @@ export function openEditWorkoutSheet(sessionId) {
     var exHTML = currentExercises.map(function(ex, exIdx) {
       var isBW = isBodyweightExercise(ex.id, ex.name);
       var setsRows = ex.sets.map(function(s, sIdx) {
-        return '<div style="display:grid;grid-template-columns:30px 1fr 1fr 84px 30px;gap:8px;align-items:center;margin-bottom:6px">'
-          + '<span style="font-size:11px;font-weight:700;color:var(--text-muted);text-align:center;font-variant-numeric:tabular-nums">S' + (sIdx + 1) + '</span>'
-          + '<input type="number" step="0.25" min="0" value="' + s.weight + '" placeholder="' + (isBW ? 'BW' : 'kg') + '" style="min-height:36px;height:36px;font-size:15px;padding:4px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);text-align:center;font-family:var(--font-display);font-variant-numeric:tabular-nums" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '" data-field="weight" inputmode="decimal">'
-          + '<input type="number" min="1" max="100" value="' + s.reps + '" placeholder="reps" style="min-height:36px;height:36px;font-size:15px;padding:4px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);text-align:center;font-family:var(--font-display);font-variant-numeric:tabular-nums" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '" data-field="reps" inputmode="numeric">'
-          + '<select style="min-height:36px;height:36px;font-size:11px;padding:2px 4px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '" data-field="rir">'
-          + '<option value="" ' + (s.rir == null ? 'selected' : '') + '>Effort</option>'
-          + '<option value="3" ' + (s.rir === 3 ? 'selected' : '') + '>3 RIR</option>'
-          + '<option value="2" ' + (s.rir === 2 ? 'selected' : '') + '>2 RIR</option>'
-          + '<option value="1" ' + (s.rir === 1 ? 'selected' : '') + '>1 RIR</option>'
-          + '<option value="0" ' + (s.rir === 0 ? 'selected' : '') + '>Failure</option>'
+        return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+          + '<span style="width:28px;text-align:center;font-size:11px;font-weight:700;color:#8A8A8E;font-variant-numeric:tabular-nums">S' + (sIdx + 1) + '</span>'
+          + '<input type="number" step="0.25" min="0" value="' + s.weight + '" placeholder="' + (isBW ? 'BW' : 'kg') + '" class="precision-input" style="flex:1;height:38px;font-size:15px;border-radius:8px;border:1px solid #222;background:#141416;color:#F5F5F4;text-align:center;font-weight:600;font-variant-numeric:tabular-nums;box-sizing:border-box" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '" data-field="weight" inputmode="decimal">'
+          + '<input type="number" min="1" max="100" value="' + s.reps + '" placeholder="reps" class="precision-input" style="flex:1;height:38px;font-size:15px;border-radius:8px;border:1px solid #222;background:#141416;color:#F5F5F4;text-align:center;font-weight:600;font-variant-numeric:tabular-nums;box-sizing:border-box" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '" data-field="reps" inputmode="numeric">'
+          + '<select style="width:68px;height:38px;font-size:11px;font-weight:600;border-radius:8px;border:1px solid #222;background:#141416;color:#F5F5F4;text-align:center;padding:0 4px;box-sizing:border-box" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '" data-field="rir">'
+            + '<option value="" ' + (s.rir == null ? 'selected' : '') + '>RIR</option>'
+            + '<option value="3" ' + (s.rir === 3 ? 'selected' : '') + '>3+</option>'
+            + '<option value="2" ' + (s.rir === 2 ? 'selected' : '') + '>2</option>'
+            + '<option value="1" ' + (s.rir === 1 ? 'selected' : '') + '>1</option>'
+            + '<option value="0" ' + (s.rir === 0 ? 'selected' : '') + '>0 (F)</option>'
           + '</select>'
-          + '<button type="button" class="btn-ghost" style="color:var(--rust-light);padding:4px;font-size:17px;line-height:1;text-align:center;cursor:pointer" data-del-ex-idx="' + exIdx + '" data-del-set-idx="' + sIdx + '" title="Remove set">×</button>'
+          + '<button type="button" style="width:24px;height:38px;background:none;border:none;color:#55555A;font-size:17px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0" data-del-ex-idx="' + exIdx + '" data-del-set-idx="' + sIdx + '" title="Remove set">&times;</button>'
           + '</div>';
       }).join('');
 
-      return '<div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:12px">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-          + '<div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text)">' + esc(ex.name) + '</div>'
-          + '<div style="display:flex;align-items:center;gap:6px">'
-            + '<button type="button" class="btn-ghost" style="font-size:11px;color:var(--text-secondary);cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid rgba(255,255,255,0.1)" data-edit-ex-idx="' + exIdx + '">Edit</button>'
-            + '<button type="button" class="btn-ghost" style="font-size:11px;color:var(--rust-light);cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid rgba(239,68,68,0.2)" data-remove-ex-idx="' + exIdx + '">Remove</button>'
+      return '<div style="background:#1C1C1F;border-radius:14px;padding:14px;margin-bottom:12px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+          + '<div style="font-size:17px;font-weight:600;color:#F5F5F4;line-height:1.25">' + esc(ex.name) + '</div>'
+          + '<div style="display:flex;align-items:center;gap:4px">'
+            + '<button type="button" class="btn-text-action" data-edit-ex-idx="' + exIdx + '" style="font-size:15px;color:#8A8A8E;background:none;border:none;cursor:pointer;padding:4px 8px">Edit</button>'
+            + '<button type="button" class="btn-text-action" data-remove-ex-idx="' + exIdx + '" style="font-size:15px;color:#FF4D4F;background:none;border:none;cursor:pointer;padding:4px 8px">Remove</button>'
           + '</div>'
         + '</div>'
-        + '<div style="display:grid;grid-template-columns:30px 1fr 1fr 84px 30px;gap:8px;padding:0 0 4px 0;margin-bottom:4px;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;text-align:center;letter-spacing:0.06em">'
-          + '<span>#</span><span>' + (isBW ? '+KG (BW)' : 'KG') + '</span><span>REPS</span><span>EFFORT</span><span></span>'
+        + '<div style="display:flex;gap:8px;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;padding:0 4px">'
+          + '<span style="width:28px;text-align:center">Set</span>'
+          + '<span style="flex:1;text-align:center">' + (isBW ? '+Kg (BW)' : 'Kg') + '</span>'
+          + '<span style="flex:1;text-align:center">Reps</span>'
+          + '<span style="width:68px;text-align:center">RIR</span>'
+          + '<span style="width:24px"></span>'
         + '</div>'
-        + (setsRows || '<div style="font-size:11px;color:var(--text-muted);text-align:center;padding:10px 0">No sets logged.</div>')
-        + '<div style="margin-top:8px;text-align:left">'
-          + '<button type="button" class="btn btn-sm" style="font-size:11px;padding:4px 10px;background:rgba(255,255,255,0.05);border:1px solid var(--border)" data-add-set-ex-idx="' + exIdx + '">+ Add Set</button>'
+        + (setsRows || '<div style="font-size:15px;color:#55555A;text-align:center;padding:10px 0">No sets logged</div>')
+        + '<div style="margin-top:8px">'
+          + '<button type="button" class="btn-text-action" data-add-set-ex-idx="' + exIdx + '" style="font-size:15px;font-weight:600;color:#C6F432;background:none;border:none;padding:4px 0;cursor:pointer">+ Add Set</button>'
         + '</div>'
         + '</div>';
     }).join('');
 
     var durationMinutes = session.duration_sec ? Math.round(session.duration_sec / 60) : (session.durationMinutes || 45);
 
-    overlay.innerHTML = '<div class="sheet" style="max-height:88vh;overflow-y:auto;padding-bottom:calc(24px + var(--safe-b));width:100%;max-width:480px;display:flex;flex-direction:column;gap:12px;background:var(--bg);border-top:1px solid rgba(255,255,255,0.12)">'
+    overlay.innerHTML = '<div class="sheet" style="max-height:88vh;overflow-y:auto;padding:20px 20px calc(24px + var(--safe-b));width:100%;max-width:480px;background:#141416;border-radius:20px 20px 0 0;box-sizing:border-box">'
       + '<div class="sheet-handle"></div>'
-      
-      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">'
         + '<div>'
-          + '<div class="sheet-title" style="margin-bottom:2px">Edit Workout</div>'
-          + '<div style="font-size:11px;color:var(--text-secondary)">' + esc(session.programLabel || 'Workout') + '</div>'
+          + '<div style="font-size:28px;font-weight:700;color:#F5F5F4;letter-spacing:-0.02em">Edit Workout</div>'
+          + '<div style="font-size:15px;color:#8A8A8E;margin-top:2px">' + esc(session.programLabel || 'Workout') + '</div>'
         + '</div>'
-        + '<button type="button" class="btn-ghost" id="deleteWorkoutSessionBtn" style="color:var(--rust-light);font-size:11px;padding:4px 8px;border-radius:8px;border:1px solid rgba(239,68,68,0.2);cursor:pointer">Delete Session</button>'
+        + '<button type="button" class="btn-text-action" id="cancelEditWorkoutBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">Done</button>'
       + '</div>'
 
-      // Meta controls: Date, Day, Week, and Duration
-      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;padding:12px">'
-        + '<div>'
-          + '<label class="t-label" style="display:block;margin-bottom:4px">Workout Date</label>'
-          + '<input type="date" id="editSessionDate" value="' + (session.dayKey || todayKey()) + '" style="min-height:38px;height:38px;padding:4px 8px;font-size:15px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:100%">'
+      + '<div style="display:flex;gap:10px;margin-bottom:16px">'
+        + '<div style="flex:1">'
+          + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Date</label>'
+          + '<input type="date" id="editSessionDate" class="precision-input" value="' + (session.dayKey || todayKey()) + '" style="width:100%;height:38px;padding:0 10px;background:#0B0B0C;border:1px solid #1C1C1F;border-radius:10px;color:#F5F5F4;font-size:15px;box-sizing:border-box">'
         + '</div>'
-        + '<div>'
-          + '<label class="t-label" style="display:block;margin-bottom:4px">Day / Routine</label>'
-          + '<select id="editSessionDay" style="min-height:38px;height:38px;padding:4px 8px;font-size:15px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:100%">'
-            + getActiveProgram().map(function(p, pIdx) {
-                var isSel = (session.programDay === pIdx) || (session.programLabel === p.label);
-                return '<option value="' + pIdx + '" ' + (isSel ? 'selected' : '') + '>' + esc(p.label) + '</option>';
-              }).join('')
-          + '</select>'
-        + '</div>'
-        + '<div>'
-          + '<label class="t-label" style="display:block;margin-bottom:4px">Cycle Week</label>'
-          + '<input type="number" min="1" max="100" id="editSessionWeek" value="' + (session.week || 1) + '" style="min-height:38px;height:38px;padding:4px 8px;font-size:15px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:100%">'
-        + '</div>'
-        + '<div>'
-          + '<label class="t-label" style="display:block;margin-bottom:4px">Duration (min)</label>'
-          + '<input type="number" min="1" max="300" id="editSessionDuration" value="' + durationMinutes + '" style="min-height:38px;height:38px;padding:4px 8px;font-size:15px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:100%">'
+        + '<div style="width:110px">'
+          + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Duration (m)</label>'
+          + '<input type="number" min="1" max="300" id="editSessionDuration" class="precision-input" value="' + durationMinutes + '" placeholder="min" style="width:100%;height:38px;padding:0 10px;background:#0B0B0C;border:1px solid #1C1C1F;border-radius:10px;color:#F5F5F4;font-size:15px;text-align:center;box-sizing:border-box">'
         + '</div>'
       + '</div>'
 
-      // Exercise List (all vertically inside sheet)
-      + '<div style="display:flex;flex-direction:column;gap:0">'
-        + (exHTML || '<div style="font-size:11px;color:var(--text-muted);text-align:center;padding:16px 0">No exercises in this session.</div>')
-      + '</div>'
+      + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Exercises</div>'
+      + '<div>' + (exHTML || '<div style="font-size:15px;color:#55555A;text-align:center;padding:16px 0">No exercises in this workout.</div>') + '</div>'
 
-      + '<div style="text-align:center">'
-        + '<button type="button" class="btn" id="addExToWorkoutBtn" style="font-size:15px;padding:8px 14px;width:100%;border-radius:10px">+ Add Exercise to Workout</button>'
-      + '</div>'
-
-      + '<div style="display:flex;gap:10px;margin-top:4px">'
-        + '<button type="button" class="btn" id="cancelEditWorkoutBtn" style="flex:1">Cancel</button>'
-        + '<button type="button" class="btn btn-primary" id="saveEditWorkoutBtn" style="flex:1">Save Changes</button>'
-      + '</div>'
+      + '<button type="button" id="addExToWorkoutBtn" style="width:100%;height:44px;background:#141416;border:1px dashed #222;color:#C6F432;font-size:15px;font-weight:600;border-radius:12px;cursor:pointer;margin-bottom:14px">+ Add Exercise</button>'
+      + '<button type="button" class="btn btn-primary" id="saveEditWorkoutBtn" style="width:100%;height:48px;background:#C6F432;color:#0B0B0C;font-size:15px;font-weight:700;border:none;border-radius:12px;cursor:pointer">Save Changes</button>'
+      + '<button type="button" id="deleteWorkoutSessionBtn" style="width:100%;background:none;border:none;color:#FF4D4F;font-size:15px;padding:14px 0 0;cursor:pointer">Delete Workout Session</button>'
       + '</div>';
 
     // Event attachments
@@ -159,26 +141,19 @@ export function openEditWorkoutSheet(sessionId) {
 
     var delSessionBtn = overlay.querySelector('#deleteWorkoutSessionBtn');
     if (delSessionBtn) {
-      delSessionBtn.onclick = function() {
-        overlay.remove();
-        deleteWorkoutSession(sessionId);
-        if (typeof window.renderGym === 'function') window.renderGym();
-        if (typeof window.renderProgressSimple === 'function') window.renderProgressSimple('lifts');
+      delSessionBtn.onclick = async function() {
+        var ok = await confirmDialog({ title: 'Delete Workout?', message: 'Delete this entire workout session?', confirmLabel: 'Delete', destructive: true });
+        if (ok) {
+          overlay.remove();
+          deleteWorkoutSession(sessionId);
+          if (typeof window.renderGym === 'function') window.renderGym();
+          if (typeof window.renderProgressSimple === 'function') window.renderProgressSimple('lifts');
+          showToast('Workout session deleted', 'ok');
+        }
       };
     }
 
     overlay.querySelector('#saveEditWorkoutBtn').onclick = function() {
-      var progList = getActiveProgram();
-      var selDayIdx = parseInt(overlay.querySelector('#editSessionDay').value, 10);
-      if (!isNaN(selDayIdx) && progList[selDayIdx]) {
-        session.programDay = selDayIdx;
-        session.programLabel = progList[selDayIdx].label;
-        session.day = selDayIdx + 1;
-      }
-      var selWeek = parseInt(overlay.querySelector('#editSessionWeek').value, 10);
-      if (!isNaN(selWeek) && selWeek > 0) {
-        session.week = selWeek;
-      }
       captureCurrentInputs();
       var durInput = parseInt(overlay.querySelector('#editSessionDuration').value, 10);
       if (durInput && durInput > 0) {

@@ -4,20 +4,19 @@ import { profile } from "../../state.js";
 import { dayRecord, saveDayRecord, sv, workoutSessionId } from "../../storage.js";
 import { getExerciseData, getActiveProgram } from "../../data/plan.js";
 import { isBodyweightExercise } from "./sets.js";
-import { getSessionMeta, attachCommonGymHeaderEvents } from "./helpers.js";
+import { getSessionMeta, attachCommonGymHeaderEvents, addExerciseToActiveWorkout } from "./helpers.js";
 import { checkExercisePR, isIsolationLift } from "../../lib/calc.js";
 import { playSound, triggerHaptic } from "../../lib/dom.js";
 import { showToast, showUndoToast } from "../../components/toast.js";
 import { openSheet, openActionMenuSheet } from "../../components/sheet.js";
 import { openQuickEditSetModal } from "../../components/quick-edit-modal.js";
-import { confirmDialog } from "../../components/dialog.js";
+import { confirmDialog, promptDialog } from "../../components/dialog.js";
 import { renderGym, buildVolumeTable } from "../gym.js";
 import { chooseWorkoutForDate } from "./session-sheet.js";
 import { openSwapSheet, openPlateCalculator } from "./swap.js";
 import { startRestTimer } from "./timer.js";
 import { openCustomRoutineSheet, openCustomRoutineManager } from "./plan-editor.js";
 import { attachSetRowSwipeHandlers } from "./swipe-delete.js";
-import { openEditWorkoutSheet } from "./edit-workout.js";
 import { openAddExerciseModal } from "./exercise-modal.js";
 
 export function attachGymEvents(key, rec, session, programDayIndex) {
@@ -319,8 +318,22 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       var exId = btn.dataset.exMenu, exName = btn.dataset.exName || 'Exercise';
       openActionMenuSheet(exName, [
         {
-          label: 'Edit full workout',
-          action: function() { openEditWorkoutSheet(workoutSessionId(key, programDayIndex)); }
+          label: '+ Add exercise',
+          action: function() { openAddExerciseModal(function(newEx) { addExerciseToActiveWorkout(newEx, key, programDayIndex); }); }
+        },
+        {
+          label: 'Edit exercise name',
+          action: async function() {
+            var newName = await promptDialog({ title: 'Edit Exercise', message: 'Update exercise name:', defaultValue: exName, confirmLabel: 'Save' });
+            if (newName && newName.trim() && newName.trim() !== exName) {
+              var trimmed = newName.trim();
+              if (typeof profile !== 'undefined' && profile && profile.activeSplitData && programDayIndex != null && profile.activeSplitData[programDayIndex]) {
+                var exObj = profile.activeSplitData[programDayIndex].exercises.find(function(e) { return e.id === exId; });
+                if (exObj) { exObj.name = trimmed; sv('rg_profile', profile); }
+              }
+              renderGym(); showToast('Exercise updated', 'ok');
+            }
+          }
         },
         {
           label: 'Remove from today\'s workout',
@@ -351,30 +364,15 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
   var addTodayExBtn = document.getElementById('gymAddExTodayBtn');
   if (addTodayExBtn) {
     addTodayExBtn.onclick = function() {
-      openAddExerciseModal(function(newEx) {
-        if (!newEx) return;
-        var r = dayRecord(key); r.workout = r.workout || {};
-        var targetSets = parseInt(newEx.sets, 10) || 2;
-        r.exercisePlannedSets = r.exercisePlannedSets || {};
-        r.exercisePlannedSets[newEx.id] = targetSets;
-        if (r.skippedExercises && r.skippedExercises[newEx.id]) delete r.skippedExercises[newEx.id];
-        if (typeof profile !== 'undefined' && profile) {
-          profile.activeSplitData = profile.activeSplitData || JSON.parse(JSON.stringify(getActiveProgram()));
-          if (programDayIndex != null && profile.activeSplitData[programDayIndex]) {
-            var exists = profile.activeSplitData[programDayIndex].exercises.some(function(e) { return e.id === newEx.id; });
-            if (!exists) {
-              profile.activeSplitData[programDayIndex].exercises.push({
-                id: newEx.id, name: newEx.name, muscle: newEx.muscle || 'other', sets: targetSets,
-                reps: newEx.reps || '8–12', rir: '1–2', rest: newEx.rest || 90, type: newEx.type || 'compound'
-              });
-              sv('rg_profile', profile);
-            }
-          }
-        }
-        saveDayRecord(key, r); renderGym(); showToast(newEx.name + ' added to workout', 'ok');
-      });
+      openAddExerciseModal(function(newEx) { addExerciseToActiveWorkout(newEx, key, programDayIndex); });
     };
   }
+
+  document.querySelectorAll('[data-add-replacement]').forEach(function(btn) {
+    btn.onclick = function() {
+      openAddExerciseModal(function(newEx) { addExerciseToActiveWorkout(newEx, key, programDayIndex); });
+    };
+  });
 
   document.querySelectorAll('[data-unskip-exercise]').forEach(function(btn) {
     btn.addEventListener('click', function() {

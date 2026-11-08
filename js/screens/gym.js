@@ -218,9 +218,12 @@ export function renderGym() {
 
     // EXPANDED EXERCISE
     if (rec.skippedExercises && rec.skippedExercises[ex.id]) {
-      return '<section class="gym-ex-skipped" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--surface);border:1px solid var(--hairline);border-radius:14px;margin-bottom:12px">'
-        + '<span style="font-size:15px;color:var(--text-muted);text-decoration:line-through">' + esc(ex.name) + ' (Skipped today)</span>'
-        + '<button type="button" class="btn-text-action unskip-ex-btn" data-unskip-exercise="' + ex.id + '" style="font-size:var(--fs-13);color:var(--lime);background:none;border:none;cursor:pointer;padding:0;font-weight:600">Undo</button>'
+      return '<section class="gym-ex-skipped" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#141416;border:1px solid #1C1C1F;border-radius:14px;margin-bottom:12px">'
+        + '<span style="font-size:15px;color:#8A8A8E;text-decoration:line-through">' + esc(ex.name) + ' (Skipped)</span>'
+        + '<div style="display:flex;align-items:center;gap:12px">'
+          + '<button type="button" class="btn-text-action add-replacement-btn" data-add-replacement="' + ex.id + '" style="font-size:11px;color:#8A8A8E;background:none;border:none;cursor:pointer;padding:0;font-weight:600">+ Add</button>'
+          + '<button type="button" class="btn-text-action unskip-ex-btn" data-unskip-exercise="' + ex.id + '" style="font-size:11px;color:#C6F432;background:none;border:none;cursor:pointer;padding:0;font-weight:600">Undo</button>'
+        + '</div>'
       + '</section>';
     }
 
