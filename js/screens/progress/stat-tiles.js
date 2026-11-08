@@ -28,19 +28,19 @@ export function buildWeeklyStatTilesHTML(tiles) {
       sparklineHTML = '<span style="font-size:15px;font-weight:600;color:' + color + ';line-height:1">' + arrow + '</span>';
     }
 
-    return '<div class="stat-tile" style="background:#141416;border:1px solid #222222;border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;min-height:98px;box-sizing:border-box">'
-      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
-        + '<span style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8A8A8E;text-transform:uppercase">' + esc(tile.title) + '</span>'
-        + sparklineHTML
+    return '<div class="stat-tile" style="background:#141416;border:1px solid #222222;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;min-height:98px;min-width:0;overflow:hidden;box-sizing:border-box">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;width:100%;min-width:0">'
+        + '<span style="font-size:11px;font-weight:600;letter-spacing:0.04em;color:#8A8A8E;text-transform:uppercase;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(tile.title) + '">' + esc(tile.title) + '</span>'
+        + '<span style="flex-shrink:0">' + sparklineHTML + '</span>'
       + '</div>'
-      + '<div style="margin-top:8px">'
-        + '<div style="font-size:28px;font-weight:600;line-height:1.1;color:#F5F5F4;font-variant-numeric:tabular-nums">' + esc(tile.value) + (tile.unit ? (' <span style="font-size:15px;font-weight:500;color:#8A8A8E">' + esc(tile.unit) + '</span>') : '') + '</div>'
+      + '<div style="margin-top:8px;min-width:0;overflow:hidden">'
+        + '<div style="font-size:28px;font-weight:600;line-height:1.1;color:#F5F5F4;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(tile.value) + (tile.unit ? (' <span style="font-size:15px;font-weight:500;color:#8A8A8E">' + esc(tile.unit) + '</span>') : '') + '</div>'
         + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#8A8A8E;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + esc(tile.subtitle) + '">' + esc(tile.subtitle) + '</div>'
       + '</div>'
       + '</div>';
   }).join('');
 
-  return '<div class="stat-tiles-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:24px 0">'
+  return '<div class="stat-tiles-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:24px 0;width:100%;max-width:100%;box-sizing:border-box">'
     + cardsHTML
     + '</div>';
 }

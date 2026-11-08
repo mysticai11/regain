@@ -49,6 +49,8 @@ export function renderLineChart({
   if (container.style) {
     container.style.position = 'relative';
     container.style.width = '100%';
+    container.style.maxWidth = '100%';
+    container.style.overflow = 'hidden';
     container.style.height = height + 'px';
     container.style.touchAction = 'pan-y';
     container.style.userSelect = 'none';
@@ -65,7 +67,7 @@ export function renderLineChart({
   svg.setAttribute('role', 'img');
   svg.setAttribute('aria-label', ariaLabel);
   svg.style.display = 'block';
-  svg.style.overflow = 'visible';
+  svg.style.overflow = 'hidden';
 
   // Readout pill
   var pill = document.createElement('div');

@@ -101,7 +101,9 @@ export function decideSwipe(params) {
       '[data-gesture-owner], .food-log-row, .set-row, .set-row-precision, .set-row-wrap, ' +
       '.horizontal-scroller, .staples-shelf, .staples-chip-row, .staple-chip, ' +
       '.sheet, .overlay, .modal-backdrop, .dialog-overlay, .dialog-surface, ' +
-      'input, textarea, select, button, #weightPlot, svg, canvas, .chart-container'
+      'input, textarea, select, button, #weightPlot, svg, canvas, .chart-container, ' +
+      '.stat-tile, .stat-tiles-grid, .nutrition-barchart-container, #weeklyStatTilesContainer, ' +
+      '.chart-header, .seg-tabs, .seg-range, .seg-dark, .app-view'
     );
     if (owned) {
       return { action: 'IGNORE', direction: null, reason: 'gesture-owner' };

@@ -282,11 +282,12 @@ export function renderProgressSimple(mode, historySubTab) {
     contentEl.ontouchend = function(e) {
       if (profile && (profile.disableSlideNav || profile.disableSwipeNav)) return;
       if (!e.changedTouches || !e.changedTouches[0]) return;
+      var curScroll = (typeof window !== 'undefined' ? (window.scrollY || window.pageYOffset || (document.documentElement ? document.documentElement.scrollTop : 0)) : 0) || (contentEl ? contentEl.scrollTop : 0);
       var res = decideSwipe({
         startTarget: startTarget, startX: touchStartX, startY: touchStartY,
         currentX: e.changedTouches[0].clientX, currentY: e.changedTouches[0].clientY,
         pointers: (e.touches ? e.touches.length : 0) + 1, activeTab: mode,
-        scope: SWIPE_NAV_SCOPE, screenWidth: window.innerWidth, targetScrollTop: contentEl.scrollTop
+        scope: SWIPE_NAV_SCOPE, screenWidth: window.innerWidth, targetScrollTop: curScroll
       });
       showGestureDebug('ProgressSwipe: ' + res.action + ' (' + res.reason + ')');
       if (res.action === 'NAVIGATE') {

@@ -19,7 +19,7 @@ export * from "./gym/helpers.js"; export * from "./gym/timer.js"; export * from 
 export function renderGym() {
   var contentEl = document.getElementById('content');
   var prevScroll = (typeof window !== 'undefined' && (window.scrollY || window.pageYOffset || (document.documentElement ? document.documentElement.scrollTop : 0) || (document.body ? document.body.scrollTop : 0))) || (contentEl ? contentEl.scrollTop : 0);
-  var restoreScroll = function() { if (prevScroll > 0) { if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, prevScroll); if (contentEl) contentEl.scrollTop = prevScroll; if (typeof requestAnimationFrame === 'function') requestAnimationFrame(function() { if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, prevScroll); }); } };
+  var restoreScroll = function() { if (typeof window !== 'undefined' && window._skipNextScrollRestore) { window._skipNextScrollRestore = false; return; } if (prevScroll > 0) { if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, prevScroll); if (contentEl) contentEl.scrollTop = prevScroll; if (typeof requestAnimationFrame === 'function') requestAnimationFrame(function() { if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, prevScroll); }); } };
   var key = window.activeGymDateKey || todayKey();
   var rec = dayRecord(key);
   var prog = getActiveProgram();

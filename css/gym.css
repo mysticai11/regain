@@ -3,9 +3,12 @@
 /* ── Gym Page Container ── */
 .gym-page {
   padding: 0 var(--spacing-16);
+  padding-bottom: calc(var(--nav-h) + var(--safe-b) + 96px);
   max-width: 480px;
+  width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* ── Unified Precision Gym Header ── */

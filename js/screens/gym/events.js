@@ -128,13 +128,29 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
           var target = (rec.exercisePlannedSets && rec.exercisePlannedSets[actualId] != null) ? rec.exercisePlannedSets[actualId] : (ex.sets || 2);
           return (rec.workout[actualId] || []).filter(Boolean).length >= target;
         });
+        var isExDone = curSetsDone >= exPlannedSets;
         if (allDone && !rec.workoutDone) {
           rec.workoutDone = true; profile.xp = (profile.xp || 0) + 30; sv('rg_profile', profile); showToast('Session complete.', 'ok');
         } else { profile.xp = (profile.xp || 0) + 3; sv('rg_profile', profile); }
         saveDayRecord(key, rec, { silent: true });
+        if (typeof window !== 'undefined') window._skipNextScrollRestore = true;
         renderGym();
         var rowEl = document.getElementById('setrow-' + id + '-' + setIndex);
         if (rowEl) { rowEl.classList.add('just-completed'); setTimeout(function() { rowEl.classList.remove('just-completed'); }, 300); }
+        var nextSetIdx = setIndex + 1;
+        if (!isExDone && nextSetIdx < exPlannedSets) {
+          var nextRow = document.getElementById('setrow-' + id + '-' + nextSetIdx);
+          var nW = document.querySelector('.set-weight[data-ex="' + id + '"][data-set-index="' + nextSetIdx + '"]');
+          var nR = document.querySelector('.set-reps[data-ex="' + id + '"][data-set-index="' + nextSetIdx + '"]');
+          var tInput = (nW && (!nW.value || nW.classList.contains('prefill')) && nR && nR.value) ? nW : (nR || nW);
+          if (tInput) { tInput.focus(); if (tInput.select) tInput.select(); }
+          if (nextRow && nextRow.scrollIntoView) nextRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        } else if (isExDone && window.activeExpandedExId) {
+          var nSec = document.getElementById('ex-section-' + window.activeExpandedExId);
+          if (nSec && nSec.scrollIntoView) nSec.scrollIntoView({ block: 'start', behavior: 'smooth' });
+          var fIn = document.querySelector('.set-weight[data-ex="' + window.activeExpandedExId + '"][data-set-index="0"]') || document.querySelector('.set-reps[data-ex="' + window.activeExpandedExId + '"][data-set-index="0"]');
+          if (fIn) { fIn.focus(); if (fIn.select) fIn.select(); }
+        }
         savedOk = true;
       } catch(err) {
         console.error('Set log error:', err);
@@ -235,9 +251,18 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
 
   document.querySelectorAll('.set-weight').forEach(function(input) {
     input.onkeydown = function(e) { if (e.key === 'Enter') { e.preventDefault(); var r = document.querySelector('.set-reps[data-ex="' + input.dataset.ex + '"][data-set-index="' + input.dataset.setIndex + '"]'); if (r) { r.focus(); if (r.select) r.select(); } } };
+    input.addEventListener('focus', function() { var w = input.closest('.set-row-wrap') || input.closest('.set-row-precision'); if (w && w.scrollIntoView) setTimeout(function() { w.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, 120); });
   });
   document.querySelectorAll('.set-reps').forEach(function(input) {
-    input.onkeydown = function(e) { if (e.key === 'Enter') { e.preventDefault(); var nextW = document.querySelector('.set-weight[data-ex="' + input.dataset.ex + '"][data-set-index="' + (parseInt(input.dataset.setIndex, 10) + 1) + '"]'); if (nextW) { nextW.focus(); if (nextW.select) nextW.select(); } else { input.blur(); } } };
+    input.onkeydown = function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        var logBtn = document.querySelector('[data-logset="' + input.dataset.ex + '"][data-set-index="' + input.dataset.setIndex + '"]');
+        if (logBtn && !logBtn.disabled) { logBtn.click(); }
+        else { var nextW = document.querySelector('.set-weight[data-ex="' + input.dataset.ex + '"][data-set-index="' + (parseInt(input.dataset.setIndex, 10) + 1) + '"]'); if (nextW) { nextW.focus(); if (nextW.select) nextW.select(); } else { input.blur(); } }
+      }
+    };
+    input.addEventListener('focus', function() { var w = input.closest('.set-row-wrap') || input.closest('.set-row-precision'); if (w && w.scrollIntoView) setTimeout(function() { w.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, 120); });
   });
 
   document.querySelectorAll('[data-add-set]').forEach(function(btn) {
@@ -317,52 +342,31 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       if (e && e.stopPropagation) e.stopPropagation();
       var exId = btn.dataset.exMenu, exName = btn.dataset.exName || 'Exercise';
       openActionMenuSheet(exName, [
-        {
-          label: '+ Add exercise (catalogue & custom)',
-          action: function() { openAddExerciseModal(function(newEx) { addExerciseToActiveWorkout(newEx, key, programDayIndex); }); }
-        },
-        {
-          label: 'Swap exercise (switch variation)',
-          action: function() {
-            var origEx = btn.closest ? btn.closest('.gym-ex-section-expanded') : null;
-            var swBtn = origEx ? origEx.querySelector('.swap-btn') : null;
-            if (swBtn) swBtn.click(); else openSwapSheet(exId, exId, 'all', key);
-          }
-        },
-        {
-          label: 'Edit exercise name',
-          action: async function() {
-            var newName = await promptDialog({ title: 'Edit Exercise', message: 'Update exercise name:', defaultValue: exName, confirmLabel: 'Save' });
-            if (newName && newName.trim() && newName.trim() !== exName) {
-              var trimmed = newName.trim();
-              if (typeof profile !== 'undefined' && profile && profile.activeSplitData && programDayIndex != null && profile.activeSplitData[programDayIndex]) {
-                var exObj = profile.activeSplitData[programDayIndex].exercises.find(function(e) { return e.id === exId; });
-                if (exObj) { exObj.name = trimmed; sv('rg_profile', profile); }
-              }
-              renderGym(); showToast('Exercise updated', 'ok');
+        { label: '+ Add exercise (catalogue & custom)', action: function() { openAddExerciseModal(function(newEx) { addExerciseToActiveWorkout(newEx, key, programDayIndex); }); } },
+        { label: 'Swap exercise (switch variation)', action: function() { var origEx = btn.closest ? btn.closest('.gym-ex-section-expanded') : null; var swBtn = origEx ? origEx.querySelector('.swap-btn') : null; if (swBtn) swBtn.click(); else openSwapSheet(exId, exId, 'all', key); } },
+        { label: 'Edit exercise name', action: async function() {
+          var newName = await promptDialog({ title: 'Edit Exercise', message: 'Update exercise name:', defaultValue: exName, confirmLabel: 'Save' });
+          if (newName && newName.trim() && newName.trim() !== exName) {
+            var trimmed = newName.trim();
+            if (typeof profile !== 'undefined' && profile && profile.activeSplitData && programDayIndex != null && profile.activeSplitData[programDayIndex]) {
+              var exObj = profile.activeSplitData[programDayIndex].exercises.find(function(e) { return e.id === exId; });
+              if (exObj) { exObj.name = trimmed; sv('rg_profile', profile); }
             }
+            renderGym(); showToast('Exercise updated', 'ok');
           }
-        },
-        {
-          label: 'Remove from today\'s workout',
-          destructive: true,
-          action: async function() {
-            var ok = await confirmDialog({ title: 'Remove Exercise?', message: 'Remove ' + exName + ' from today\'s workout?', confirmLabel: 'Remove', destructive: true });
-            if (ok) {
-              var cur = dayRecord(key); cur.skippedExercises = cur.skippedExercises || {}; cur.skippedExercises[exId] = true;
-              if (cur.workout && cur.workout[exId]) delete cur.workout[exId];
-              saveDayRecord(key, cur); renderGym(); showToast(exName + ' removed from today', 'ok');
-            }
+        }},
+        { label: 'Remove from today\'s workout', destructive: true, action: async function() {
+          var ok = await confirmDialog({ title: 'Remove Exercise?', message: 'Remove ' + exName + ' from today\'s workout?', confirmLabel: 'Remove', destructive: true });
+          if (ok) {
+            var cur = dayRecord(key); cur.skippedExercises = cur.skippedExercises || {}; cur.skippedExercises[exId] = true;
+            if (cur.workout && cur.workout[exId]) delete cur.workout[exId];
+            saveDayRecord(key, cur); renderGym(); showToast(exName + ' removed from today', 'ok');
           }
-        },
-        {
-          label: 'Skip today',
-          destructive: true,
-          action: function() {
-            var cur = dayRecord(key); cur.skippedExercises = cur.skippedExercises || {}; cur.skippedExercises[exId] = true; saveDayRecord(key, cur); renderGym();
-            showUndoToast(exName + ' skipped today', function() { var r = dayRecord(key); if (r.skippedExercises) delete r.skippedExercises[exId]; saveDayRecord(key, r); renderGym(); });
-          }
-        }
+        }},
+        { label: 'Skip today', destructive: true, action: function() {
+          var cur = dayRecord(key); cur.skippedExercises = cur.skippedExercises || {}; cur.skippedExercises[exId] = true; saveDayRecord(key, cur); renderGym();
+          showUndoToast(exName + ' skipped today', function() { var r = dayRecord(key); if (r.skippedExercises) delete r.skippedExercises[exId]; saveDayRecord(key, r); renderGym(); });
+        }}
       ]);
     });
   });
