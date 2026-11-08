@@ -9,7 +9,7 @@ import { showToast } from "../../components/toast.js";
 import { triggerHaptic } from "../../lib/dom.js";
 import { confirmDialog, promptDialog } from "../../components/dialog.js";
 import { getWorkoutForDate } from "../gym/helpers.js";
-import { buildNutritionBarChartHTML } from "../../ui/barChart.js";
+import { buildNutritionBarChartHTML } from "../../ui/barChart.js?v=22";
 
 export function getResumeWorkoutCardHTML() {
   var todayRec = dayRecord(todayKey());

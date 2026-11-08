@@ -1,6 +1,6 @@
 /* 7-Day Nutrition Bar Chart Component (Task R2-3) */
 
-import { computeBarChartGeometry } from "./barGeometry.js";
+import { computeBarChartGeometry } from "./barGeometry.js?v=22";
 import { esc } from "../lib/format.js";
 
 /**
@@ -73,8 +73,8 @@ export function buildNutritionBarChartHTML({
       + '</g>';
   }).join('');
 
-  var lineEndX = 278;
-  var targetTextX = 336;
+  var lineEndX = geom.lineEndX || 252;
+  var targetTextX = geom.targetTextX || 336;
   var targetLineHTML = '<line x1="14" y1="' + geom.targetY + '" x2="' + lineEndX + '" y2="' + geom.targetY + '" stroke="#8A8A8E" stroke-dasharray="3 3" stroke-width="1.5" opacity="0.6"/>'
     + '<text x="' + targetTextX + '" y="' + (geom.targetY + 4) + '" fill="#8A8A8E" font-size="11" font-weight="600" text-anchor="end" font-family="inherit">' + target.toLocaleString() + ' ' + unit + '</text>';
 
