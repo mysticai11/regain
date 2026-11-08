@@ -125,8 +125,8 @@
   border: 1px solid transparent;
 }
 .day-circle.is-today {
-  outline: 1.5px solid #FFFFFF;
-  outline-offset: 2px;
+  border: 1.5px solid var(--accent-primary);
+  box-shadow: 0 0 10px var(--accent-glow);
 }
 .day-circle.is-selected:not(.is-today) {
   border: 1.5px solid #F5F5F4;

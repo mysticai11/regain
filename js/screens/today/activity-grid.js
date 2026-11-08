@@ -1,6 +1,5 @@
 /* Activity Intelligence Grid: 2x2 grid displaying steps, active burn, weight, and weekly sets */
 
-import { renderSparklineSVG } from "../../ui/sparkline.js";
 import { ic } from "../../lib/dom.js";
 import { esc } from "../../lib/format.js";
 import { saveDayRecord, dayRecord } from "../../storage.js";
@@ -25,9 +24,6 @@ export function buildActivityGridHTML(data) {
   var currentW = d.currentWeightKg != null ? Number(d.currentWeightKg) : null;
   var avgW = d.weightAvg != null ? Number(d.weightAvg) : null;
   var weeklySets = Number(d.weeklySets) || 0;
-  var stepHistory = Array.isArray(d.stepHistory) && d.stepHistory.length > 0 ? d.stepHistory : [steps * 0.8, steps * 0.9, steps];
-
-  var stepSparkline = renderSparklineSVG(stepHistory, { width: 48, height: 16, stroke: 'var(--accent-pink)', gradient: true });
 
   var activeBurnKcal = (totalBurn.stepBurn || 0) + (totalBurn.workoutBurn || 0);
   var burnDisplay = activeBurnKcal > 0 ? activeBurnKcal.toLocaleString() + ' kcal' : totalBurn.totalBurn.toLocaleString() + ' kcal';
@@ -49,9 +45,9 @@ export function buildActivityGridHTML(data) {
       + '<div style="font-size:var(--fs-28);font-weight:700;color:var(--text);line-height:1.1;font-variant-numeric:tabular-nums;margin-bottom:6px">'
         + steps.toLocaleString()
       + '</div>'
-      + '<div style="display:flex;align-items:center;justify-content:space-between">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px">'
         + '<span style="font-size:var(--fs-caption);color:var(--text-secondary)">Goal: 10,000</span>'
-        + stepSparkline
+        + '<span style="font-size:11px;font-weight:700;color:var(--accent-primary);display:inline-flex;align-items:center;gap:3px;background:rgba(139,92,246,0.12);padding:2px 8px;border-radius:6px">↑ 10k goal</span>'
       + '</div>'
     + '</div>'
 
@@ -81,7 +77,10 @@ export function buildActivityGridHTML(data) {
       + '<div style="font-size:var(--fs-28);font-weight:700;color:var(--text);line-height:1.1;font-variant-numeric:tabular-nums;margin-bottom:6px">'
         + esc(weightDisplay)
       + '</div>'
-      + '<div style="font-size:var(--fs-caption);color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(weightSubtext) + '</div>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px">'
+        + '<span style="font-size:var(--fs-caption);color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(weightSubtext) + '</span>'
+        + '<span style="font-size:11px;font-weight:700;color:var(--accent-primary);display:inline-flex;align-items:center;gap:2px;background:rgba(139,92,246,0.12);padding:2px 8px;border-radius:6px">↑ +0.2 kg/wk</span>'
+      + '</div>'
     + '</div>'
 
     /* Card 4: Workouts / Weekly Sets */

@@ -7,6 +7,7 @@ import { migrateWorkoutRoutineSwap, getActiveProgram } from "./data/plan.js";
 import { todayKey, esc } from "./lib/format.js";
 import { ic, triggerHaptic, initMaterialRipple } from "./lib/dom.js";
 import { renderTodaySimple, migrateFoodTotals, openCheckinSheet } from "./screens/today.js?v=26";
+import { renderNutritionSimple } from "./screens/nutrition.js";
 import { renderProgressSimple } from "./screens/progress.js?v=25";
 import { renderGym } from "./screens/gym.js";
 import { renderOnboarding, openSettings } from "./screens/settings.js";
@@ -22,17 +23,21 @@ export function renderApp() {
   document.getElementById('app').innerHTML =
     '<main class="content page-gutter" id="content"></main>'
     + '<nav class="bottomnav tab-bar bottom-nav" role="tablist">'
-    + '<button class="navitem tab-item' + (tab === 'today' ? ' active' : '') + '" data-tab="today" role="tab" aria-selected="' + (tab === 'today' ? 'true' : 'false') + '" aria-label="Today">'
+    + '<button class="navitem tab-item' + (tab === 'today' ? ' active' : '') + '" data-tab="today" role="tab" aria-selected="' + (tab === 'today' ? 'true' : 'false') + '" aria-label="Home">'
       + '<span class="nav-pill-wrap"><span class="nav-pill"></span><span class="nav-icon nav-icon-outline">' + ic('home') + '</span><span class="nav-icon nav-icon-filled">' + ic('home_filled') + '</span></span>'
-      + '<span class="tab-item-label">Today</span>'
+      + '<span class="tab-item-label">Home</span>'
+    + '</button>'
+    + '<button class="navitem tab-item' + (tab === 'nutrition' ? ' active' : '') + '" data-tab="nutrition" role="tab" aria-selected="' + (tab === 'nutrition' ? 'true' : 'false') + '" aria-label="Nutrition">'
+      + '<span class="nav-pill-wrap"><span class="nav-pill"></span><span class="nav-icon nav-icon-outline">' + ic('apple') + '</span><span class="nav-icon nav-icon-filled">' + ic('apple_filled') + '</span></span>'
+      + '<span class="tab-item-label">Nutrition</span>'
+    + '</button>'
+    + '<button class="navitem tab-item' + (tab === 'gym' ? ' active' : '') + '" data-tab="gym" role="tab" aria-selected="' + (tab === 'gym' ? 'true' : 'false') + '" aria-label="Workout">'
+      + '<span class="nav-pill-wrap"><span class="nav-pill"></span><span class="nav-icon nav-icon-outline">' + ic('barbell') + '</span><span class="nav-icon nav-icon-filled">' + ic('barbell_filled') + '</span></span>'
+      + '<span class="tab-item-label">Workout</span>'
     + '</button>'
     + '<button class="navitem tab-item' + (tab === 'progress' ? ' active' : '') + '" data-tab="progress" role="tab" aria-selected="' + (tab === 'progress' ? 'true' : 'false') + '" aria-label="Progress">'
       + '<span class="nav-pill-wrap"><span class="nav-pill"></span><span class="nav-icon nav-icon-outline">' + ic('chart') + '</span><span class="nav-icon nav-icon-filled">' + ic('chart_filled') + '</span></span>'
       + '<span class="tab-item-label">Progress</span>'
-    + '</button>'
-    + '<button class="navitem tab-item' + (tab === 'gym' ? ' active' : '') + '" data-tab="gym" role="tab" aria-selected="' + (tab === 'gym' ? 'true' : 'false') + '" aria-label="Gym">'
-      + '<span class="nav-pill-wrap"><span class="nav-pill"></span><span class="nav-icon nav-icon-outline">' + ic('barbell') + '</span><span class="nav-icon nav-icon-filled">' + ic('barbell_filled') + '</span></span>'
-      + '<span class="tab-item-label">Gym</span>'
     + '</button>'
     + '</nav>';
   renderTab();
@@ -65,6 +70,7 @@ export function renderTab() {
   }
   try {
     if (tab === 'today') renderTodaySimple();
+    else if (tab === 'nutrition') renderNutritionSimple();
     else if (tab === 'progress') renderProgressSimple();
     else renderGym();
   } catch (err) {

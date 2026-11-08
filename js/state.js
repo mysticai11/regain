@@ -13,7 +13,7 @@ export var confirmLoggingAccurate = false;
 export var activeGymDateKey = null;
 export var activeTodaySelectedDateKey = null;
 export var activeExpandedExId = null;
-export var scrollByTab = { today: 0, progress: 0, gym: 0 };
+export var scrollByTab = { today: 0, nutrition: 0, progress: 0, gym: 0 };
 export var activeProgressSubTab = 'body';
 export var MOTION_POLISH_ENABLED = true;
 if (typeof window !== 'undefined') {

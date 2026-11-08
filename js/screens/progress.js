@@ -21,6 +21,7 @@ import { decideSwipe, SWIPE_NAV_SCOPE, showGestureDebug } from "../lib/gesture.j
 import { renderLineChart } from "../ui/lineChart.js";
 import { enhanceLiftsTab } from "./progress/lifts.js";
 import { enhanceProgressBodyTiles } from "./progress/stat-tiles.js";
+import { bindWeightListGestures } from "./progress/body.js";
 
 export function renderProgressSimple(mode, historySubTab) {
   mode = mode || (typeof window !== 'undefined' ? window.activeProgressSubTab : null) || 'body';
@@ -92,8 +93,7 @@ export function renderProgressSimple(mode, historySubTab) {
     var weightEntriesContainer = document.getElementById('weightEntriesContainer');
     if (weightEntriesContainer) {
       weightEntriesContainer.innerHTML = weightEntriesHTML(entries);
-      weightEntriesContainer.querySelectorAll('[data-edit-weight]').forEach(function(btn){ btn.onclick = function(){ editWeightEntry(btn.dataset.editWeight); }; });
-      weightEntriesContainer.querySelectorAll('[data-delete-weight]').forEach(function(btn){ btn.onclick = function(){ deleteWeightEntry(btn.dataset.deleteWeight); }; });
+      bindWeightListGestures(weightEntriesContainer);
     }
 
     enhanceProgressBodyTiles(document.getElementById('weeklyStatTilesContainer'), {

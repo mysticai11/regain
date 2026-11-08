@@ -111,3 +111,4 @@ export function buildAllMonthsHistoryHTML() {
 
   return '<div>' + monthBlocks.join('') + '</div>';
 }
+
