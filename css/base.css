@@ -216,11 +216,12 @@ html[data-motion-polish="true"] .page-enter > *:nth-child(6) { animation: cardEn
 
 /* Utilities */
 /* Shared Page Gutter & Safe Area Inset Wrapper */
-.content, .page-gutter {
+.content, .page-gutter, #content, .app-content {
   padding-top: max(var(--spacing-16), calc(var(--safe-t) + var(--spacing-8)));
   padding-left: calc(var(--screen-margin) + var(--safe-l));
   padding-right: calc(var(--screen-margin) + var(--safe-r));
-  padding-bottom: calc(var(--nav-h) + var(--safe-b) + var(--spacing-24));
+  padding-bottom: 120px;
+  padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
@@ -292,7 +293,6 @@ html[data-motion-polish="true"] .page-enter > *:nth-child(6) { animation: cardEn
   transform: scale(1.04);
   pointer-events: none;
 }
-
 .kinetic-core {
   position: relative;
   width: 96px;
@@ -309,7 +309,6 @@ html[data-motion-polish="true"] .page-enter > *:nth-child(6) { animation: cardEn
   border: 1px solid #222222;
   animation: kineticPulse 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
-
 .kinetic-ring-track {
   position: absolute;
   width: 64px;
@@ -317,7 +316,6 @@ html[data-motion-polish="true"] .page-enter > *:nth-child(6) { animation: cardEn
   border-radius: 50%;
   border: 1.5px solid #1C1C1F;
 }
-
 .kinetic-arc-orbital {
   position: absolute;
   inset: -1.5px;
@@ -372,23 +370,17 @@ html[data-motion-polish="true"] .page-enter > *:nth-child(6) { animation: cardEn
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-
 @keyframes kineticHeartbeat {
   0%, 100% { transform: scale(0.85); opacity: 0.75; }
   30% { transform: scale(1.18); opacity: 1; }
   50% { transform: scale(0.95); opacity: 0.85; }
   70% { transform: scale(1.12); opacity: 1; }
 }
-
 ::selection {
   background: var(--surface2);
   color: var(--text);
 }
-
-:focus:not(:focus-visible) {
-  outline: none;
-}
-
+:focus:not(:focus-visible) { outline: none; }
 :focus-visible {
   outline: 1.5px solid var(--text);
   outline-offset: -1.5px;
@@ -397,7 +389,6 @@ html[data-motion-polish="true"] .page-enter > *:nth-child(6) { animation: cardEn
   outline: none;
   text-decoration: underline;
 }
-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

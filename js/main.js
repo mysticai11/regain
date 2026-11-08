@@ -21,7 +21,7 @@ export function renderApp() {
   }
   document.getElementById('app').innerHTML =
     '<main class="content page-gutter" id="content"></main>'
-    + '<nav class="bottomnav tab-bar" role="tablist">'
+    + '<nav class="bottomnav tab-bar bottom-nav" role="tablist">'
     + '<button class="navitem tab-item' + (tab === 'today' ? ' active' : '') + '" data-tab="today" role="tab" aria-selected="' + (tab === 'today' ? 'true' : 'false') + '" aria-label="Today">'
       + '<span class="nav-pill-wrap"><span class="nav-pill"></span><span class="nav-icon nav-icon-outline">' + ic('home') + '</span><span class="nav-icon nav-icon-filled">' + ic('home_filled') + '</span></span>'
       + '<span class="tab-item-label">Today</span>'
@@ -92,31 +92,42 @@ export function initKeyboardHandling() {
   if (window._keyboardInitialized) return;
   window._keyboardInitialized = true;
 
+  var onKbShow = function() { document.body.classList.add('kb-open', 'keyboard-open'); };
+  var onKbHide = function() { document.body.classList.remove('kb-open', 'keyboard-open'); };
+
   if (window.Capacitor && window.Capacitor.isPluginAvailable && window.Capacitor.isPluginAvailable('Keyboard')) {
     try {
       var Keyboard = window.Capacitor.Plugins.Keyboard;
-      Keyboard.addListener('keyboardWillShow', function() {
-        document.body.classList.add('kb-open');
-      });
-      Keyboard.addListener('keyboardWillHide', function() {
-        document.body.classList.remove('kb-open');
-      });
+      Keyboard.addListener('keyboardWillShow', onKbShow);
+      Keyboard.addListener('keyboardWillHide', onKbHide);
     } catch(err) {
       console.warn('Capacitor Keyboard listener error:', err);
     }
   }
 
+  window.addEventListener('keyboardWillShow', onKbShow);
+  window.addEventListener('keyboardWillHide', onKbHide);
+
   document.addEventListener('focusin', function(e) {
-    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
-      document.body.classList.add('kb-open');
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) {
+      onKbShow();
+      setTimeout(function() {
+        if (!e.target || typeof e.target.getBoundingClientRect !== 'function') return;
+        var rect = e.target.getBoundingClientRect();
+        var currentScroll = window.scrollY || window.pageYOffset || (document.documentElement ? document.documentElement.scrollTop : 0) || 0;
+        var elementTop = rect.top + currentScroll;
+        if (typeof window.scrollTo === 'function') {
+          window.scrollTo({ top: Math.max(0, elementTop - 150), behavior: 'smooth' });
+        }
+      }, 120);
     }
   });
 
   document.addEventListener('focusout', function() {
     setTimeout(function() {
       var active = document.activeElement;
-      if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA')) {
-        document.body.classList.remove('kb-open');
+      if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA' && active.tagName !== 'SELECT')) {
+        onKbHide();
       }
     }, 100);
   });

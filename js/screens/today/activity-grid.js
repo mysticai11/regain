@@ -10,11 +10,11 @@ import { promptDialog } from "../../components/dialog.js";
 export function buildActivityInsightHTML(stepBurn, workoutBurn) {
   var earned = (Number(stepBurn) || 0) + (Number(workoutBurn) || 0);
   if (earned <= 100) return '';
-  return '<div class="metric-card" style="margin-bottom:16px;padding:12px 16px;display:flex;align-items:center;gap:12px">'
-    + '<div style="width:32px;height:32px;border-radius:10px;background:rgba(139,92,246,0.15);color:var(--accent-primary);display:flex;align-items:center;justify-content:center;box-shadow:var(--icon-glow-violet);flex-shrink:0">'
-      + ic('flame', 16)
+  return '<div class="metric-card" style="margin:0 auto 16px auto;padding:8px 16px;font-size:12px;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:8px;width:fit-content;max-width:100%;box-sizing:border-box">'
+    + '<div style="width:20px;height:20px;border-radius:6px;background:rgba(139,92,246,0.15);color:var(--accent-primary);display:flex;align-items:center;justify-content:center;box-shadow:var(--icon-glow-violet);flex-shrink:0">'
+      + ic('flame', 12)
     + '</div>'
-    + '<span style="font-size:var(--fs-caption);font-weight:600;color:var(--accent-primary);letter-spacing:0.02em">You earned +' + earned.toLocaleString() + ' kcal from activity today!</span>'
+    + '<span style="font-size:12px;font-weight:600;color:var(--accent-primary);letter-spacing:0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">You earned +' + earned.toLocaleString() + ' kcal from activity today!</span>'
   + '</div>';
 }
 
@@ -36,9 +36,9 @@ export function buildActivityGridHTML(data) {
   var weightDisplay = currentW != null ? currentW.toFixed(1) + ' kg' : '--';
   var weightSubtext = avgW != null ? ('7d avg: ' + avgW.toFixed(1) + ' kg') : 'Trend stable';
 
-  return '<div class="activity-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px">'
+  return '<div class="activity-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 0;margin-bottom:24px">'
     /* Card 1: Steps */
-    + '<div class="metric-card" id="activityCardSteps" style="padding:14px 16px;cursor:pointer">'
+    + '<div class="metric-card" id="activityCardSteps" style="padding:16px;cursor:pointer;min-width:0;box-sizing:border-box">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
         + '<div style="width:32px;height:32px;border-radius:10px;background:rgba(139,92,246,0.15);color:var(--accent-primary);display:flex;align-items:center;justify-content:center;box-shadow:var(--icon-glow-violet);flex-shrink:0">'
           + ic('bolt', 16)
@@ -56,7 +56,7 @@ export function buildActivityGridHTML(data) {
     + '</div>'
 
     /* Card 2: Active Burn */
-    + '<div class="metric-card" style="padding:14px 16px">'
+    + '<div class="metric-card" style="padding:16px;min-width:0;box-sizing:border-box">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
         + '<div style="width:32px;height:32px;border-radius:10px;background:rgba(56,189,248,0.15);color:var(--accent-secondary);display:flex;align-items:center;justify-content:center;box-shadow:var(--icon-glow-blue);flex-shrink:0">'
           + ic('flame', 16)
@@ -66,11 +66,11 @@ export function buildActivityGridHTML(data) {
       + '<div style="font-size:var(--fs-28);font-weight:700;color:var(--text);line-height:1.1;font-variant-numeric:tabular-nums;margin-bottom:6px">'
         + burnDisplay
       + '</div>'
-      + '<div style="font-size:var(--fs-caption);color:var(--text-secondary)">' + esc(burnSubtext) + '</div>'
+      + '<div style="font-size:var(--fs-caption);color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(burnSubtext) + '</div>'
     + '</div>'
 
     /* Card 3: Weight */
-    + '<div class="metric-card" id="activityCardWeight" style="padding:14px 16px;cursor:pointer">'
+    + '<div class="metric-card" id="activityCardWeight" style="padding:16px;cursor:pointer;min-width:0;box-sizing:border-box">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
         + '<div style="width:32px;height:32px;border-radius:10px;background:rgba(139,92,246,0.15);color:var(--accent-primary);display:flex;align-items:center;justify-content:center;box-shadow:var(--icon-glow-violet);flex-shrink:0">'
           + ic('trend_up', 16)
@@ -81,11 +81,11 @@ export function buildActivityGridHTML(data) {
       + '<div style="font-size:var(--fs-28);font-weight:700;color:var(--text);line-height:1.1;font-variant-numeric:tabular-nums;margin-bottom:6px">'
         + esc(weightDisplay)
       + '</div>'
-      + '<div style="font-size:var(--fs-caption);color:var(--text-secondary)">' + esc(weightSubtext) + '</div>'
+      + '<div style="font-size:var(--fs-caption);color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(weightSubtext) + '</div>'
     + '</div>'
 
     /* Card 4: Workouts / Weekly Sets */
-    + '<div class="metric-card" style="padding:14px 16px">'
+    + '<div class="metric-card" style="padding:16px;min-width:0;box-sizing:border-box">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
         + '<div style="width:32px;height:32px;border-radius:10px;background:rgba(139,92,246,0.15);color:var(--accent-primary);display:flex;align-items:center;justify-content:center;box-shadow:var(--icon-glow-violet);flex-shrink:0">'
           + ic('chart', 16)
@@ -95,7 +95,7 @@ export function buildActivityGridHTML(data) {
       + '<div style="font-size:var(--fs-28);font-weight:700;color:var(--text);line-height:1.1;font-variant-numeric:tabular-nums;margin-bottom:6px">'
         + weeklySets + (weeklySets === 1 ? ' set' : ' sets')
       + '</div>'
-      + '<div style="font-size:var(--fs-caption);color:var(--text-secondary)">Completed this week</div>'
+      + '<div style="font-size:var(--fs-caption);color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Completed this week</div>'
     + '</div>'
   + '</div>';
 }

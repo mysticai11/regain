@@ -74,6 +74,7 @@ export function renderProgressSimple(mode, historySubTab) {
           height: 180,
           unit: 'kg',
           ariaLabel: 'Body weight history',
+          color: 'var(--accent-primary, #8B5CF6)',
           onPoint: function(pt, info) {
             var rEl = weightPlot.querySelector('.chart-readout');
             if (rEl) rEl.innerHTML = '<span style="color:var(--text);font-weight:700">' + esc(info.formattedVal) + ' ' + esc(info.unit) + '</span> <span style="font-size:11px;color:var(--text-secondary);margin-left:4px">(' + esc(info.dateLabel) + ')</span>';
@@ -192,13 +193,16 @@ export function renderProgressSimple(mode, historySubTab) {
     var liftMeta=document.getElementById('liftMeta');
     if(liftMeta) liftMeta.textContent = liftValues.length > 0 ? (isBW ? 'Peak reps' : 'Est. 1RM (Epley formula)') : '';
   };
+  var targetBadge = (profile && profile.targetWeight) ? ('<span style="background:var(--surface2);padding:4px 8px;border-radius:6px;font-size:11px;color:var(--text-secondary);font-weight:600;letter-spacing:0.04em">TARGET ' + profile.targetWeight + ' KG</span>') : '';
   var bodySection = '<div style="margin-bottom:28px">'
     + '<div style="margin-bottom:20px">'
-      + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8A8A8E;text-transform:uppercase;margin-bottom:6px">Bodyweight</div>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+        + '<span style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8A8A8E;text-transform:uppercase">Bodyweight</span>'
+        + targetBadge
+      + '</div>'
       + '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px">'
         + (current != null ? ('<span id="progBodyweightVal" class="tabnum" data-value="' + current.toFixed(1) + '" style="font-size:48px;font-weight:700;color:#F5F5F4;line-height:1.05;letter-spacing:-0.03em">' + current.toFixed(1) + '</span><span style="font-size:15px;font-weight:500;color:#8A8A8E">kg</span>') : '<span style="font-size:28px;font-weight:600;color:#8A8A8E">No data yet</span>')
       + '</div>'
-      + (profile && profile.targetWeight ? ('<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8A8A8E;text-transform:uppercase">TARGET ' + profile.targetWeight + ' KG</div>') : '')
     + '</div>'
     + '<div class="seg-range" style="display:flex;gap:24px;align-items:center;margin-bottom:16px"><button type="button" class="range-btn active" data-range="4w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:600;color:#F5F5F4;border-bottom:2px solid #F5F5F4;cursor:pointer">4W</button><button type="button" class="range-btn" data-range="12w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">12W</button><button type="button" class="range-btn" data-range="all" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">All</button></div>'
     + '<div id="weightPlot" data-gesture-owner="chart"></div><div id="weightMeta" class="tabnum" style="font-size:15px;color:var(--text-secondary);margin-top:10px;line-height:1.4"></div>'

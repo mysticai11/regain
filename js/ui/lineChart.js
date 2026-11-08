@@ -34,7 +34,7 @@ export function renderLineChart({
   height = 180,
   unit = 'kg',
   ariaLabel = 'Progress Chart',
-  color = 'var(--chart-line, #F5F5F4)',
+  color = 'var(--accent-primary, #8B5CF6)',
   onPoint = null,
   onReset = null
 } = {}) {

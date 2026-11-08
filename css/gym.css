@@ -206,11 +206,11 @@
   animation: none !important;
 }
 
-/* ── Item 6: Sticky Gym Session Summary Bar & Focus Highlight ── */
+/* ── Item 6: Gym Session Summary Bar & Focus Highlight (Un-stuck to scroll naturally) ── */
 .gym-session-bar {
-  position: sticky;
-  top: calc(env(safe-area-inset-top, 0px) + 8px);
-  z-index: 20;
+  position: relative;
+  top: auto;
+  z-index: 10;
   background: var(--surface);
   border: 1px solid var(--hairline);
   border-radius: 14px;
