@@ -3,7 +3,7 @@
 import { dayRecord, saveDayRecord, getWorkoutSession, saveWorkoutSession, deleteWorkoutSession, workoutSessionStore, sv, WORKOUT_SESSIONS_KEY } from "../../storage.js";
 import { getExerciseData, isBodyweightExercise, getActiveProgram } from "../../data/plan.js";
 import { getAllKnownExercises } from "../../data/exercises.js";
-import { openAddExerciseModal } from "./exercise-modal.js";
+import { openAddExerciseModal } from "./exercise-modal.js?v=21";
 import { esc, todayKey } from "../../lib/format.js";
 import { showToast } from "../../components/toast.js";
 import { confirmDialog, promptDialog } from "../../components/dialog.js";

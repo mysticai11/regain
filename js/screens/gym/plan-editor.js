@@ -8,9 +8,9 @@ import { openActionMenuSheet } from "../../components/sheet.js";
 import { showToast } from "../../components/toast.js";
 import { confirmDialog, promptDialog } from "../../components/dialog.js";
 import { esc } from "../../lib/format.js";
-import { openAddExerciseModal, openEditExerciseModal, openSwapExerciseModal } from "./exercise-modal.js";
+import { openAddExerciseModal, openEditExerciseModal, openSwapExerciseModal } from "./exercise-modal.js?v=21";
 import { saveCustomExercise } from "../../data/exercises.js";
-export * from "./exercise-modal.js";
+export * from "./exercise-modal.js?v=21";
 export * from "./edit-workout.js";
 
 export function openCustomRoutineSheet(dayKey) {

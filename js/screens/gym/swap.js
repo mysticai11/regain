@@ -3,7 +3,7 @@
 import { profile } from "../../state.js";
 import { sv, dayRecord, saveDayRecord } from "../../storage.js";
 import { getExerciseData, getAllExercisesForMuscle, getActiveProgram, getCurrentWorkout, ALTERNATES } from "../../data/plan.js";
-import { openAddExerciseModal, openEditExerciseModal } from "./exercise-modal.js";
+import { openAddExerciseModal, openEditExerciseModal } from "./exercise-modal.js?v=21";
 import { getPlateBreakdown } from "../../lib/calc.js";
 import { openSheet } from "../../components/sheet.js";
 import { showToast } from "../../components/toast.js";
@@ -90,8 +90,9 @@ export function openPlateCalculator(weight) {
 }
 
 export function openSwapSheet(origId, currId, muscleStr, dayKey) {
-  var exList = getAllExercisesForMuscle(muscleStr);
-  if (!exList.length) exList = getAllExercisesForMuscle('all');
+  var muscles = ['all', 'chest', 'back', 'shoulders', 'quads', 'hamstrings', 'biceps', 'triceps', 'calves', 'forearms'];
+  var selectedMuscle = (muscleStr && muscles.includes(muscleStr.toLowerCase())) ? muscleStr.toLowerCase() : 'all';
+  var allList = getAllExercisesForMuscle('all');
   var overlay = document.createElement('div');
   overlay.className = 'overlay';
   overlay.style.zIndex = '9999';
@@ -151,14 +152,15 @@ export function openSwapSheet(origId, currId, muscleStr, dayKey) {
 
   function renderList(filterQuery) {
     var q = (filterQuery || '').toLowerCase().trim();
-    var filtered = exList.filter(function(e) {
+    var filtered = allList.filter(function(e) {
+      if (selectedMuscle !== 'all' && !(e.muscle && e.muscle.toLowerCase().includes(selectedMuscle))) return false;
       if (!q) return true;
       return e.name.toLowerCase().includes(q) || (e.muscle && e.muscle.toLowerCase().includes(q));
     });
 
     var rows = filtered.map(function(e) {
       var isSel = e.id === currId;
-      var muscleText = formatMuscles(e.muscle || muscleStr);
+      var muscleText = formatMuscles(e.muscle || selectedMuscle);
       return '<div class="list-row swap-pick-row" data-selectswap="' + esc(e.id) + '" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid #222;cursor:pointer">'
         + '<div style="flex:1;min-width:0;padding-right:12px">'
           + '<div style="font-size:17px;font-weight:500;color:#F5F5F4;line-height:1.25">' + esc(e.name) + '</div>'
@@ -183,6 +185,12 @@ export function openSwapSheet(origId, currId, muscleStr, dayKey) {
     });
   }
 
+  var chipsHTML = muscles.map(function(m) {
+    var act = m === selectedMuscle;
+    var label = m.charAt(0).toUpperCase() + m.slice(1);
+    return '<button type="button" class="chip" data-swap-muscle="' + m + '" style="font-size:11px;padding:6px 12px;border-radius:12px;background:' + (act ? '#F5F5F4' : '#1C1C1F') + ';color:' + (act ? '#0B0B0C' : '#8A8A8E') + ';border:none;cursor:pointer;white-space:nowrap;font-weight:600">' + label + '</button>';
+  }).join('');
+
   overlay.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%;max-height:85vh;overflow-y:auto">'
     + '<div class="sheet-handle"></div>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
@@ -201,7 +209,8 @@ export function openSwapSheet(origId, currId, muscleStr, dayKey) {
       + '<button type="button" id="swapSheetCreateCustomBtn" style="flex:1;height:44px;background:#1C1C1F;border:1px dashed #55555A;border-radius:12px;color:#C6F432;font-size:15px;font-weight:600;cursor:pointer">+ Custom Exercise</button>'
       + '<button type="button" id="swapSheetEditCurrentBtn" style="flex:1;height:44px;background:#1C1C1F;border:1px solid #222;border-radius:12px;color:#F5F5F4;font-size:15px;cursor:pointer">Edit Routine Sets</button>'
     + '</div>'
-    + '<input type="text" id="swapSheetSearchInput" placeholder="Filter variations..." style="background:#1C1C1F;border:none;border-radius:12px;height:44px;padding:0 14px;color:#F5F5F4;font-size:15px;width:100%;margin-bottom:12px;box-sizing:border-box">'
+    + '<input type="text" id="swapSheetSearchInput" placeholder="Filter variations..." style="background:#1C1C1F;border:none;border-radius:12px;height:44px;padding:0 14px;color:#F5F5F4;font-size:15px;width:100%;margin-bottom:10px;box-sizing:border-box">'
+    + '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:10px">' + chipsHTML + '</div>'
     + '<div id="swapRowsContainer" style="max-height:48vh;overflow-y:auto"></div>'
     + '</div>';
 
@@ -209,6 +218,19 @@ export function openSwapSheet(origId, currId, muscleStr, dayKey) {
 
   overlay.querySelector('#closeSwapBtn').addEventListener('click', function () { overlay.remove(); });
   overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
+
+  overlay.querySelectorAll('[data-swap-muscle]').forEach(function(chip) {
+    chip.onclick = function() {
+      selectedMuscle = chip.dataset.swapMuscle;
+      overlay.querySelectorAll('[data-swap-muscle]').forEach(function(c) {
+        var isAct = c.dataset.swapMuscle === selectedMuscle;
+        c.style.background = isAct ? '#F5F5F4' : '#1C1C1F';
+        c.style.color = isAct ? '#0B0B0C' : '#8A8A8E';
+      });
+      var sInp = overlay.querySelector('#swapSheetSearchInput');
+      renderList(sInp ? sInp.value : '');
+    };
+  });
 
   overlay.querySelector('#swapSheetCreateCustomBtn').onclick = function() {
     openAddExerciseModal(function(newEx) {

@@ -104,10 +104,13 @@ export function openActionMenuSheet(title, items) {
   menuOverlay.onclick = function(e) { if (e.target === menuOverlay) closeSheet(menuOverlay); };
 
   menuOverlay.querySelectorAll('[data-action-idx]').forEach(function(row) {
-    row.onclick = function() {
+    row.onclick = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
       var i = parseInt(row.dataset.actionIdx, 10);
       closeSheet(menuOverlay);
-      if (items[i] && items[i].action) items[i].action();
+      if (items[i] && items[i].action) {
+        setTimeout(function() { items[i].action(); }, 80);
+      }
     };
   });
 }

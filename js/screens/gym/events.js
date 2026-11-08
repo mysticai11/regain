@@ -17,7 +17,7 @@ import { openSwapSheet, openPlateCalculator } from "./swap.js";
 import { startRestTimer } from "./timer.js";
 import { openCustomRoutineSheet, openCustomRoutineManager } from "./plan-editor.js";
 import { attachSetRowSwipeHandlers } from "./swipe-delete.js";
-import { openAddExerciseModal } from "./exercise-modal.js";
+import { openAddExerciseModal } from "./exercise-modal.js?v=21";
 
 export function attachGymEvents(key, rec, session, programDayIndex) {
   attachCommonGymHeaderEvents();
@@ -318,8 +318,16 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       var exId = btn.dataset.exMenu, exName = btn.dataset.exName || 'Exercise';
       openActionMenuSheet(exName, [
         {
-          label: '+ Add exercise',
+          label: '+ Add exercise (catalogue & custom)',
           action: function() { openAddExerciseModal(function(newEx) { addExerciseToActiveWorkout(newEx, key, programDayIndex); }); }
+        },
+        {
+          label: 'Swap exercise (switch variation)',
+          action: function() {
+            var origEx = btn.closest ? btn.closest('.gym-ex-section-expanded') : null;
+            var swBtn = origEx ? origEx.querySelector('.swap-btn') : null;
+            if (swBtn) swBtn.click(); else openSwapSheet(exId, exId, 'all', key);
+          }
         },
         {
           label: 'Edit exercise name',
@@ -341,9 +349,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
           action: async function() {
             var ok = await confirmDialog({ title: 'Remove Exercise?', message: 'Remove ' + exName + ' from today\'s workout?', confirmLabel: 'Remove', destructive: true });
             if (ok) {
-              var cur = dayRecord(key);
-              cur.skippedExercises = cur.skippedExercises || {};
-              cur.skippedExercises[exId] = true;
+              var cur = dayRecord(key); cur.skippedExercises = cur.skippedExercises || {}; cur.skippedExercises[exId] = true;
               if (cur.workout && cur.workout[exId]) delete cur.workout[exId];
               saveDayRecord(key, cur); renderGym(); showToast(exName + ' removed from today', 'ok');
             }
@@ -363,17 +369,11 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
 
   var addTodayExBtn = document.getElementById('gymAddExTodayBtn');
   if (addTodayExBtn) {
-    addTodayExBtn.onclick = function() {
-      openAddExerciseModal(function(newEx) { addExerciseToActiveWorkout(newEx, key, programDayIndex); });
-    };
+    addTodayExBtn.onclick = function() { openAddExerciseModal(function(newEx) { addExerciseToActiveWorkout(newEx, key, programDayIndex); }); };
   }
-
   document.querySelectorAll('[data-add-replacement]').forEach(function(btn) {
-    btn.onclick = function() {
-      openAddExerciseModal(function(newEx) { addExerciseToActiveWorkout(newEx, key, programDayIndex); });
-    };
+    btn.onclick = function() { openAddExerciseModal(function(newEx) { addExerciseToActiveWorkout(newEx, key, programDayIndex); }); };
   });
-
   document.querySelectorAll('[data-unskip-exercise]').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var cur = dayRecord(key); if (cur.skippedExercises) delete cur.skippedExercises[btn.dataset.unskipExercise];
