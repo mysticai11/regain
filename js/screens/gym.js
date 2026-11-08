@@ -105,11 +105,7 @@ export function renderGym() {
     var nextBtn = document.getElementById('previewNextWorkoutBtn');
     if (nextBtn) {
       nextBtn.onclick = function () {
-        var r = dayRecord(key);
-        r.selectedDayNumber = nextWorkoutSched.dayNum;
-        r.selectedWorkout = nextWorkoutSched.workoutIndex;
-        saveDayRecord(key, r);
-        renderGym();
+        var r = dayRecord(key); r.selectedDayNumber = nextWorkoutSched.dayNum; r.selectedWorkout = nextWorkoutSched.workoutIndex; saveDayRecord(key, r); renderGym();
       };
     }
     return;
@@ -138,33 +134,19 @@ export function renderGym() {
       + '</div>';
 
     attachCommonGymHeaderEvents();
-  restoreScroll();
+    restoreScroll();
     var histBtn = document.getElementById('openHistoryFromGymBtn');
-    if (histBtn) {
-      histBtn.onclick = function () {
-        setTab('progress');
-        renderApp();
-      };
-    }
+    if (histBtn) histBtn.onclick = function () { setTab('progress'); renderApp(); };
     var trainNextBtn = document.getElementById('trainNextDayEarlyBtn');
     if (trainNextBtn) {
       trainNextBtn.onclick = function () {
-        var r = dayRecord(key);
-        r.selectedDayNumber = nextWorkoutSched.dayNum;
-        r.selectedWorkout = nextWorkoutSched.workoutIndex;
-        saveDayRecord(key, r);
-        renderGym();
+        var r = dayRecord(key); r.selectedDayNumber = nextWorkoutSched.dayNum; r.selectedWorkout = nextWorkoutSched.workoutIndex; saveDayRecord(key, r); renderGym();
       };
     }
     var reopenBtn = document.getElementById('reopenSessionBtn');
     if (reopenBtn) {
       reopenBtn.onclick = function () {
-        var r = dayRecord(key);
-        r.workoutDone = false;
-        saveDayRecord(key, r);
-        window.activeExpandedExId = 'all';
-        renderGym();
-        showToast('Session reopened for editing', 'ok');
+        var r = dayRecord(key); r.workoutDone = false; saveDayRecord(key, r); window.activeExpandedExId = 'all'; renderGym(); showToast('Session reopened for editing', 'ok');
       };
     }
     return;
@@ -372,6 +354,10 @@ export function renderGym() {
       + '</div>')
     : '';
 
+  var addExToTodayBtnHTML = !activeSched.isRest
+    ? '<div style="margin:20px 0 16px"><button type="button" class="btn" id="gymAddExTodayBtn" style="width:100%;height:44px;background:#141416;border:1px dashed #1C1C1F;color:#8A8A8E;font-size:15px;font-weight:600;border-radius:12px;cursor:pointer">+ Add Exercise to Today\'s Workout</button></div>'
+    : '';
+
   document.getElementById('content').innerHTML =
     '<div class="gym-page" style="padding-bottom:120px">'
     + dateBannerHTML
@@ -379,6 +365,7 @@ export function renderGym() {
     + sessionBarHTML
     + expandToggleHTML
     + exHTML
+    + addExToTodayBtnHTML
     + finishCardHTML
     + '</div><div id="restTimerWrap" style="pointer-events:none"></div>';
 

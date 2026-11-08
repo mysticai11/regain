@@ -1,8 +1,8 @@
 /* Gym screen events: set logging, rir cycling, cues toggle, and dynamic input handlers */
 
 import { profile } from "../../state.js";
-import { dayRecord, saveDayRecord, sv } from "../../storage.js";
-import { getExerciseData } from "../../data/plan.js";
+import { dayRecord, saveDayRecord, sv, workoutSessionId } from "../../storage.js";
+import { getExerciseData, getActiveProgram } from "../../data/plan.js";
 import { isBodyweightExercise } from "./sets.js";
 import { getSessionMeta, attachCommonGymHeaderEvents } from "./helpers.js";
 import { checkExercisePR, isIsolationLift } from "../../lib/calc.js";
@@ -17,6 +17,8 @@ import { openSwapSheet, openPlateCalculator } from "./swap.js";
 import { startRestTimer } from "./timer.js";
 import { openCustomRoutineSheet, openCustomRoutineManager } from "./plan-editor.js";
 import { attachSetRowSwipeHandlers } from "./swipe-delete.js";
+import { openEditWorkoutSheet } from "./edit-workout.js";
+import { openAddExerciseModal } from "./exercise-modal.js";
 
 export function attachGymEvents(key, rec, session, programDayIndex) {
   attachCommonGymHeaderEvents();
@@ -26,71 +28,45 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
     btn.addEventListener('click', function() { var next = dayRecord(key); next.selectedWorkout = parseInt(btn.dataset.pickWorkout, 10); saveDayRecord(key, next); renderGym(); });
   });
   var volBtn = document.getElementById('volBtn');
-  if (volBtn) volBtn.addEventListener('click', function() {
-    openSheet('<div class="sheet-title">Weekly Volume Summary</div>' + buildVolumeTable() + '<div style="font-size:11px;color:var(--text-muted);margin-top:12px">Target range: 10–18 sets/muscle/week (Pelland et al. 2024 meta-regression)</div>');
-  });
-
+  if (volBtn) volBtn.onclick = function() { openSheet('<div class="sheet-title">Weekly Volume Summary</div>' + buildVolumeTable() + '<div style="font-size:11px;color:var(--text-muted);margin-top:12px">Target range: 10–18 sets/muscle/week (Pelland et al. 2024 meta-regression)</div>'); };
   var addRoutineBtn = document.getElementById('addRoutineExerciseBtn');
-  if (addRoutineBtn) addRoutineBtn.addEventListener('click', function() { openCustomRoutineSheet(key); });
+  if (addRoutineBtn) addRoutineBtn.onclick = function() { openCustomRoutineSheet(key); };
   var editRoutineBtn = document.getElementById('editRoutineBtn');
-  if (editRoutineBtn) editRoutineBtn.addEventListener('click', openCustomRoutineManager);
-
+  if (editRoutineBtn) editRoutineBtn.onclick = openCustomRoutineManager;
   document.querySelectorAll('.remove-routine-btn').forEach(function(btn) {
-    btn.addEventListener('click', async function() {
-      var ok = await confirmDialog({
-        title: 'Remove Exercise?',
-        message: 'Remove this exercise from today\'s routine?',
-        confirmLabel: 'Remove',
-        destructive: true
-      });
+    btn.onclick = async function() {
+      var ok = await confirmDialog({ title: 'Remove Exercise?', message: 'Remove this exercise from today\'s routine?', confirmLabel: 'Remove', destructive: true });
       if (!ok) return;
       var day = new Date(key + 'T00:00:00').getDay();
       profile.customRoutines = profile.customRoutines || {};
       profile.customRoutines[day] = (profile.customRoutines[day] || []).filter(function(ex) { return ex.id !== btn.dataset.exid; });
-      sv('rg_profile', profile);
-      renderGym();
-    });
+      sv('rg_profile', profile); renderGym();
+    };
   });
 
   document.querySelectorAll('.plate-calc-btn').forEach(function(btn) {
     btn.onclick = function() { openPlateCalculator(btn.dataset.exWeight || 60); };
   });
   document.querySelectorAll('.warm-up-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() { openWarmUpSheet(btn.dataset.exname, btn.dataset.exid); });
+    btn.onclick = function() { openWarmUpSheet(btn.dataset.exname, btn.dataset.exid); };
   });
-
   document.querySelectorAll('.ex-note-input').forEach(function(input) {
-    input.addEventListener('change', function() {
+    input.onchange = function() {
       profile.exerciseNotes = profile.exerciseNotes || {};
       profile.exerciseNotes[input.dataset.ex] = input.value.trim();
-      sv('rg_profile', profile);
-      showToast('Cue saved', 'ok');
-    });
+      sv('rg_profile', profile); showToast('Cue saved', 'ok');
+    };
   });
   document.querySelectorAll('.cue-toggle').forEach(function(btn) {
-    btn.addEventListener('click', function() {
+    btn.onclick = function() {
       var inp = document.querySelector('.ex-note-input[data-ex="' + btn.dataset.cueEx + '"]');
-      if (inp) {
-        var isHidden = inp.style.display === 'none';
-        inp.style.display = isHidden ? 'block' : 'none';
-        if (isHidden) inp.focus();
-      }
-    });
+      if (inp) { var isHidden = inp.style.display === 'none'; inp.style.display = isHidden ? 'block' : 'none'; if (isHidden) inp.focus(); }
+    };
   });
-
   var toggleExpandAllBtn = document.getElementById('toggleExpandAllBtn');
-  if (toggleExpandAllBtn) {
-    toggleExpandAllBtn.addEventListener('click', function() {
-      window.activeExpandedExId = (window.activeExpandedExId === 'all') ? null : 'all';
-      renderGym();
-    });
-  }
-
+  if (toggleExpandAllBtn) toggleExpandAllBtn.onclick = function() { window.activeExpandedExId = (window.activeExpandedExId === 'all') ? null : 'all'; renderGym(); };
   document.querySelectorAll('[data-expand-ex]').forEach(function(row) {
-    row.addEventListener('click', function() {
-      window.activeExpandedExId = row.dataset.expandEx;
-      renderGym();
-    });
+    row.onclick = function() { window.activeExpandedExId = row.dataset.expandEx; renderGym(); };
   });
 
   var isLoggingSet = false;
@@ -143,12 +119,9 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
           var nextIncomplete = session.exercises.find(function(item) {
             var actualItemId = (rec.swaps && rec.swaps[item.id]) || item.id;
             var target = (rec.exercisePlannedSets && rec.exercisePlannedSets[actualItemId] != null) ? rec.exercisePlannedSets[actualItemId] : (item.sets || 2);
-            var itemSets = ((rec.workout || {})[actualItemId] || []).filter(Boolean).length;
-            return itemSets < target;
+            return ((rec.workout || {})[actualItemId] || []).filter(Boolean).length < target;
           });
-          if (nextIncomplete) {
-            window.activeExpandedExId = (rec.swaps && rec.swaps[nextIncomplete.id]) || nextIncomplete.id;
-          }
+          if (nextIncomplete) window.activeExpandedExId = (rec.swaps && rec.swaps[nextIncomplete.id]) || nextIncomplete.id;
         }
         sessionMeta.updatedAt = new Date().toISOString();
         var allDone = session.exercises.every(function(ex) {
@@ -192,11 +165,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
     });
   });
 
-  document.querySelectorAll('.effort-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      openEffortSheet(btn.dataset.effortEx, parseInt(btn.dataset.setIndex, 10));
-    });
-  });
+  document.querySelectorAll('.effort-btn').forEach(function(btn) { btn.onclick = function() { openEffortSheet(btn.dataset.effortEx, parseInt(btn.dataset.setIndex, 10)); }; });
 
   // Tap-to-cycle RIR handler (3+ -> 2 -> 1 -> F)
   document.querySelectorAll('[data-cycle-rir]').forEach(function(btn) {
@@ -206,10 +175,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       if (!select) return;
       var cur = select.value === '' ? null : parseInt(select.value, 10);
       var nextVal, nextTxt;
-      if (cur === 3) { nextVal = '2'; nextTxt = 'RIR 2'; }
-      else if (cur === 2) { nextVal = '1'; nextTxt = 'RIR 1'; }
-      else if (cur === 1) { nextVal = '0'; nextTxt = 'F'; }
-      else { nextVal = '3'; nextTxt = '3+'; }
+      if (cur === 3) { nextVal = '2'; nextTxt = 'RIR 2'; } else if (cur === 2) { nextVal = '1'; nextTxt = 'RIR 1'; } else if (cur === 1) { nextVal = '0'; nextTxt = 'F'; } else { nextVal = '3'; nextTxt = '3+'; }
       select.value = nextVal;
       btn.textContent = nextTxt;
       triggerHaptic('selection');
@@ -230,13 +196,11 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
   var flushDraft = function(input) {
     if (!input) return;
     var draftRec = dayRecord(key), id = input.dataset.ex, index = parseInt(input.dataset.setIndex, 10);
-    draftRec.workoutDraft = draftRec.workoutDraft || {};
-    draftRec.workoutDraft[id] = draftRec.workoutDraft[id] || [];
+    draftRec.workoutDraft = draftRec.workoutDraft || {}; draftRec.workoutDraft[id] = draftRec.workoutDraft[id] || [];
     var wInput = document.querySelector('.set-weight[data-ex="' + id + '"][data-set-index="' + index + '"]');
     var rInput = document.querySelector('.set-reps[data-ex="' + id + '"][data-set-index="' + index + '"]');
-    var rawW = (wInput ? wInput.value : '').trim();
+    var rawW = (wInput ? wInput.value : '').trim(), rawR = (rInput ? rInput.value : '').trim();
     var parsedW = rawW === '' ? '' : (rawW.toUpperCase() === 'BW' ? 0 : (parseFloat(rawW.replace(',', '.')) || 0));
-    var rawR = (rInput ? rInput.value : '').trim();
     var parsedR = rawR === '' ? '' : (parseInt(rawR, 10) || '');
     var rirEl = document.querySelector('.set-rir[data-ex="' + id + '"][data-set-index="' + index + '"]');
     var rirVal = (rirEl && rirEl.value !== '') ? parseInt(rirEl.value, 10) : null;
@@ -247,11 +211,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       if (numR > 0) {
         draftRec.workout[id][index] = { weight: numW, reps: numR, rir: rirVal };
         var logBtn = document.querySelector('[data-quick-edit-logged="' + id + '"][data-set-index="' + index + '"]');
-        if (logBtn) {
-          logBtn.dataset.weight = String(numW);
-          logBtn.dataset.reps = String(numR);
-          logBtn.dataset.rir = rirVal != null ? String(rirVal) : '';
-        }
+        if (logBtn) { logBtn.dataset.weight = String(numW); logBtn.dataset.reps = String(numR); logBtn.dataset.rir = rirVal != null ? String(rirVal) : ''; }
       }
     }
     saveDayRecord(key, draftRec, { silent: true });
@@ -275,26 +235,14 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
   });
 
   document.querySelectorAll('.set-weight').forEach(function(input) {
-    input.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        var r = document.querySelector('.set-reps[data-ex="' + input.dataset.ex + '"][data-set-index="' + input.dataset.setIndex + '"]');
-        if (r) { r.focus(); if (r.select) r.select(); }
-      }
-    });
+    input.onkeydown = function(e) { if (e.key === 'Enter') { e.preventDefault(); var r = document.querySelector('.set-reps[data-ex="' + input.dataset.ex + '"][data-set-index="' + input.dataset.setIndex + '"]'); if (r) { r.focus(); if (r.select) r.select(); } } };
   });
   document.querySelectorAll('.set-reps').forEach(function(input) {
-    input.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        var nextW = document.querySelector('.set-weight[data-ex="' + input.dataset.ex + '"][data-set-index="' + (parseInt(input.dataset.setIndex, 10) + 1) + '"]');
-        if (nextW) { nextW.focus(); if (nextW.select) nextW.select(); } else { input.blur(); }
-      }
-    });
+    input.onkeydown = function(e) { if (e.key === 'Enter') { e.preventDefault(); var nextW = document.querySelector('.set-weight[data-ex="' + input.dataset.ex + '"][data-set-index="' + (parseInt(input.dataset.setIndex, 10) + 1) + '"]'); if (nextW) { nextW.focus(); if (nextW.select) nextW.select(); } else { input.blur(); } } };
   });
 
   document.querySelectorAll('[data-add-set]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
+    btn.onclick = function() {
       var draftRec = dayRecord(key), id = btn.dataset.addSet;
       draftRec.workoutDraft = draftRec.workoutDraft || {}; draftRec.workoutDraft[id] = draftRec.workoutDraft[id] || [];
       var sessionEx = (session && session.exercises) ? session.exercises.find(function(it) { return ((draftRec.swaps && draftRec.swaps[it.id]) || it.id) === id || it.id === id; }) : null;
@@ -305,11 +253,11 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
       draftRec.workoutDraft[id][count] = { weight: '', reps: '', rir: null, manual: true };
       draftRec.exercisePlannedSets = draftRec.exercisePlannedSets || {}; draftRec.exercisePlannedSets[id] = count + 1;
       saveDayRecord(key, draftRec, { silent: true }); renderGym();
-    });
+    };
   });
 
   document.querySelectorAll('[data-reduce-set]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
+    btn.onclick = function() {
       var id = btn.dataset.reduceSet, draftRec = dayRecord(key);
       draftRec.exercisePlannedSets = draftRec.exercisePlannedSets || {};
       var sessionEx = (session && session.exercises) ? session.exercises.find(function(it) { return ((draftRec.swaps && draftRec.swaps[it.id]) || it.id) === id || it.id === id; }) : null;
@@ -323,7 +271,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
         }
       }
       saveDayRecord(key, draftRec, { silent: true }); renderGym(); showToast('Planned sets reduced to ' + newP, 'ok');
-    });
+    };
   });
 
   document.querySelectorAll('[data-remove-draft],[data-remove-extra-set]').forEach(function(btn) {
@@ -345,7 +293,7 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
   });
 
   document.querySelectorAll('.swap-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() { openSwapSheet(btn.dataset.swapOrig, btn.dataset.swapCurr, btn.dataset.muscle, key); });
+    btn.onclick = function() { openSwapSheet(btn.dataset.swapOrig, btn.dataset.swapCurr, btn.dataset.muscle, key); };
   });
 
   document.querySelectorAll('[data-quick-edit-logged]').forEach(function(btn) {
@@ -359,25 +307,74 @@ export function attachGymEvents(key, rec, session, programDayIndex) {
   });
 
   document.querySelectorAll('[data-delete-set]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
+    btn.onclick = function() {
       var cur = dayRecord(key), id = btn.dataset.deleteSet, idx = parseInt(btn.dataset.setIndex, 10);
       if (cur.workout && cur.workout[id]) { cur.workout[id].splice(idx, 1); cur.workoutDone = false; saveDayRecord(key, cur); renderGym(); triggerHaptic('light'); }
-    });
+    };
   });
 
   document.querySelectorAll('[data-ex-menu]').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
       var exId = btn.dataset.exMenu, exName = btn.dataset.exName || 'Exercise';
-      openActionMenuSheet(exName, [{
-        label: 'Skip today', destructive: true,
-        action: function() {
-          var cur = dayRecord(key); cur.skippedExercises = cur.skippedExercises || {}; cur.skippedExercises[exId] = true; saveDayRecord(key, cur); renderGym();
-          showUndoToast(exName + ' skipped today', function() { var r = dayRecord(key); if (r.skippedExercises) delete r.skippedExercises[exId]; saveDayRecord(key, r); renderGym(); });
+      openActionMenuSheet(exName, [
+        {
+          label: 'Edit full workout',
+          action: function() { openEditWorkoutSheet(workoutSessionId(key, programDayIndex)); }
+        },
+        {
+          label: 'Remove from today\'s workout',
+          destructive: true,
+          action: async function() {
+            var ok = await confirmDialog({ title: 'Remove Exercise?', message: 'Remove ' + exName + ' from today\'s workout?', confirmLabel: 'Remove', destructive: true });
+            if (ok) {
+              var cur = dayRecord(key);
+              cur.skippedExercises = cur.skippedExercises || {};
+              cur.skippedExercises[exId] = true;
+              if (cur.workout && cur.workout[exId]) delete cur.workout[exId];
+              saveDayRecord(key, cur); renderGym(); showToast(exName + ' removed from today', 'ok');
+            }
+          }
+        },
+        {
+          label: 'Skip today',
+          destructive: true,
+          action: function() {
+            var cur = dayRecord(key); cur.skippedExercises = cur.skippedExercises || {}; cur.skippedExercises[exId] = true; saveDayRecord(key, cur); renderGym();
+            showUndoToast(exName + ' skipped today', function() { var r = dayRecord(key); if (r.skippedExercises) delete r.skippedExercises[exId]; saveDayRecord(key, r); renderGym(); });
+          }
         }
-      }]);
+      ]);
     });
   });
+
+  var addTodayExBtn = document.getElementById('gymAddExTodayBtn');
+  if (addTodayExBtn) {
+    addTodayExBtn.onclick = function() {
+      openAddExerciseModal(function(newEx) {
+        if (!newEx) return;
+        var r = dayRecord(key); r.workout = r.workout || {};
+        var targetSets = parseInt(newEx.sets, 10) || 2;
+        r.exercisePlannedSets = r.exercisePlannedSets || {};
+        r.exercisePlannedSets[newEx.id] = targetSets;
+        if (r.skippedExercises && r.skippedExercises[newEx.id]) delete r.skippedExercises[newEx.id];
+        if (typeof profile !== 'undefined' && profile) {
+          profile.activeSplitData = profile.activeSplitData || JSON.parse(JSON.stringify(getActiveProgram()));
+          if (programDayIndex != null && profile.activeSplitData[programDayIndex]) {
+            var exists = profile.activeSplitData[programDayIndex].exercises.some(function(e) { return e.id === newEx.id; });
+            if (!exists) {
+              profile.activeSplitData[programDayIndex].exercises.push({
+                id: newEx.id, name: newEx.name, muscle: newEx.muscle || 'other', sets: targetSets,
+                reps: newEx.reps || '8–12', rir: '1–2', rest: newEx.rest || 90, type: newEx.type || 'compound'
+              });
+              sv('rg_profile', profile);
+            }
+          }
+        }
+        saveDayRecord(key, r); renderGym(); showToast(newEx.name + ' added to workout', 'ok');
+      });
+    };
+  }
 
   document.querySelectorAll('[data-unskip-exercise]').forEach(function(btn) {
     btn.addEventListener('click', function() {

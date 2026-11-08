@@ -1,7 +1,9 @@
 /* Gym edit workout sheet: edit logged sets and session details */
 
 import { dayRecord, saveDayRecord, getWorkoutSession, saveWorkoutSession, deleteWorkoutSession, workoutSessionStore, sv, WORKOUT_SESSIONS_KEY } from "../../storage.js";
-import { getExerciseData } from "../../data/plan.js";
+import { getExerciseData, isBodyweightExercise, getActiveProgram } from "../../data/plan.js";
+import { getAllKnownExercises } from "../../data/exercises.js";
+import { openAddExerciseModal } from "./exercise-modal.js";
 import { esc, todayKey } from "../../lib/format.js";
 import { showToast } from "../../components/toast.js";
 import { confirmDialog, promptDialog } from "../../components/dialog.js";
@@ -10,8 +12,29 @@ export function openEditWorkoutSheet(sessionId) {
   var store = workoutSessionStore();
   var session = store.sessions[sessionId];
   if (!session) {
-    showToast('Session not found', 'warn');
-    return;
+    var match = String(sessionId || '').match(/^workout_session_([0-9]{4}-[0-9]{2}-[0-9]{2})_(.*)$/);
+    if (match) {
+      var dKey = match[1], pIdx = parseInt(match[2], 10);
+      var prog = getActiveProgram() || [];
+      var planDay = (!isNaN(pIdx) && prog[pIdx]) ? prog[pIdx] : (prog[0] || { label: 'Workout', exercises: [] });
+      session = {
+        id: sessionId,
+        dayKey: dKey,
+        programDay: !isNaN(pIdx) ? pIdx : 0,
+        programLabel: planDay.label || 'Workout',
+        day: (!isNaN(pIdx) ? pIdx : 0) + 1,
+        week: 1,
+        exercises: (planDay.exercises || []).map(function(e) {
+          return { id: e.id, name: e.name, sets: Array.from({ length: e.sets || 2 }, function() { return { weight: 0, reps: 0, rir: 2 }; }) };
+        }),
+        durationMinutes: 45,
+        duration_sec: 2700
+      };
+      store.sessions[sessionId] = session;
+    } else {
+      showToast('Session not found', 'warn');
+      return;
+    }
   }
   var rec = session.dayKey ? dayRecord(session.dayKey) : { workout: {} };
   var currentExercises = (session.exercises || []).map(function(ex) {
@@ -19,9 +42,9 @@ export function openEditWorkoutSheet(sessionId) {
     return {
       id: ex.id,
       name: (getExerciseData(ex.id) || {}).name || ex.name || ex.id,
-      sets: sets.map(function(s) {
-        return s ? { weight: s.weight, reps: s.reps, rir: s.rir } : null;
-      }).filter(Boolean)
+      sets: Array.isArray(sets) ? sets.map(function(s) {
+        return s ? { weight: s.weight != null ? s.weight : 0, reps: s.reps != null ? s.reps : 0, rir: s.rir } : null;
+      }).filter(Boolean) : []
     };
   });
 
@@ -63,7 +86,10 @@ export function openEditWorkoutSheet(sessionId) {
       return '<div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:12px">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
           + '<div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text)">' + esc(ex.name) + '</div>'
-          + '<button type="button" class="btn-ghost" style="font-size:11px;color:var(--rust-light);cursor:pointer;padding:2px 6px" data-remove-ex-idx="' + exIdx + '">Remove</button>'
+          + '<div style="display:flex;align-items:center;gap:6px">'
+            + '<button type="button" class="btn-ghost" style="font-size:11px;color:var(--text-secondary);cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid rgba(255,255,255,0.1)" data-edit-ex-idx="' + exIdx + '">Edit</button>'
+            + '<button type="button" class="btn-ghost" style="font-size:11px;color:var(--rust-light);cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid rgba(239,68,68,0.2)" data-remove-ex-idx="' + exIdx + '">Remove</button>'
+          + '</div>'
         + '</div>'
         + '<div style="display:grid;grid-template-columns:30px 1fr 1fr 84px 30px;gap:8px;padding:0 0 4px 0;margin-bottom:4px;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;text-align:center;letter-spacing:0.06em">'
           + '<span>#</span><span>' + (isBW ? '+KG (BW)' : 'KG') + '</span><span>REPS</span><span>EFFORT</span><span></span>'
@@ -136,7 +162,8 @@ export function openEditWorkoutSheet(sessionId) {
       delSessionBtn.onclick = function() {
         overlay.remove();
         deleteWorkoutSession(sessionId);
-        renderProgressSimple('lifts');
+        if (typeof window.renderGym === 'function') window.renderGym();
+        if (typeof window.renderProgressSimple === 'function') window.renderProgressSimple('lifts');
       };
     }
 
@@ -162,6 +189,12 @@ export function openEditWorkoutSheet(sessionId) {
       var oldDate = session.dayKey;
 
       rec.workout = rec.workout || {};
+      var currentExIdMap = {};
+      currentExercises.forEach(function(ex) { currentExIdMap[ex.id] = true; });
+      Object.keys(rec.workout).forEach(function(k) {
+        if (!currentExIdMap[k]) delete rec.workout[k];
+      });
+
       session.exercises = currentExercises.map(function(ex) {
         rec.workout[ex.id] = ex.sets;
         return { id: ex.id, name: ex.name, sets: ex.sets };
@@ -169,12 +202,10 @@ export function openEditWorkoutSheet(sessionId) {
 
       if (newDate && newDate !== oldDate) {
         session.dayKey = newDate;
-        // Transfer to new day record
         var newRec = dayRecord(newDate);
         newRec.workout = rec.workout;
         newRec.workoutDone = true;
         saveDayRecord(newDate, newRec);
-        // Clear from old day record if no workouts left
         if (oldDate) {
           var oldRec = dayRecord(oldDate);
           oldRec.workout = {};
@@ -211,7 +242,8 @@ export function openEditWorkoutSheet(sessionId) {
       sv(WORKOUT_SESSIONS_KEY, store);
       overlay.remove();
       showToast('Workout changes saved', 'ok');
-      renderProgressSimple('lifts');
+      if (typeof window.renderGym === 'function') window.renderGym();
+      if (typeof window.renderProgressSimple === 'function') window.renderProgressSimple('lifts');
     };
 
     overlay.querySelectorAll('[data-del-ex-idx]').forEach(function(btn) {
@@ -221,6 +253,27 @@ export function openEditWorkoutSheet(sessionId) {
         var sI = parseInt(btn.dataset.delSetIdx, 10);
         currentExercises[eI].sets.splice(sI, 1);
         renderModalBody();
+      };
+    });
+
+    overlay.querySelectorAll('[data-edit-ex-idx]').forEach(function(btn) {
+      btn.onclick = async function() {
+        captureCurrentInputs();
+        var eI = parseInt(btn.dataset.editExIdx, 10);
+        var curEx = currentExercises[eI];
+        var newName = await promptDialog({
+          title: 'Edit Exercise',
+          message: 'Update exercise name or type replacement:',
+          defaultValue: curEx.name,
+          confirmLabel: 'Save'
+        });
+        if (newName && newName.trim() && newName.trim() !== curEx.name) {
+          curEx.name = newName.trim();
+          var all = getAllKnownExercises();
+          var found = all.find(function(e) { return e.name.toLowerCase() === curEx.name.toLowerCase(); });
+          if (found) curEx.id = found.id;
+          renderModalBody();
+        }
       };
     });
 
@@ -255,25 +308,22 @@ export function openEditWorkoutSheet(sessionId) {
 
     var addExBtn = overlay.querySelector('#addExToWorkoutBtn');
     if (addExBtn) {
-      addExBtn.onclick = async function() {
+      addExBtn.onclick = function() {
         captureCurrentInputs();
-        var allEx = Object.keys(EXERCISE_LIBRARY || {}).map(function(k){ return EXERCISE_LIBRARY[k]; });
-        var chosenName = await promptDialog({
-          title: 'Add Exercise',
-          message: 'Enter exercise name to add (e.g. Barbell Squat, Pull-ups, Lateral Raises):',
-          placeholder: 'Exercise name',
-          confirmLabel: 'Add'
+        openAddExerciseModal(function(newEx) {
+          if (!newEx) return;
+          var numSets = parseInt(newEx.sets, 10) || 2;
+          var setsArr = [];
+          for (var i = 0; i < numSets; i++) {
+            setsArr.push({ weight: 20, reps: 10, rir: 2 });
+          }
+          currentExercises.push({
+            id: newEx.id,
+            name: newEx.name,
+            sets: setsArr
+          });
+          renderModalBody();
         });
-        if (!chosenName || !chosenName.trim()) return;
-        chosenName = chosenName.trim();
-        var found = allEx.find(function(e){ return e.name.toLowerCase() === chosenName.toLowerCase(); });
-        var newId = found ? found.id : ('custom_' + chosenName.toLowerCase().replace(/\s+/g, '_'));
-        currentExercises.push({
-          id: newId,
-          name: found ? found.name : chosenName,
-          sets: [{ weight: 20, reps: 10, rir: 2 }]
-        });
-        renderModalBody();
       };
     }
   }
