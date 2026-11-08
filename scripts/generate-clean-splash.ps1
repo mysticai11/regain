@@ -29,3 +29,4 @@ foreach ($t in $targets) {
   $bmp.Dispose()
   Write-Output "Generated clean splash: $targetPath ($($t.w)x$($t.h))"
 }
+

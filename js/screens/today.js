@@ -13,10 +13,11 @@ import { buildGauge, statusPill, macroBar } from "../components/gauge.js";
 import { openFoodSearch, openCustomFoodBuilder, openRecipeBuilder, openCustomFoodsManager, openMealEditor, openEditItemSheet } from "./today/food-modal.js";
 import { addQuickFood, getStaplesShelfHTML, getMergedStaples, openPortionSheet, buildWeekDotRowHTML, openWorkoutOverrideSheet, buildCalRingHTML, buildWeightTrendChip, buildBackupNudgeHTML, bindBackupNudgeEvents, triggerTodayAnimations } from "./today/widgets.js";
 import { buildCatchupCardHTML, bindCatchupCardEvents } from "./today/catchup-card.js?v=26";
+import { buildCollapsibleFoodLogHTML, bindFoodLogCardEvents } from "./today/food-log-card.js?v=26";
 import { openSettings } from "./settings.js";
 import { sessionSetCount } from "../lib/schedule.js";
 import { setGestureCooldown, claimGestureOwner, releaseGestureOwner } from "../lib/gesture.js";
-export * from "./today/food-modal.js"; export * from "./today/widgets.js";
+export * from "./today/food-modal.js"; export * from "./today/widgets.js"; export * from "./today/food-log-card.js";
 
 export function renderTodaySimple() {
   window.renderTodaySimple = renderTodaySimple;
@@ -126,23 +127,7 @@ export function renderTodaySimple() {
         + '</div></div>';
     })()
     + getStaplesShelfHTML()
-    + '<div style="background:#141416;border:1px solid #222222;border-radius:16px;padding:16px;margin-top:28px;margin-bottom:40px">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
-    + '<span style="font-size:17px;font-weight:600;color:#F5F5F4">' + (activeDateKey === key ? "Today's Food" : "Food Log") + '</span>'
-    + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.08em;text-transform:uppercase;font-variant-numeric:tabular-nums">' + (rec.extra ? rec.extra.length : 0) + (rec.extra && rec.extra.length === 1 ? ' item' : ' items') + '</span>'
-    + '</div>'
-    + (rec.extra && rec.extra.length
-      ? ('<div>' + rec.extra.map(function (item, i) {
-        var kc = Math.round(item.kcal * (item.servings || 1));
-        var pr = Math.round((item.protein || 0) * (item.servings || 1));
-        return '<div class="food-log-row" data-gesture-owner="food-row" data-food-index="' + i + '" style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1C1C1F;padding:14px 0;min-height:48px;gap:12px;touch-action:pan-y;cursor:pointer">'
-          + '<span style="font-size:15px;font-weight:500;color:#F5F5F4;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;line-height:1.3">' + esc(item.name) + '</span>'
-          + '<span style="font-size:15px;color:#8A8A8E;font-variant-numeric:tabular-nums;flex-shrink:0">' + kc + ' kcal · ' + pr + ' g</span>'
-          + '</div>';
-      }).join('') + '</div>'
-        + '<button type="button" class="btn-text-action" id="addFoodBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:16px 0 4px;min-height:48px;cursor:pointer;display:inline-flex;align-items:center">+ Add food</button>')
-      : '<div style="padding:16px 0 12px;text-align:left"><div style="font-size:15px;color:#55555A;margin-bottom:12px">No food logged for this day.</div><button type="button" class="btn btn-primary" id="addFoodBtn" style="min-height:48px;height:48px;padding:0 20px;cursor:pointer">+ Add food</button></div>')
-    + '</div>';
+    + buildCollapsibleFoodLogHTML({ key: key, activeDateKey: activeDateKey, rec: rec });
 
   var settingsBtn = document.getElementById('settingsBtn');
   if (settingsBtn) settingsBtn.onclick = function(e) { if (e && e.stopPropagation) e.stopPropagation(); openSettings(); };
@@ -308,9 +293,6 @@ export function renderTodaySimple() {
     };
   });
 
-  var addFoodBtn = document.getElementById('addFoodBtn');
-  if (addFoodBtn) addFoodBtn.onclick = function () { openFoodSearch(function (food, s) { addFoodToDay(activeDateKey, food, s); }); };
-
   var deleteFoodEntry = function(idx, row) {
     var current = dayRecord(activeDateKey);
     if (!current.extra || isNaN(idx) || !current.extra[idx]) return;
@@ -331,29 +313,11 @@ export function renderTodaySimple() {
     } else { performDel(); }
   };
 
-  document.querySelectorAll('.food-delete').forEach(function (btn) {
-    btn.onclick = function (e) {
-      if (e && e.stopPropagation) e.stopPropagation();
-      deleteFoodEntry(parseInt(btn.dataset.foodIndex, 10), btn.closest('.food-log-row'));
-    };
-  });
-
-  document.querySelectorAll('.food-log-row').forEach(function (row) {
-    var startX = 0, deltaX = 0, idx = parseInt(row.dataset.foodIndex, 10);
-    row.addEventListener('touchstart', function (e) {
-      claimGestureOwner('food-row');
-      if (e.changedTouches && e.changedTouches[0]) { startX = e.changedTouches[0].clientX; deltaX = 0; }
-    }, { passive: true });
-    row.addEventListener('touchmove', function (e) {
-      if (!e.changedTouches || !e.changedTouches[0]) return;
-      deltaX = e.changedTouches[0].clientX - startX;
-      if (deltaX < 0) row.style.transform = 'translateX(' + Math.max(deltaX, -80) + 'px)';
-    }, { passive: true });
-    row.addEventListener('touchend', function () {
-      releaseGestureOwner(); setGestureCooldown(400);
-      if (deltaX < -60) deleteFoodEntry(idx, row);
-      else row.style.transform = '';
-    }, { passive: true });
+  bindFoodLogCardEvents({
+    activeDateKey: activeDateKey,
+    openFoodSearch: openFoodSearch,
+    addFoodToDay: addFoodToDay,
+    deleteFoodEntry: deleteFoodEntry
   });
 }
 
@@ -364,6 +328,7 @@ export function addFoodToDay(key, food, servings) {
   rec.extra = rec.extra || [];
   rec.extra.push({ name: food.name + (servings !== 1 ? ' ×' + servings : ''), kcal: m.kcal, protein: m.protein, carbs: m.carbs, fat: m.fat, servings: 1 });
   saveDayRecord(key, rec); addRecent(food.name, m.kcal, m.protein, m.carbs, m.fat);
+  sv('rg_food_log_collapsed', false);
   if (profile) { profile.xp = (profile.xp || 0) + 5; sv('rg_profile', profile); }
   var newTot = getDayTotals(key), reached = (prevTot.kcal < dayTargets.kcal && newTot.kcal >= dayTargets.kcal);
   triggerHaptic(reached ? 'success' : 'light');

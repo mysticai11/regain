@@ -45,29 +45,29 @@ export function buildCatchupCardHTML(currentDateKey) {
 
   var previewHTML = spreadPlan.preview && spreadPlan.preview.length
     ? ('<div id="catchupInlinePreview" style="display:none;background:var(--bg);border-radius:10px;padding:8px 12px;margin-top:10px;font-size:11px;color:var(--text-secondary);line-height:1.4">'
-      + spreadPlan.preview.map(function(line) { return '<div>• ' + esc(line) + '</div>'; }).join('')
+      + spreadPlan.preview.map(function (line) { return '<div>• ' + esc(line) + '</div>'; }).join('')
       + '</div>')
     : '';
 
   return '<div class="catchup-card" style="background:var(--surface);border:1px solid var(--hairline);border-radius:20px;padding:16px;margin-bottom:20px">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-      + '<span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">Missed ' + esc(missedDayFormatted) + ' · ' + esc(missedName) + '</span>'
-      + fullBodyBadge
+    + '<span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">Missed ' + esc(missedDayFormatted) + ' · ' + esc(missedName) + '</span>'
+    + fullBodyBadge
     + '</div>'
     + '<div style="font-size:17px;font-weight:600;color:var(--text);line-height:1.2;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(planTitle) + '</div>'
     + '<div style="font-size:var(--fs-13);color:var(--text-secondary);margin-bottom:12px">Restore volume as +1 set on remaining days</div>'
     + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">'
-      + '<div style="display:flex;align-items:center;gap:8px">'
-        + '<button type="button" class="btn btn-primary" id="catchupSpreadBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 14px;border-radius:10px;background:var(--lime);color:var(--bg);font-size:var(--fs-13);font-weight:600;border:none;cursor:pointer">Spread</button>'
-        + (slidePlan.valid
-          ? ('<button type="button" class="btn" id="catchupSlideBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 12px;border-radius:10px;background:var(--surface-raised);color:var(--text);font-size:var(--fs-13);font-weight:600;border:1px solid var(--hairline);cursor:pointer">Slide schedule</button>')
-          : ('<button type="button" class="btn" disabled style="height:36px;padding:0 12px;border-radius:10px;background:var(--surface-raised);color:var(--text-muted);font-size:var(--fs-13);font-weight:600;border:1px solid var(--hairline);cursor:not-allowed">Slide</button>'))
-      + '</div>'
-      + '<div style="display:flex;align-items:center;gap:12px">'
-        + (spreadPlan.preview && spreadPlan.preview.length ? '<button type="button" id="catchupTogglePlanBtn" style="background:none;border:none;color:var(--lime);font-size:var(--fs-13);font-weight:600;cursor:pointer;padding:0">See plan ▾</button>' : '')
-        + '<button type="button" id="catchupLateLogBtn" data-missed-date="' + missedDate + '" style="background:none;border:none;color:var(--text-secondary);font-size:var(--fs-13);font-weight:500;cursor:pointer;padding:0">Log it late</button>'
-        + '<button type="button" id="catchupSkipBtn" data-missed-date="' + missedDate + '" style="background:none;border:none;color:var(--text-secondary);font-size:var(--fs-13);font-weight:500;cursor:pointer;padding:0">Skip</button>'
-      + '</div>'
+    + '<div style="display:flex;align-items:center;gap:8px">'
+    + '<button type="button" class="btn btn-primary" id="catchupSpreadBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 14px;border-radius:10px;background:var(--lime);color:var(--bg);font-size:var(--fs-13);font-weight:600;border:none;cursor:pointer">Spread</button>'
+    + (slidePlan.valid
+      ? ('<button type="button" class="btn" id="catchupSlideBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 12px;border-radius:10px;background:var(--surface-raised);color:var(--text);font-size:var(--fs-13);font-weight:600;border:1px solid var(--hairline);cursor:pointer">Slide schedule</button>')
+      : ('<button type="button" class="btn" disabled style="height:36px;padding:0 12px;border-radius:10px;background:var(--surface-raised);color:var(--text-muted);font-size:var(--fs-13);font-weight:600;border:1px solid var(--hairline);cursor:not-allowed">Slide</button>'))
+    + '</div>'
+    + '<div style="display:flex;align-items:center;gap:12px">'
+    + (spreadPlan.preview && spreadPlan.preview.length ? '<button type="button" id="catchupTogglePlanBtn" style="background:none;border:none;color:var(--lime);font-size:var(--fs-13);font-weight:600;cursor:pointer;padding:0">See plan ▾</button>' : '')
+    + '<button type="button" id="catchupLateLogBtn" data-missed-date="' + missedDate + '" style="background:none;border:none;color:var(--text-secondary);font-size:var(--fs-13);font-weight:500;cursor:pointer;padding:0">Log it late</button>'
+    + '<button type="button" id="catchupSkipBtn" data-missed-date="' + missedDate + '" style="background:none;border:none;color:var(--text-secondary);font-size:var(--fs-13);font-weight:500;cursor:pointer;padding:0">Skip</button>'
+    + '</div>'
     + '</div>'
     + previewHTML
     + '</div>';
@@ -78,7 +78,7 @@ export function bindCatchupCardEvents(container, refreshCallback) {
 
   var togglePlanBtn = container.querySelector('#catchupTogglePlanBtn');
   if (togglePlanBtn) {
-    togglePlanBtn.onclick = function() {
+    togglePlanBtn.onclick = function () {
       var prev = container.querySelector('#catchupInlinePreview');
       if (prev) {
         var isHidden = prev.style.display === 'none';
@@ -90,7 +90,7 @@ export function bindCatchupCardEvents(container, refreshCallback) {
 
   var reviewBtn = container.querySelector('#catchupReviewPlanBtn');
   if (reviewBtn) {
-    reviewBtn.onclick = function() {
+    reviewBtn.onclick = function () {
       triggerHaptic();
       openThisWeeksPlanSheet({
         currentDateKey: todayKey(),
@@ -159,7 +159,7 @@ export function bindCatchupCardEvents(container, refreshCallback) {
       var newOverrides = Object.assign({}, prevOverrides, spreadPlan.assignments);
       saveWeekOverrides(newOverrides);
       setCatchupDecision(mDate, 'spread');
-      Object.keys(spreadPlan.assignments).forEach(function(dKey) {
+      Object.keys(spreadPlan.assignments).forEach(function (dKey) {
         var rec = dayRecord(dKey); rec.isMerged = true; rec.catchupFrom = mDate; saveDayRecord(dKey, rec, { silent: true });
       });
 
@@ -169,7 +169,7 @@ export function bindCatchupCardEvents(container, refreshCallback) {
         saveWeekOverrides(prevOverrides);
         if (prevDecision !== undefined) setCatchupDecision(mDate, prevDecision);
         else { var decs = getCatchupDecisions(); delete decs[mDate]; saveWeekOverrides(prevOverrides); }
-        Object.keys(spreadPlan.assignments).forEach(function(dKey) {
+        Object.keys(spreadPlan.assignments).forEach(function (dKey) {
           var r = dayRecord(dKey); delete r.isMerged; delete r.catchupFrom; saveDayRecord(dKey, r, { silent: true });
         });
         if (typeof refreshCallback === 'function') refreshCallback();
@@ -198,14 +198,14 @@ export function openMergePreviewSheet(todayDateKey, missedDateKey, onCompleted) 
     var addedRowsHTML = addedItems.map(function (ex, idx) {
       return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--hairline)">'
         + '<div style="flex:1;min-width:0;padding-right:8px">'
-          + '<div style="font-size:15px;font-weight:600;color:var(--text)">' + esc(ex.name) + '</div>'
-          + '<div style="font-size:11px;color:var(--lime);margin-top:2px">Catch-up · ' + (ex.muscle || '') + '</div>'
+        + '<div style="font-size:15px;font-weight:600;color:var(--text)">' + esc(ex.name) + '</div>'
+        + '<div style="font-size:11px;color:var(--lime);margin-top:2px">Catch-up · ' + (ex.muscle || '') + '</div>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:8px">'
-          + '<button type="button" class="btn set-step-down" data-ex-idx="' + idx + '" style="width:28px;height:28px;border-radius:6px;background:var(--surface-raised);color:var(--text);border:1px solid var(--hairline);font-size:15px;font-weight:600;cursor:pointer;padding:0">-</button>'
-          + '<span style="font-size:15px;font-weight:600;color:var(--text);width:24px;text-align:center;font-variant-numeric:tabular-nums">' + ex.sets + '</span>'
-          + '<button type="button" class="btn set-step-up" data-ex-idx="' + idx + '" style="width:28px;height:28px;border-radius:6px;background:var(--surface-raised);color:var(--text);border:1px solid var(--hairline);font-size:15px;font-weight:600;cursor:pointer;padding:0">+</button>'
-          + '<button type="button" class="btn set-step-remove" data-ex-idx="' + idx + '" style="background:none;border:none;color:var(--danger);font-size:11px;font-weight:600;cursor:pointer;padding:4px 6px">Remove</button>'
+        + '<button type="button" class="btn set-step-down" data-ex-idx="' + idx + '" style="width:28px;height:28px;border-radius:6px;background:var(--surface-raised);color:var(--text);border:1px solid var(--hairline);font-size:15px;font-weight:600;cursor:pointer;padding:0">-</button>'
+        + '<span style="font-size:15px;font-weight:600;color:var(--text);width:24px;text-align:center;font-variant-numeric:tabular-nums">' + ex.sets + '</span>'
+        + '<button type="button" class="btn set-step-up" data-ex-idx="' + idx + '" style="width:28px;height:28px;border-radius:6px;background:var(--surface-raised);color:var(--text);border:1px solid var(--hairline);font-size:15px;font-weight:600;cursor:pointer;padding:0">+</button>'
+        + '<button type="button" class="btn set-step-remove" data-ex-idx="' + idx + '" style="background:none;border:none;color:var(--danger);font-size:11px;font-weight:600;cursor:pointer;padding:4px 6px">Remove</button>'
         + '</div></div>';
     }).join('');
 
@@ -215,13 +215,13 @@ export function openMergePreviewSheet(todayDateKey, missedDateKey, onCompleted) 
     return '<div class="sheet" style="background:var(--surface);border-radius:28px 28px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%;max-height:85vh;overflow-y:auto">'
       + '<div class="sheet-handle"></div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
-        + '<span style="font-size:28px;font-weight:600;color:var(--text)">Merged Workout</span>'
-        + '<button type="button" id="closeMergeSheetBtn" style="background:none;border:none;color:var(--text-secondary);font-size:15px;cursor:pointer;padding:4px 0">Cancel</button>'
+      + '<span style="font-size:28px;font-weight:600;color:var(--text)">Merged Workout</span>'
+      + '<button type="button" id="closeMergeSheetBtn" style="background:none;border:none;color:var(--text-secondary);font-size:15px;cursor:pointer;padding:4px 0">Cancel</button>'
       + '</div>'
       + '<div style="font-size:15px;color:var(--text-secondary);line-height:1.4;margin-bottom:16px">Adding key volume from <b>' + esc(canonicalSessionName(mPlan)) + '</b> to <b>' + esc(canonicalSessionName(tPlan)) + '</b>.</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface-raised);border-radius:12px;padding:12px 14px;margin-bottom:16px">'
-        + '<span style="font-size:15px;font-weight:600;color:var(--text)">Total Volume</span>'
-        + '<span style="font-size:15px;font-weight:600;color:var(--lime);font-variant-numeric:tabular-nums">' + totalSets + ' sets · ~' + estMin + ' min</span>'
+      + '<span style="font-size:15px;font-weight:600;color:var(--text)">Total Volume</span>'
+      + '<span style="font-size:15px;font-weight:600;color:var(--lime);font-variant-numeric:tabular-nums">' + totalSets + ' sets · ~' + estMin + ' min</span>'
       + '</div>'
       + '<div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Added Volume (Adjustable)</div>'
       + '<div style="margin-bottom:12px">' + addedRowsHTML + '</div>' + droppedHTML
