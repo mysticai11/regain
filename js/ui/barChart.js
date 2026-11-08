@@ -61,12 +61,14 @@ export function buildNutritionBarChartHTML({
 
   // SVG Bars markup
   var barsHTML = geom.bars.map(function(b) {
-    var strokeAttr = b.isToday ? 'stroke="#FFFFFF" stroke-width="1.5"' : 'stroke="none"';
-    var todayDot = b.isToday ? '<circle cx="' + b.centerX + '" cy="116" r="1.5" fill="#FFFFFF"/>' : '';
+    var isToday = b.isToday;
+    var barFill = b.value > 0 ? b.fill : 'rgba(255,255,255,0.08)';
+    var strokeAttr = (isToday && b.value > 0) ? 'stroke="#FFFFFF" stroke-width="1.5"' : 'stroke="none"';
+    var todayDot = isToday ? '<circle cx="' + b.centerX + '" cy="115" r="1.5" fill="#FFFFFF"/>' : '';
 
     return '<g class="bar-group" data-key="' + esc(b.key) + '" data-val="' + b.value + '" data-letter="' + b.letter + '">'
-      + '<rect x="' + b.x + '" y="' + b.y + '" width="' + b.width + '" height="' + b.height + '" rx="4" ry="4" fill="' + b.fill + '" ' + strokeAttr + ' style="transition:transform 150ms ease"/>'
-      + '<text x="' + b.centerX + '" y="112" fill="' + (b.isToday ? '#F5F5F4' : '#8A8A8E') + '" font-size="11" font-weight="600" text-anchor="middle" font-family="inherit">' + b.letter + '</text>'
+      + '<rect x="' + b.x + '" y="' + b.y + '" width="' + b.width + '" height="' + b.height + '" rx="4" ry="4" fill="' + barFill + '" ' + strokeAttr + ' style="transition:transform 150ms ease"/>'
+      + '<text x="' + b.centerX + '" y="108" fill="' + (isToday ? '#F5F5F4' : '#8A8A8E') + '" font-size="11" font-weight="600" text-anchor="middle" font-family="inherit">' + b.letter + '</text>'
       + todayDot
       + '</g>';
   }).join('');

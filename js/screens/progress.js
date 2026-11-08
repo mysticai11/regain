@@ -55,19 +55,22 @@ export function renderProgressSimple(mode, historySubTab) {
 
     var weightPlot=document.getElementById('weightPlot');
     if(weightPlot) {
-      weightPlot.innerHTML = progressPlot(weightValues, (profile && profile.targetWeight) || null, 'kg', false);
       if (weightValues && weightValues.length && typeof document.createElementNS === 'function' && typeof weightPlot.appendChild === 'function') {
-        var chartData = weightValues.map(function(w) {
-          return { t: new Date(w.dateKey + 'T12:00:00').getTime(), v: Number(w.value), label: w.dateKey };
+        var firstVal = Number(weightValues[0].rawWeight || weightValues[0].value), lastVal = Number(weightValues[weightValues.length - 1].rawWeight || weightValues[weightValues.length - 1].value);
+        var delta = lastVal - firstVal, deltaSign = delta > 0 ? '+' : '', deltaFormatted = weightValues.length > 1 ? (delta === 0 ? '0.0 kg' : (deltaSign + delta.toFixed(1) + ' kg')) : 'First entry';
+        var headerHTML = '<div class="chart-header" style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'
+          + '<span class="chart-readout tabnum" style="font-size:15px;color:#F5F5F4">' + esc(deltaFormatted) + ' <span style="font-size:11px;color:#8A8A8E;letter-spacing:0.04em">' + (weightValues.length > 1 ? 'change since start' : '') + '</span></span>'
+          + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + weightValues.length + ' ' + (weightValues.length === 1 ? 'entry' : 'entries') + '</span></div>';
+        weightPlot.innerHTML = headerHTML + '<div id="weightLineCanvas" style="position:relative;width:100%;height:180px"></div>';
+        var canvas = document.getElementById('weightLineCanvas');
+        var chartData = weightValues.map(function(w, idx) {
+          var tMs = w.createdAt ? new Date(w.createdAt).getTime() : new Date((w.dateKey || todayKey()) + 'T12:00:00').getTime();
+          if (isNaN(tMs)) tMs = Date.now() + idx * 1000;
+          return { t: tMs + idx * 1000, v: Number(w.value), label: w.dateKey };
         });
-        renderLineChart({
-          container: weightPlot,
-          data: chartData,
-          height: 180,
-          unit: 'kg',
-          ariaLabel: 'Body weight history'
-        });
+        renderLineChart({ container: canvas || weightPlot, data: chartData, height: 180, unit: 'kg', ariaLabel: 'Body weight history' });
       } else {
+        weightPlot.innerHTML = progressPlot(weightValues, (profile && profile.targetWeight) || null, 'kg', false);
         setupChartInteractions(weightPlot);
       }
     }
@@ -188,30 +191,13 @@ export function renderProgressSimple(mode, historySubTab) {
     if(liftMeta) liftMeta.textContent = liftValues.length > 0 ? (isBW ? 'Peak reps' : 'Est. 1RM (Epley formula)') : '';
   };
   var bodySection = '<div style="margin-bottom:28px">'
-    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'
-      + '<span class="t-label">Bodyweight</span>'
-      + '<span class="t-micro">' + (profile && profile.targetWeight ? ('Target ' + profile.targetWeight + ' kg') : '') + '</span>'
-    + '</div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><span class="t-label">Bodyweight</span><span class="t-micro">' + (profile && profile.targetWeight ? ('Target ' + profile.targetWeight + ' kg') : '') + '</span></div>'
     + '<div class="t-display" style="margin-bottom:14px">' + (current != null ? ('<span id="progBodyweightVal" class="tabnum" data-value="' + current.toFixed(1) + '">' + current.toFixed(1) + '</span><span style="font-size:15px;color:var(--text-secondary);margin-left:4px">kg</span>') : '<span style="font-size:17px;font-weight:500;color:#8A8A8E">No data yet</span>') + '</div>'
-    + '<div class="seg-range" style="display:flex;gap:24px;align-items:center;margin-bottom:16px">'
-      + '<button type="button" class="range-btn active" data-range="4w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:600;color:#F5F5F4;border-bottom:2px solid #F5F5F4;cursor:pointer">4W</button>'
-      + '<button type="button" class="range-btn" data-range="12w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">12W</button>'
-      + '<button type="button" class="range-btn" data-range="all" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">All</button>'
-    + '</div>'
-    + '<div id="weightPlot" data-gesture-owner="chart"></div>'
-    + '<div id="weightMeta" class="tabnum" style="font-size:15px;color:var(--text-secondary);margin-top:10px;line-height:1.4"></div>'
-    + '<div class="field" style="margin-top:16px">'
-      + '<input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="0.0" inputmode="decimal">'
-      + '<span class="field-unit">kg</span>'
-      + '<button type="button" class="btn btn-primary field-btn" id="saveProgressWeight" style="height:40px;min-height:40px;padding:0 14px;border-radius:10px;cursor:pointer">Save</button>'
-    + '</div>'
-    + '<div id="weightEntriesContainer"></div>'
-    + '<div id="weeklyStatTilesContainer"></div>'
-    + '</div>'
-    + '<div style="margin-top:28px">'
-      + '<div class="t-label" style="margin-bottom:8px">Nutrition · Last 7 days</div>'
-      + nutritionProgressHTML(records)
-    + '</div>';
+    + '<div class="seg-range" style="display:flex;gap:24px;align-items:center;margin-bottom:16px"><button type="button" class="range-btn active" data-range="4w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:600;color:#F5F5F4;border-bottom:2px solid #F5F5F4;cursor:pointer">4W</button><button type="button" class="range-btn" data-range="12w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">12W</button><button type="button" class="range-btn" data-range="all" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">All</button></div>'
+    + '<div id="weightPlot" data-gesture-owner="chart"></div><div id="weightMeta" class="tabnum" style="font-size:15px;color:var(--text-secondary);margin-top:10px;line-height:1.4"></div>'
+    + '<div class="field" style="margin-top:16px"><input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="0.0" inputmode="decimal"><span class="field-unit">kg</span><button type="button" class="btn btn-primary field-btn" id="saveProgressWeight" style="height:40px;min-height:40px;padding:0 14px;border-radius:10px;cursor:pointer">Save</button></div>'
+    + '<div id="weightEntriesContainer"></div><div id="weeklyStatTilesContainer"></div></div>'
+    + '<div style="margin-top:28px"><div class="t-label" style="margin-bottom:8px">Nutrition · Last 7 days</div>' + nutritionProgressHTML(records) + '</div>';
   var curExObj = exOptions.find(function(e){ return e.id === selected; }) || exOptions[0] || { id: 'bench_press', name: 'Bench Press' };
   var curExCount = exerciseSessionCounts[curExObj.id] || 0;
   var liftChartBlock = '<div style="margin-top:28px;margin-bottom:28px">'

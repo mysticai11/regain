@@ -119,6 +119,7 @@ export function computeChartGeometry(rawData, options) {
       linePath: singleLine,
       areaPath: singleArea,
       yTicks: buildTicks(dMin, dMax, mapY),
+      xTicks: buildXTicks(mappedPoints, width, pad),
       bounds: { minT: minT, maxT: maxT, yMin: yMin, yMax: yMax, dMin: dMin, dMax: dMax },
       baseY: baseY,
       isSingle: true
@@ -189,6 +190,7 @@ export function computeChartGeometry(rawData, options) {
     linePath: linePath,
     areaPath: areaPath,
     yTicks: buildTicks(dMin, dMax, mapY),
+    xTicks: buildXTicks(mappedPoints, width, pad),
     bounds: { minT: minT, maxT: maxT, yMin: yMin, yMax: yMax, dMin: dMin, dMax: dMax },
     baseY: baseY
   };
@@ -242,5 +244,29 @@ function buildTicks(dMin, dMax, mapY) {
     ticks = reduced;
   }
 
+  return ticks;
+}
+
+/**
+ * Builds 2 to 3 nicely spaced x-axis date ticks (Item 2 spec).
+ */
+function buildXTicks(mappedPoints, width, pad) {
+  if (!mappedPoints || mappedPoints.length === 0) return [];
+  if (mappedPoints.length === 1) {
+    return [{ x: pad.left + (width - pad.left - pad.right) / 2, t: mappedPoints[0].t, label: mappedPoints[0].label }];
+  }
+  var first = mappedPoints[0];
+  var last = mappedPoints[mappedPoints.length - 1];
+  var ticks = [
+    { x: first.x, t: first.t, label: first.label },
+    { x: last.x, t: last.t, label: last.label }
+  ];
+  if (mappedPoints.length >= 3) {
+    var midIdx = Math.floor(mappedPoints.length / 2);
+    var mid = mappedPoints[midIdx];
+    if ((mid.x - first.x) >= 64 && (last.x - mid.x) >= 64) {
+      ticks.splice(1, 0, { x: mid.x, t: mid.t, label: mid.label });
+    }
+  }
   return ticks;
 }

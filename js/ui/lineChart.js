@@ -159,6 +159,32 @@ export function renderLineChart({
       svg.appendChild(tickText);
     }
 
+    // 2b. X-axis date labels (Item 2)
+    var xTicks = currentGeom.xTicks || [];
+    for (var xi = 0; xi < xTicks.length; xi++) {
+      var xt = xTicks[xi];
+      var xText = document.createElementNS(svgNS, 'text');
+      var anchor = 'middle';
+      var posX = xt.x;
+      if (xTicks.length > 1) {
+        if (xi === 0) {
+          anchor = 'start';
+          posX = 40;
+        } else if (xi === xTicks.length - 1) {
+          anchor = 'end';
+          posX = width - 16;
+        }
+      }
+      xText.setAttribute('x', String(posX));
+      xText.setAttribute('y', String(height - 4));
+      xText.setAttribute('text-anchor', anchor);
+      xText.setAttribute('fill', 'var(--text-muted, #8A8A8E)');
+      xText.setAttribute('font-size', '11');
+      xText.setAttribute('font-weight', '400');
+      xText.textContent = formatShortDate(xt.t);
+      svg.appendChild(xText);
+    }
+
     // 3. Area path
     if (currentGeom.areaPath) {
       var area = document.createElementNS(svgNS, 'path');

@@ -183,10 +183,14 @@ export function progressPlot(values, goal, unit, isLift) {
     var dt = !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : raw.replace(/^\d{4}-/, '').replace('-', '/');
     if (dt && !distinctLabels.includes(dt)) distinctLabels.push(dt);
   });
-  var displayLabels = (distinctLabels.length <= 4) ? distinctLabels : [
-    distinctLabels[0], distinctLabels[Math.round((distinctLabels.length - 1) / 3)],
-    distinctLabels[Math.round(((distinctLabels.length - 1) / 3) * 2)], distinctLabels[distinctLabels.length - 1]
-  ];
+  var displayLabels = [];
+  if (distinctLabels.length === 1) {
+    displayLabels = [distinctLabels[0]];
+  } else if (distinctLabels.length === 2) {
+    displayLabels = [distinctLabels[0], distinctLabels[1]];
+  } else if (distinctLabels.length >= 3) {
+    displayLabels = [distinctLabels[0], distinctLabels[Math.floor(distinctLabels.length / 2)], distinctLabels[distinctLabels.length - 1]];
+  }
 
   var chartId = 'plot_' + Math.random().toString(36).slice(2, 8);
   var headerLeftHTML = '';
@@ -217,7 +221,7 @@ export function progressPlot(values, goal, unit, isLift) {
         + '<line class="chart-scrub-line" x1="-10" y1="10" x2="-10" y2="110" stroke="#8A8A8E" stroke-width="1" stroke-dasharray="2 2" style="display:none"/>'
       + '</svg>'
     + '</div>'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11px;letter-spacing:0.08em;color:var(--text-secondary);text-transform:uppercase">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:0 24px;font-size:11px;letter-spacing:0.04em;color:var(--text-secondary);text-transform:uppercase">'
       + displayLabels.map(function(l){ return '<span>' + esc(l) + '</span>'; }).join('')
     + '</div>'
     + '</div>';

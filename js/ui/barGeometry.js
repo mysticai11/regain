@@ -22,7 +22,8 @@ export function computeBarChartGeometry({
   var insetX = 16;
   var insetY = 16;
   var plotW = width - insetX * 2;
-  var plotH = height - insetY * 2;
+  var bottomPad = 26;
+  var plotH = height - insetY - bottomPad;
 
   var values = days.map(function(d) { return Number(d.value) || 0; });
   var maxVal = Math.max.apply(null, [Number(target) || 0].concat(values));
@@ -38,7 +39,7 @@ export function computeBarChartGeometry({
   var bars = days.map(function(d, i) {
     var val = Number(d.value) || 0;
     var dayTarget = Number(d.target) || target;
-    var barH = yMax > 0 ? Math.max(3, (val / yMax) * plotH) : 3;
+    var barH = yMax > 0 ? (val > 0 ? Math.max(4, (val / yMax) * plotH) : 2) : 2;
     var x = insetX + i * colW + (colW - barW) / 2;
     var y = insetY + plotH - barH;
     var isCompliant = (val >= dayTarget * 0.9);
