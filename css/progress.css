@@ -73,8 +73,12 @@
 }
 
 /* ── Workout History: 64px Filled Session Bar ── */
+.history-session-card-wrap {
+  position: relative;
+  margin-bottom: 12px;
+}
 .history-session-details {
-  margin-bottom: var(--spacing-20);
+  margin-bottom: 0;
   border: none;
 }
 .history-session-header {

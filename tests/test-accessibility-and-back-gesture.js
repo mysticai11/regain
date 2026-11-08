@@ -26,7 +26,30 @@ assert.ok(progressJs.includes('role="tablist"'), 'Progress seg-tabs has role="ta
 assert.ok(progressJs.includes('role="tab"'), 'Progress buttons have role="tab"');
 assert.ok(progressJs.includes('aria-selected='), 'Progress buttons have aria-selected');
 
-// 5. Test Back Button Dismiss hierarchy:
+// 5. Verify no interactive elements (<button>, <a>, <input>, <select>) inside any <summary> element (W3C a11y rule)
+function checkNoInteractiveInSummary(dir) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) {
+      checkNoInteractiveInSummary(fullPath);
+    } else if (entry.name.endsWith('.js') || entry.name.endsWith('.html')) {
+      const code = fs.readFileSync(fullPath, 'utf8');
+      const summaryMatches = code.match(/<summary[\s\S]*?<\/summary>/gi);
+      if (summaryMatches) {
+        summaryMatches.forEach(tag => {
+          assert.ok(!/<button\b/i.test(tag), `Found interactive <button> inside <summary> in ${fullPath}`);
+          assert.ok(!/<a\s[^>]*href/i.test(tag), `Found interactive <a> inside <summary> in ${fullPath}`);
+          assert.ok(!/<input\b/i.test(tag), `Found interactive <input> inside <summary> in ${fullPath}`);
+          assert.ok(!/<select\b/i.test(tag), `Found interactive <select> inside <summary> in ${fullPath}`);
+        });
+      }
+    }
+  }
+}
+checkNoInteractiveInSummary('js');
+
+// 6. Test Back Button Dismiss hierarchy:
 // Layer 1: Overlay open -> closes overlay
 let overlayRemoved = false;
 const mockOverlay = { remove() { overlayRemoved = true; }, querySelector() { return null; } };
