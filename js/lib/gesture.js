@@ -103,7 +103,7 @@ export function decideSwipe(params) {
       '.sheet, .overlay, .modal-backdrop, .dialog-overlay, .dialog-surface, ' +
       'input, textarea, select, button, #weightPlot, svg, canvas, .chart-container, ' +
       '.stat-tile, .stat-tiles-grid, .nutrition-barchart-container, #weeklyStatTilesContainer, ' +
-      '.chart-header, .seg-tabs, .seg-range, .seg-dark, .app-view'
+      '.chart-header, .seg-tabs, .seg-range, .seg-dark'
     );
     if (owned) {
       return { action: 'IGNORE', direction: null, reason: 'gesture-owner' };
