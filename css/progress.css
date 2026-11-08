@@ -3,27 +3,39 @@
 /* ── Segmented Tabs (Body / Lifts) ── */
 .seg-tabs {
   display: flex;
-  gap: var(--spacing-16);
-  margin-bottom: var(--spacing-20);
-  border-bottom: 1px solid var(--divider);
+  gap: 4px;
+  background: var(--surface);
+  padding: 4px;
+  border-radius: 14px;
+  border: 1px solid var(--hairline);
+  margin-bottom: var(--spacing-24);
+  box-sizing: border-box;
 }
 .seg-tab-btn {
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  padding: var(--spacing-8) 0 var(--spacing-12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  border-radius: 10px;
   font-size: var(--fs-15);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
   cursor: pointer;
   font-family: inherit;
-  margin-right: var(--spacing-16);
-  transition: color var(--dur-200) var(--ease-standard), border-bottom-color var(--dur-200) var(--ease-standard);
+  margin: 0;
+  padding: 0 8px;
+  box-sizing: border-box;
+  transition: background var(--dur-150) var(--ease-standard), color var(--dur-150) var(--ease-standard);
 }
 .seg-tab-btn.active {
+  background: var(--surface2);
   color: var(--text);
-  border-bottom-color: var(--text);
-  font-weight: 600;
+  border: 1px solid var(--hairline);
 }
 
 /* ── Range Selector (4W / 12W / All) ── */
