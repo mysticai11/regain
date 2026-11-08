@@ -7,7 +7,7 @@ import { migrateWorkoutRoutineSwap, getActiveProgram } from "./data/plan.js";
 import { todayKey, esc } from "./lib/format.js";
 import { ic, triggerHaptic, initMaterialRipple } from "./lib/dom.js";
 import { renderTodaySimple, migrateFoodTotals, openCheckinSheet } from "./screens/today.js";
-import { renderProgressSimple } from "./screens/progress.js?v=22";
+import { renderProgressSimple } from "./screens/progress.js?v=23";
 import { renderGym } from "./screens/gym.js";
 import { renderOnboarding, openSettings } from "./screens/settings.js";
 import { openEditWorkoutSheet, openSplitManagerSheet } from "./screens/gym/plan-editor.js";

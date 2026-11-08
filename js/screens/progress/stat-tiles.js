@@ -28,19 +28,19 @@ export function buildWeeklyStatTilesHTML(tiles) {
       sparklineHTML = '<span style="font-size:15px;font-weight:600;color:' + color + ';line-height:1">' + arrow + '</span>';
     }
 
-    return '<div class="stat-tile" style="background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;min-height:92px;box-sizing:border-box">'
-      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">'
-        + '<span class="t-micro" style="color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em">' + esc(tile.title) + '</span>'
+    return '<div class="stat-tile" style="background:#141416;border:1px solid #222222;border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;min-height:98px;box-sizing:border-box">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
+        + '<span style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8A8A8E;text-transform:uppercase">' + esc(tile.title) + '</span>'
         + sparklineHTML
       + '</div>'
-      + '<div style="margin-top:6px">'
-        + '<div style="font-size:28px;font-weight:600;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums">' + esc(tile.value) + (tile.unit ? (' <span style="font-size:15px;font-weight:500;color:var(--text-secondary)">' + esc(tile.unit) + '</span>') : '') + '</div>'
-        + '<div class="t-micro" style="color:var(--text-secondary);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + esc(tile.subtitle) + '">' + esc(tile.subtitle) + '</div>'
+      + '<div style="margin-top:8px">'
+        + '<div style="font-size:28px;font-weight:600;line-height:1.1;color:#F5F5F4;font-variant-numeric:tabular-nums">' + esc(tile.value) + (tile.unit ? (' <span style="font-size:15px;font-weight:500;color:#8A8A8E">' + esc(tile.unit) + '</span>') : '') + '</div>'
+        + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#8A8A8E;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + esc(tile.subtitle) + '">' + esc(tile.subtitle) + '</div>'
       + '</div>'
       + '</div>';
   }).join('');
 
-  return '<div class="stat-tiles-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:20px 0">'
+  return '<div class="stat-tiles-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:24px 0">'
     + cardsHTML
     + '</div>';
 }

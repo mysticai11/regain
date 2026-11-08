@@ -1,6 +1,6 @@
 /* 7-Day Nutrition Bar Chart Component (Task R2-3) */
 
-import { computeBarChartGeometry } from "./barGeometry.js?v=22";
+import { computeBarChartGeometry } from "./barGeometry.js?v=23";
 import { esc } from "../lib/format.js";
 
 /**
@@ -78,11 +78,11 @@ export function buildNutritionBarChartHTML({
   var targetLineHTML = '<line x1="14" y1="' + geom.targetY + '" x2="' + lineEndX + '" y2="' + geom.targetY + '" stroke="#8A8A8E" stroke-dasharray="3 3" stroke-width="1.5" opacity="0.6"/>'
     + '<text x="' + targetTextX + '" y="' + (geom.targetY + 4) + '" fill="#8A8A8E" font-size="11" font-weight="600" text-anchor="end" font-family="inherit">' + target.toLocaleString() + ' ' + unit + '</text>';
 
-  // Segmented control for metric toggle
-  var tabsHTML = '<div class="seg" role="tablist" aria-label="Nutrition metric" data-gesture-owner style="--n:2;--i:' + (isKcal ? '0' : '1') + ';margin-bottom:12px">'
-    + '<span class="seg__thumb" aria-hidden="true"></span>'
-    + '<button type="button" class="seg__btn' + (isKcal ? ' active' : '') + '" role="tab" aria-selected="' + (isKcal ? 'true' : 'false') + '" data-nutrition-metric="kcal" id="nutritionMetricKcalBtn">Calories</button>'
-    + '<button type="button" class="seg__btn' + (!isKcal ? ' active' : '') + '" role="tab" aria-selected="' + (!isKcal ? 'true' : 'false') + '" data-nutrition-metric="protein" id="nutritionMetricProtBtn">Protein</button>'
+  // Refined dark segmented control for metric toggle (Section 5.D)
+  var tabsHTML = '<div class="seg seg-dark" role="tablist" aria-label="Nutrition metric" data-gesture-owner style="position:relative;display:flex;height:44px;padding:3px;border-radius:12px;background:#0B0B0C;border:1px solid #222222;box-sizing:border-box;user-select:none;margin-bottom:14px;--n:2;--i:' + (isKcal ? '0' : '1') + '">'
+    + '<span class="seg__thumb" aria-hidden="true" style="position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / 2);border-radius:9px;background:#1C1C1F;border:1px solid #222222;transform:translateX(calc(var(--i, 0) * 100%));transition:transform 180ms cubic-bezier(0.2,0,0,1);pointer-events:none"></span>'
+    + '<button type="button" class="seg__btn' + (isKcal ? ' active' : '') + '" role="tab" aria-selected="' + (isKcal ? 'true' : 'false') + '" data-nutrition-metric="kcal" id="nutritionMetricKcalBtn" style="position:relative;z-index:1;flex:1;min-width:0;height:100%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:' + (isKcal ? '600' : '500') + ';color:' + (isKcal ? '#F5F5F4' : '#8A8A8E') + ';background:transparent;border:none;padding:0 8px;cursor:pointer;font-family:inherit;transition:color 150ms ease">Calories</button>'
+    + '<button type="button" class="seg__btn' + (!isKcal ? ' active' : '') + '" role="tab" aria-selected="' + (!isKcal ? 'true' : 'false') + '" data-nutrition-metric="protein" id="nutritionMetricProtBtn" style="position:relative;z-index:1;flex:1;min-width:0;height:100%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:' + (!isKcal ? '600' : '500') + ';color:' + (!isKcal ? '#F5F5F4' : '#8A8A8E') + ';background:transparent;border:none;padding:0 8px;cursor:pointer;font-family:inherit;transition:color 150ms ease">Protein</button>'
     + '</div>';
 
   var headerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">'
@@ -94,7 +94,7 @@ export function buildNutritionBarChartHTML({
   // "7-Day Hit Rate" and calHits + '/7 kcal · ' + protHits + '/7' and "totals.kcal >= targets.kcal * 0.9"
   var auditMarker = '<div style="display:none" class="t-micro">7-Day Hit Rate: ' + calHits + '/7 kcal · ' + protHits + '/7 protein (totals.kcal >= targets.kcal * 0.9)</div>';
 
-  return '<div class="nutrition-barchart-container" style="user-select:none;background:#141416;border:1px solid #1C1C1F;border-radius:16px;padding:16px">'
+  return '<div class="nutrition-barchart-container" style="user-select:none;background:#141416;border:1px solid #222222;border-radius:16px;padding:16px">'
     + tabsHTML
     + headerHTML
     + '<div style="position:relative;width:100%;height:120px;background:none">'

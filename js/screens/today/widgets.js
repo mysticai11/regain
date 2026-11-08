@@ -96,11 +96,7 @@ export function openPortionSheet(item, onSelect) {
   document.body.appendChild(overlay);
   overlay.querySelector('#cancelPortionBtn').onclick = function() { overlay.remove(); };
   overlay.querySelectorAll('[data-portion]').forEach(function(btn) {
-    btn.onclick = function() {
-      var p = parseFloat(btn.dataset.portion);
-      overlay.remove();
-      onSelect(p);
-    };
+    btn.onclick = function() { overlay.remove(); onSelect(parseFloat(btn.dataset.portion)); };
   });
 }
 
@@ -108,14 +104,18 @@ export function getStaplesShelfHTML() {
   var staples = getMergedStaples();
   if (!staples || !staples.length) return '';
   var chips = staples.map(function(s, idx) {
-    return '<button type="button" class="staple-chip" data-quick-staple="' + idx + '">' + esc(s.name) + '</button>';
+    var sub = s.portion ? s.portion : (s.kcal ? (s.kcal + ' kcal · ' + (s.protein || 0) + 'g') : '');
+    return '<button type="button" class="staple-chip" data-quick-staple="' + idx + '" style="display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;height:52px;min-height:52px;padding:6px 16px;border-radius:14px;background:#141416;border:1px solid #222222;cursor:pointer;flex-shrink:0">'
+      + '<span style="font-size:15px;font-weight:600;color:#F5F5F4;line-height:1.2;white-space:nowrap">' + esc(s.name) + '</span>'
+      + (sub ? '<span style="font-size:11px;color:#8A8A8E;margin-top:2px;white-space:nowrap;font-variant-numeric:tabular-nums">' + esc(sub) + '</span>' : '')
+      + '</button>';
   }).join('');
 
-  return '<div class="staples-shelf">'
-    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'
+  return '<div class="staples-shelf" style="margin:24px 0">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">'
       + '<span class="t-label">Quick Add</span>'
     + '</div>'
-    + '<div class="staples-chip-row">' + chips + '</div>'
+    + '<div class="staples-chip-row" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;mask-image:linear-gradient(to right,black 88%,transparent 100%);-webkit-mask-image:linear-gradient(to right,black 88%,transparent 100%)">' + chips + '</div>'
     + '</div>';
 }
 

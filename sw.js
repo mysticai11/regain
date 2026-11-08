@@ -1,5 +1,5 @@
 // sw.js — Regain service worker
-const CACHE = 'regain-v22';
+const CACHE = 'regain-v23';
 const LOCAL_ASSETS = [
   "./",
   "./index.html",

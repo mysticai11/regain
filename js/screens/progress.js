@@ -11,10 +11,10 @@ import { showToast } from "../components/toast.js";
 import { openQuickEditSetModal } from "../components/quick-edit-modal.js";
 import { getWeightHistory, getProgressRows, getRollingWeightValues, buildDotConsistencyCalendarHTML, progressPlot, goalTrajectoryText, getLiftHistory } from "./progress/charts.js?v=4";
 import { getEquivalentExerciseIds } from "./gym/sets.js";
-import { workoutHistoryHTML, getResumeWorkoutCardHTML, nutritionProgressHTML, weeklyVolumeChart, editWeightEntry, deleteWeightEntry, weightEntriesHTML } from "./progress/history.js?v=22";
+import { workoutHistoryHTML, getResumeWorkoutCardHTML, getNutritionBarChartInner, nutritionProgressHTML, weeklyVolumeChart, editWeightEntry, deleteWeightEntry, weightEntriesHTML } from "./progress/history.js?v=23";
 import { openSessionMenu, openEditWorkoutSheet } from "./progress/session-editor.js";
 import { buildMonthlyDigestHTML, buildWeeklyDigestHTML, openHistoryArchiveModal, buildHistoryScreenHTML, wireHistoryScreenEvents } from "./progress/digests.js";
-export * from "./progress/charts.js?v=4"; export * from "./progress/history.js?v=22"; export * from "./progress/session-editor.js";
+export * from "./progress/charts.js?v=4"; export * from "./progress/history.js?v=23"; export * from "./progress/session-editor.js";
 
 import { setupChartInteractions, openExercisePickerModal } from "./progress/interactions.js";
 import { decideSwipe, SWIPE_NAV_SCOPE, showGestureDebug } from "../lib/gesture.js";
@@ -91,11 +91,12 @@ export function renderProgressSimple(mode, historySubTab) {
 
     var nContainer = document.getElementById('nutritionBarChartContainer');
     if (nContainer) {
-      nContainer.outerHTML = nutritionProgressHTML(records);
-      var nKcal = document.getElementById('nutritionMetricKcalBtn');
-      if (nKcal) nKcal.onclick = function() { triggerHaptic('selection'); window.activeNutritionMetric = 'kcal'; render(); };
-      var nProt = document.getElementById('nutritionMetricProtBtn');
-      if (nProt) nProt.onclick = function() { triggerHaptic('selection'); window.activeNutritionMetric = 'protein'; render(); };
+      nContainer.innerHTML = getNutritionBarChartInner(records);
+      var wireToggle = function(btnId, metric) {
+        var btn = document.getElementById(btnId);
+        if (btn) btn.onclick = function(e) { if (e && e.preventDefault) e.preventDefault(); triggerHaptic('selection'); window.activeNutritionMetric = metric; render(); };
+      };
+      wireToggle('nutritionMetricKcalBtn', 'kcal'); wireToggle('nutritionMetricProtBtn', 'protein');
     }
 
     enhanceLiftsTab({
@@ -195,8 +196,13 @@ export function renderProgressSimple(mode, historySubTab) {
     if(liftMeta) liftMeta.textContent = liftValues.length > 0 ? (isBW ? 'Peak reps' : 'Est. 1RM (Epley formula)') : '';
   };
   var bodySection = '<div style="margin-bottom:28px">'
-    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><span class="t-label">Bodyweight</span><span class="t-micro">' + (profile && profile.targetWeight ? ('Target ' + profile.targetWeight + ' kg') : '') + '</span></div>'
-    + '<div class="t-display" style="margin-bottom:14px">' + (current != null ? ('<span id="progBodyweightVal" class="tabnum" data-value="' + current.toFixed(1) + '">' + current.toFixed(1) + '</span><span style="font-size:15px;color:var(--text-secondary);margin-left:4px">kg</span>') : '<span style="font-size:17px;font-weight:500;color:#8A8A8E">No data yet</span>') + '</div>'
+    + '<div style="margin-bottom:20px">'
+      + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8A8A8E;text-transform:uppercase;margin-bottom:6px">Bodyweight</div>'
+      + '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px">'
+        + (current != null ? ('<span id="progBodyweightVal" class="tabnum" data-value="' + current.toFixed(1) + '" style="font-size:48px;font-weight:700;color:#F5F5F4;line-height:1.05;letter-spacing:-0.03em">' + current.toFixed(1) + '</span><span style="font-size:15px;font-weight:500;color:#8A8A8E">kg</span>') : '<span style="font-size:28px;font-weight:600;color:#8A8A8E">No data yet</span>')
+      + '</div>'
+      + (profile && profile.targetWeight ? ('<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8A8A8E;text-transform:uppercase">TARGET ' + profile.targetWeight + ' KG</div>') : '')
+    + '</div>'
     + '<div class="seg-range" style="display:flex;gap:24px;align-items:center;margin-bottom:16px"><button type="button" class="range-btn active" data-range="4w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:600;color:#F5F5F4;border-bottom:2px solid #F5F5F4;cursor:pointer">4W</button><button type="button" class="range-btn" data-range="12w" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">12W</button><button type="button" class="range-btn" data-range="all" style="background:none;border:none;padding:4px 0;font-size:15px;font-weight:500;color:#55555A;border-bottom:2px solid transparent;cursor:pointer">All</button></div>'
     + '<div id="weightPlot" data-gesture-owner="chart"></div><div id="weightMeta" class="tabnum" style="font-size:15px;color:var(--text-secondary);margin-top:10px;line-height:1.4"></div>'
     + '<div class="field" style="margin-top:16px"><input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="0.0" inputmode="decimal"><span class="field-unit">kg</span><button type="button" class="btn btn-primary field-btn" id="saveProgressWeight" style="height:40px;min-height:40px;padding:0 14px;border-radius:10px;cursor:pointer">Save</button></div>'
@@ -240,11 +246,17 @@ export function renderProgressSimple(mode, historySubTab) {
   var viewContent = mode === 'body' ? ('<div class="app-view">' + bodySection + '</div>') : (mode === 'lifts' ? ('<div class="app-view">' + getResumeWorkoutCardHTML() + liftChartBlock + weeklyWorkBlock + '</div>') : buildHistoryScreenHTML(historySubTab));
 
   document.getElementById('content').innerHTML =
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><span class="t-label">Progress</span><button class="icon-btn" id="settingsBtn" aria-label="Settings">' + ic('settings') + '</button></div>'
-    + '<div class="seg-tabs" role="tablist" style="margin-bottom:20px">'
-      + '<button class="seg-tab-btn' + (mode === 'body' ? ' active' : '') + '" id="bodyProgressBtn" role="tab" aria-selected="' + (mode === 'body' ? 'true' : 'false') + '">Body</button>'
-      + '<button class="seg-tab-btn' + (mode === 'lifts' ? ' active' : '') + '" id="liftProgressBtn" role="tab" aria-selected="' + (mode === 'lifts' ? 'true' : 'false') + '">Lifts</button>'
-      + '<button class="seg-tab-btn' + (mode === 'history' ? ' active' : '') + '" id="historyProgressBtn" role="tab" aria-selected="' + (mode === 'history' ? 'true' : 'false') + '">History</button>'
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">'
+      + '<div>'
+        + '<h1 style="font-size:28px;font-weight:700;color:#F5F5F4;letter-spacing:-0.02em;margin:0;line-height:1.2">Progress</h1>'
+        + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8A8A8E;text-transform:uppercase;margin-top:2px">Analytics & History</div>'
+      + '</div>'
+      + '<button class="icon-btn" id="settingsBtn" aria-label="Settings">' + ic('settings') + '</button>'
+    + '</div>'
+    + '<div class="seg-tabs" role="tablist" style="margin-bottom:24px;background:#141416;padding:4px;border-radius:14px;border:1px solid #222222;display:flex;gap:4px">'
+      + '<button class="seg-tab-btn' + (mode === 'body' ? ' active' : '') + '" id="bodyProgressBtn" role="tab" aria-selected="' + (mode === 'body' ? 'true' : 'false') + '" style="flex:1;height:40px;border-radius:10px;font-size:15px;font-weight:600;border:none;cursor:pointer;' + (mode === 'body' ? 'background:#1C1C1F;color:#F5F5F4' : 'background:transparent;color:#8A8A8E') + '">Body</button>'
+      + '<button class="seg-tab-btn' + (mode === 'lifts' ? ' active' : '') + '" id="liftProgressBtn" role="tab" aria-selected="' + (mode === 'lifts' ? 'true' : 'false') + '" style="flex:1;height:40px;border-radius:10px;font-size:15px;font-weight:600;border:none;cursor:pointer;' + (mode === 'lifts' ? 'background:#1C1C1F;color:#F5F5F4' : 'background:transparent;color:#8A8A8E') + '">Lifts</button>'
+      + '<button class="seg-tab-btn' + (mode === 'history' ? ' active' : '') + '" id="historyProgressBtn" role="tab" aria-selected="' + (mode === 'history' ? 'true' : 'false') + '" style="flex:1;height:40px;border-radius:10px;font-size:15px;font-weight:600;border:none;cursor:pointer;' + (mode === 'history' ? 'background:#1C1C1F;color:#F5F5F4' : 'background:transparent;color:#8A8A8E') + '">History</button>'
     + '</div>' + viewContent;
 
   var settingsBtn = document.getElementById('settingsBtn');
@@ -340,20 +352,12 @@ export function renderProgressSimple(mode, historySubTab) {
   if (openPickerBtn) {
     openPickerBtn.onclick = function() {
       openExercisePickerModal({
-        exOptions: exOptions,
-        exerciseSessionCounts: exerciseSessionCounts,
-        currentSelectedId: selected,
+        exOptions: exOptions, exerciseSessionCounts: exerciseSessionCounts, currentSelectedId: selected,
         onSelect: function(newId) {
-          selected = newId;
-          if (typeof window !== 'undefined') window.activeProgressExerciseId = newId;
-          var lc = document.getElementById('liftSelect');
-          if (lc) lc.value = newId;
+          selected = newId; if (typeof window !== 'undefined') window.activeProgressExerciseId = newId;
+          var lc = document.getElementById('liftSelect'); if (lc) lc.value = newId;
           var pn = document.getElementById('openExPickerName'), ps = document.getElementById('openExPickerSub');
-          if (pn) {
-            var c = exerciseSessionCounts[newId] || 0, ed = getExerciseData(newId);
-            pn.textContent = ed ? ed.name : newId;
-            if (ps) ps.textContent = c + (c === 1 ? ' session' : ' sessions');
-          }
+          if (pn) { var c = exerciseSessionCounts[newId] || 0, ed = getExerciseData(newId); pn.textContent = ed ? ed.name : newId; if (ps) ps.textContent = c + (c === 1 ? ' session' : ' sessions'); }
           render();
         }
       });

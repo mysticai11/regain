@@ -9,7 +9,7 @@ import { showToast } from "../../components/toast.js";
 import { triggerHaptic } from "../../lib/dom.js";
 import { confirmDialog, promptDialog } from "../../components/dialog.js";
 import { getWorkoutForDate } from "../gym/helpers.js";
-import { buildNutritionBarChartHTML } from "../../ui/barChart.js?v=22";
+import { buildNutritionBarChartHTML } from "../../ui/barChart.js?v=23";
 
 export function getResumeWorkoutCardHTML() {
   var todayRec = dayRecord(todayKey());
@@ -227,12 +227,14 @@ export function weightEntriesHTML(entries) {
     var d = new Date(e.createdAt || (e.dayKey + 'T12:00:00'));
     var dateLabel = !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : (e.dayKey || '');
     var timeLabel = (e.createdAt && e.createdAt.includes('T')) ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-    var dateDisplay = dateLabel + (timeLabel ? ' · ' + timeLabel : '');
+    var dateDisplay = (dateLabel + (timeLabel ? ' · ' + timeLabel : '')).toUpperCase();
     var wNum = Number(e.weight);
     var wStr = !isNaN(wNum) ? wNum.toFixed(1) : String(e.weight);
-    return '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222222">'
-      + '<div><div class="tabnum" style="font-size:17px;font-weight:600;color:#F5F5F4;line-height:1.2">' + wStr + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span></div>'
-      + '<div style="font-size:11px;color:#8A8A8E;letter-spacing:0.04em;text-transform:uppercase;margin-top:2px">' + esc(dateDisplay) + '</div></div>'
+    return '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #1C1C1F">'
+      + '<div>'
+        + '<div class="tabnum" style="font-size:17px;font-weight:600;color:#F5F5F4;line-height:1.2">' + wStr + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span></div>'
+        + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.08em;text-transform:uppercase;margin-top:4px">' + esc(dateDisplay) + '</div>'
+      + '</div>'
       + '<div style="display:flex;align-items:center;gap:12px">'
         + '<button type="button" class="btn-text-action" data-edit-weight="' + esc(e.id) + '" style="color:#8A8A8E;font-size:15px;font-weight:500;background:none;border:none;padding:8px 6px;cursor:pointer;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center">Edit</button>'
         + '<button type="button" class="btn-text-action" data-delete-weight="' + esc(e.id) + '" style="color:#FF4D4F;font-size:15px;font-weight:500;background:none;border:none;padding:8px 6px;cursor:pointer;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center">Delete</button>'
@@ -302,52 +304,28 @@ export function weeklyVolumeChart() {
   return '<div style="background:var(--surface);border:1px solid var(--hairline);border-radius:16px;overflow:hidden">' + rows + '</div>';
 }
 
-export function nutritionProgressHTML(records) {
+export function getNutritionBarChartInner(records) {
   var letters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   var today = new Date();
   var daysAgo6 = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
-
   var dayHits = [];
-  var calHits = 0;
-  var protHits = 0;
-
+  var calHits = 0, protHits = 0;
   for (var i = 0; i < 7; i++) {
     var curD = new Date(daysAgo6.getFullYear(), daysAgo6.getMonth(), daysAgo6.getDate() + i);
-    var y = curD.getFullYear();
-    var m = String(curD.getMonth() + 1).padStart(2, '0');
-    var d = String(curD.getDate()).padStart(2, '0');
-    var dKey = y + '-' + m + '-' + d;
-    var dDay = curD.getDay();
-    var letter = letters[(dDay + 6) % 7];
-    var targets = getTargetsForDate(dKey);
-    var totals = records.find(function(r) { return r.key === dKey; }) || { kcal: 0, protein: 0 };
-
-    var calHit = (totals.kcal >= targets.kcal * 0.9);
-    var protHit = (totals.protein >= targets.protein * 0.9);
-    if (calHit) calHits++;
-    if (protHit) protHits++;
-
-    dayHits.push({
-      key: dKey,
-      letter: letter,
-      kcal: totals.kcal || 0,
-      protein: totals.protein || 0,
-      targets: targets,
-      isToday: (dKey === todayKey())
-    });
+    var y = curD.getFullYear(), m = String(curD.getMonth() + 1).padStart(2, '0'), d = String(curD.getDate()).padStart(2, '0');
+    var dKey = y + '-' + m + '-' + d, dDay = curD.getDay(), letter = letters[(dDay + 6) % 7];
+    var targets = getTargetsForDate(dKey), totals = records.find(function(r) { return r.key === dKey; }) || { kcal: 0, protein: 0 };
+    if (totals.kcal >= targets.kcal * 0.9) calHits++;
+    if (totals.protein >= targets.protein * 0.9) protHits++;
+    dayHits.push({ key: dKey, letter: letter, kcal: totals.kcal || 0, protein: totals.protein || 0, targets: targets, isToday: (dKey === todayKey()) });
   }
-
   var dt = getTargetsForDate(todayKey());
   var activeMetric = (typeof window !== 'undefined' ? window.activeNutritionMetric : null) || 'kcal';
+  return buildNutritionBarChartHTML({ days: dayHits, activeMetric: activeMetric, targetKcal: dt.kcal, targetProtein: dt.protein });
+}
 
-  var chartHTML = buildNutritionBarChartHTML({
-    days: dayHits,
-    activeMetric: activeMetric,
-    targetKcal: dt.kcal,
-    targetProtein: dt.protein
-  });
-
-  return '<div id="nutritionBarChartContainer">' + chartHTML + '</div>';
+export function nutritionProgressHTML(records) {
+  return '<div id="nutritionBarChartContainer">' + getNutritionBarChartInner(records) + '</div>';
 }
 
 export function buildWeeklyDigestHTML() { return ''; }
