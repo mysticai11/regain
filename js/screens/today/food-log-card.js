@@ -141,3 +141,4 @@ export function bindFoodLogCardEvents({ activeDateKey, openFoodSearch, addFoodTo
     }, { passive: true });
   });
 }
+

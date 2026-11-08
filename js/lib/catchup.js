@@ -101,17 +101,11 @@ export function validateSessionLimits(session, options) {
   if (totalSets > maxSets) {
     for (var i = exercises.length - 1; i >= 0 && totalSets > maxSets; i--) {
       var ex = exercises[i];
-      if (!isCompoundLift(ex) && ex.sets > 2) {
-        var cut = Math.min(ex.sets - 2, totalSets - maxSets);
-        ex.sets -= cut; totalSets -= cut;
-      }
+      if (!isCompoundLift(ex) && ex.sets > 2) { var cut = Math.min(ex.sets - 2, totalSets - maxSets); ex.sets -= cut; totalSets -= cut; }
     }
     for (var j = exercises.length - 1; j >= 0 && totalSets > maxSets; j--) {
       var ex2 = exercises[j];
-      if (ex2.sets > 1) {
-        var cut2 = Math.min(ex2.sets - 1, totalSets - maxSets);
-        ex2.sets -= cut2; totalSets -= cut2;
-      }
+      if (ex2.sets > 1) { var cut2 = Math.min(ex2.sets - 1, totalSets - maxSets); ex2.sets -= cut2; totalSets -= cut2; }
     }
   }
 
@@ -215,6 +209,10 @@ export function planSpreadAcrossWeek(todayDateInput, options) {
     if (protectLastRestDay && jsDay === 0) return false;
     return isTrainingDay(d, trainingDays);
   });
+
+  if (remainingDays.length === 0) {
+    return { needed: false, valid: false, reason: "No remaining training days left this week", assignments: {} };
+  }
 
   // B4: Full-Body Mode triggered if 2+ missed days AND remaining training days are 3 or 4 (or <= 2)
   var isFullBodyTrigger = (allMissed.length >= 2) && (remainingDays.length <= 4);
@@ -346,7 +344,7 @@ export function planSpreadAcrossWeek(todayDateInput, options) {
 
   return {
     mode: 'spread',
-    valid: preview.length > 0,
+    valid: preview.length > 0 && Object.keys(assignments).length > 0,
     totalMissedSets: totalMissed,
     totalRedistributedSets: Math.min(totalMissed, totalRedistributed),
     assignments: assignments,

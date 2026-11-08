@@ -115,6 +115,22 @@ export function buildFullBodySession(pool, label, dayIndex, options) {
 export function planFullBodyMode(todayKeyStr, allMissed, remainingDays, prog, options) {
   var opts = options || {};
   var selectedDays = selectBestFullBodyDays(remainingDays);
+  if (!selectedDays || selectedDays.length === 0) {
+    return {
+      mode: 'full_body',
+      valid: false,
+      reason: 'No remaining training days left this week',
+      isFullBody: true,
+      totalMissedSets: allMissed.reduce(function(acc, m) {
+        return acc + (m.session.exercises || []).reduce(function(a, e) { return a + (e.sets || 2); }, 0);
+      }, 0),
+      totalRedistributedSets: 0,
+      assignments: {},
+      preview: [],
+      selectedDays: [],
+      remainingDays: remainingDays || []
+    };
+  }
 
   // Extract exercise pool from active program
   var pool = [];
@@ -153,7 +169,7 @@ export function planFullBodyMode(todayKeyStr, allMissed, remainingDays, prog, op
 
   return {
     mode: 'full_body',
-    valid: true,
+    valid: selectedDays.length > 0,
     isFullBody: true,
     totalMissedSets: allMissed.reduce(function(acc, m) {
       return acc + (m.session.exercises || []).reduce(function(a, e) { return a + (e.sets || 2); }, 0);

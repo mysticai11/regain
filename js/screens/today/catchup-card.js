@@ -10,7 +10,7 @@ import { triggerHaptic } from "../../lib/dom.js";
 import { showToast, showUndoToast } from "../../components/toast.js";
 import { confirmDialog } from "../../components/dialog.js";
 import { openThisWeeksPlanSheet } from "./review-plan-sheet.js";
-import { setTab } from "../../state.js";
+import { setTab, profile } from "../../state.js";
 
 export function buildCatchupCardHTML(currentDateKey) {
   var tKey = currentDateKey || todayKey();
@@ -21,7 +21,11 @@ export function buildCatchupCardHTML(currentDateKey) {
   var records = {};
   allDayKeys().forEach(function (k) { records[k] = dayRecord(k); });
 
-  var detection = detectMissedDay(tKey, { prog: prog, weekOverrides: overrides, decisions: decisions, records: records });
+  var userTrainingDays = (profile && Array.isArray(profile.trainingDays) && profile.trainingDays.length > 0)
+    ? profile.trainingDays
+    : (prog && prog.length === 3 ? [1, 3, 5] : (prog && prog.length === 2 ? [1, 4] : (prog && prog.length === 4 ? [1, 2, 4, 5] : [1, 2, 4, 5, 6])));
+
+  var detection = detectMissedDay(tKey, { prog: prog, trainingDays: userTrainingDays, weekOverrides: overrides, decisions: decisions, records: records });
   if (!detection.missed || !detection.date || !detection.session) return '';
 
   var missedDate = detection.date, missedSession = detection.session, missedName = canonicalSessionName(missedSession);
@@ -29,44 +33,60 @@ export function buildCatchupCardHTML(currentDateKey) {
   var missedDayFormatted = dObj.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
 
   var spreadPlan = planSpreadAcrossWeek(tKey, {
-    prog: prog, trainingDays: [1, 2, 4, 5, 6], weekOverrides: overrides, records: records, decisions: decisions,
+    prog: prog, trainingDays: userTrainingDays, weekOverrides: overrides, records: records, decisions: decisions,
     protectLastRestDay: settings.protectLastRestDay
   });
 
-  var slidePlan = planSlide(tKey, missedDate, { prog: prog, weekOverrides: overrides, protectLastRestDay: settings.protectLastRestDay });
+  var slidePlan = planSlide(tKey, missedDate, { prog: prog, trainingDays: userTrainingDays, weekOverrides: overrides, protectLastRestDay: settings.protectLastRestDay });
+
+  if (!spreadPlan.valid && !slidePlan.valid) {
+    return '<div class="catchup-card" style="background:#141416;border:1px solid #222222;border-radius:20px;padding:16px;margin-bottom:20px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+      + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Missed ' + esc(missedDayFormatted) + ' · ' + esc(missedName) + '</span>'
+      + '</div>'
+      + '<div style="font-size:17px;font-weight:600;color:#F5F5F4;line-height:1.2;margin-bottom:4px">' + esc(missedName) + ' Missed</div>'
+      + '<div style="font-size:15px;color:#8A8A8E;line-height:1.4;margin-bottom:14px">No remaining workout days this week to redistribute volume. You can log it late or skip.</div>'
+      + '<div style="display:flex;align-items:center;gap:12px">'
+      + '<button type="button" class="btn btn-primary" id="catchupLateLogBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 14px;border-radius:10px;background:#C6F432;color:#0B0B0C;font-size:15px;font-weight:600;border:none;cursor:pointer">Log it late</button>'
+      + '<button type="button" class="btn-text-action" id="catchupSkipBtn" data-missed-date="' + missedDate + '" style="background:none;border:none;color:#8A8A8E;font-size:15px;font-weight:500;cursor:pointer;padding:0 8px">Skip</button>'
+      + '</div>'
+      + '</div>';
+  }
 
   var fullBodyBadge = spreadPlan.isFullBody
-    ? '<span style="font-size:11px;font-weight:600;color:var(--bg);background:var(--lime);border-radius:9999px;padding:2px 8px;white-space:nowrap">Full-body week</span>'
+    ? '<span style="font-size:11px;font-weight:600;color:#0B0B0C;background:#C6F432;border-radius:9999px;padding:2px 8px;white-space:nowrap">Full-body week</span>'
     : '';
 
   var planTitle = spreadPlan.isFullBody
-    ? (spreadPlan.remainingDays.length <= 1 ? 'This week: 1 full-body session' : 'This week: 2 full-body sessions')
-    : 'Spread volume across the week';
+    ? (spreadPlan.remainingDays.length <= 1 ? 'Switch to 1 full-body session' : 'Switch to 2 full-body sessions')
+    : 'Spread volume across week';
+
+  var planSub = spreadPlan.isFullBody
+    ? 'Combines compound lifts into full-body sessions for remaining days'
+    : 'Restore volume as +1 set on remaining days';
 
   var previewHTML = spreadPlan.preview && spreadPlan.preview.length
-    ? ('<div id="catchupInlinePreview" style="display:none;background:var(--bg);border-radius:10px;padding:8px 12px;margin-top:10px;font-size:11px;color:var(--text-secondary);line-height:1.4">'
+    ? ('<div id="catchupInlinePreview" style="display:none;background:#0B0B0C;border-radius:10px;padding:8px 12px;margin-top:10px;font-size:11px;color:#8A8A8E;line-height:1.4">'
       + spreadPlan.preview.map(function (line) { return '<div>• ' + esc(line) + '</div>'; }).join('')
       + '</div>')
     : '';
 
-  return '<div class="catchup-card" style="background:var(--surface);border:1px solid var(--hairline);border-radius:20px;padding:16px;margin-bottom:20px">'
+  return '<div class="catchup-card" style="background:#141416;border:1px solid #222222;border-radius:20px;padding:16px;margin-bottom:20px">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-    + '<span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">Missed ' + esc(missedDayFormatted) + ' · ' + esc(missedName) + '</span>'
+    + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Missed ' + esc(missedDayFormatted) + ' · ' + esc(missedName) + '</span>'
     + fullBodyBadge
     + '</div>'
-    + '<div style="font-size:17px;font-weight:600;color:var(--text);line-height:1.2;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(planTitle) + '</div>'
-    + '<div style="font-size:var(--fs-13);color:var(--text-secondary);margin-bottom:12px">Restore volume as +1 set on remaining days</div>'
+    + '<div style="font-size:17px;font-weight:600;color:#F5F5F4;line-height:1.2;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(planTitle) + '</div>'
+    + '<div style="font-size:15px;color:#8A8A8E;margin-bottom:12px">' + esc(planSub) + '</div>'
     + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">'
     + '<div style="display:flex;align-items:center;gap:8px">'
-    + '<button type="button" class="btn btn-primary" id="catchupSpreadBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 14px;border-radius:10px;background:var(--lime);color:var(--bg);font-size:var(--fs-13);font-weight:600;border:none;cursor:pointer">Spread</button>'
-    + (slidePlan.valid
-      ? ('<button type="button" class="btn" id="catchupSlideBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 12px;border-radius:10px;background:var(--surface-raised);color:var(--text);font-size:var(--fs-13);font-weight:600;border:1px solid var(--hairline);cursor:pointer">Slide schedule</button>')
-      : ('<button type="button" class="btn" disabled style="height:36px;padding:0 12px;border-radius:10px;background:var(--surface-raised);color:var(--text-muted);font-size:var(--fs-13);font-weight:600;border:1px solid var(--hairline);cursor:not-allowed">Slide</button>'))
+    + (spreadPlan.valid ? '<button type="button" class="btn btn-primary" id="catchupSpreadBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 14px;border-radius:10px;background:#C6F432;color:#0B0B0C;font-size:15px;font-weight:600;border:none;cursor:pointer">Spread</button>' : '')
+    + (slidePlan.valid ? '<button type="button" class="btn" id="catchupSlideBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 12px;border-radius:10px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222222;cursor:pointer">Shift +1d</button>' : '')
     + '</div>'
     + '<div style="display:flex;align-items:center;gap:12px">'
-    + (spreadPlan.preview && spreadPlan.preview.length ? '<button type="button" id="catchupTogglePlanBtn" style="background:none;border:none;color:var(--lime);font-size:var(--fs-13);font-weight:600;cursor:pointer;padding:0">See plan ▾</button>' : '')
-    + '<button type="button" id="catchupLateLogBtn" data-missed-date="' + missedDate + '" style="background:none;border:none;color:var(--text-secondary);font-size:var(--fs-13);font-weight:500;cursor:pointer;padding:0">Log it late</button>'
-    + '<button type="button" id="catchupSkipBtn" data-missed-date="' + missedDate + '" style="background:none;border:none;color:var(--text-secondary);font-size:var(--fs-13);font-weight:500;cursor:pointer;padding:0">Skip</button>'
+    + (spreadPlan.preview && spreadPlan.preview.length ? '<button type="button" id="catchupTogglePlanBtn" style="background:none;border:none;color:#C6F432;font-size:15px;font-weight:600;cursor:pointer;padding:0">See plan ▾</button>' : '')
+    + '<button type="button" id="catchupLateLogBtn" data-missed-date="' + missedDate + '" style="background:none;border:none;color:#8A8A8E;font-size:15px;font-weight:500;cursor:pointer;padding:0">Log it late</button>'
+    + '<button type="button" id="catchupSkipBtn" data-missed-date="' + missedDate + '" style="background:none;border:none;color:#8A8A8E;font-size:15px;font-weight:500;cursor:pointer;padding:0">Skip</button>'
     + '</div>'
     + '</div>'
     + previewHTML
@@ -126,8 +146,12 @@ export function bindCatchupCardEvents(container, refreshCallback) {
       var prevOverrides = Object.assign({}, getWeekOverrides());
       var prevDecision = getCatchupDecisions()[mDate];
       var settings = getCatchupSettings();
-      var slidePlan = planSlide(tKey, mDate, { prog: getActiveProgram(), weekOverrides: prevOverrides, protectLastRestDay: settings.protectLastRestDay });
-      if (!slidePlan.valid) { showToast(slidePlan.reason || 'Could not slide schedule', 'warn'); return; }
+      var prog = getActiveProgram();
+      var userTrainingDays = (profile && Array.isArray(profile.trainingDays) && profile.trainingDays.length > 0)
+        ? profile.trainingDays
+        : (prog && prog.length === 3 ? [1, 3, 5] : (prog && prog.length === 2 ? [1, 4] : (prog && prog.length === 4 ? [1, 2, 4, 5] : [1, 2, 4, 5, 6])));
+      var slidePlan = planSlide(tKey, mDate, { prog: prog, trainingDays: userTrainingDays, weekOverrides: prevOverrides, protectLastRestDay: settings.protectLastRestDay });
+      if (!slidePlan.valid) { showToast(slidePlan.reason || 'Could not shift schedule', 'warn'); return; }
 
       saveWeekOverrides(slidePlan.newWeekOverrides);
       setCatchupDecision(mDate, 'slid');
@@ -150,11 +174,18 @@ export function bindCatchupCardEvents(container, refreshCallback) {
       var prevOverrides = Object.assign({}, getWeekOverrides());
       var prevDecision = getCatchupDecisions()[mDate];
       var settings = getCatchupSettings();
+      var prog = getActiveProgram();
+      var userTrainingDays = (profile && Array.isArray(profile.trainingDays) && profile.trainingDays.length > 0)
+        ? profile.trainingDays
+        : (prog && prog.length === 3 ? [1, 3, 5] : (prog && prog.length === 2 ? [1, 4] : (prog && prog.length === 4 ? [1, 2, 4, 5] : [1, 2, 4, 5, 6])));
       var spreadPlan = planSpreadAcrossWeek(tKey, {
-        prog: getActiveProgram(), trainingDays: [1, 2, 4, 5, 6], weekOverrides: prevOverrides, protectLastRestDay: settings.protectLastRestDay
+        prog: prog, trainingDays: userTrainingDays, weekOverrides: prevOverrides, protectLastRestDay: settings.protectLastRestDay
       });
 
-      if (!spreadPlan.valid) { showToast(spreadPlan.reason || 'Could not spread workout volume', 'warn'); return; }
+      if (!spreadPlan.valid || !Object.keys(spreadPlan.assignments).length) {
+        showToast(spreadPlan.reason || 'Could not spread workout volume', 'warn');
+        return;
+      }
 
       var newOverrides = Object.assign({}, prevOverrides, spreadPlan.assignments);
       saveWeekOverrides(newOverrides);
