@@ -239,13 +239,11 @@
 }
 
 .gym-ex-section-expanded.is-current {
-  border-left: 2px solid var(--lime);
-  padding-left: var(--spacing-8);
+  /* Current active exercise focus */
 }
 
 .gym-ex-collapsed-row.is-current {
-  border-left: 2px solid var(--lime);
-  padding-left: var(--spacing-8);
+  /* Current active exercise focus */
 }
 
 /* ── Task R2-4: Progressive Overload Advice Badge & Toggle Rationale ── */

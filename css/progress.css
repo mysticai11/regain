@@ -476,45 +476,48 @@
 }
 
 /* ── Item 4: Numbered History Calendar Grid ── */
-.cal-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-  min-height: calc(6 * 44px + 5 * 6px); /* 294px: fixed 6 rows to prevent layout shift */
-  justify-items: center;
-  align-items: center;
-  box-sizing: border-box;
+.cal-grid,
+.cal-grid.dot-grid {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  gap: 6px !important;
+  min-height: calc(6 * 44px + 5 * 6px) !important; /* 294px: fixed 6 rows to prevent layout shift */
+  justify-items: center !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
 }
 
 .cal-cell {
-  position: relative;
-  aspect-ratio: 1;
-  width: 100%;
-  max-width: 44px;
-  min-height: 36px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-15);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  border: none;
-  background: transparent;
-  color: var(--text-dim, #55555A);
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-  font-family: inherit;
-  transition: transform 150ms ease, opacity 150ms ease;
+  position: relative !important;
+  aspect-ratio: 1 !important;
+  width: 100% !important;
+  max-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: var(--fs-15) !important;
+  font-weight: 600 !important;
+  font-variant-numeric: tabular-nums !important;
+  line-height: 1 !important;
+  border: none !important;
+  background: transparent !important;
+  color: var(--text-dim, #55555A) !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-family: inherit !important;
+  transition: transform 150ms ease, opacity 150ms ease !important;
 }
 
 .cal-cell.is-interactive {
-  cursor: pointer;
+  cursor: pointer !important;
 }
 .cal-cell.is-interactive:active {
-  transform: scale(0.94);
+  transform: scale(0.94) !important;
 }
 
 .cal-cell--trained {
@@ -524,29 +527,31 @@
 
 .cal-cell--planned {
   background: transparent !important;
-  border: 1.5px solid var(--cal-ring-planned, rgba(198, 244, 50, 0.6)) !important;
+  border: 1.5px solid var(--lime, #C6F432) !important;
   color: var(--text, #F5F5F4) !important;
 }
 
 .cal-cell--skipped {
   background: transparent !important;
-  border: 1px solid var(--cal-ring-skipped, #222222) !important;
+  border: 1px solid #55555A !important;
   color: var(--text-dim, #55555A) !important;
 }
 
 .cal-cell--rest {
-  background: var(--surface, #141416) !important;
+  background: #141416 !important;
   color: var(--text-dim, #55555A) !important;
 }
 
 .cal-cell.is-today {
-  outline: 2px solid #FFFFFF;
-  outline-offset: 2px;
+  outline: 2px solid #FFFFFF !important;
+  outline-offset: 2px !important;
 }
 
 .cal-cell.empty {
-  visibility: hidden;
-  pointer-events: none;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  width: 44px !important;
+  height: 44px !important;
 }
 
 

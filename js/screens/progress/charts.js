@@ -290,7 +290,7 @@ export function buildDotConsistencyCalendarHTML() {
     else if (cell.state === 'skipped') titleSuffix = 'Skipped';
     else if (cell.isToday) titleSuffix = 'Today · Rest';
 
-    var cls = 'cal-cell dot-cell cal-cell--' + cell.state + (cell.isToday ? ' is-today' : '') + (cell.isInteractive ? ' is-interactive' : '');
+    var cls = 'cal-cell cal-cell--' + cell.state + (cell.isToday ? ' is-today' : '') + (cell.isInteractive ? ' is-interactive' : '');
     var disabledAttr = cell.isInteractive ? '' : ' disabled';
     return '<button type="button" class="' + cls + '" data-jump-day="' + cell.dateKey + '" data-inspect-day="' + cell.dateKey + '" title="' + cell.dateKey + ' (' + titleSuffix + ')"' + disabledAttr + '>'
       + cell.dayNumber
