@@ -4,12 +4,13 @@
   "webDir": "www",
   "plugins": {
     "SplashScreen": {
-      "launchShowDuration": 2000,
+      "launchShowDuration": 0,
       "launchAutoHide": false,
-      "backgroundColor": "#0B0B0C",
+      "backgroundColor": "#09090B",
       "androidSplashResourceName": "splash",
-      "androidScaleType": "CENTER_CROP",
-      "showSpinner": false
+      "androidScaleType": "CENTER_INSIDE",
+      "showSpinner": false,
+      "androidSpinnerColor": "#000000"
     },
     "StatusBar": {
       "overlaysWebView": true,

@@ -9,112 +9,8 @@ import { getWeightHistory, buildDotConsistencyCalendarHTML } from "./charts.js";
 import { workoutHistoryHTML } from "./history.js";
 import { openDayDetailSheet } from "./day-detail-sheet.js";
 
-export function buildMonthlyDigestHTML(year, month, bgColor) {
-  var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var monthName = monthNames[month];
-  var firstDay = new Date(year, month, 1);
-  var lastDay = new Date(year, month + 1, 0);
-  var totalDaysInMonth = lastDay.getDate();
-  var todayStr = todayKey();
-
-  var tdays = (profile && profile.trainingDays) || [1,2,3,5,6];
-  var sessionDays = {};
-  try {
-    getWorkoutSessions().forEach(function(s) {
-      if (s.dayKey && (s.exercises || []).some(function(ex){ return (ex.sets || []).some(Boolean); })) {
-        sessionDays[s.dayKey] = true;
-      }
-    });
-  } catch(e) {}
-
-  var trainedCount = 0, plannedCount = 0, totalKcal = 0, totalProt = 0, foodDays = 0;
-
-  for (var d = 1; d <= totalDaysInMonth; d++) {
-    var k = year + '-' + (month + 1 < 10 ? '0' : '') + (month + 1) + '-' + (d < 10 ? '0' : '') + d;
-    var dow = new Date(year, month, d).getDay();
-
-    if (tdays.includes(dow) && k <= todayStr) plannedCount++;
-    var rec = dayRecord(k);
-    var trained = !!sessionDays[k] || (rec && (rec.workoutDone || (rec.workout && Object.keys(rec.workout).some(function(id){ return (rec.workout[id]||[]).some(Boolean); }))));
-    if (trained) trainedCount++;
-
-    var totals = getDayTotals(k);
-    if (totals.kcal > 0) {
-      totalKcal += totals.kcal;
-      totalProt += totals.protein;
-      foodDays++;
-    }
-  }
-
-  var avgKcal = foodDays ? Math.round(totalKcal / foodDays) : 0;
-  var avgProt = foodDays ? Math.round(totalProt / foodDays) : 0;
-
-  var startMonthKey = year + '-' + ((month + 1 < 10 ? '0' : '') + (month + 1)) + '-01';
-  var endMonthKey = year + '-' + ((month + 1 < 10 ? '0' : '') + (month + 1)) + '-' + (totalDaysInMonth < 10 ? '0' : '') + totalDaysInMonth;
-  var entries = getWeightHistory().filter(function(e){ return (e.dayKey || e.createdAt.slice(0, 10)) >= startMonthKey && (e.dayKey || e.createdAt.slice(0, 10)) <= endMonthKey; });
-  
-  var weightDeltaStr = '—';
-  var monthWeightDesc = 'No weigh-ins';
-  if (entries.length >= 2) {
-    var wDiff = entries[entries.length - 1].weight - entries[0].weight;
-    weightDeltaStr = (wDiff >= 0 ? '+' : '') + wDiff.toFixed(1) + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span>';
-    monthWeightDesc = entries[0].weight.toFixed(1) + ' → ' + entries[entries.length - 1].weight.toFixed(1) + ' kg';
-  } else if (entries.length === 1) {
-    weightDeltaStr = entries[0].weight.toFixed(1) + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span>';
-    monthWeightDesc = '1 weigh-in';
-  }
-
-  var consistencyPct = plannedCount > 0 ? Math.round((trainedCount / plannedCount) * 100) : 0;
-  var bg = bgColor || '#141416';
-
-  return '<div style="background:' + bg + ';border-radius:12px;padding:12px 14px;margin-top:8px;margin-bottom:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:left">'
-    + '<div>'
-      + '<div class="t-micro" style="color:#8A8A8E;font-size:11px;letter-spacing:0.04em">Workouts</div>'
-      + '<div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15;margin-top:2px">' + trainedCount + '</div>'
-      + '<div class="tabnum" style="font-size:11px;color:#8A8A8E;margin-top:2px">' + (plannedCount > 0 ? (consistencyPct + '% consistency') : 'Logged') + '</div>'
-    + '</div>'
-    + '<div>'
-      + '<div class="t-micro" style="color:#8A8A8E;font-size:11px;letter-spacing:0.04em">Avg Intake</div>'
-      + '<div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15;margin-top:2px">' + (avgKcal > 0 ? avgKcal : '—') + '<span style="font-size:15px;color:#8A8A8E;font-weight:400;margin-left:2px">kcal</span></div>'
-      + '<div class="tabnum" style="font-size:11px;color:#8A8A8E;margin-top:2px">' + (avgProt > 0 ? (avgProt + 'g protein/day') : 'No food logged') + '</div>'
-    + '</div>'
-    + '<div>'
-      + '<div class="t-micro" style="color:#8A8A8E;font-size:11px;letter-spacing:0.04em">Weight</div>'
-      + '<div class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15;margin-top:2px">' + weightDeltaStr + '</div>'
-      + '<div class="tabnum" style="font-size:11px;color:#8A8A8E;margin-top:2px">' + esc(monthWeightDesc) + '</div>'
-    + '</div>'
-    + '</div>';
-}
-
-export function buildAllMonthsHistoryHTML() {
-  var keys = allDayKeys();
-  var monthSet = {};
-  keys.forEach(function(k) { if (k && k.length >= 7) monthSet[k.slice(0, 7)] = true; });
-  var curYm = todayKey().slice(0, 7);
-  monthSet[curYm] = true;
-
-  var sortedYm = Object.keys(monthSet).sort().reverse();
-  var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-
-  var monthBlocks = sortedYm.map(function(ym) {
-    var parts = ym.split('-');
-    var y = parseInt(parts[0], 10);
-    var m = parseInt(parts[1], 10) - 1;
-    var title = monthNames[m] + ' ' + y;
-    var isCurrentMonth = (ym === curYm);
-    var statsHTML = buildMonthlyDigestHTML(y, m, '#1C1C1F');
-
-    return '<div style="background:#141416;border-radius:14px;padding:14px;margin-bottom:12px;text-align:left">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
-        + '<div style="font-size:17px;font-weight:600;color:#F5F5F4">' + esc(title) + '</div>'
-        + (isCurrentMonth ? '<span class="t-micro" style="color:var(--accent-primary);font-size:11px">Current Month</span>' : '')
-      + '</div>'
-      + statsHTML
-      + '</div>';
-  });
-
-  return '<div>' + monthBlocks.join('') + '</div>';
-}
+import { buildMonthlyDigestHTML, buildAllMonthsHistoryHTML } from "./monthly-digest.js";
+export { buildMonthlyDigestHTML, buildAllMonthsHistoryHTML };
 
 export function buildWeeklyDigestHTML() {
   var keys = allDayKeys();
@@ -171,29 +67,62 @@ export function buildWeeklyDigestHTML() {
       var dSets = dSessions.reduce(function(acc, s) {
         return acc + (s.exercises || []).reduce(function(a, ex) { return a + (ex.sets || []).filter(Boolean).length; }, 0);
       }, 0);
+      var dVol = dSessions.reduce(function(acc, s) {
+        return acc + (s.exercises || []).reduce(function(a, ex) {
+          return a + (ex.sets || []).reduce(function(v, st) { return v + ((Number(st && st.weight) || 0) * (Number(st && st.reps) || 0)); }, 0);
+        }, 0);
+      }, 0);
+      var dDurSec = dSessions.reduce(function(acc, s) {
+        var sec = s.duration_sec != null ? Number(s.duration_sec) : (s.durationMinutes ? Number(s.durationMinutes) * 60 : 0);
+        return acc + sec;
+      }, 0);
+      var dDurMin = dDurSec ? Math.round(dDurSec / 60) : 0;
 
       var isTrained = dSessions.length > 0 || (dayRecord(dKey) && dayRecord(dKey).workoutDone);
       var isSched = profileTrainingDays.includes(curDayObj.getDay());
 
       if (isTrained) {
-        trainedRows.push('<div class="list-row" data-jump-day="' + dKey + '" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #1C1C1F;cursor:pointer">'
-          + '<div style="flex:1;min-width:0;overflow:hidden">'
-            + '<div style="font-size:15px;font-weight:600;color:#F5F5F4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(woLabel || 'Workout') + '</div>'
-            + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px;font-variant-numeric:tabular-nums">' + esc(dayName) + (dSets ? (' · ' + dSets + (dSets === 1 ? ' set' : ' sets')) : '') + '</div>'
+        var pills = [];
+        if (dSets) pills.push('<span style="background:var(--surface2);padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + dSets + (dSets === 1 ? ' set' : ' sets') + '</span>');
+        if (dVol > 0) pills.push('<span style="background:var(--surface2);padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + Math.round(dVol).toLocaleString() + ' kg vol</span>');
+        if (dDurMin > 0) pills.push('<span style="background:var(--surface2);padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + dDurMin + ' min</span>');
+        var pillsHTML = pills.length ? ('<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px">' + pills.join('') + '</div>') : '';
+
+        trainedRows.push('<div class="list-row timeline-day-item" data-jump-day="' + dKey + '" style="position:relative;margin-bottom:10px;padding-left:26px;cursor:pointer">'
+          + '<span class="timeline-dot" style="position:absolute;left:2px;top:18px;width:12px;height:12px;border-radius:50%;background:var(--accent-primary);box-shadow:var(--dot-glow-primary, 0 0 8px var(--accent-primary));display:inline-block;z-index:2"></span>'
+          + '<div class="metric-card" style="background:linear-gradient(135deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.01) 100%),var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:12px 14px;box-shadow:var(--card-shadow, 0 4px 16px rgba(0,0,0,0.25))">'
+            + '<div style="display:flex;justify-content:space-between;align-items:baseline">'
+              + '<div style="font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(woLabel || 'Full-Body Workout') + '</div>'
+              + '<div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em">' + esc(dayName) + '</div>'
+            + '</div>'
+            + pillsHTML
           + '</div>'
-          + '<span style="display:inline-flex;align-items:center;justify-content:center;color:#8A8A8E;width:32px;height:32px;flex-shrink:0">' + chevronRightSVG + '</span>'
-          + '</div>');
+        + '</div>');
       } else {
         if (isSched && dKey <= todayKey()) skippedDaysCount++;
         else pureRestCount++;
         var statusLabel = (isSched && dKey <= todayKey()) ? 'Skipped' : 'Rest';
-        restRows.push('<div class="list-row rest-skipped-row" data-inspect-day="' + dKey + '" data-jump-day="' + dKey + '" style="display:flex;justify-content:space-between;align-items:center;min-height:56px;height:56px;box-sizing:border-box;border-bottom:1px solid #1C1C1F;cursor:pointer;padding:0">'
-          + '<div style="flex:1;min-width:0;overflow:hidden">'
-            + '<div style="font-size:15px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(dayName) + '</div>'
-            + '<div style="font-size:11px;color:var(--text-secondary);margin-top:2px;font-variant-numeric:tabular-nums">' + esc(statusLabel) + (t.kcal > 0 ? (' · ' + t.kcal + ' kcal') : '') + '</div>'
+        var isSkipped = (statusLabel === 'Skipped');
+        var dotStyle = isSkipped
+          ? 'background:var(--danger);box-shadow:var(--dot-glow-danger, 0 0 8px var(--danger));'
+          : 'background:var(--surface2);border:1px solid var(--hairline);';
+        var statusBadge = isSkipped
+          ? '<span style="font-size:11px;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:0.04em">Skipped</span>'
+          : '<span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em">Rest</span>';
+
+        restRows.push('<div class="list-row rest-skipped-row timeline-day-item" data-inspect-day="' + dKey + '" data-jump-day="' + dKey + '" style="position:relative;display:flex;justify-content:space-between;align-items:center;min-height:56px;height:56px;box-sizing:border-box;margin-bottom:6px;padding-left:26px;cursor:pointer">'
+          + '<span class="timeline-dot" style="position:absolute;left:2px;top:22px;width:12px;height:12px;border-radius:50%;' + dotStyle + 'display:inline-block;z-index:2"></span>'
+          + '<div style="flex:1;min-width:0;overflow:hidden;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,0.02);border:1px solid var(--hairline);border-radius:12px">'
+            + '<div>'
+              + '<div style="font-size:15px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(dayName) + '</div>'
+              + '<div style="font-size:11px;color:var(--text-secondary);margin-top:2px;font-variant-numeric:tabular-nums">' + esc(statusLabel) + (t.kcal > 0 ? (' · ' + t.kcal + ' kcal') : '') + '</div>'
+            + '</div>'
+            + '<div style="display:flex;align-items:center;gap:8px">'
+              + statusBadge
+              + '<span style="display:inline-flex;align-items:center;justify-content:center;color:var(--text-secondary);width:20px;height:20px;flex-shrink:0">' + chevronRightSVG + '</span>'
+            + '</div>'
           + '</div>'
-          + '<span style="display:inline-flex;align-items:center;justify-content:center;color:#8A8A8E;width:32px;height:32px;flex-shrink:0">' + chevronRightSVG + '</span>'
-          + '</div>');
+        + '</div>');
       }
     }
 
@@ -247,8 +176,11 @@ export function buildWeeklyDigestHTML() {
         + '<div style="width:1px;height:28px;background:#222222"></div>'
         + '<div><div style="font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.04em;text-transform:uppercase">Weight</div><div class="tabnum" style="font-size:17px;font-weight:600;color:#F5F5F4;margin-top:2px">' + esc(weightDisp) + '</div></div>'
       + '</div>'
-      + '<div>' + (trainedRows.length ? trainedRows.join('') : '<div style="font-size:11px;color:#8A8A8E;padding:6px 0">No sessions logged this week</div>') + '</div>'
-      + restSummaryHTML
+      + '<div class="weekly-timeline-container" style="position:relative;margin-top:12px">'
+        + '<div class="timeline-line" style="position:absolute;left:7px;top:14px;bottom:14px;width:2px;background:var(--hairline);pointer-events:none"></div>'
+        + '<div>' + (trainedRows.length ? trainedRows.join('') : '<div style="font-size:11px;color:var(--text-secondary);padding:6px 0 6px 26px">No sessions logged this week</div>') + '</div>'
+        + restSummaryHTML
+      + '</div>'
       + '</div>');
   }
 

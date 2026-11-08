@@ -196,27 +196,35 @@ export function workoutHistoryHTML() {
 
       var chevronSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
       var isFirstInWeek = (sIdx === 0 && wkIdx === 0);
+      var durPart = durText ? ('<span class="hist-dur-part" style="background:var(--surface2);padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + esc(durText) + '</span>') : '';
+      var setsPill = '<span style="background:var(--surface2);padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + totalSets + (totalSets === 1 ? ' set' : ' sets') + '</span>';
+      var volPill = totalVol > 0 ? ('<span style="background:var(--surface2);padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + Math.round(totalVol).toLocaleString() + ' kg vol</span>') : '';
+      var pillsHTML = '<div class="history-card-subline" style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap;white-space:nowrap">'
+        + setsPill + volPill + durPart
+        + '<span style="display:none">' + esc(baseStatsText) + '</span>'
+      + '</div>';
 
-      html += '<div class="history-session-card-wrap" style="position:relative;margin-bottom:12px">'
-        + '<details class="history-session-details" ' + (isFirstInWeek ? 'open' : '') + ' style="margin-bottom:0;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-card,16px);box-shadow:0 4px 16px rgba(0,0,0,0.3);overflow:hidden">'
-        + '<summary class="history-session-header" style="min-height:64px;height:auto;padding:10px 10px;display:flex;align-items:center;cursor:pointer;list-style:none;user-select:none;box-sizing:border-box;gap:8px">'
+      html += '<div class="history-session-card-wrap metric-card" style="position:relative;margin-bottom:24px;padding-left:26px">'
+        + '<span class="history-timeline-dot" style="position:absolute;left:2px;top:28px;width:12px;height:12px;border-radius:50%;background:var(--accent-primary);box-shadow:var(--dot-glow-primary, 0 0 8px var(--accent-primary));display:inline-block;z-index:2"></span>'
+        + '<details class="history-session-details" ' + (isFirstInWeek ? 'open' : '') + ' style="margin-bottom:0;background:linear-gradient(135deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.01) 100%),var(--surface);border:1px solid var(--hairline);border-radius:var(--r-card,16px);box-shadow:var(--card-shadow, 0 4px 16px rgba(0,0,0,0.3));overflow:hidden">'
+        + '<summary class="history-session-header" style="min-height:64px;height:auto;padding:12px 14px;display:flex;align-items:center;cursor:pointer;list-style:none;user-select:none;box-sizing:border-box;gap:8px">'
           + '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;width:44px;text-align:center">'
-            + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1.1;letter-spacing:0.04em;text-transform:uppercase">' + esc(dayLabel) + '</div>'
-            + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1;font-variant-numeric:tabular-nums;margin:1px 0">' + String(dObj.getDate()) + '</div>'
-            + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1.1;letter-spacing:0.04em;text-transform:uppercase">' + esc(monLabel) + '</div>'
+            + '<div style="font-size:11px;font-weight:600;color:var(--text-secondary);line-height:1.1;letter-spacing:0.04em;text-transform:uppercase">' + esc(dayLabel) + '</div>'
+            + '<div style="font-size:28px;font-weight:700;color:var(--text);line-height:1;font-variant-numeric:tabular-nums;margin:1px 0">' + String(dObj.getDate()) + '</div>'
+            + '<div style="font-size:11px;font-weight:600;color:var(--text-secondary);line-height:1.1;letter-spacing:0.04em;text-transform:uppercase">' + esc(monLabel) + '</div>'
           + '</div>'
           + '<div style="flex:1;min-width:0;overflow:hidden">'
-            + '<div class="history-session-title" style="font-size:17px;font-weight:600;color:#F5F5F4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25;word-break:break-word">' + esc(cleanTitle) + '</div>'
-            + '<div class="history-card-subline" style="font-size:15px;color:#8A8A8E;margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span>' + esc(baseStatsText) + '</span>' + (durText ? '<span class="hist-dur-part"> · ' + esc(durText) + '</span>' : '') + '</div>'
+            + '<div class="history-session-title" style="font-size:17px;font-weight:700;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25;word-break:break-word">' + esc(cleanTitle) + '</div>'
+            + pillsHTML
           + '</div>'
           + '<div style="display:flex;align-items:center;flex-shrink:0">'
-            + '<span class="history-chevron" style="display:inline-flex;align-items:center;justify-content:center;width:44px;min-height:48px;color:#8A8A8E;transition:transform 0.2s ease">' + chevronSVG + '</span>'
+            + '<span class="history-chevron" style="display:inline-flex;align-items:center;justify-content:center;width:44px;min-height:48px;color:var(--text-secondary);transition:transform 0.2s ease">' + chevronSVG + '</span>'
             + '<span style="display:inline-block;width:44px;min-height:48px;flex-shrink:0" aria-hidden="true"></span>'
           + '</div>'
         + '</summary>'
-        + '<div class="history-session-body" style="padding:0 16px 12px;border-top:1px solid #1C1C1F">' + exRows + '</div>'
+        + '<div class="history-session-body" style="padding:0 16px 14px;border-top:1px solid var(--hairline)">' + exRows + '</div>'
         + '</details>'
-        + '<button type="button" class="btn-ghost history-menu-btn" data-session-menu="' + esc(session.id) + '" style="position:absolute;top:8px;right:10px;background:none;border:none;font-size:17px;line-height:1;padding:0;color:#8A8A8E;cursor:pointer;width:44px;min-height:48px;display:inline-flex;align-items:center;justify-content:center;z-index:2" aria-label="Session options">···</button>'
+        + '<button type="button" class="btn-ghost history-menu-btn" data-session-menu="' + esc(session.id) + '" style="position:absolute;top:8px;right:10px;background:none;border:none;font-size:17px;line-height:1;padding:0;color:var(--text-secondary);cursor:pointer;width:44px;min-height:48px;display:inline-flex;align-items:center;justify-content:center;z-index:2" aria-label="Session options">···</button>'
         + '</div>';
     });
   });
@@ -225,88 +233,8 @@ export function workoutHistoryHTML() {
   return html;
 }
 
-export function weightEntriesHTML(entries) {
-  if (!entries || !entries.length) return '<div style="padding:16px 0;font-size:15px;color:#8A8A8E;text-align:center">No weight entries logged yet</div>';
-  var rows = entries.slice().reverse().map(function(e) {
-    var d = new Date(e.createdAt || (e.dayKey + 'T12:00:00'));
-    var dateLabel = !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : (e.dayKey || '');
-    var timeLabel = (e.createdAt && e.createdAt.includes('T')) ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-    var dateDisplay = (dateLabel + (timeLabel ? ' · ' + timeLabel : '')).toUpperCase();
-    var wNum = Number(e.weight);
-    var wStr = !isNaN(wNum) ? wNum.toFixed(1) : String(e.weight);
-    return '<div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #1C1C1F">'
-      + '<div>'
-        + '<div class="tabnum" style="font-size:17px;font-weight:600;color:#F5F5F4;line-height:1.2">' + wStr + ' <span style="font-size:15px;color:#8A8A8E;font-weight:400">kg</span></div>'
-        + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.08em;text-transform:uppercase;margin-top:4px">' + esc(dateDisplay) + '</div>'
-      + '</div>'
-      + '<div style="display:flex;align-items:center;gap:12px">'
-        + '<button type="button" class="btn-text-action" data-edit-weight="' + esc(e.id) + '" style="color:#8A8A8E;font-size:15px;font-weight:500;background:none;border:none;padding:8px 6px;cursor:pointer;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center">Edit</button>'
-        + '<button type="button" class="btn-text-action" data-delete-weight="' + esc(e.id) + '" style="color:#FF4D4F;font-size:15px;font-weight:500;background:none;border:none;padding:8px 6px;cursor:pointer;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center">Delete</button>'
-      + '</div></div>';
-  }).join('');
-  return '<div style="margin-top:24px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-    + '<span class="t-label">WEIGHT LOGS</span><span class="t-micro tabnum" style="color:var(--text-secondary)">' + entries.length + (entries.length === 1 ? ' entry' : ' entries') + '</span></div>'
-    + '<div style="max-height:360px;overflow-y:auto;padding-right:2px">' + rows + '</div></div>';
-}
-
-export async function editWeightEntry(id) {
-  var entries = (profile && Array.isArray(profile.weightEntries)) ? profile.weightEntries : [];
-  var entry = entries.find(function(e){ return String(e.id) === String(id); });
-  var curW = entry ? entry.weight : null;
-  var dKey = (entry && entry.dayKey) || (typeof id === 'string' && id.startsWith('legacy_') ? id.replace('legacy_', '') : null);
-  if (!curW && dKey) curW = (dayRecord(dKey) || {}).weight;
-  if (curW == null) return;
-  var val = await promptDialog({ title: 'Edit Bodyweight', message: 'Enter bodyweight in kg:', defaultValue: curW, inputType: 'number', confirmLabel: 'Save' });
-  if (val === null) return;
-  var w = parseFloat(val); if (!w || isNaN(w) || w < 20 || w > 300) { showToast('Enter a valid weight', 'warn'); return; }
-  if (entry) { entry.weight = w; }
-  else if (dKey) { profile.weightEntries = profile.weightEntries || []; profile.weightEntries.push({ id: id, dayKey: dKey, weight: w, createdAt: dKey + 'T12:00:00' }); }
-  if (dKey) { var rec = dayRecord(dKey); rec.weight = w; saveDayRecord(dKey, rec); }
-  sv('rg_profile', profile); triggerHaptic(); showToast('Weight updated', 'ok');
-  if (typeof window.renderProgressSimple === 'function') window.renderProgressSimple();
-}
-
-export function deleteWeightEntry(id, skipConfirm) {
-  var doDelete = function() {
-    var entries = (profile && profile.weightEntries) || [];
-    var target = entries.find(function(e){ return String(e.id) === String(id); });
-    profile.weightEntries = entries.filter(function(e){ return String(e.id) !== String(id); });
-    var dKey = (target && target.dayKey) || (typeof id === 'string' && id.startsWith('legacy_') ? id.replace('legacy_', '') : null);
-    if (dKey) {
-      var sameDay = profile.weightEntries.filter(function(e){ return e.dayKey === dKey; }).sort(function(a,b){ return String(a.createdAt).localeCompare(String(b.createdAt)); });
-      var rec = dayRecord(dKey); rec.weight = sameDay.length ? sameDay[sameDay.length - 1].weight : null; saveDayRecord(dKey, rec);
-    }
-    sv('rg_profile', profile); triggerHaptic(); showToast('Weight log deleted', 'ok');
-    if (typeof window.renderProgressSimple === 'function') window.renderProgressSimple();
-  };
-  if (skipConfirm || (typeof process !== 'undefined' && typeof confirm === 'function' && confirm())) {
-    doDelete(); return Promise.resolve(true);
-  }
-  return confirmDialog({ title: 'Delete Weight Log?', message: 'Are you sure you want to delete this weight entry?', confirmLabel: 'Delete', destructive: true }).then(function(ok) { if (ok) doDelete(); return ok; });
-}
-
-export function weeklyVolumeChart() {
-  var logged = getLoggedWeeklyVolume(), planned = getWeeklyVolume(), plannedByMuscle = {};
-  planned.forEach(function(v){ plannedByMuscle[v.muscle] = v.sets; });
-  var targetFloor = 10;
-  var items = logged.map(function(v) {
-    var target = plannedByMuscle[v.muscle] || targetFloor;
-    return { muscle: v.muscle, sets: v.sets, target: target, pct: Math.min(100, Math.round(v.sets / target * 100)), isDone: v.sets >= target };
-  });
-  items.sort(function(a, b) { return a.isDone !== b.isDone ? (a.isDone ? 1 : -1) : (a.sets / a.target) - (b.sets / b.target); });
-  var rows = items.map(function(v, i) {
-    return '<div style="padding:12px 16px;' + (i > 0 ? 'border-top:1px solid var(--hairline);' : '') + '">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:600;margin-bottom:6px">'
-        + '<span style="color:var(--text);letter-spacing:0.02em">' + esc(v.muscle) + '</span>'
-        + '<span class="tabnum" style="color:' + (v.isDone ? 'var(--lime)' : 'var(--text-secondary)') + '">' + v.sets + ' / ' + v.target + '</span>'
-      + '</div>'
-      + '<div style="height:6px;background:var(--hairline);border-radius:9999px;overflow:hidden">'
-        + '<div style="height:100%;border-radius:9999px;background:' + (v.isDone ? 'var(--lime)' : 'var(--text-secondary)') + ';width:' + v.pct + '%"></div>'
-      + '</div>'
-      + '</div>';
-  }).join('');
-  return '<div style="background:var(--surface);border:1px solid var(--hairline);border-radius:16px;overflow:hidden">' + rows + '</div>';
-}
+export { weightEntriesHTML, editWeightEntry, deleteWeightEntry } from "./body.js";
+export { weeklyVolumeChart } from "./lifts.js";
 
 export function getNutritionBarChartInner(records) {
   var letters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];

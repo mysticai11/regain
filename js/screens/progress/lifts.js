@@ -6,6 +6,7 @@ import { renderLineChart } from "../../ui/lineChart.js";
 import { esc } from "../../lib/format.js";
 import { triggerHaptic } from "../../lib/dom.js";
 import { getWorkoutSessions, allDayKeys, dayRecord } from "../../storage.js";
+import { getLoggedWeeklyVolume, getWeeklyVolume } from "../../lib/calc.js";
 
 /**
  * Builds HTML for the personal bests section (streamlined to avoid redundancy with hero summary).
@@ -178,4 +179,46 @@ export function enhanceLiftsTab({
       };
     }
   }
+}
+
+/**
+ * Modern 2-column grid visualization of Weekly Sets by Muscle with .metric-card cards,
+ * bold numbers, and violet gradient segmented progress bars.
+ */
+export function weeklyVolumeChart() {
+  var logged = getLoggedWeeklyVolume(), planned = getWeeklyVolume(), plannedByMuscle = {};
+  planned.forEach(function(v){ plannedByMuscle[v.muscle] = v.sets; });
+  var targetFloor = 10;
+  var items = logged.map(function(v) {
+    var target = plannedByMuscle[v.muscle] || targetFloor;
+    return {
+      muscle: v.muscle,
+      sets: v.sets,
+      target: target,
+      pct: Math.min(100, Math.round(v.sets / target * 100)),
+      isDone: v.sets >= target
+    };
+  });
+  items.sort(function(a, b) {
+    return a.isDone !== b.isDone ? (a.isDone ? 1 : -1) : (a.sets / a.target) - (b.sets / b.target);
+  });
+
+  var cards = items.map(function(v) {
+    var setsColor = v.isDone ? 'var(--accent-primary)' : 'var(--text)';
+    var barGlow = v.isDone ? 'box-shadow:var(--glow-violet, 0 0 10px rgba(139,92,246,0.3));' : '';
+    return '<div class="metric-card weekly-muscle-card" style="background:linear-gradient(135deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.01) 100%),var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:14px 16px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;min-height:104px;box-shadow:var(--card-shadow, 0 4px 16px rgba(0,0,0,0.25))">'
+      + '<div style="display:flex;justify-content:space-between;align-items:baseline">'
+        + '<div style="font-size:11px;letter-spacing:0.05em;color:var(--text-secondary);text-transform:uppercase;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(v.muscle) + '</div>'
+        + (v.isDone ? '<span style="font-size:11px;font-weight:700;color:var(--accent-primary);letter-spacing:0.04em">DONE</span>' : '')
+      + '</div>'
+      + '<div class="tabnum" style="font-size:var(--fs-24, 24px);font-weight:800;color:' + setsColor + ';line-height:1.1;margin:10px 0 12px;font-variant-numeric:tabular-nums">'
+        + v.sets + ' <span style="font-size:15px;font-weight:600;color:var(--text-secondary)">/ ' + v.target + '</span>'
+      + '</div>'
+      + '<div style="height:8px;background:var(--surface2);border-radius:999px;overflow:hidden;position:relative;' + barGlow + '">'
+        + '<div style="height:100%;border-radius:999px;background:linear-gradient(90deg, #8B5CF6, #D946EF);width:' + v.pct + '%;transition:width 0.3s ease"></div>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+
+  return '<div class="weekly-sets-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;box-sizing:border-box">' + cards + '</div>';
 }

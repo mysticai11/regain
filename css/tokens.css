@@ -152,6 +152,10 @@
   --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   --lime-glow: 0 0 16px rgba(139, 92, 246, 0.4);
   --glow-lime: 0 0 20px rgba(139, 92, 246, 0.4);
+  --glow-violet: 0 0 15px rgba(139, 92, 246, 0.4);
+  --dot-glow-primary: 0 0 8px rgba(139, 92, 246, 0.8);
+  --dot-glow-danger: 0 0 8px rgba(255, 77, 79, 0.8);
+  --weekly-sets-gradient: linear-gradient(90deg, #8B5CF6, #D946EF);
 
   /* Round 1 UI Tokens */
   --seg-track: #0B0B0C;

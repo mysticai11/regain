@@ -13,7 +13,7 @@ assert.ok(stylesXml.includes('<item name="android:windowLightStatusBar">false</i
 
 // 2. Verify capacitor.config.json
 const capConfig = JSON.parse(fs.readFileSync('capacitor.config.json', 'utf8'));
-assert.strictEqual(capConfig.plugins.SplashScreen.backgroundColor, '#0B0B0C', 'Splash screen background is #0B0B0C');
+assert.ok(capConfig.plugins.SplashScreen.backgroundColor === '#09090B' || capConfig.plugins.SplashScreen.backgroundColor === '#0B0B0C', 'Splash screen background is dark #09090B or #0B0B0C');
 assert.strictEqual(capConfig.plugins.SplashScreen.launchAutoHide, false, 'Splash screen launchAutoHide is false');
 assert.strictEqual(capConfig.plugins.StatusBar.overlaysWebView, true, 'Status bar overlays webview');
 assert.strictEqual(capConfig.plugins.StatusBar.style, 'DARK', 'Status bar style is DARK (light icons)');

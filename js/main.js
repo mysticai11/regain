@@ -142,7 +142,7 @@ export function initEdgeToEdgeAndSplash() {
         var StatusBar = window.Capacitor.Plugins.StatusBar;
         if (StatusBar.setOverlaysWebView) StatusBar.setOverlaysWebView({ overlay: true });
         if (StatusBar.setStyle) StatusBar.setStyle({ style: 'DARK' });
-        if (StatusBar.setBackgroundColor) StatusBar.setBackgroundColor({ color: '#0B0B0C' });
+        if (StatusBar.setBackgroundColor) StatusBar.setBackgroundColor({ color: '#09090B' });
       } catch (err) {
         console.warn('StatusBar init error:', err);
       }
@@ -151,10 +151,8 @@ export function initEdgeToEdgeAndSplash() {
     if (window.Capacitor.isPluginAvailable('SplashScreen')) {
       try {
         var SplashScreen = window.Capacitor.Plugins.SplashScreen;
-        if (SplashScreen.hide) {
-          setTimeout(function() {
-            SplashScreen.hide({ fadeOutDuration: 150 });
-          }, 60);
+        if (SplashScreen && SplashScreen.hide) {
+          SplashScreen.hide({ fadeOutDuration: 150 });
         }
       } catch (err) {
         console.warn('SplashScreen hide error:', err);
@@ -166,6 +164,12 @@ export function initEdgeToEdgeAndSplash() {
 // ── Boot ────────────────────────────────────────────────────────────────────────
 function bootApp() {
   console.log('BOOT: bootApp running');
+  if (typeof document !== 'undefined' && document.body && document.body.style) {
+    document.body.style.overflow = 'hidden';
+  }
+  if (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SplashScreen) {
+    try { window.Capacitor.Plugins.SplashScreen.hide(); } catch(e) {}
+  }
   if (typeof document !== 'undefined' && document.documentElement) {
     document.documentElement.setAttribute('data-motion-polish', MOTION_POLISH_ENABLED ? 'true' : 'false');
   }
@@ -238,19 +242,28 @@ function onStorageReady() {
     }
   }
   initEdgeToEdgeAndSplash();
-  dismissOpeningVisual();
+  dismissSplash();
 }
 
-function dismissOpeningVisual() {
+function dismissSplash() {
   if (typeof document === 'undefined' || !document.getElementById) return;
-  var opening = document.getElementById('appOpeningVisual');
-  if (opening && opening.classList && opening.classList.add) {
-    opening.classList.add('is-dismissed');
+  var splash = document.getElementById('app-splash') || document.getElementById('appOpeningVisual');
+  if (splash) {
     setTimeout(function () {
-      if (opening && opening.parentNode && opening.parentNode.removeChild) {
-        opening.parentNode.removeChild(opening);
+      if (splash.classList && splash.classList.add) {
+        splash.classList.add('fade-out', 'opacity-0');
       }
-    }, 320);
+      if (document.body && document.body.style) document.body.style.overflow = '';
+      setTimeout(function () {
+        if (splash && splash.parentNode) {
+          splash.parentNode.removeChild(splash);
+        } else if (splash && splash.style) {
+          splash.style.display = 'none';
+        }
+      }, 400);
+    }, 600);
+  } else {
+    if (document.body && document.body.style) document.body.style.overflow = '';
   }
 }
 

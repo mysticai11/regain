@@ -128,12 +128,16 @@ export function renderTodaySimple() {
   var userInitial = (profile && profile.name && profile.name.trim()) ? profile.name.trim().charAt(0).toUpperCase() : '';
   var avatarInner = userInitial || ic('user', 18);
   contentEl.innerHTML =
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">'
-    + '<div>'
+    '<div style="margin-bottom:20px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+        + '<div style="display:flex;align-items:center;gap:10px">'
+          + '<img src="assets/logo.png" alt="Regain" style="width:28px;height:28px;object-fit:contain;border-radius:6px">'
+          + '<span style="font-size:var(--fs-20, 20px);font-weight:800;color:var(--text);letter-spacing:-0.02em">Regain</span>'
+        + '</div>'
+        + '<button class="profile-avatar-btn" id="settingsBtn" aria-label="Profile and Settings" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,rgba(139,92,246,0.3) 0%,rgba(56,189,248,0.2) 100%);border:1px solid rgba(255,255,255,0.12);color:var(--text);font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--card-shadow, 0 4px 12px rgba(0,0,0,0.3));flex-shrink:0">' + avatarInner + '</button>'
+      + '</div>'
       + '<h1 style="font-size:32px;font-weight:800;color:var(--text);letter-spacing:-0.03em;margin:0;line-height:1.1">Today</h1>'
       + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--text-secondary);text-transform:uppercase;margin-top:4px">' + esc(todayHeaderDateStr) + '</div>'
-    + '</div>'
-    + '<button class="profile-avatar-btn" id="settingsBtn" aria-label="Profile and Settings" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,rgba(139,92,246,0.3) 0%,rgba(56,189,248,0.2) 100%);border:1px solid rgba(255,255,255,0.12);color:var(--text);font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3);flex-shrink:0">' + avatarInner + '</button>'
     + '</div>'
     + pastDateBanner
     + buildBackupNudgeHTML()
