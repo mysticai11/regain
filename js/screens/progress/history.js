@@ -9,7 +9,7 @@ import { showToast } from "../../components/toast.js";
 import { triggerHaptic } from "../../lib/dom.js";
 import { confirmDialog, promptDialog } from "../../components/dialog.js";
 import { getWorkoutForDate } from "../gym/helpers.js";
-import { buildNutritionBarChartHTML } from "../../ui/barChart.js?v=23";
+import { buildNutritionBarChartHTML } from "../../ui/barChart.js?v=24";
 
 export function getResumeWorkoutCardHTML() {
   var todayRec = dayRecord(todayKey());
@@ -196,7 +196,7 @@ export function workoutHistoryHTML() {
       var chevronSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
       var isFirstInWeek = (sIdx === 0 && wkIdx === 0);
 
-      html += '<details class="history-session-details" ' + (isFirstInWeek ? 'open' : '') + ' style="margin-bottom:12px;background:#141416;border-radius:16px;overflow:hidden">'
+      html += '<details class="history-session-details" ' + (isFirstInWeek ? 'open' : '') + ' style="margin-bottom:12px;background:#141416;border:1px solid #222222;border-radius:16px;overflow:hidden">'
         + '<summary class="history-session-header" style="min-height:64px;height:auto;padding:10px 10px;display:flex;align-items:center;cursor:pointer;list-style:none;user-select:none;box-sizing:border-box;gap:8px">'
           + '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;width:44px;text-align:center">'
             + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1.1;letter-spacing:0.04em;text-transform:uppercase">' + esc(dayLabel) + '</div>'
@@ -241,7 +241,7 @@ export function weightEntriesHTML(entries) {
       + '</div></div>';
   }).join('');
   return '<div style="margin-top:24px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-    + '<span class="t-label">Weight logs</span><span class="t-micro tabnum" style="color:var(--text-secondary)">' + entries.length + (entries.length === 1 ? ' entry' : ' entries') + '</span></div>'
+    + '<span class="t-label">WEIGHT LOGS</span><span class="t-micro tabnum" style="color:var(--text-secondary)">' + entries.length + (entries.length === 1 ? ' entry' : ' entries') + '</span></div>'
     + '<div style="max-height:360px;overflow-y:auto;padding-right:2px">' + rows + '</div></div>';
 }
 

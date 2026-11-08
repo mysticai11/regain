@@ -218,7 +218,7 @@ export function renderGym() {
 
     // EXPANDED EXERCISE
     if (rec.skippedExercises && rec.skippedExercises[ex.id]) {
-      return '<section class="gym-ex-skipped" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#141416;border:1px solid #1C1C1F;border-radius:14px;margin-bottom:12px">'
+      return '<section class="gym-ex-skipped" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#141416;border:1px solid #222222;border-radius:16px;margin-bottom:12px">'
         + '<span style="font-size:15px;color:#8A8A8E;text-decoration:line-through">' + esc(ex.name) + ' (Skipped)</span>'
         + '<div style="display:flex;align-items:center;gap:12px">'
           + '<button type="button" class="btn-text-action add-replacement-btn" data-add-replacement="' + ex.id + '" style="font-size:11px;color:#8A8A8E;background:none;border:none;cursor:pointer;padding:0;font-weight:600">+ Add</button>'
@@ -347,7 +347,7 @@ export function renderGym() {
   }).join('');
 
   var finishCardHTML = (loggedTotal >= totalPlanned && totalPlanned > 0 && !rec.workoutDone)
-    ? ('<div style="margin:20px 0 16px"><button type="button" class="btn" id="finishAllSetsBtn" style="width:100%;height:48px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer">Finish workout (' + loggedTotal + '/' + totalPlanned + ' sets completed)</button></div>')
+    ? ('<div style="margin:20px 0 16px"><button type="button" class="btn btn-primary" id="finishAllSetsBtn" style="width:100%;height:48px;background:var(--lime,#C6F432);color:#0B0B0C;font-size:15px;font-weight:700;border:none;border-radius:16px;cursor:pointer">Finish workout (' + loggedTotal + '/' + totalPlanned + ' sets completed)</button></div>')
     : '';
 
   var expandToggleHTML = (!activeSched.isRest && totalExCount > 1)
@@ -358,7 +358,7 @@ export function renderGym() {
     : '';
 
   var addExToTodayBtnHTML = !activeSched.isRest
-    ? '<div style="margin:20px 0 16px"><button type="button" class="btn" id="gymAddExTodayBtn" style="width:100%;height:44px;background:#141416;border:1px dashed #1C1C1F;color:#8A8A8E;font-size:15px;font-weight:600;border-radius:12px;cursor:pointer">+ Add Exercise to Today\'s Workout</button></div>'
+    ? '<div style="margin:20px 0 16px"><button type="button" class="btn" id="gymAddExTodayBtn" style="width:100%;height:48px;background:#141416;border:1px dashed #222222;color:#8A8A8E;font-size:15px;font-weight:600;border-radius:16px;cursor:pointer">+ Add Exercise to Today\'s Workout</button></div>'
     : '';
 
   document.getElementById('content').innerHTML =

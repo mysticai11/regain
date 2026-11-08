@@ -11,10 +11,10 @@ import { showToast } from "../components/toast.js";
 import { openQuickEditSetModal } from "../components/quick-edit-modal.js";
 import { getWeightHistory, getProgressRows, getRollingWeightValues, buildDotConsistencyCalendarHTML, progressPlot, goalTrajectoryText, getLiftHistory } from "./progress/charts.js?v=4";
 import { getEquivalentExerciseIds } from "./gym/sets.js";
-import { workoutHistoryHTML, getResumeWorkoutCardHTML, getNutritionBarChartInner, nutritionProgressHTML, weeklyVolumeChart, editWeightEntry, deleteWeightEntry, weightEntriesHTML } from "./progress/history.js?v=23";
+import { workoutHistoryHTML, getResumeWorkoutCardHTML, getNutritionBarChartInner, nutritionProgressHTML, weeklyVolumeChart, editWeightEntry, deleteWeightEntry, weightEntriesHTML } from "./progress/history.js?v=24";
 import { openSessionMenu, openEditWorkoutSheet } from "./progress/session-editor.js";
 import { buildMonthlyDigestHTML, buildWeeklyDigestHTML, openHistoryArchiveModal, buildHistoryScreenHTML, wireHistoryScreenEvents } from "./progress/digests.js";
-export * from "./progress/charts.js?v=4"; export * from "./progress/history.js?v=23"; export * from "./progress/session-editor.js";
+export * from "./progress/charts.js?v=4"; export * from "./progress/history.js?v=24"; export * from "./progress/session-editor.js";
 
 import { setupChartInteractions, openExercisePickerModal } from "./progress/interactions.js";
 import { decideSwipe, SWIPE_NAV_SCOPE, showGestureDebug } from "../lib/gesture.js";

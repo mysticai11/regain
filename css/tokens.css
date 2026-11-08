@@ -135,9 +135,9 @@
   --lime-glow: 0 0 12px rgba(198, 244, 50, 0.2);
 
   /* Round 1 UI Tokens */
-  --seg-track: #1C1C1F;
-  --seg-thumb: #F5F5F4;
-  --seg-thumb-text: #0B0B0C;
+  --seg-track: #0B0B0C;
+  --seg-thumb: #1C1C1F;
+  --seg-thumb-text: #F5F5F4;
   --chart-grid: rgba(255, 255, 255, 0.06);
   --chart-line: #F5F5F4;
   --chart-fill-top: rgba(245, 245, 244, 0.14);

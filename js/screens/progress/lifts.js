@@ -46,7 +46,7 @@ export function buildPersonalBestsCardHTML(pb) {
 export function buildRecentSessionsHTML(recentSessions, maxShown) {
   maxShown = maxShown || 8;
   if (!Array.isArray(recentSessions) || recentSessions.length === 0) {
-    return '<div style="margin-top:24px"><div class="t-label" style="margin-bottom:12px">Recent Sessions</div><div class="empty-state">No sessions recorded yet</div></div>';
+    return '<div style="margin-top:24px"><div class="t-label" style="margin-bottom:12px">RECENT SESSIONS</div><div class="empty-state">No sessions recorded yet</div></div>';
   }
 
   var list = recentSessions.slice(0, maxShown);
@@ -54,7 +54,7 @@ export function buildRecentSessionsHTML(recentSessions, maxShown) {
     var prBadge = s.isPR
       ? '<span class="lift-pr-badge" style="background:var(--lime);color:#0B0B0C;font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:0.04em">PR</span>'
       : '';
-    return '<div class="lift-session-row" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface);border:1px solid var(--hairline);border-radius:12px;margin-bottom:8px;box-sizing:border-box">'
+    return '<div class="lift-session-row" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface);border:1px solid var(--hairline);border-radius:16px;margin-bottom:8px;box-sizing:border-box">'
       + '<div>'
         + '<div class="lift-session-date" style="font-size:15px;font-weight:600;color:var(--text)">' + esc(s.dateKey) + '</div>'
         + '<div class="tabnum" style="font-size:11px;color:var(--text-secondary);margin-top:2px">Top set: ' + s.topSet.weight + ' kg × ' + s.topSet.reps + '</div>'
@@ -72,7 +72,7 @@ export function buildRecentSessionsHTML(recentSessions, maxShown) {
   }
 
   return '<div style="margin-top:28px">'
-    + '<div class="t-label" style="margin-bottom:12px">Recent Sessions</div>'
+    + '<div class="t-label" style="margin-bottom:12px">RECENT SESSIONS</div>'
     + '<div id="recentSessionsListArea">' + rows + '</div>'
     + expandBtn
   + '</div>';

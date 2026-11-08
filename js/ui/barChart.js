@@ -1,6 +1,6 @@
 /* 7-Day Nutrition Bar Chart Component (Task R2-3) */
 
-import { computeBarChartGeometry } from "./barGeometry.js?v=23";
+import { computeBarChartGeometry } from "./barGeometry.js?v=24";
 import { esc } from "../lib/format.js";
 
 /**
