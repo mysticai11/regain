@@ -150,11 +150,11 @@
   --chart-line: #F5F5F4;
   --chart-fill-top: rgba(245, 245, 244, 0.14);
   --chart-fill-bottom: rgba(245, 245, 244, 0);
-  --cal-ring-planned: rgba(198, 244, 50, 0.6);
+  --cal-ring-planned: rgba(139, 92, 246, 0.6);
   --cal-ring-skipped: #3A3A40;
 }
 
-/* F10: Subtle Card Top Highlight, Soft Depth Shadow & Primary Lime Button Glow */
+/* F10: Subtle Card Top Highlight, Soft Depth Shadow & Primary Button Glow */
 .card,
 .surface-card,
 .metric-card,
@@ -181,12 +181,12 @@
 button.btn-primary,
 #startWorkout,
 #saveFinishBtn {
-  box-shadow: 0 0 12px rgba(198, 244, 50, 0.2);
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.35);
 }
 
 .btn-primary:active,
 .btn.btn-primary:active,
 #startWorkout:active,
 #saveFinishBtn:active {
-  box-shadow: 0 0 6px rgba(198, 244, 50, 0.15);
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.25);
 }

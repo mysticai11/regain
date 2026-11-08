@@ -213,7 +213,7 @@ export function renderLineChart({
       sDot.setAttribute('cx', String(currentGeom.points[0].x));
       sDot.setAttribute('cy', String(currentGeom.points[0].y));
       sDot.setAttribute('r', '5');
-      sDot.setAttribute('fill', 'var(--lime, #C6F432)');
+      sDot.setAttribute('fill', 'var(--accent-primary)');
       svg.appendChild(sDot);
     }
 
@@ -227,7 +227,7 @@ export function renderLineChart({
 
     var scrubDot = document.createElementNS(svgNS, 'circle');
     scrubDot.setAttribute('r', '6');
-    scrubDot.setAttribute('fill', 'var(--lime, #C6F432)');
+    scrubDot.setAttribute('fill', 'var(--accent-primary)');
     scrubDot.setAttribute('stroke', 'var(--bg, #0B0B0C)');
     scrubDot.setAttribute('stroke-width', '2');
     scrubDot.style.display = 'none';

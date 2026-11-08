@@ -107,7 +107,7 @@ export function buildAllMonthsHistoryHTML() {
     return '<div style="background:#141416;border-radius:14px;padding:14px;margin-bottom:12px;text-align:left">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
         + '<div style="font-size:17px;font-weight:600;color:#F5F5F4">' + esc(title) + '</div>'
-        + (isCurrentMonth ? '<span class="t-micro" style="color:#C6F432;font-size:11px">Current Month</span>' : '')
+        + (isCurrentMonth ? '<span class="t-micro" style="color:var(--accent-primary);font-size:11px">Current Month</span>' : '')
       + '</div>'
       + statsHTML
       + '</div>';

@@ -100,7 +100,7 @@ export function openEditWorkoutSheet(sessionId) {
         + '</div>'
         + (setsRows || '<div style="font-size:15px;color:#55555A;text-align:center;padding:10px 0">No sets logged</div>')
         + '<div style="margin-top:8px">'
-          + '<button type="button" class="btn-text-action" data-add-set-ex-idx="' + exIdx + '" style="font-size:15px;font-weight:600;color:#C6F432;background:none;border:none;padding:4px 0;cursor:pointer">+ Add Set</button>'
+          + '<button type="button" class="btn-text-action" data-add-set-ex-idx="' + exIdx + '" style="font-size:15px;font-weight:600;color:var(--accent-primary);background:none;border:none;padding:4px 0;cursor:pointer">+ Add Set</button>'
         + '</div>'
         + '</div>';
     }).join('');
@@ -131,8 +131,8 @@ export function openEditWorkoutSheet(sessionId) {
       + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Exercises</div>'
       + '<div>' + (exHTML || '<div style="font-size:15px;color:#55555A;text-align:center;padding:16px 0">No exercises in this workout.</div>') + '</div>'
 
-      + '<button type="button" id="addExToWorkoutBtn" style="width:100%;height:44px;background:#141416;border:1px dashed #222;color:#C6F432;font-size:15px;font-weight:600;border-radius:12px;cursor:pointer;margin-bottom:14px">+ Add Exercise</button>'
-      + '<button type="button" class="btn btn-primary" id="saveEditWorkoutBtn" style="width:100%;height:48px;background:#C6F432;color:#0B0B0C;font-size:15px;font-weight:700;border:none;border-radius:12px;cursor:pointer">Save Changes</button>'
+      + '<button type="button" id="addExToWorkoutBtn" style="width:100%;height:44px;background:#141416;border:1px dashed #222;color:var(--accent-primary);font-size:15px;font-weight:600;border-radius:12px;cursor:pointer;margin-bottom:14px">+ Add Exercise</button>'
+      + '<button type="button" class="btn btn-primary" id="saveEditWorkoutBtn" style="width:100%;height:48px;background:var(--accent-primary);color:var(--text);font-size:15px;font-weight:700;border:none;border-radius:12px;box-shadow:0 4px 16px var(--accent-glow);cursor:pointer">Save Changes</button>'
       + '<button type="button" id="deleteWorkoutSessionBtn" style="width:100%;background:none;border:none;color:#FF4D4F;font-size:15px;padding:14px 0 0;cursor:pointer">Delete Workout Session</button>'
       + '</div>';
 

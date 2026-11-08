@@ -79,7 +79,7 @@ export function openAddExerciseModal(onAdd) {
     modal.querySelectorAll('.cat-ex-row').forEach(function(row) {
       var isSel = row.dataset.catId === item.id;
       row.style.background = isSel ? '#1C1C1F' : '#0B0B0C';
-      row.style.border = isSel ? '1px solid #C6F432' : '1px solid #1C1C1F';
+      row.style.border = isSel ? '1px solid var(--accent-primary)' : '1px solid #1C1C1F';
     });
   }
 
@@ -94,12 +94,12 @@ export function openAddExerciseModal(onAdd) {
     var curName = (modal.querySelector('#newExName').value || '').trim().toLowerCase();
     listEl.innerHTML = filtered.map(function(item) {
       var isCurrent = (curName && item.name.toLowerCase() === curName);
-      return '<div class="cat-ex-row" data-cat-id="' + esc(item.id) + '" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:' + (isCurrent ? '#1C1C1F' : '#0B0B0C') + ';border:1px solid ' + (isCurrent ? '#C6F432' : '#1C1C1F') + ';border-radius:10px;cursor:pointer;margin-bottom:6px">'
+      return '<div class="cat-ex-row" data-cat-id="' + esc(item.id) + '" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:' + (isCurrent ? '#1C1C1F' : '#0B0B0C') + ';border:1px solid ' + (isCurrent ? 'var(--accent-primary)' : '#1C1C1F') + ';border-radius:10px;cursor:pointer;margin-bottom:6px">'
         + '<div style="flex:1;min-width:0;padding-right:8px">'
           + '<div style="font-size:15px;font-weight:600;color:#F5F5F4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(item.name) + '</div>'
           + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">' + esc(item.muscle) + ' · ' + esc(item.type || 'compound') + ' · ' + (item.sets || 2) + ' sets · ' + esc(item.reps || '8–12') + '</div>'
         + '</div>'
-        + '<span style="font-size:11px;font-weight:600;color:' + (isCurrent ? '#C6F432' : '#8A8A8E') + '">' + (isCurrent ? 'Selected' : 'Select') + '</span>'
+        + '<span style="font-size:11px;font-weight:600;color:' + (isCurrent ? 'var(--accent-primary)' : '#8A8A8E') + '">' + (isCurrent ? 'Selected' : 'Select') + '</span>'
       + '</div>';
     }).join('') || '<div style="font-size:11px;color:#8A8A8E;padding:12px;text-align:center">No exercises found</div>';
 
@@ -126,7 +126,7 @@ export function openAddExerciseModal(onAdd) {
     + '<div style="margin-bottom:10px"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Target Muscle Group</label><input type="text" id="newExMuscle" value="chest" placeholder="e.g. chest, triceps" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div>'
     + '<div style="display:flex;gap:10px;margin-bottom:10px"><div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Sets</label><input type="number" id="newExSets" value="2" min="1" max="10" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div><div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Reps</label><input type="text" id="newExReps" value="8–12" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div></div>'
     + '<div style="display:flex;gap:10px;margin-bottom:16px"><div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Rest Seconds</label><input type="number" id="newExRest" value="90" min="0" step="15" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div><div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Type</label><select id="newExType" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 12px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"><option value="compound" selected>Compound</option><option value="isolation">Isolation</option><option value="machine">Machine</option><option value="cable">Cable</option></select></div></div>'
-    + '<div style="display:flex;gap:12px"><button type="button" class="btn" id="cancelAddExBtn" style="flex:1;height:48px;border-radius:12px;background:#1C1C1F;color:#8A8A8E;border:none;font-size:15px;cursor:pointer">Cancel</button><button type="button" class="btn" id="confirmAddExBtn" style="flex:1;height:48px;border-radius:12px;background:#C6F432;color:#0B0B0C;border:none;font-size:15px;font-weight:700;cursor:pointer">Save & Add</button></div>'
+    + '<div style="display:flex;gap:12px"><button type="button" class="btn" id="cancelAddExBtn" style="flex:1;height:48px;border-radius:12px;background:#1C1C1F;color:#8A8A8E;border:none;font-size:15px;cursor:pointer">Cancel</button><button type="button" class="btn" id="confirmAddExBtn" style="flex:1;height:48px;border-radius:12px;background:var(--accent-primary);color:var(--text);border:none;font-size:15px;font-weight:700;box-shadow:0 4px 16px var(--accent-glow);cursor:pointer">Save & Add</button></div>'
   + '</div>';
 
   document.body.appendChild(modal);
@@ -169,7 +169,7 @@ export function openAddExerciseModal(onAdd) {
           + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">' + esc(item.name) + '</div>'
           + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">' + esc(item.muscle) + ' · ' + esc(item.type || 'compound') + '</div>'
         + '</div>'
-        + '<span style="font-size:11px;color:#C6F432;font-weight:600">Select</span>'
+        + '<span style="font-size:11px;color:var(--accent-primary);font-weight:600">Select</span>'
       + '</div>';
     }).join('');
     dd.style.display = 'block';
@@ -328,7 +328,7 @@ export function openSwapExerciseModal(currentEx, onSwap) {
       + '<button type="button" class="btn-text-action" id="closeSwapModalBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">Close</button>'
     + '</div>'
     + '<div style="font-size:15px;color:#8A8A8E;margin-bottom:12px">Replacing: <span style="color:#F5F5F4;font-weight:500">' + esc(currentEx ? currentEx.name : 'Exercise') + '</span></div>'
-    + '<button type="button" id="swapCreateCustomBtn" style="display:flex;align-items:center;justify-content:center;width:100%;height:44px;background:#1C1C1F;border:1px dashed #55555A;border-radius:12px;color:#C6F432;font-size:15px;font-weight:600;margin-bottom:12px;cursor:pointer">+ Create Custom Exercise</button>'
+    + '<button type="button" id="swapCreateCustomBtn" style="display:flex;align-items:center;justify-content:center;width:100%;height:44px;background:#1C1C1F;border:1px dashed #55555A;border-radius:12px;color:var(--accent-primary);font-size:15px;font-weight:600;margin-bottom:12px;cursor:pointer">+ Create Custom Exercise</button>'
     + '<input type="text" id="swapExSearchInput" placeholder="Search exercises..." style="background:#1C1C1F;border:none;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;margin-bottom:10px;box-sizing:border-box">'
     + '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:10px">' + chipsHTML + '</div>'
     + '<div id="swapListContainer" style="max-height:48vh;overflow-y:auto"></div>'

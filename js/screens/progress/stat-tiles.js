@@ -19,12 +19,12 @@ export function buildWeeklyStatTilesHTML(tiles) {
       sparklineHTML = renderSparklineSVG(tile.sparklinePoints, {
         width: 56,
         height: 20,
-        stroke: tile.id === 'protein' ? '#F5F5F4' : '#C6F432',
+        stroke: tile.id === 'protein' ? '#F5F5F4' : 'var(--accent-secondary)',
         strokeWidth: 1.5
       });
     } else if (tile.trend) {
       var arrow = tile.trend === 'up' ? '↗' : (tile.trend === 'down' ? '↘' : '→');
-      var color = tile.trend === 'up' ? 'var(--lime)' : (tile.trend === 'down' ? '#FF4D4F' : 'var(--text-secondary)');
+      var color = tile.trend === 'up' ? 'var(--accent-primary)' : (tile.trend === 'down' ? '#FF4D4F' : 'var(--text-secondary)');
       sparklineHTML = '<span style="font-size:15px;font-weight:600;color:' + color + ';line-height:1">' + arrow + '</span>';
     }
 

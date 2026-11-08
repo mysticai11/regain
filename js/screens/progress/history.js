@@ -122,18 +122,18 @@ export function workoutHistoryHTML() {
             var curBestR = sets.reduce(function(m, s) { return Math.max(m, Number(s.reps) || 0); }, 0);
             var prevBestR = prevExSets.reduce(function(m, s) { return Math.max(m, Number(s.reps) || 0); }, 0);
             var dR = curBestR - prevBestR;
-            if (dR > 0) progressTagHTML = '<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:6px;background:rgba(198,244,50,0.12);color:var(--lime);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">+' + dR + (dR === 1 ? ' rep' : ' reps') + '</span>';
+            if (dR > 0) progressTagHTML = '<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:6px;background:rgba(139,92,246,0.15);color:var(--accent-primary);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">+' + dR + (dR === 1 ? ' rep' : ' reps') + '</span>';
           } else {
             var curTopW = sets.reduce(function(m, s) { return Math.max(m, Number(s.weight) || 0); }, 0);
             var prevTopW = prevExSets.reduce(function(m, s) { return Math.max(m, Number(s.weight) || 0); }, 0);
             var dW = curTopW - prevTopW;
             if (dW > 0) {
-              progressTagHTML = '<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:6px;background:rgba(198,244,50,0.12);color:var(--lime);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">+' + (dW % 1 === 0 ? dW : dW.toFixed(1)) + ' kg</span>';
+              progressTagHTML = '<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:6px;background:rgba(139,92,246,0.15);color:var(--accent-primary);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">+' + (dW % 1 === 0 ? dW : dW.toFixed(1)) + ' kg</span>';
             } else if (dW === 0 && curTopW > 0) {
               var curTopR = sets.filter(function(s) { return Number(s.weight) === curTopW; }).reduce(function(m, s) { return Math.max(m, Number(s.reps) || 0); }, 0);
               var prevTopR = prevExSets.filter(function(s) { return Number(s.weight) === prevTopW; }).reduce(function(m, s) { return Math.max(m, Number(s.reps) || 0); }, 0);
               var dTopR = curTopR - prevTopR;
-              if (dTopR > 0) progressTagHTML = '<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:6px;background:rgba(198,244,50,0.12);color:var(--lime);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">+' + dTopR + (dTopR === 1 ? ' rep' : ' reps') + '</span>';
+              if (dTopR > 0) progressTagHTML = '<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:6px;background:rgba(139,92,246,0.15);color:var(--accent-primary);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">+' + dTopR + (dTopR === 1 ? ' rep' : ' reps') + '</span>';
             }
           }
         }
@@ -186,7 +186,7 @@ export function workoutHistoryHTML() {
               + '<span class="history-ex-num" style="display:inline-block;width:24px;min-width:24px;flex-shrink:0;font-size:15px;color:var(--text-secondary);font-variant-numeric:tabular-nums">' + (exIdx + 1) + '</span>'
               + '<span class="history-ex-name" style="font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(exData.name) + '</span>'
               + progressTagHTML
-              + (isPrInSession ? '<span class="set-pr-badge" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#C6F432;letter-spacing:0.08em;text-transform:uppercase;flex-shrink:0"><span style="width:5px;height:5px;border-radius:50%;background:#C6F432;display:inline-block"></span>PR</span>' : '')
+              + (isPrInSession ? '<span class="set-pr-badge" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--accent-primary);letter-spacing:0.08em;text-transform:uppercase;flex-shrink:0"><span style="width:5px;height:5px;border-radius:50%;background:var(--accent-primary);display:inline-block"></span>PR<!-- border-radius:50%;background:#C6F432;display:inline-block"></span>PR --></span>' : '')
             + '</div>'
             + '<span style="font-size:11px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0">' + esc(summaryText) + '</span>'
           + '</div>'

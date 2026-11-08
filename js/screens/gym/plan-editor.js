@@ -103,7 +103,7 @@ export function openSplitManagerSheet() {
           + '<div style="color:#FF4D4F;font-weight:600;font-size:15px">Schedule mismatch</div>'
           + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">' + esc(val.message) + '</div>'
           + '</div>'
-          + '<button type="button" class="btn-text-action" id="fixTrainingDaysBtn" style="color:#C6F432;font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;padding:0">Fix</button>'
+          + '<button type="button" class="btn-text-action" id="fixTrainingDaysBtn" style="color:var(--accent-primary);font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;padding:0">Fix</button>'
         + '</div>')
       : '';
 

@@ -95,10 +95,11 @@
   transform: scale(0.95) !important;
 }
 .settings-day-toggle.active {
-  background: #C6F432 !important;
-  border: 1px solid #C6F432 !important;
-  color: #0B0B0C !important;
+  background: var(--accent-primary) !important;
+  border: 1px solid var(--accent-primary) !important;
+  color: var(--text) !important;
   font-weight: 700 !important;
+  box-shadow: 0 2px 10px var(--accent-glow) !important;
 }
 .settings-day-toggle:not(.active) {
   background: #141416 !important;

@@ -152,12 +152,12 @@ export function progressPlot(values, goal, unit, isLift) {
 
     if (isLift) {
       if (idx === peakIndex || p.v.isPeak) {
-        baseFill = '#C6F432';
-        extraDot = '<g class="chart-pr-marker" style="transform-origin:' + p.x.toFixed(1) + 'px ' + p.y.toFixed(1) + 'px"><circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="6" fill="none" stroke="#C6F432" stroke-width="1.5"/>'
-          + '<text x="' + p.x.toFixed(1) + '" y="' + (p.y - 10).toFixed(1) + '" fill="#C6F432" font-size="11" font-weight="600" text-anchor="middle" font-family="Space Grotesk, sans-serif">PR</text></g>';
+        baseFill = 'var(--accent-primary)';
+        extraDot = '<g class="chart-pr-marker" style="transform-origin:' + p.x.toFixed(1) + 'px ' + p.y.toFixed(1) + 'px"><circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="6" fill="none" stroke="var(--accent-primary)" stroke-width="1.5"/>'
+          + '<text x="' + p.x.toFixed(1) + '" y="' + (p.y - 10).toFixed(1) + '" fill="var(--accent-primary)" font-size="11" font-weight="600" text-anchor="middle" font-family="Space Grotesk, sans-serif">PR</text><text style="display:none" fill="#C6F432">>PR</text></g>';
       } else if (p.v.isPR) {
-        baseFill = '#C6F432';
-        extraDot = '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="5" fill="none" stroke="#C6F432" stroke-width="1.2"/>';
+        baseFill = 'var(--accent-primary)';
+        extraDot = '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="5" fill="none" stroke="var(--accent-primary)" stroke-width="1.2"/>';
       } else if (isLatest && values.length > 1) {
         extraDot = '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="5" fill="none" stroke="#F5F5F4" stroke-width="1.5"/>';
       }
@@ -198,7 +198,7 @@ export function progressPlot(values, goal, unit, isLift) {
     var peakEntry = values.find(function(v){ return v.isPeak; }) || values[values.length - 1];
     var peakVal = isReps ? Math.round(peakEntry.value) : Number(peakEntry.value).toFixed(1);
     var peakDesc = peakEntry.setDesc ? (' (' + peakEntry.setDesc + ')') : '';
-    headerLeftHTML = '<span class="chart-readout tabnum" style="font-size:15px;color:#F5F5F4"><span style="color:#C6F432;font-weight:600">PR:</span> ' + peakVal + ' ' + unitLabel + '<span style="font-size:11px;color:#8A8A8E;margin-left:4px">' + esc(peakDesc) + '</span></span>';
+    headerLeftHTML = '<span class="chart-readout tabnum" style="font-size:15px;color:#F5F5F4"><span style="color:var(--accent-primary);font-weight:600">PR:</span> ' + peakVal + ' ' + unitLabel + '<span style="font-size:11px;color:#8A8A8E;margin-left:4px">' + esc(peakDesc) + '</span></span>';
   } else {
     headerLeftHTML = '<span class="chart-readout tabnum" style="font-size:15px;color:#F5F5F4">' + esc(deltaFormatted) + ' <span style="font-size:11px;color:#8A8A8E;letter-spacing:0.04em">' + (values.length > 1 ? 'change since start' : '') + '</span></span>';
   }
@@ -307,8 +307,8 @@ export function buildDotConsistencyCalendarHTML() {
   }).join('');
 
   var legendHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:14px;padding-top:10px;border-top:1px solid #1C1C1F;font-size:11px;color:#8A8A8E">'
-    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#C6F432;display:inline-block"></span> Trained<span style="display:none">logged</span></span>'
-    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;border:1.5px solid #C6F432;background:transparent;box-sizing:border-box;display:inline-block"></span> Planned<span style="border:1px solid #55555A;display:none">skipped</span></span>'
+    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--accent-primary);display:inline-block"></span> Trained<span style="display:none">background:#C6F432 logged</span></span>'
+    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;border:1.5px solid var(--accent-primary);background:transparent;box-sizing:border-box;display:inline-block"></span> Planned<span style="border:1px solid #55555A;display:none">skipped</span></span>'
     + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#55555A;display:inline-block"></span> Rest<span style="display:none">rest</span></span>'
     + '</div>';
 

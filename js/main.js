@@ -253,7 +253,7 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
         var banner = document.createElement('div');
         banner.id = 'swUpdateBanner';
         banner.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#1C1C1F;border:1px solid #222;border-radius:12px;padding:8px 16px;z-index:9999;display:flex;align-items:center;gap:12px;font-size:15px;color:#F5F5F4';
-        banner.innerHTML = '<span>Update available</span><button type="button" class="btn-text-action" style="color:#C6F432;font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;padding:0" onclick="location.reload()">Reload</button>';
+        banner.innerHTML = '<span>Update available</span><button type="button" class="btn-text-action" style="color:var(--accent-primary);font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;padding:0" onclick="location.reload()">Reload</button>';
         document.body.appendChild(banner);
       };
 

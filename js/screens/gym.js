@@ -206,11 +206,11 @@ export function renderGym() {
       return '<div class="gym-ex-collapsed-row' + (isCurrent ? ' is-current' : '') + '" data-expand-ex="' + ex.id + '" style="min-height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;cursor:pointer;padding:8px 0;box-sizing:border-box">'
         + '<div style="display:flex;align-items:center;gap:12px;min-width:0;flex:1">'
         + '<span style="font-size:17px;font-weight:600;color:#8A8A8E;font-variant-numeric:tabular-nums;width:20px;text-align:right;flex-shrink:0">' + (exIndex + 1) + '</span>'
-        + '<span style="font-size:17px;font-weight:600;color:#F5F5F4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25;word-break:break-word">' + esc(ex.name) + (ex.isCatchup || ex.source === 'catchup' ? ' <span style="font-size:11px;font-weight:600;color:#0B0B0C;background:#C6F432;border-radius:4px;padding:2px 6px;margin-left:6px;vertical-align:middle">Catch-up</span>' : '') + '</span>'
+        + '<span style="font-size:17px;font-weight:600;color:#F5F5F4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25;word-break:break-word">' + esc(ex.name) + (ex.isCatchup || ex.source === 'catchup' ? ' <span style="font-size:11px;font-weight:600;color:var(--text);background:var(--accent-primary);border-radius:4px;padding:2px 6px;margin-left:6px;vertical-align:middle">Catch-up</span>' : '') + '</span>'
         + '</div>'
         + '<div style="flex-shrink:0;margin-left:12px">'
         + (isExCompleted
-          ? '<span style="font-size:17px;font-weight:600;color:#C6F432">✓</span>'
+          ? '<span style="font-size:17px;font-weight:600;color:var(--accent-primary)">✓</span>'
           : '<span style="font-size:15px;color:#8A8A8E;font-variant-numeric:tabular-nums">' + completedSets.length + ' / ' + targetSets + '</span>')
         + '</div>'
         + '</div>';
@@ -222,7 +222,7 @@ export function renderGym() {
         + '<span style="font-size:15px;color:#8A8A8E;text-decoration:line-through">' + esc(ex.name) + ' (Skipped)</span>'
         + '<div style="display:flex;align-items:center;gap:12px">'
           + '<button type="button" class="btn-text-action add-replacement-btn" data-add-replacement="' + ex.id + '" style="font-size:11px;color:#8A8A8E;background:none;border:none;cursor:pointer;padding:0;font-weight:600">+ Add</button>'
-          + '<button type="button" class="btn-text-action unskip-ex-btn" data-unskip-exercise="' + ex.id + '" style="font-size:11px;color:#C6F432;background:none;border:none;cursor:pointer;padding:0;font-weight:600">Undo</button>'
+          + '<button type="button" class="btn-text-action unskip-ex-btn" data-unskip-exercise="' + ex.id + '" style="font-size:11px;color:var(--accent-primary);background:none;border:none;cursor:pointer;padding:0;font-weight:600">Undo</button>'
         + '</div>'
       + '</section>';
     }
@@ -347,13 +347,13 @@ export function renderGym() {
   }).join('');
 
   var finishCardHTML = (loggedTotal >= totalPlanned && totalPlanned > 0 && !rec.workoutDone)
-    ? ('<div style="margin:20px 0 16px"><button type="button" class="btn btn-primary" id="finishAllSetsBtn" style="width:100%;height:48px;background:var(--lime,#C6F432);color:#0B0B0C;font-size:15px;font-weight:700;border:none;border-radius:16px;cursor:pointer">Finish workout (' + loggedTotal + '/' + totalPlanned + ' sets completed)</button></div>')
+    ? ('<div style="margin:20px 0 16px"><button type="button" class="btn btn-primary" id="finishAllSetsBtn" style="width:100%;height:48px;background:var(--accent-primary);color:var(--text);font-size:15px;font-weight:700;border:none;border-radius:16px;box-shadow:0 4px 16px var(--accent-glow);cursor:pointer">Finish workout (' + loggedTotal + '/' + totalPlanned + ' sets completed)</button></div>')
     : '';
 
   var expandToggleHTML = (!activeSched.isRest && totalExCount > 1)
     ? ('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #1C1C1F">'
       + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">' + totalExCount + ' exercises</span>'
-      + '<button type="button" id="toggleExpandAllBtn" style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:' + (isAllExpanded ? '#8A8A8E' : '#C6F432') + ';cursor:pointer;text-transform:uppercase;letter-spacing:0.06em">' + (isAllExpanded ? 'Collapse' : 'Expand all') + '</button>'
+      + '<button type="button" id="toggleExpandAllBtn" style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:' + (isAllExpanded ? '#8A8A8E' : 'var(--accent-primary)') + ';cursor:pointer;text-transform:uppercase;letter-spacing:0.06em">' + (isAllExpanded ? 'Collapse' : 'Expand all') + '</button>'
       + '</div>')
     : '';
 

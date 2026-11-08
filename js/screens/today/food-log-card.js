@@ -54,7 +54,7 @@ export function buildCollapsibleFoodLogHTML({ key, activeDateKey, rec } = {}) {
     + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.08em;text-transform:uppercase;font-variant-numeric:tabular-nums">' + countText + '</span>'
     + '<svg id="foodLogChevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#8A8A8E;transition:transform 200ms cubic-bezier(0.2,0,0,1);' + chevronTransform + ';flex-shrink:0"><polyline points="6 9 12 15 18 9"></polyline></svg>'
     + '</button>'
-    + '<button type="button" class="btn-text-action" id="addFoodQuickBtn" style="color:#C6F432;font-size:15px;font-weight:600;background:none;border:none;padding:4px 0 4px 12px;min-height:44px;cursor:pointer;display:inline-flex;align-items:center;flex-shrink:0">+ Add</button>'
+    + '<button type="button" class="btn-text-action" id="addFoodQuickBtn" style="color:var(--accent-primary);font-size:15px;font-weight:600;background:none;border:none;padding:4px 0 4px 12px;min-height:44px;cursor:pointer;display:inline-flex;align-items:center;flex-shrink:0">+ Add</button>'
     + '</div>'
     + '<div id="foodLogContent" style="' + contentDisplay + '">'
     + '<div>' + rowsHTML + '</div>'

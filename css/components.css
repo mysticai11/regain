@@ -67,7 +67,7 @@
   box-sizing: border-box;
 }
 .btn:active { opacity: 0.85; }
-.btn-primary { background: var(--lime) !important; color: var(--accent-dark) !important; box-shadow: none !important; }
+.btn-primary { background: var(--accent-primary) !important; color: var(--text) !important; box-shadow: 0 4px 16px var(--accent-glow) !important; }
 .btn-primary:active {
   transform: scale(0.97) !important;
   transition: transform var(--dur-80) var(--ease-standard) !important;
@@ -546,8 +546,8 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
 }
 
 @keyframes prRingPulse {
-  0% { outline: 2px solid var(--lime); outline-offset: 0px; }
-  70% { outline: 2px solid rgba(198, 244, 50, 0.4); outline-offset: 4px; }
+  0% { outline: 2px solid var(--accent-primary); outline-offset: 0px; }
+  70% { outline: 2px solid var(--accent-glow); outline-offset: 4px; }
   100% { outline: 2px solid transparent; outline-offset: 6px; }
 }
 
@@ -819,9 +819,10 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
 
 .pill-toggle.active,
 .pill-toggle[aria-selected="true"] {
-  background: var(--lime);
-  color: var(--accent-dark);
-  border-color: var(--lime);
+  background: var(--accent-primary);
+  color: var(--text);
+  border-color: var(--accent-primary);
+  box-shadow: 0 2px 10px var(--accent-glow);
 }
 
 /* ── Tab Bar ── */
@@ -1166,7 +1167,7 @@ body.kb-open .sheet {
   font-weight: 600;
 }
 .seg__btn:focus-visible {
-  outline: 2px solid var(--lime, #C6F432);
+  outline: 2px solid var(--accent-primary);
   outline-offset: -2px;
   border-radius: 12px;
 }

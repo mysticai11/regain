@@ -160,11 +160,11 @@ export function renderTodaySimple() {
           + '</div>';
       } else {
         var btnText = !isRest ? (loggedSets > 0 ? 'Keep logging' : 'Start') : 'Choose';
-        var btnStyle = !isRest ? 'background:#C6F432;color:#0B0B0C' : 'background:#1C1C1F;color:#F5F5F4';
+        var btnStyle = !isRest ? 'background:var(--accent-primary);color:var(--text);box-shadow:0 4px 16px var(--accent-glow)' : 'background:#1C1C1F;color:#F5F5F4';
         cardInner = '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.2;margin-bottom:4px">' + esc(cleanWorkoutName) + '</div>'
           + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">'
             + '<div style="font-size:15px;color:#8A8A8E;font-variant-numeric:tabular-nums">' + (isRest ? 'Recovery & Nutrition' : (loggedSets + ' / ' + totalPlannedSets + ' sets')) + '</div>'
-            + '<button class="btn btn-primary btn-start" id="startWorkout" style="' + btnStyle + ';border:none;border-radius:12px;font-size:15px;font-weight:600;padding:10px 20px;cursor:pointer;box-shadow:none">' + btnText + '</button>'
+            + '<button class="btn btn-primary btn-start" id="startWorkout" style="' + btnStyle + ';border:none;border-radius:12px;font-size:15px;font-weight:600;padding:10px 20px;cursor:pointer">' + btnText + '</button><!-- background:#C6F432;color:#0B0B0C -->'
           + '</div>'
           + (hasOverride ? '<div style="margin-top:12px"><button type="button" class="btn-text-action" id="resetSuggestedWorkoutBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0;cursor:pointer">Reset to suggested</button></div>' : '');
       }
@@ -177,7 +177,7 @@ export function renderTodaySimple() {
     + (function () {
       var lastW = currentWeight(), bwPlaceholder = lastW ? lastW.toFixed(1) : '54.0', bwValue = rec.weight ? rec.weight : '';
       var saveLabel = bwValue ? 'Saved' : 'Save';
-      var saveStyle = bwValue ? 'background:#1C1C1F;color:#8A8A8E;border:1px solid #222222;cursor:default' : 'background:#C6F432;color:#0B0B0C;border:none;cursor:pointer';
+      var saveStyle = bwValue ? 'background:#1C1C1F;color:#8A8A8E;border:1px solid #222222;cursor:default' : 'background:var(--accent-primary);color:var(--text);border:none;cursor:pointer;box-shadow:0 4px 16px var(--accent-glow)';
       return '<div style="background:#141416;border:1px solid #222222;border-radius:16px;padding:16px;margin-bottom:24px">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
           + '<span style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8A8A8E;text-transform:uppercase">WEIGHT</span>'

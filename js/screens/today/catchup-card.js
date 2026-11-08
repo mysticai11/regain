@@ -47,14 +47,14 @@ export function buildCatchupCardHTML(currentDateKey) {
       + '<div style="font-size:17px;font-weight:600;color:#F5F5F4;line-height:1.2;margin-bottom:4px">' + esc(missedName) + ' Missed</div>'
       + '<div style="font-size:15px;color:#8A8A8E;line-height:1.4;margin-bottom:14px">No remaining workout days this week to redistribute volume. You can log it late or skip.</div>'
       + '<div style="display:flex;align-items:center;gap:12px">'
-      + '<button type="button" class="btn btn-primary" id="catchupLateLogBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 14px;border-radius:10px;background:#C6F432;color:#0B0B0C;font-size:15px;font-weight:600;border:none;cursor:pointer">Log it late</button>'
+      + '<button type="button" class="btn btn-primary" id="catchupLateLogBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 14px;border-radius:10px;background:var(--accent-primary);color:var(--text);font-size:15px;font-weight:600;border:none;box-shadow:0 4px 16px var(--accent-glow);cursor:pointer">Log it late</button>'
       + '<button type="button" class="btn-text-action" id="catchupSkipBtn" data-missed-date="' + missedDate + '" style="background:none;border:none;color:#8A8A8E;font-size:15px;font-weight:500;cursor:pointer;padding:0 8px">Skip</button>'
       + '</div>'
       + '</div>';
   }
 
   var fullBodyBadge = spreadPlan.isFullBody
-    ? '<span style="font-size:11px;font-weight:600;color:#0B0B0C;background:#C6F432;border-radius:9999px;padding:2px 8px;white-space:nowrap">Full-body week</span>'
+    ? '<span style="font-size:11px;font-weight:600;color:var(--text);background:var(--accent-primary);border-radius:9999px;padding:2px 8px;white-space:nowrap">Full-body week</span>'
     : '';
 
   var planTitle = spreadPlan.isFullBody
@@ -80,11 +80,11 @@ export function buildCatchupCardHTML(currentDateKey) {
     + '<div style="font-size:15px;color:#8A8A8E;margin-bottom:12px">' + esc(planSub) + '</div>'
     + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">'
     + '<div style="display:flex;align-items:center;gap:8px">'
-    + (spreadPlan.valid ? '<button type="button" class="btn btn-primary" id="catchupSpreadBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 14px;border-radius:10px;background:#C6F432;color:#0B0B0C;font-size:15px;font-weight:600;border:none;cursor:pointer">Spread</button>' : '')
+    + (spreadPlan.valid ? '<button type="button" class="btn btn-primary" id="catchupSpreadBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 14px;border-radius:10px;background:var(--accent-primary);color:var(--text);font-size:15px;font-weight:600;border:none;box-shadow:0 4px 16px var(--accent-glow);cursor:pointer">Spread</button>' : '')
     + (slidePlan.valid ? '<button type="button" class="btn" id="catchupSlideBtn" data-missed-date="' + missedDate + '" style="height:36px;padding:0 12px;border-radius:10px;background:#1C1C1F;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222222;cursor:pointer">Shift +1d</button>' : '')
     + '</div>'
     + '<div style="display:flex;align-items:center;gap:12px">'
-    + (spreadPlan.preview && spreadPlan.preview.length ? '<button type="button" id="catchupTogglePlanBtn" style="background:none;border:none;color:#C6F432;font-size:15px;font-weight:600;cursor:pointer;padding:0">See plan ▾</button>' : '')
+    + (spreadPlan.preview && spreadPlan.preview.length ? '<button type="button" id="catchupTogglePlanBtn" style="background:none;border:none;color:var(--accent-primary);font-size:15px;font-weight:600;cursor:pointer;padding:0">See plan ▾</button>' : '')
     + '<button type="button" id="catchupLateLogBtn" data-missed-date="' + missedDate + '" style="background:none;border:none;color:#8A8A8E;font-size:15px;font-weight:500;cursor:pointer;padding:0">Log it late</button>'
     + '<button type="button" id="catchupSkipBtn" data-missed-date="' + missedDate + '" style="background:none;border:none;color:#8A8A8E;font-size:15px;font-weight:500;cursor:pointer;padding:0">Skip</button>'
     + '</div>'

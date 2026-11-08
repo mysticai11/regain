@@ -8,8 +8,8 @@ export function buildCatchupSettingsHTML() {
   var s = getCatchupSettings();
   var setsOptions = [1, 2, 3].map(function (num) {
     var active = s.setsPerExercise === num;
-    var bg = active ? '#C6F432' : '#141416';
-    var fg = active ? '#0B0B0C' : '#F5F5F4';
+    var bg = active ? 'var(--accent-primary)' : '#141416';
+    var fg = active ? 'var(--text)' : '#F5F5F4';
     return '<button type="button" class="btn catchup-sets-btn" data-catchup-sets="' + num + '" style="height:36px;width:36px;border-radius:8px;background:' + bg + ';color:' + fg + ';font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer;padding:0">' + num + '</button>';
   }).join('');
 
@@ -94,8 +94,8 @@ export function bindCatchupSettingsEvents(container) {
       saveCatchupSettings({ setsPerExercise: val });
       container.querySelectorAll('.catchup-sets-btn').forEach(function (b) {
         var isTarget = Number(b.dataset.catchupSets) === val;
-        b.style.background = isTarget ? '#C6F432' : '#141416';
-        b.style.color = isTarget ? '#0B0B0C' : '#F5F5F4';
+        b.style.background = isTarget ? 'var(--accent-primary)' : '#141416';
+        b.style.color = isTarget ? 'var(--text)' : '#F5F5F4';
       });
     };
   });

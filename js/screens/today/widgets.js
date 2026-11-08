@@ -161,8 +161,8 @@ export function buildWeekDotRowHTML(dayKey, activeSelectedKey) {
     decisions: getCatchupDecisions()
   });
 
-  var checkIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-  var arrowIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+  var checkIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FAFAFA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  var arrowIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FAFAFA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
   var dashIcon = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>';
 
   var cols = days.map(function(d) {
@@ -284,7 +284,7 @@ export function buildBackupNudgeHTML() {
 
   var diffMsg = lastBackup ? (diffDays + ' days') : '14+ days';
   return '<div id="backupNudgeBanner" style="display:flex;align-items:center;justify-content:space-between;background:#141416;border-radius:12px;padding:10px 14px;margin-bottom:14px;border:1px solid #222">'
-    + '<span style="font-size:11px;color:#8A8A8E">No backup for ' + diffMsg + ' · <button type="button" id="backupNudgeActionBtn" style="background:none;border:none;color:#C6F432;font-size:11px;font-weight:600;padding:0;cursor:pointer">Back up now</button></span>'
+    + '<span style="font-size:11px;color:#8A8A8E">No backup for ' + diffMsg + ' · <button type="button" id="backupNudgeActionBtn" style="background:none;border:none;color:var(--accent-primary);font-size:11px;font-weight:600;padding:0;cursor:pointer">Back up now</button></span>'
     + '<button type="button" id="dismissBackupNudgeBtn" style="background:none;border:none;color:#8A8A8E;font-size:15px;cursor:pointer;padding:4px 8px;line-height:1" aria-label="Dismiss">&times;</button>'
     + '</div>';
 }

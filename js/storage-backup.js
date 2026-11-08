@@ -227,7 +227,7 @@ export function openImportConfirmSheet(validated, onApplied) {
     + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;margin-bottom:8px">Import Backup</div>'
     + '<div style="font-size:15px;color:#8A8A8E;margin-bottom:16px">' + esc(countsStr) + ' found in backup file. Choose how to apply:</div>'
     + '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">'
-      + '<button type="button" class="btn" id="confirmMergeBackupBtn" style="height:48px;border-radius:12px;background:#C6F432;color:#0B0B0C;font-size:15px;font-weight:600;border:none;cursor:pointer">Merge with existing data</button>'
+      + '<button type="button" class="btn" id="confirmMergeBackupBtn" style="height:48px;border-radius:12px;background:var(--accent-primary);color:var(--text);font-size:15px;font-weight:600;border:none;box-shadow:0 4px 16px var(--accent-glow);cursor:pointer">Merge with existing data</button>'
       + '<button type="button" class="btn" id="confirmReplaceBackupBtn" style="height:48px;border-radius:12px;background:#1C1C1F;color:#FF4D4F;border:1px solid #FF4D4F;font-size:15px;font-weight:600;cursor:pointer">Replace all data</button>'
       + '<button type="button" class="btn" id="cancelImportBackupBtn" style="height:48px;border-radius:12px;background:#1C1C1F;color:#8A8A8E;border:none;font-size:15px;cursor:pointer">Cancel</button>'
     + '</div>'

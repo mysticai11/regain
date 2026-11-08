@@ -32,7 +32,7 @@ export function showGestureDebug(info) {
   if (!chip) {
     chip = document.createElement('div');
     chip.id = 'gestureDebugChip';
-    chip.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0B0B0C;color:#C6F432;padding:6px 14px;border-radius:20px;font-size:11px;font-family:inherit;z-index:99999;pointer-events:none;border:1px solid #C6F432;';
+    chip.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0B0B0C;color:var(--accent-primary);padding:6px 14px;border-radius:20px;font-size:11px;font-family:inherit;z-index:99999;pointer-events:none;border:1px solid var(--accent-primary);box-shadow:0 0 12px var(--accent-glow);';
     document.body.appendChild(chip);
   }
   chip.textContent = info;

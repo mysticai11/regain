@@ -107,12 +107,13 @@
   transform: scale(0.92);
 }
 .day-circle--done {
-  background: var(--lime);
-  color: #0B0B0C;
+  background: var(--accent-primary);
+  color: var(--text);
+  box-shadow: 0 0 10px var(--accent-glow);
 }
 .day-circle--planned {
   background: transparent;
-  border: 1.5px solid var(--lime);
+  border: 1.5px solid var(--accent-primary);
 }
 .day-circle--skipped {
   background: transparent;
@@ -273,8 +274,8 @@
   width: 100%;
   height: var(--tap-min);
   border-radius: var(--r-control);
-  background: var(--lime);
-  color: var(--accent-dark);
+  background: var(--accent-primary);
+  color: var(--text);
   border: none;
   font-size: var(--fs-15);
   font-weight: 600;
@@ -282,7 +283,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: none;
+  box-shadow: 0 4px 16px var(--accent-glow);
   font-family: inherit;
   transition: opacity var(--motion-fast);
 }
@@ -324,7 +325,7 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  color: var(--lime) !important;
+  color: var(--accent-primary) !important;
 }
 
 .catchup-applied-pill-text {

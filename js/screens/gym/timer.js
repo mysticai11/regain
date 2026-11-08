@@ -44,10 +44,10 @@ export function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
   var elapsedFormatted = Math.floor(elapsedSec / 60) + ':' + pad(elapsedSec % 60);
 
   var dotsHTML = '<button type="button" class="icon-btn" id="sessionTimerDotsBtn" aria-label="Timer options" style="width:36px;height:36px;min-width:36px;color:#8A8A8E;cursor:pointer;display:inline-flex;align-items:center;justify-content:center">•••</button>';
-  var finishBtnHTML = '<div style="display:flex;align-items:center;gap:8px;margin-left:14px;flex-shrink:0"><button type="button" class="btn-text-action" id="timerFinishBtn" style="color:#C6F432;font-size:15px;font-weight:600;padding:6px 12px;border-radius:8px;background:#1C1C1F;cursor:pointer;white-space:nowrap">Finish</button>' + dotsHTML + '</div>';
+  var finishBtnHTML = '<div style="display:flex;align-items:center;gap:8px;margin-left:14px;flex-shrink:0"><button type="button" class="btn-text-action" id="timerFinishBtn" style="color:var(--accent-primary);font-size:15px;font-weight:600;padding:6px 12px;border-radius:8px;background:#1C1C1F;cursor:pointer;white-space:nowrap">Finish</button>' + dotsHTML + '</div>';
 
   if (isIdle) {
-    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;width:100%"><div style="display:flex;align-items:center;gap:12px"><button type="button" class="btn-text-action" id="startWorkoutBtn" style="color:#C6F432;font-size:15px;font-weight:600;padding:6px 12px;border-radius:8px;background:#1C1C1F;cursor:pointer">Start</button><button type="button" class="btn-text-action" id="enterTimeBtn" style="color:#8A8A8E;font-size:15px;font-weight:400;cursor:pointer">Enter time</button></div>' + dotsHTML + '</div>';
+    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;width:100%"><div style="display:flex;align-items:center;gap:12px"><button type="button" class="btn-text-action" id="startWorkoutBtn" style="color:var(--accent-primary);font-size:15px;font-weight:600;padding:6px 12px;border-radius:8px;background:#1C1C1F;cursor:pointer">Start</button><button type="button" class="btn-text-action" id="enterTimeBtn" style="color:#8A8A8E;font-size:15px;font-weight:400;cursor:pointer">Enter time</button></div>' + dotsHTML + '</div>';
   } else if (isFinished) {
     var durMin = meta.durationMinutes || Math.floor(elapsedSec / 60);
     wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;width:100%"><span style="font-size:15px;font-weight:600;color:#F5F5F4;font-variant-numeric:tabular-nums;white-space:nowrap">' + formatDuration(durMin) + ' total</span>' + dotsHTML + '</div>';
@@ -156,14 +156,14 @@ export function showFinishWorkoutSheet(dayKey, programDayIndex, session) {
   });
 
   var prBanner = newPRs.length
-    ? '<div style="background:#1C1C1F;border-radius:12px;padding:10px 14px;margin-bottom:16px"><div style="font-size:11px;font-weight:600;color:#C6F432;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">New Personal Record</div><div style="font-size:15px;color:#F5F5F4">' + esc(newPRs.join(' · ')) + '</div></div>'
+    ? '<div style="background:#1C1C1F;border-radius:12px;padding:10px 14px;margin-bottom:16px"><div style="font-size:11px;font-weight:600;color:var(--accent-primary);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">New Personal Record</div><div style="font-size:15px;color:#F5F5F4">' + esc(newPRs.join(' · ')) + '</div></div>'
     : '';
 
   var statCards = [
     ['Duration', minutes + ' min'],
     ['Total Volume', Math.round(totalVolume).toLocaleString() + ' kg'],
     ['Completed Sets', totalSets + ' sets'],
-    ['New PRs', String(newPRs.length), newPRs.length ? '#C6F432' : '#F5F5F4']
+    ['New PRs', String(newPRs.length), newPRs.length ? 'var(--accent-primary)' : '#F5F5F4']
   ].map(function(item) {
     return '<div style="background:#1C1C1F;border-radius:12px;padding:12px"><div class="t-micro" style="color:var(--text2);font-size:11px">' + item[0] + '</div><div style="font-size:17px;font-weight:600;color:' + (item[2] || '#F5F5F4') + ';margin-top:2px">' + item[1] + '</div></div>';
   }).join('');
@@ -221,10 +221,10 @@ export function renderRestTimer() {
   }
 
   wrap.innerHTML = '<div class="rest-timer-dock" id="restTimerDock" style="position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 8px);left:16px;right:16px;max-width:448px;margin:0 auto;height:48px;box-sizing:border-box;background:#141416;border:1px solid #1C1C1F;border-radius:16px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;z-index:150;contain:layout paint;will-change:transform,opacity;pointer-events:auto;overflow:hidden">'
-    + '<div class="rest-timer-bar" style="position:absolute;top:0;left:0;right:0;height:2px;overflow:hidden;background:#222"><div class="rest-timer-bar-fill" id="restTimerBarFill" style="height:100%;width:100%;background:#C6F432;transform-origin:left;transform:scaleX(1)"></div></div>'
+    + '<div class="rest-timer-bar" style="position:absolute;top:0;left:0;right:0;height:2px;overflow:hidden;background:#222"><div class="rest-timer-bar-fill" id="restTimerBarFill" style="height:100%;width:100%;background:var(--accent-primary);transform-origin:left;transform:scaleX(1)"></div></div>'
     + '<div style="display:flex;align-items:center;gap:8px">'
       + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Rest</span>'
-      + '<span id="restTimerCountdown" style="font-size:17px;font-weight:600;color:#C6F432;font-variant-numeric:tabular-nums;width:52px;display:inline-block;text-align:center">' + timeStr + '</span>'
+      + '<span id="restTimerCountdown" style="font-size:17px;font-weight:600;color:var(--accent-primary);font-variant-numeric:tabular-nums;width:52px;display:inline-block;text-align:center">' + timeStr + '</span>'
     + '</div>'
     + '<div style="display:flex;align-items:center;gap:4px">'
       + '<button type="button" class="btn-text-action" id="subRest30Btn" style="font-size:15px;font-weight:600;color:#F5F5F4;background:none;border:none;padding:6px 6px;cursor:pointer">-30s</button>'

@@ -162,7 +162,7 @@ export function openEditWorkoutSheet(sessionId) {
       + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Logged Sets</label>'
       + exercisesHTML
     + '</div>'
-    + '<button type="button" class="btn btn-primary" id="saveEditSessionBtn" style="width:100%;height:48px;background:#C6F432;color:#0B0B0C;font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer">Save Changes</button>'
+    + '<button type="button" class="btn btn-primary" id="saveEditSessionBtn" style="width:100%;height:48px;background:var(--accent-primary);color:var(--text);font-size:15px;font-weight:600;border:none;border-radius:12px;box-shadow:0 4px 16px var(--accent-glow);cursor:pointer">Save Changes</button>'
     + '</div>';
 
   document.body.appendChild(overlay);

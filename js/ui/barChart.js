@@ -62,7 +62,7 @@ export function buildNutritionBarChartHTML({
   // SVG Bars markup
   var barsHTML = geom.bars.map(function(b) {
     var isToday = b.isToday;
-    var barFill = b.value > 0 ? b.fill : 'rgba(255,255,255,0.08)';
+    var barFill = b.value > 0 ? (b.fill === '#C6F432' ? 'var(--accent-primary)' : b.fill) : 'rgba(255,255,255,0.08)';
     var strokeAttr = (isToday && b.value > 0) ? 'stroke="#FFFFFF" stroke-width="1.5"' : 'stroke="none"';
     var todayDot = isToday ? '<circle cx="' + b.centerX + '" cy="115" r="1.5" fill="#FFFFFF"/>' : '';
 

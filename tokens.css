@@ -1,42 +1,88 @@
 /**
- * Iron Log — Design Tokens
- * Minimal, precision-instrument dark theme
+ * Regain Design Tokens (Mirrored Root)
+ * Deep Bio-Hacking Violet / Indigo & Soft Blue Theme
  */
 :root {
-  /* Surfaces */
-  --bg: #0B0B0C;
-  --surface: #141416;
-  --surface-raised: #1C1C1F;
-  --surface-hi: #242428;
-  --div: #222222;
-  --border: #222222;
-  --border-strong: #2A2A2E;
+  /* Backgrounds */
+  --bg: #09090B;
+  --surface: #18181B;
+  --surface2: #27272A;
+  --surface-raised: #27272A;
+  --surface-hi: #27272A;
+  --hairline: rgba(255, 255, 255, 0.08);
+  --divider: rgba(255, 255, 255, 0.08);
+  --div: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.12);
 
   /* Typography Colors */
-  --text: #F5F5F4;
-  --text-secondary: #8A8A8E;
-  --text-muted: #55555A;
+  --text: #FAFAFA;
+  --text2: #9E9EA4;
+  --text-secondary: #A1A1AA;
+  --text3: #71717A;
+  --text-muted: #A1A1AA;
+  --text-tertiary: #71717A;
+  --text-dim: #55555A;
 
-  /* ONE Accent: Lime (Used strictly for primary actions, completed sets, and PRs) */
-  --lime: #C6F432;
-  --lime-bg: rgba(198, 244, 50, 0.10);
-  --lime-border: rgba(198, 244, 50, 0.25);
+  /* Accents */
+  --accent-primary: #8B5CF6;
+  --accent-glow: rgba(139, 92, 246, 0.4);
+  --accent-secondary: #38BDF8;
+  --accent: var(--accent-primary);
+  --lime: var(--accent-primary);
+  --accent-dark: #09090B;
+  --lime-border: var(--accent-primary);
+  --accent-blue: var(--accent-secondary);
+  --amber: var(--accent-primary);
+  --amber-light: var(--accent-primary);
+  --amber-dark: var(--accent-primary);
+  --glow-lime: var(--accent-glow);
+  --lime-glow: var(--accent-glow);
 
-  /* Danger / Destructive */
+  /* Destructive */
   --danger: #FF4D4F;
   --danger-bg: rgba(255, 77, 79, 0.12);
 
+  /* State Tokens */
+  --state-pressed: rgba(255, 255, 255, 0.08);
+  --state-pressed-lime: rgba(139, 92, 246, 0.15);
+  --focus-ring: 2px solid var(--accent-primary);
+  --disabled-opacity: 0.38;
+
   /* Typography Scale */
-  --font-display: 'Space Grotesk', system-ui, sans-serif;
-  --font-body: 'Inter', system-ui, sans-serif;
-  --fs-96: 96px;
+  --font-grotesk: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --font-family: var(--font-grotesk);
+  --font-display: var(--font-grotesk);
+  --font-body: var(--font-grotesk);
+  --fs-hero: 96px;
+  --fs-64: 64px;
   --fs-48: 48px;
+  --fs-title: 28px;
+  --fs-body: 17px;
+  --fs-label: 15px;
+  --fs-caption: 11px;
   --fs-28: 28px;
   --fs-17: 17px;
   --fs-15: 15px;
+  --fs-12: 12px;
   --fs-11: 11px;
+  --fs-96: 96px;
+  --fs-24: 24px;
+  --fs-20: 17px;
+  --fs-14: 14px;
+  --fs-13: 13px;
+  --fs-10: 11px;
 
-  /* Spacing Grid (8pt system, 20px screen margin) */
+  /* Spacing Grid */
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-48: 48px;
+  --screen-margin: 20px;
   --spacing-xxs: 4px;
   --spacing-xs: 8px;
   --spacing-sm: 12px;
@@ -44,77 +90,21 @@
   --spacing-lg: 20px;
   --spacing-xl: 24px;
   --spacing-xxl: 32px;
+  --spacing-hero: 48px;
 
   /* Geometry & Radii */
-  --r-surface: 20px;
+  --r-card: 24px;
+  --r-surface: 16px;
+  --r-sheet: 28px;
   --r-control: 12px;
-  --r-chip: 8px;
+  --r-chip: 9999px;
+  --r-full: 9999px;
+  --r-lg: 24px;
+  --r-sm: 12px;
+  --r-xs: 8px;
 
   /* Interaction Targets */
   --tap-min: 48px;
-  --tap-compact: 44px;
-}
-
-
-/* ── Grey Glassmorphic Card System ── */
-.glass-card {
-  background: rgba(255, 255, 255, 0.04) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.09) !important;
-  border-radius: var(--r-surface) !important;
-  padding: 18px !important;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.07) !important;
-  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease !important;
-}
-
-.glass-list-row {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
-  padding: 11px 4px !important;
-  transition: background 0.12s ease !important;
-}
-.glass-list-row:last-child {
-  border-bottom: none !important;
-}
-.glass-list-row:hover, .glass-list-row:active {
-  background: rgba(255, 255, 255, 0.02) !important;
-}
-
-/* History Glass Details/Summary */
-.hist-glass-card {
-  margin-bottom: 12px !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-}
-.hist-glass-header {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  padding: 16px 18px !important;
-  cursor: pointer !important;
-  list-style: none !important;
-  user-select: none !important;
-}
-.hist-glass-header::-webkit-details-marker {
-  display: none !important;
-}
-.hist-glass-badge {
-  font-size: 12px !important;
-  font-weight: 500 !important;
-  color: var(--text-secondary) !important;
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: 20px !important;
-  padding: 3px 10px !important;
-}
-.hist-glass-content {
-  padding: 4px 18px 16px !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
-}
-.glass-hist-ex-row {
-  padding: 10px 0 !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-}
-.glass-hist-ex-row:last-child {
-  border-bottom: none !important;
+  --tap-compact: 48px;
+  --nav-h: 64px;
 }

@@ -533,15 +533,16 @@
 }
 
 .cal-cell--trained {
-  background: var(--lime, #C6F432) !important;
-  color: #0B0B0C !important;
+  background: var(--accent-primary) !important;
+  color: var(--text) !important;
   font-weight: 600 !important;
+  box-shadow: 0 0 8px var(--accent-glow) !important;
 }
 
 .cal-cell--planned {
   background: transparent !important;
-  border: 1.5px solid var(--lime, #C6F432) !important;
-  color: var(--text, #F5F5F4) !important;
+  border: 1.5px solid var(--accent-primary) !important;
+  color: var(--text) !important;
 }
 
 .cal-cell--skipped {
