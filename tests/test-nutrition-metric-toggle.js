@@ -25,3 +25,4 @@ assert.ok(protHTML.includes('--i:1'), 'Segmented thumb indicator at 1 for protei
 assert.ok(!protHTML.includes('NaN'), 'No NaN values in protein mode');
 
 console.log('✓ Nutrition Metric Toggle tests passed (100%)');
+
