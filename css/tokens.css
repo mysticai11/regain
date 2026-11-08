@@ -1,33 +1,39 @@
 /* Design tokens: CSS variables for colors, typography scale, spacing grid, radii, and tap targets */
 :root {
-  /* Colors */
-  --bg: #0A0A0B;
-  --surface: #141416;
-  --surface2: #1C1C1F;
-  --surface-raised: #222222;
-  --surface-hi: #1C1C1F;
-  --hairline: #222222;
-  --divider: #222222;
-  --div: #222222;
-  --border: #222222;
-  --border-strong: #222222;
+  /* Backgrounds */
+  --bg: #09090B; /* Deepest black */
+  --surface: #18181B; /* Card background */
+  --surface2: #27272A; /* Raised elements */
+  --surface-raised: #27272A;
+  --surface-hi: #27272A;
+  --hairline: rgba(255, 255, 255, 0.08); /* Soft borders, not harsh hex */
+  --divider: rgba(255, 255, 255, 0.08);
+  --div: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.12);
 
-  --text: #F5F5F4;
+  --text: #FAFAFA;
   --text2: #9E9EA4;
-  --text-secondary: #8A8A8E;
+  --text-secondary: #A1A1AA;
   --text3: #71717A;
-  --text-muted: #9A9AA2;
+  --text-muted: #A1A1AA;
   --text-tertiary: #71717A;
   --text-dim: #55555A;
 
-  /* Accent: Pure Lime with dark text #0B0B0C */
-  --accent: #C6F432;
-  --lime: #C6F432;
-  --accent-dark: #0B0B0C;
-  --lime-border: #C6F432;
-  --amber: #C6F432;
-  --amber-light: #C6F432;
-  --amber-dark: #C6F432;
+  /* Accents (Violet / Indigo & Soft Blue) */
+  --accent-primary: #8B5CF6; /* Violet */
+  --accent-glow: rgba(139, 92, 246, 0.4); /* For SVG Glows */
+  --accent-secondary: #38BDF8; /* Soft Blue for Activity */
+  --accent: var(--accent-primary);
+  --lime: var(--accent-primary);
+  --accent-dark: #09090B;
+  --lime-border: var(--accent-primary);
+  --accent-blue: var(--accent-secondary);
+  --amber: var(--accent-primary);
+  --amber-light: var(--accent-primary);
+  --amber-dark: var(--accent-primary);
+  --glow-lime: var(--accent-glow);
+  --lime-glow: var(--accent-glow);
 
   /* Destructive */
   --danger: #FF4D4F;
@@ -35,8 +41,8 @@
 
   /* State Tokens */
   --state-pressed: rgba(255, 255, 255, 0.08);
-  --state-pressed-lime: rgba(11, 11, 12, 0.15);
-  --focus-ring: 2px solid var(--lime);
+  --state-pressed-lime: rgba(139, 92, 246, 0.15);
+  --focus-ring: 2px solid var(--accent-primary);
   --disabled-opacity: 0.38;
 
   /* Typography: Single Grotesk family, weights 400/600, tabular numerals on all numbers, no monospace */
@@ -45,25 +51,26 @@
   --font-display: var(--font-grotesk);
   --font-body: var(--font-grotesk);
 
-  /* 5 Canonical Type Sizes: hero (96), title (28), body (17), label (15), caption (11) */
+  /* Canonical Type Sizes: hero (96), 64, display (48), title (28), body (17), label (15), small (12), caption (11) */
   --fs-hero: 96px;
+  --fs-64: 64px;
+  --fs-48: 48px;
   --fs-title: 28px;
   --fs-body: 17px;
   --fs-label: 15px;
   --fs-caption: 11px;
-
-  /* Strict Type Scale: 96 / 48 / 28 / 17 / 15 / 11 (11px uppercase has +8% tracking) */
-  --fs-96: 96px;
-  --fs-48: 48px;
   --fs-28: 28px;
   --fs-17: 17px;
   --fs-15: 15px;
+  --fs-12: 12px;
   --fs-11: 11px;
+
+  /* Strict Type Scale: 96 / 64 / 48 / 28 / 17 / 15 / 12 / 11 */
+  --fs-96: 96px;
   --fs-24: 24px;
   --fs-20: 17px;
   --fs-14: 14px;
   --fs-13: 13px;
-  --fs-12: 11px;
   --fs-10: 11px;
 
   /* Spacing Grid: 4 / 8 / 12 / 16 / 20 / 24 / 32 / 48, screen margin 20 */
@@ -87,14 +94,14 @@
   --spacing-xxl: 32px;
   --spacing-hero: 48px;
 
-  /* Geometry & Radii: 20 (cards), 12 (controls), 9999 (chips), 28 (sheet top) */
-  --r-card: 20px;
+  /* Geometry & Radii: 24 (cards), 12 (controls), 9999 (chips), 28 (sheet top) */
+  --r-card: 24px;
   --r-surface: 16px;
   --r-sheet: 28px;
   --r-control: 12px;
   --r-chip: 9999px;
   --r-full: 9999px;
-  --r-lg: 20px;
+  --r-lg: 24px;
   --r-sm: 12px;
   --r-xs: 8px;
 
@@ -130,9 +137,10 @@
   --motion-fast: 120ms var(--ease-m3);
 
   /* F10 Depth & Glow Tokens */
-  --card-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-  --lime-glow: 0 0 12px rgba(198, 244, 50, 0.2);
+  --card-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --lime-glow: 0 0 16px rgba(139, 92, 246, 0.4);
+  --glow-lime: 0 0 20px rgba(139, 92, 246, 0.4);
 
   /* Round 1 UI Tokens */
   --seg-track: #0B0B0C;
@@ -149,6 +157,7 @@
 /* F10: Subtle Card Top Highlight, Soft Depth Shadow & Primary Lime Button Glow */
 .card,
 .surface-card,
+.metric-card,
 .today-workout-block,
 .catchup-card,
 .glass-card,
@@ -160,6 +169,11 @@
 .settings-section,
 .dialog-surface {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.bottomnav,
+.tab-bar {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
 }
 
 .btn-primary,

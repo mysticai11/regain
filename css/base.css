@@ -10,7 +10,10 @@
 
 html,
 body {
-  background: var(--bg);
+  background: 
+    radial-gradient(circle at 50% -10%, rgba(139, 92, 246, 0.15) 0%, transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-family);
   font-size: var(--fs-15);

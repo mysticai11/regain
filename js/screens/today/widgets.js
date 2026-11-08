@@ -9,6 +9,7 @@ import { getTargetsForDate, getDayTotals, addRecent } from "../../lib/calc.js";
 import { showToast } from "../../components/toast.js";
 import { ic, animateNumber } from "../../lib/dom.js";
 import { computeWeekStrip } from "../../view/weekStrip.js";
+import { buildSegmentedRing } from "../../components/svgRing.js";
 
 function triggerRenderScreens() {
   if (typeof window !== 'undefined') {
@@ -199,103 +200,9 @@ export function buildWeekDotRowHTML(dayKey, activeSelectedKey) {
     + '</div>';
 }
 
-export function openWorkoutOverrideSheet(dKey) {
-  var overlay = document.createElement('div');
-  overlay.className = 'overlay';
-  var dObj = new Date(dKey + 'T00:00:00');
-  var formatted = dObj.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-  var title = 'Choose workout for ' + formatted;
+export { openWorkoutOverrideSheet } from "./workout-override.js";
 
-  var prog = getActiveProgram();
-  var d = dObj.getDay();
-  var dayNum = d === 0 ? 7 : d;
-  var weeklySched = getWeeklySchedule();
-  var matchedSched = weeklySched.find(function(s){ return s.dayNum === dayNum; });
-  var suggestedWorkoutIdx = (matchedSched && !matchedSched.isRest) ? matchedSched.workoutIndex : null;
-
-  var targetRec = dayRecord(dKey);
-  var hasOverride = targetRec && targetRec.selectedWorkout !== undefined;
-  var currentSelection = hasOverride ? targetRec.selectedWorkout : suggestedWorkoutIdx;
-
-  var workoutRows = prog.map(function(s, idx) {
-    var cleanLabel = (s.label || '').replace(/^Day\s*\d+\s*[·•—–-]\s*/i, '').trim();
-    if (/^Day\s*\d+$/i.test(cleanLabel)) cleanLabel = '';
-    var labelText = cleanLabel ? ('Day ' + (idx + 1) + ' · ' + esc(cleanLabel)) : ('Day ' + (idx + 1));
-    var isSuggested = (suggestedWorkoutIdx === idx);
-    var isSelected = (currentSelection === idx);
-    return '<div class="list-row" data-choose-plan-idx="' + idx + '" style="height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;cursor:pointer;padding:0">'
-      + '<span style="font-size:17px;font-weight:600;color:' + (isSelected ? '#F5F5F4' : '#8A8A8E') + '">' + labelText + '</span>'
-      + '<div style="display:flex;align-items:center;gap:8px">'
-        + (isSuggested ? '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Suggested</span>' : '')
-        + (isSelected ? '<span style="color:#F5F5F4;font-weight:700">✓</span>' : '')
-      + '</div>'
-      + '</div>';
-  }).join('');
-
-  var isRestSuggested = (suggestedWorkoutIdx === null);
-  var isRestSelected = (currentSelection === null);
-  var restRow = '<div class="list-row" data-choose-plan-idx="rest" style="height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;cursor:pointer;padding:0">'
-    + '<span style="font-size:17px;font-weight:600;color:' + (isRestSelected ? '#F5F5F4' : '#8A8A8E') + '">Rest day</span>'
-    + '<div style="display:flex;align-items:center;gap:8px">'
-      + (isRestSuggested ? '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Suggested</span>' : '')
-      + (isRestSelected ? '<span style="color:#F5F5F4;font-weight:700">✓</span>' : '')
-    + '</div>'
-    + '</div>';
-
-  var resetActionHTML = hasOverride
-    ? '<button type="button" class="btn-text-action" id="sheetResetBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:16px 0 0;cursor:pointer;text-align:left">Reset to suggested</button>'
-    : '';
-
-  overlay.innerHTML = '<div class="sheet" style="background:#141416;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%">'
-    + '<div class="sheet-handle"></div>'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
-      + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">' + esc(title) + '</div>'
-      + '<button type="button" class="btn-text-action" id="closeOverrideSheetBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">Close</button>'
-    + '</div>'
-    + '<div>' + workoutRows + restRow + '</div>'
-    + resetActionHTML
-    + '</div>';
-
-  document.body.appendChild(overlay);
-
-  overlay.querySelector('#closeOverrideSheetBtn').onclick = function() { overlay.remove(); };
-  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
-
-  overlay.querySelectorAll('[data-choose-plan-idx]').forEach(function(row) {
-    row.onclick = function() {
-      var val = row.dataset.choosePlanIdx;
-      targetRec = dayRecord(dKey);
-      if (val === 'rest') {
-        targetRec.selectedWorkout = null;
-      } else {
-        targetRec.selectedWorkout = parseInt(val, 10);
-        if (targetRec.workoutDone) {
-          targetRec.workoutDone = false;
-        }
-      }
-      saveDayRecord(dKey, targetRec);
-      if (typeof window !== 'undefined') window.activeExpandedExId = null;
-      overlay.remove();
-      triggerRenderScreens();
-      showToast('Workout updated for ' + formatted, 'ok');
-    };
-  });
-
-  var rBtn = overlay.querySelector('#sheetResetBtn');
-  if (rBtn) {
-    rBtn.onclick = function() {
-      targetRec = dayRecord(dKey);
-      delete targetRec.selectedWorkout;
-      saveDayRecord(dKey, targetRec);
-      if (typeof window !== 'undefined') window.activeExpandedExId = null;
-      overlay.remove();
-      triggerRenderScreens();
-      showToast('Reset to suggested workout', 'ok');
-    };
-  }
-}
-
-export function buildCalRingHTML(kcalLogged, kcalTarget, protLogged, protTarget, carbsLogged, fatLogged) {
+export function buildCalRingHTML(kcalLogged, kcalTarget, protLogged, protTarget, carbsLogged, fatLogged, carbsTarget, fatTarget) {
   var remaining = Math.max(0, kcalTarget - kcalLogged);
   var isOver = kcalLogged > kcalTarget;
   var calPct = Math.min(100, Math.round(kcalLogged / Math.max(1, kcalTarget) * 100));
@@ -303,21 +210,49 @@ export function buildCalRingHTML(kcalLogged, kcalTarget, protLogged, protTarget,
 
   var heroNumber = isOver ? ('+' + (kcalLogged - kcalTarget).toLocaleString()) : (remaining > 0 ? remaining.toLocaleString() : kcalLogged.toLocaleString());
   var heroLabel = isOver ? 'over target' : (remaining > 0 ? 'remaining' : 'eaten');
-  var heroSub = remaining > 0
-    ? (heroLabel + ' · of ' + kcalTarget.toLocaleString() + ' kcal')
-    : (isOver ? (heroLabel + ' · ' + kcalLogged.toLocaleString() + ' of ' + kcalTarget.toLocaleString() + ' kcal') : (heroLabel + ' · ' + kcalLogged.toLocaleString() + ' of ' + kcalTarget.toLocaleString() + ' kcal'));
-
   var rawVal = isOver ? (kcalLogged - kcalTarget) : (remaining > 0 ? remaining : kcalLogged);
-  return '<div style="margin-bottom:24px">'
-    + '<div class="t-display tabnum" id="todayHeroCal" style="font-size:48px"><span id="todayHeroCalNum" data-value="' + rawVal + '">' + heroNumber + '</span></div>'
-    + '<div style="font-size:15px;color:#8A8A8E;margin-top:6px">' + heroSub + '</div>'
-    + '<div class="prog-line" style="height:6px;border-radius:9999px;background:var(--hairline);margin-top:10px;margin-bottom:20px;overflow:hidden"><div class="prog-line-fill" id="todayCalFill" style="transform:scaleX(' + (calPct / 100) + ');height:100%;border-radius:9999px;background:var(--text)"></div></div>'
-    + '<div style="display:flex;align-items:baseline;gap:6px">'
-      + '<span id="todayProtNum" data-value="' + Math.round(protLogged) + '" style="font-size:28px;font-weight:600;color:var(--text);line-height:1.1;font-variant-numeric:tabular-nums">' + Math.round(protLogged) + '</span>'
-      + '<span style="font-size:15px;color:var(--text-secondary)">/ ' + protTarget + ' g</span>'
+
+  var cTarget = Number(carbsTarget) || 415;
+  var fTarget = Number(fatTarget) || 100;
+  var carbsPct = Math.min(100, Math.round(((carbsLogged || 0) / Math.max(1, cTarget)) * 100));
+  var fatPct = Math.min(100, Math.round(((fatLogged || 0) / Math.max(1, fTarget)) * 100));
+
+  var centerHTML = '<div style="color:var(--accent-primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:2px">' + ic('flame', 20) + '</div>'
+    + '<div class="t-display tabnum" id="todayHeroCal" style="font-size:var(--fs-64);font-weight:700;line-height:1;color:var(--text);margin-bottom:4px"><span id="todayHeroCalNum" data-value="' + rawVal + '">' + heroNumber + '</span></div>'
+    + '<div style="font-size:var(--fs-12);font-weight:600;letter-spacing:0.05em;color:var(--text-secondary);font-variant-numeric:tabular-nums">' + Number(kcalLogged).toLocaleString() + ' / ' + Number(kcalTarget).toLocaleString() + ' kcal</div>'
+    + '<div style="font-size:var(--fs-12);color:var(--text-secondary);margin-top:2px;letter-spacing:0.05em;text-transform:uppercase">' + heroLabel + '</div>';
+
+  var ringHTML = buildSegmentedRing({ progress: calPct, size: 240, strokeWidth: 14, color: 'var(--accent-primary)', trackColor: 'var(--hairline)', centerHTML: centerHTML });
+
+  var macroRowHTML = '<div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;margin-top:20px;margin-bottom:20px">'
+    + '<div class="metric-card" style="padding:12px 10px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+        + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.06em;color:var(--text-secondary);text-transform:uppercase">PROTEIN</span>'
+        + '<div style="width:24px;height:24px;border-radius:50%;background:rgba(139, 92, 246, 0.15);color:var(--accent-primary);display:inline-flex;align-items:center;justify-content:center">' + ic('bolt', 13) + '</div>'
+      + '</div>'
+      + '<div style="font-size:var(--fs-15);font-weight:600;color:var(--text);font-variant-numeric:tabular-nums"><span id="todayProtNum" data-value="' + Math.round(protLogged) + '">' + Math.round(protLogged) + '</span> <span style="font-size:var(--fs-caption);font-weight:400;color:var(--text-secondary)">/ ' + Math.round(protTarget) + 'g</span></div>'
+      + '<div class="prog-line" style="height:4px;border-radius:9999px;background:var(--hairline);margin-top:8px;overflow:hidden"><div class="prog-line-fill" id="todayProtFill" style="height:100%;border-radius:9999px;background:var(--accent-primary);transform-origin:left;transform:scaleX(' + (protPct / 100) + ')"></div></div>'
     + '</div>'
-    + '<div class="prog-line" style="height:6px;border-radius:9999px;background:var(--hairline);margin-top:8px;margin-bottom:20px;overflow:hidden"><div class="prog-line-fill" id="todayProtFill" style="transform:scaleX(' + (protPct / 100) + ');height:100%;border-radius:9999px;background:var(--text)"></div></div>'
-    + '</div>';
+    + '<div class="metric-card" style="padding:12px 10px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+        + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.06em;color:var(--text-secondary);text-transform:uppercase">CARBS</span>'
+        + '<div style="width:24px;height:24px;border-radius:50%;background:rgba(139, 92, 246, 0.15);color:var(--accent-primary);display:inline-flex;align-items:center;justify-content:center">' + ic('bowl', 13) + '</div>'
+      + '</div>'
+      + '<div style="font-size:var(--fs-15);font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + Math.round(carbsLogged || 0) + ' <span style="font-size:var(--fs-caption);font-weight:400;color:var(--text-secondary)">/ ' + Math.round(cTarget) + 'g</span></div>'
+      + '<div class="prog-line" style="height:4px;border-radius:9999px;background:var(--hairline);margin-top:8px;overflow:hidden"><div class="prog-line-fill" style="height:100%;border-radius:9999px;background:var(--accent-primary);transform-origin:left;transform:scaleX(' + (carbsPct / 100) + ')"></div></div>'
+    + '</div>'
+    + '<div class="metric-card" style="padding:12px 10px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+        + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.06em;color:var(--text-secondary);text-transform:uppercase">FATS</span>'
+        + '<div style="width:24px;height:24px;border-radius:50%;background:rgba(139, 92, 246, 0.15);color:var(--accent-primary);display:inline-flex;align-items:center;justify-content:center">' + ic('avocado', 13) + '</div>'
+      + '</div>'
+      + '<div style="font-size:var(--fs-15);font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + Math.round(fatLogged || 0) + ' <span style="font-size:var(--fs-caption);font-weight:400;color:var(--text-secondary)">/ ' + Math.round(fTarget) + 'g</span></div>'
+      + '<div class="prog-line" style="height:4px;border-radius:9999px;background:var(--hairline);margin-top:8px;overflow:hidden"><div class="prog-line-fill" style="height:100%;border-radius:9999px;background:var(--accent-primary);transform-origin:left;transform:scaleX(' + (fatPct / 100) + ')"></div></div>'
+    + '</div>'
+  + '</div>'
+  + '<div id="todayCalFill" style="display:none;transform:scaleX(' + (calPct / 100) + ')"></div>';
+
+  return '<div style="margin-bottom:8px">' + ringHTML + macroRowHTML + '</div>';
 }
 
 export function buildWeightTrendChip(currentWeight) {

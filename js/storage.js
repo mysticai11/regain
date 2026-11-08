@@ -248,10 +248,13 @@ export function migrateLegacyKeys() {
 
 export function dayRecord(key) {
   var r = ls('rg_day_'+key, null);
-  if (!r) return {weight:null,sleep:null,readiness:null,meals:{},extra:[],workout:{},workoutDone:false,shielded:false};
+  if (!r) return {weight:null,sleep:null,readiness:null,steps:null,activeBurn:null,workoutDurationMins:0,meals:{},extra:[],workout:{},workoutDone:false,shielded:false};
   if (!Array.isArray(r.extra)) r.extra = [];
   if (!r.workout) r.workout = {};
   if (!r.meals) r.meals = {};
+  if (r.steps === undefined) r.steps = null;
+  if (r.activeBurn === undefined) r.activeBurn = null;
+  if (r.workoutDurationMins === undefined) r.workoutDurationMins = 0;
   return r;
 }
 

@@ -17,6 +17,11 @@ import { buildCollapsibleFoodLogHTML, bindFoodLogCardEvents } from "./today/food
 import { openSettings } from "./settings.js";
 import { sessionSetCount } from "../lib/schedule.js";
 import { setGestureCooldown, claimGestureOwner, releaseGestureOwner } from "../lib/gesture.js";
+import { fetchTodaySteps } from "../lib/steps.js";
+import { calculateTotalBurn } from "../lib/energy.js";
+import { buildActivityGridHTML, bindActivityGridEvents, buildActivityInsightHTML } from "./today/activity-grid.js";
+import { bindStaplesShelfEvents } from "./today/staples-events.js";
+import { bindTodayWeightEvents } from "./today/weight-handler.js";
 export * from "./today/food-modal.js"; export * from "./today/widgets.js"; export * from "./today/food-log-card.js";
 
 export function renderTodaySimple() {
@@ -54,12 +59,67 @@ export function renderTodaySimple() {
     ? (isRest ? 'REST DAY' : "TODAY'S WORKOUT")
     : (dayNames[activeDateObj.getDay()] + ' ' + activeDateObj.getDate() + ' ' + monthNames[activeDateObj.getMonth()] + (isRest ? ' · REST DAY' : ' · WORKOUT'));
 
-  var calRingHTML = buildCalRingHTML(Math.round(tot.kcal || 0), targets.kcal, Math.round(tot.protein || 0), targets.protein, Math.round(tot.carbs || 0), Math.round(tot.fat || 0));
+  var wMeta = targetRec.workoutMeta || {};
+  var workoutDurMins = wMeta.durationMinutes || (wMeta.duration_sec ? Math.round(wMeta.duration_sec / 60) : (targetRec.workoutDurationMins || 0));
+  var userW = targetRec.weight || currentWeight();
+  var userH = (profile && profile.heightCm) || 175;
+  var userAge = (profile && profile.age) || 25;
+  var userGender = (profile && profile.gender) || 'male';
+  var currentSteps = targetRec.steps || 0;
+  var totalBurn = calculateTotalBurn(userW, userH, userAge, userGender, currentSteps, workoutDurMins);
+
+  if (typeof window !== 'undefined' && window._stepsFetchedDate !== activeDateKey && typeof fetchTodaySteps === 'function') {
+    window._stepsFetchedDate = activeDateKey;
+    fetchTodaySteps().then(function(nativeSteps) {
+      if (nativeSteps != null && nativeSteps > (targetRec.steps || 0)) {
+        targetRec.steps = nativeSteps;
+        saveDayRecord(activeDateKey, targetRec, { silent: true });
+        renderTodaySimple();
+      }
+    }).catch(function() {});
+  }
+
+  var dynamicCalTarget = targets.kcal + (totalBurn.stepBurn || 0) + (totalBurn.workoutBurn || 0);
+  var calRingHTML = buildCalRingHTML(Math.round(tot.kcal || 0), dynamicCalTarget, Math.round(tot.protein || 0), targets.protein, Math.round(tot.carbs || 0), Math.round(tot.fat || 0), targets.carbs, targets.fat);
+  var insightHTML = buildActivityInsightHTML(totalBurn.stepBurn, totalBurn.workoutBurn);
+
+  var quickActionsHTML = '<div class="today-quick-actions" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:10px;margin-bottom:24px">'
+    + '<button type="button" class="btn btn-action-card" id="todayQuickLogFoodBtn" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:74px;padding:12px 6px;border-radius:18px;background:var(--accent-primary);color:var(--text);border:none;box-shadow:0 4px 16px var(--accent-glow);cursor:pointer">'
+      + '<span style="display:inline-flex;align-items:center;justify-content:center;color:var(--text)">' + ic('plus', 20) + '</span>'
+      + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.02em">Food</span>'
+    + '</button>'
+    + '<button type="button" class="btn btn-action-card" id="todayQuickLogWorkoutBtn" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:74px;padding:12px 6px;border-radius:18px;background:var(--surface);color:var(--text);border:1px solid var(--hairline);cursor:pointer">'
+      + '<span style="display:inline-flex;align-items:center;justify-content:center;color:var(--text-secondary)">' + ic('barbell', 20) + '</span>'
+      + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.02em">Workout</span>'
+    + '</button>'
+    + '<button type="button" class="btn btn-action-card" id="todayQuickLogWeightBtn" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:74px;padding:12px 6px;border-radius:18px;background:var(--surface);color:var(--text);border:1px solid var(--hairline);cursor:pointer">'
+      + '<span style="display:inline-flex;align-items:center;justify-content:center;color:var(--text-secondary)">' + ic('trend_up', 20) + '</span>'
+      + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.02em">Weight</span>'
+    + '</button>'
+    + '<button type="button" class="btn btn-action-card" id="todayQuickLogStepsBtn" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:74px;padding:12px 6px;border-radius:18px;background:var(--surface);color:var(--text);border:1px solid var(--hairline);cursor:pointer">'
+      + '<span style="display:inline-flex;align-items:center;justify-content:center;color:var(--text-secondary)">' + ic('flame', 20) + '</span>'
+      + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.02em">Steps</span>'
+    + '</button>'
+  + '</div>';
+
+  var weeklyLoggedVolume = getLoggedWeeklyVolume();
+  var weeklySetsTotal = weeklyLoggedVolume.reduce(function(acc, item) { return acc + (item.sets || 0); }, 0);
+  var weightEntries = ((profile && profile.weightEntries) || []).slice(-7);
+  var weightAvgVal = weightEntries.length > 0 ? +(weightEntries.reduce(function(acc, e) { return acc + (Number(e.weight) || 0); }, 0) / weightEntries.length).toFixed(1) : null;
+  var activityGridHTML = buildActivityGridHTML({
+    steps: currentSteps,
+    totalBurn: totalBurn,
+    currentWeightKg: targetRec.weight || currentWeight(),
+    weightAvg: weightAvgVal,
+    weeklySets: weeklySetsTotal,
+    dateKey: activeDateKey
+  });
+
   var weekDotHTML = buildWeekDotRowHTML(key, activeDateKey);
   var pastDateBanner = (activeDateKey !== key)
-    ? ('<div style="display:flex;justify-content:space-between;align-items:center;background:#141416;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:15px;color:#F5F5F4">'
+    ? ('<div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:15px;color:var(--text)">'
         + '<span>Viewing: <b>' + activeDateObj.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + '</b></span>'
-        + '<button type="button" class="btn-text-action" id="returnTodayBtn" style="color:#C6F432;font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;padding:0">Today</button>'
+        + '<button type="button" class="btn-text-action" id="returnTodayBtn" style="color:var(--lime);font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;padding:0">Today</button>'
       + '</div>')
     : '';
 
@@ -68,8 +128,8 @@ export function renderTodaySimple() {
   contentEl.innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">'
     + '<div>'
-      + '<h1 style="font-size:28px;font-weight:700;color:#F5F5F4;letter-spacing:-0.02em;margin:0;line-height:1.2">Today</h1>'
-      + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8A8A8E;text-transform:uppercase;margin-top:2px">' + esc(todayHeaderDateStr) + '</div>'
+      + '<h1 style="font-size:28px;font-weight:700;color:var(--text);letter-spacing:-0.02em;margin:0;line-height:1.2">Today</h1>'
+      + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--text-secondary);text-transform:uppercase;margin-top:2px">' + esc(todayHeaderDateStr) + '</div>'
     + '</div>'
     + '<button class="icon-btn" id="settingsBtn" aria-label="Settings">' + ic('settings') + '</button>'
     + '</div>'
@@ -77,6 +137,9 @@ export function renderTodaySimple() {
     + buildBackupNudgeHTML()
     + buildCatchupCardHTML(key)
     + calRingHTML
+    + insightHTML
+    + quickActionsHTML
+    + activityGridHTML
     + weekDotHTML
     + (function() {
       var cardInner = '';
@@ -133,6 +196,49 @@ export function renderTodaySimple() {
   if (settingsBtn) settingsBtn.onclick = function(e) { if (e && e.stopPropagation) e.stopPropagation(); openSettings(); };
   bindBackupNudgeEvents(exportData);
   bindCatchupCardEvents(contentEl, renderTodaySimple);
+  bindActivityGridEvents(contentEl, { rec: targetRec, dateKey: activeDateKey, onUpdate: renderTodaySimple });
+
+  var quickLogFoodBtn = document.getElementById('todayQuickLogFoodBtn');
+  if (quickLogFoodBtn) {
+    quickLogFoodBtn.onclick = function() {
+      triggerHaptic();
+      openFoodSearch(activeDateKey);
+    };
+  }
+
+  var quickLogWorkoutBtn = document.getElementById('todayQuickLogWorkoutBtn');
+  if (quickLogWorkoutBtn) {
+    quickLogWorkoutBtn.onclick = function() {
+      triggerHaptic();
+      window.activeGymDateKey = activeDateKey;
+      setTab('gym');
+      renderApp();
+    };
+  }
+
+  var quickLogWeightBtn = document.getElementById('todayQuickLogWeightBtn');
+  if (quickLogWeightBtn) {
+    quickLogWeightBtn.onclick = function() {
+      triggerHaptic();
+      var wInput = document.getElementById('todayWeight');
+      if (wInput) {
+        if (typeof wInput.scrollIntoView === 'function') wInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (typeof wInput.focus === 'function') wInput.focus();
+      }
+    };
+  }
+
+  var quickLogStepsBtn = document.getElementById('todayQuickLogStepsBtn');
+  if (quickLogStepsBtn) {
+    quickLogStepsBtn.onclick = function() {
+      triggerHaptic();
+      var editSteps = document.getElementById('editTodayStepsBtn');
+      if (editSteps && typeof editSteps.click === 'function') {
+        editSteps.click();
+      }
+    };
+  }
+
   triggerTodayAnimations();
   if (prevScroll > 0) {
     if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, prevScroll);
@@ -193,105 +299,9 @@ export function renderTodaySimple() {
     };
   }
 
-  var todayWeightInput = document.getElementById('todayWeight');
-  var saveTodayWeight = document.getElementById('saveTodayWeight');
-  var deleteTodayWeightBtn = document.getElementById('deleteTodayWeightBtn');
-  var clearTodayWeight = async function() {
-    var ok = await confirmDialog({ title: 'Clear Weight Log?', message: "Clear weight log (" + rec.weight + " kg)?", confirmLabel: 'Clear Log', destructive: true });
-    if (!ok) return;
-    rec.weight = null; saveDayRecord(activeDateKey, rec);
-    if (profile.weightEntries) { profile.weightEntries = profile.weightEntries.filter(function(e){ return e.dayKey !== activeDateKey; }); sv('rg_profile', profile); }
-    triggerHaptic(); showToast('Weight log cleared', 'ok'); renderTodaySimple();
-  };
-  if (deleteTodayWeightBtn) deleteTodayWeightBtn.onclick = clearTodayWeight;
-  if (todayWeightInput && saveTodayWeight) {
-    var initialW = (todayWeightInput.value || '').trim();
-    todayWeightInput.oninput = function () {
-      var curW = (todayWeightInput.value || '').trim(), changed = curW !== initialW;
-      if (changed) {
-        saveTodayWeight.textContent = 'Save'; saveTodayWeight.style.background = '#C6F432';
-        saveTodayWeight.style.color = '#0B0B0C'; saveTodayWeight.style.border = 'none';
-        saveTodayWeight.style.opacity = '1'; saveTodayWeight.style.cursor = 'pointer';
-      } else if (initialW !== '') {
-        saveTodayWeight.textContent = 'Saved'; saveTodayWeight.style.background = '#1C1C1F';
-        saveTodayWeight.style.color = '#8A8A8E'; saveTodayWeight.style.border = '1px solid #222222';
-        saveTodayWeight.style.opacity = '1'; saveTodayWeight.style.cursor = 'default';
-      } else {
-        saveTodayWeight.textContent = 'Save'; saveTodayWeight.style.background = 'transparent';
-        saveTodayWeight.style.color = '#8A8A8E'; saveTodayWeight.style.border = '1px solid #222222';
-        saveTodayWeight.style.opacity = '0.4'; saveTodayWeight.style.cursor = 'default';
-      }
-    };
-    var doSaveWeight = function () {
-      var valStr = (todayWeightInput.value || '').trim();
-      if (!valStr || valStr === initialW) return;
-      var w = parseFloat(valStr.replace(',', '.'));
-      if (!w || isNaN(w) || w < 20 || w > 300) { showToast('Enter a valid weight', 'warn'); return; }
-      profile.weightEntries = (profile.weightEntries || []).filter(function(e){ return e.dayKey !== activeDateKey; });
-      profile.weightEntries.push({ id: 'weight_' + Date.now(), dayKey: activeDateKey, weight: w, createdAt: new Date().toISOString() });
-      sv('rg_profile', profile); rec.weight = w; saveDayRecord(activeDateKey, rec);
-      triggerHaptic(); showToast('Weight saved', 'ok'); initialW = String(w);
-      renderTodaySimple();
-    };
-    saveTodayWeight.onclick = doSaveWeight;
-    todayWeightInput.onblur = doSaveWeight;
-  }
+  bindTodayWeightEvents(activeDateKey, rec, renderTodaySimple);
 
-  var staples = getMergedStaples();
-  document.querySelectorAll('[data-quick-staple]').forEach(function (card) {
-    var sIdx = parseInt(card.dataset.quickStaple, 10);
-    var item = staples[sIdx];
-    if (!item) return;
-
-    var logItem = function (mult) {
-      mult = mult || 1;
-      var prevTot = getDayTotals(activeDateKey), dayTargets = getTargetsForDate(activeDateKey);
-      var currentRec = dayRecord(activeDateKey);
-      currentRec.extra = currentRec.extra || [];
-      var insertIdx = currentRec.extra.length;
-      var portionLabel = mult === 1 ? '' : (mult === 0.5 ? '½× ' : mult + '× ');
-      currentRec.extra.push({
-        name: portionLabel + item.name, kcal: Math.round(item.kcal * mult),
-        protein: +(item.protein * mult).toFixed(1), carbs: Math.round((item.carbs || 0) * mult),
-        fat: Math.round((item.fat || 0) * mult), servings: 1
-      });
-      saveDayRecord(activeDateKey, currentRec);
-      addRecent(item.name, item.kcal, item.protein, item.carbs || 0, item.fat || 0);
-      var newTot = getDayTotals(activeDateKey), reached = (prevTot.kcal < dayTargets.kcal && newTot.kcal >= dayTargets.kcal);
-      playSound('set_logged'); triggerHaptic(reached ? 'success' : 'light'); renderTodaySimple(); showFoodAddedChip(Math.round(item.kcal * mult));
-      showUndoToast('Logged ' + portionLabel + item.name + ' (' + +(item.protein * mult).toFixed(1) + 'g P)', function () {
-        var undoRec = dayRecord(activeDateKey);
-        if (undoRec.extra && undoRec.extra.length > insertIdx) {
-          undoRec.extra.splice(insertIdx, 1); saveDayRecord(activeDateKey, undoRec); renderTodaySimple();
-        }
-      });
-    };
-
-    var pressTimer = null, didLongPress = false, touchStartX = 0, touchStartY = 0, hasMoved = false;
-    card.addEventListener('touchstart', function (e) {
-      didLongPress = false; hasMoved = false;
-      if (e.touches && e.touches[0]) { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }
-      pressTimer = setTimeout(function () {
-        if (!hasMoved) { didLongPress = true; triggerHaptic(); openPortionSheet(item, function (mult) { logItem(mult); }); }
-      }, 450);
-    }, { passive: true });
-    card.addEventListener('touchmove', function (e) {
-      if (e.touches && e.touches[0]) {
-        var dx = Math.abs(e.touches[0].clientX - touchStartX), dy = Math.abs(e.touches[0].clientY - touchStartY);
-        if (dx > 10 || dy > 10) { hasMoved = true; if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } }
-      }
-    }, { passive: true });
-    card.addEventListener('touchend', function () { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } }, { passive: true });
-    card.addEventListener('contextmenu', function (e) {
-      e.preventDefault(); if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
-      triggerHaptic(); openPortionSheet(item, function (mult) { logItem(mult); });
-    });
-
-    card.onclick = function () {
-      if (didLongPress || hasMoved) return;
-      logItem(1);
-    };
-  });
+  bindStaplesShelfEvents(contentEl, activeDateKey, renderTodaySimple);
 
   var deleteFoodEntry = function(idx, row) {
     var current = dayRecord(activeDateKey);
