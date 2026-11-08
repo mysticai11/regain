@@ -46,15 +46,21 @@ export function getFullExerciseCatalog() {
 
 export function openAddExerciseModal(onAdd) {
   var catalog = getFullExerciseCatalog();
-  var bodyParts = [
+  var muscleGroups = [
     { key: 'chest', label: 'Chest', test: function(e) { return /chest/i.test(e.muscle) || /pec/i.test(e.name); } },
     { key: 'back', label: 'Back', test: function(e) { return /back|lat/i.test(e.muscle) || /row|pull-?up/i.test(e.name); } },
     { key: 'shoulders', label: 'Shoulders', test: function(e) { return /shoulder|delt/i.test(e.muscle) || /ohp/i.test(e.name); } },
-    { key: 'arms', label: 'Arms', test: function(e) { return /bicep|tricep|forearm/i.test(e.muscle) || /curl|extension/i.test(e.name); } },
-    { key: 'legs', label: 'Legs', test: function(e) { return /quad|hamstring|glute|calf|calves/i.test(e.muscle) || /squat|lunge|leg|rdl/i.test(e.name); } },
-    { key: 'core', label: 'Core', test: function(e) { return /abs|core/i.test(e.muscle) || /crunch/i.test(e.name); } }
+    { key: 'biceps', label: 'Biceps', test: function(e) { return /bicep/i.test(e.muscle) || (/curl/i.test(e.name) && !/hamstring|leg/i.test(e.name)); } },
+    { key: 'triceps', label: 'Triceps', test: function(e) { return /tricep/i.test(e.muscle) || /skull|pushdown/i.test(e.name); } },
+    { key: 'quads', label: 'Quads', test: function(e) { return /quad/i.test(e.muscle) || (/squat|extension/i.test(e.name) && !/bench/i.test(e.name)); } },
+    { key: 'hamstrings', label: 'Hamstrings', test: function(e) { return /hamstring/i.test(e.muscle) || /rdl|deadlift|leg curl/i.test(e.name); } },
+    { key: 'glutes', label: 'Glutes', test: function(e) { return /glute/i.test(e.muscle) || /thrust/i.test(e.name); } },
+    { key: 'calves', label: 'Calves', test: function(e) { return /calf|calves/i.test(e.muscle) || /calf/i.test(e.name); } },
+    { key: 'abs', label: 'Abs / Core', test: function(e) { return /abs|core/i.test(e.muscle) || /crunch/i.test(e.name); } },
+    { key: 'forearms', label: 'Forearms', test: function(e) { return /forearm/i.test(e.muscle) || /wrist/i.test(e.name); } },
+    { key: 'all', label: 'All', test: function() { return true; } }
   ];
-  var activeBodyPart = 'chest';
+  var activeGroup = 'chest';
 
   var modal = document.createElement('div');
   modal.className = 'overlay';
@@ -72,30 +78,30 @@ export function openAddExerciseModal(onAdd) {
     if (dd) dd.style.display = 'none';
     modal.querySelectorAll('.cat-ex-row').forEach(function(row) {
       var isSel = row.dataset.catId === item.id;
-      row.style.background = isSel ? '#1C1C1F' : '#141416';
-      row.style.border = isSel ? '1px solid #C6F432' : 'none';
+      row.style.background = isSel ? '#1C1C1F' : '#0B0B0C';
+      row.style.border = isSel ? '1px solid #C6F432' : '1px solid #1C1C1F';
     });
   }
 
   function renderCatalogueList() {
-    var bpObj = bodyParts.find(function(b) { return b.key === activeBodyPart; }) || bodyParts[0];
-    var filtered = catalog.filter(bpObj.test);
+    var mg = muscleGroups.find(function(m) { return m.key === activeGroup; }) || muscleGroups[0];
+    var filtered = catalog.filter(mg.test);
     var countEl = modal.querySelector('#catExCount');
     if (countEl) countEl.textContent = filtered.length + ' exercises';
 
     var listEl = modal.querySelector('#catExercisesList');
     if (!listEl) return;
-    var currentName = (modal.querySelector('#newExName').value || '').trim().toLowerCase();
+    var curName = (modal.querySelector('#newExName').value || '').trim().toLowerCase();
     listEl.innerHTML = filtered.map(function(item) {
-      var isCurrent = (currentName && item.name.toLowerCase() === currentName);
-      return '<div class="cat-ex-row" data-cat-id="' + esc(item.id) + '" style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:' + (isCurrent ? '#1C1C1F' : '#141416') + ';border-radius:8px;cursor:pointer;' + (isCurrent ? 'border:1px solid #C6F432;' : '') + '">'
+      var isCurrent = (curName && item.name.toLowerCase() === curName);
+      return '<div class="cat-ex-row" data-cat-id="' + esc(item.id) + '" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:' + (isCurrent ? '#1C1C1F' : '#0B0B0C') + ';border:1px solid ' + (isCurrent ? '#C6F432' : '#1C1C1F') + ';border-radius:10px;cursor:pointer;margin-bottom:6px">'
         + '<div style="flex:1;min-width:0;padding-right:8px">'
           + '<div style="font-size:15px;font-weight:600;color:#F5F5F4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(item.name) + '</div>'
-          + '<div style="font-size:11px;color:#8A8A8E">' + esc(item.type || 'compound') + ' · ' + (item.sets || 2) + ' sets · ' + esc(item.reps || '8–12') + '</div>'
+          + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">' + esc(item.muscle) + ' · ' + esc(item.type || 'compound') + ' · ' + (item.sets || 2) + ' sets · ' + esc(item.reps || '8–12') + '</div>'
         + '</div>'
-        + '<button type="button" class="btn-text-action" style="font-size:11px;color:' + (isCurrent ? '#C6F432' : '#8A8A8E') + ';background:none;border:none;padding:0;cursor:pointer;font-weight:600">' + (isCurrent ? 'Selected' : 'Select') + '</button>'
+        + '<span style="font-size:11px;font-weight:600;color:' + (isCurrent ? '#C6F432' : '#8A8A8E') + '">' + (isCurrent ? 'Selected' : 'Select') + '</span>'
       + '</div>';
-    }).join('');
+    }).join('') || '<div style="font-size:11px;color:#8A8A8E;padding:12px;text-align:center">No exercises found</div>';
 
     listEl.querySelectorAll('.cat-ex-row').forEach(function(row) {
       row.onclick = function() {
@@ -106,65 +112,37 @@ export function openAddExerciseModal(onAdd) {
     });
   }
 
-  var bpChipsHTML = bodyParts.map(function(bp) {
-    var act = bp.key === activeBodyPart;
-    return '<button type="button" class="chip" data-cat-bp="' + bp.key + '" style="font-size:11px;padding:6px 12px;border-radius:12px;background:' + (act ? '#F5F5F4' : '#1C1C1F') + ';color:' + (act ? '#0B0B0C' : '#8A8A8E') + ';border:none;cursor:pointer;white-space:nowrap;font-weight:600">' + bp.label + '</button>';
+  var chipsHTML = muscleGroups.map(function(mg) {
+    var act = mg.key === activeGroup;
+    return '<button type="button" class="chip" data-muscle-group="' + mg.key + '" style="font-size:11px;padding:6px 12px;border-radius:12px;background:' + (act ? '#F5F5F4' : '#1C1C1F') + ';color:' + (act ? '#0B0B0C' : '#8A8A8E') + ';border:none;cursor:pointer;white-space:nowrap;font-weight:600">' + mg.label + '</button>';
   }).join('');
 
   modal.innerHTML = '<div class="sheet" style="max-height:88vh;overflow-y:auto;background:#141416;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));box-sizing:border-box;max-width:480px;width:100%">'
     + '<div class="sheet-handle"></div>'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
-      + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">Add Exercise</div>'
-      + '<button type="button" class="btn-text-action" id="cancelAddExTopBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">Close</button>'
-    + '</div>'
-
-    + '<div style="position:relative;margin-bottom:12px">'
-      + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Exercise Name</label>'
-      + '<input type="text" id="newExName" placeholder="Type to search or enter custom name..." autocomplete="off" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box">'
-      + '<div id="exTypeaheadDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1C1C1F;border:1px solid #222;border-radius:12px;margin-top:4px;max-height:220px;overflow-y:auto;z-index:100"></div>'
-    + '</div>'
-
-    + '<div style="margin-bottom:16px">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-        + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em">Browse Catalogue by Body Part</span>'
-        + '<span id="catExCount" style="font-size:11px;color:#55555A"></span>'
-      + '</div>'
-      + '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px">' + bpChipsHTML + '</div>'
-      + '<div id="catExercisesList" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;background:#0B0B0C;border:1px solid #1C1C1F;border-radius:12px;padding:8px"></div>'
-    + '</div>'
-
-    + '<div style="margin-bottom:10px">'
-      + '<label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Target Muscle Group</label>'
-      + '<input type="text" id="newExMuscle" placeholder="e.g. chest, triceps" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box">'
-    + '</div>'
-
-    + '<div style="display:flex;gap:10px;margin-bottom:10px">'
-      + '<div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Sets</label><input type="number" id="newExSets" value="2" min="1" max="10" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div>'
-      + '<div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Reps</label><input type="text" id="newExReps" value="8–12" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div>'
-    + '</div>'
-
-    + '<div style="display:flex;gap:10px;margin-bottom:16px">'
-      + '<div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Rest Seconds</label><input type="number" id="newExRest" value="90" min="0" step="15" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div>'
-      + '<div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Type</label><select id="newExType" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 12px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"><option value="compound" selected>Compound</option><option value="isolation">Isolation</option><option value="machine">Machine</option><option value="cable">Cable</option></select></div>'
-    + '</div>'
-
-    + '<div style="display:flex;gap:12px">'
-      + '<button type="button" class="btn" id="cancelAddExBtn" style="flex:1;height:48px;border-radius:12px;background:#1C1C1F;color:#8A8A8E;border:none;font-size:15px;cursor:pointer">Cancel</button>'
-      + '<button type="button" class="btn" id="confirmAddExBtn" style="flex:1;height:48px;border-radius:12px;background:#C6F432;color:#0B0B0C;border:none;font-size:15px;font-weight:700;cursor:pointer">Save & Add</button>'
-    + '</div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">Add Exercise</div><button type="button" class="btn-text-action" id="cancelAddExTopBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">Close</button></div>'
+    + '<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em">1. Select Muscle Group</span><span id="catExCount" style="font-size:11px;color:#55555A"></span></div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px">' + chipsHTML + '</div></div>'
+    + '<div style="margin-bottom:16px"><div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">2. Choose from Catalogue</div><div id="catExercisesList" style="max-height:180px;overflow-y:auto;background:#141416;border:1px solid #1C1C1F;border-radius:12px;padding:8px"></div></div>'
+    + '<div style="position:relative;margin-bottom:12px"><div style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">3. Or Enter Custom Exercise</div><input type="text" id="newExName" placeholder="Type exercise name if not in catalogue..." autocomplete="off" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"><div id="exTypeaheadDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1C1C1F;border:1px solid #222;border-radius:12px;margin-top:4px;max-height:200px;overflow-y:auto;z-index:100"></div></div>'
+    + '<div style="margin-bottom:10px"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Target Muscle Group</label><input type="text" id="newExMuscle" value="chest" placeholder="e.g. chest, triceps" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div>'
+    + '<div style="display:flex;gap:10px;margin-bottom:10px"><div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Sets</label><input type="number" id="newExSets" value="2" min="1" max="10" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div><div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Reps</label><input type="text" id="newExReps" value="8–12" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div></div>'
+    + '<div style="display:flex;gap:10px;margin-bottom:16px"><div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Rest Seconds</label><input type="number" id="newExRest" value="90" min="0" step="15" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 16px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"></div><div style="flex:1"><label style="display:block;font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Type</label><select id="newExType" style="background:#1C1C1F;border:1px solid #222;border-radius:12px;height:48px;padding:0 12px;color:#F5F5F4;font-size:15px;width:100%;box-sizing:border-box"><option value="compound" selected>Compound</option><option value="isolation">Isolation</option><option value="machine">Machine</option><option value="cable">Cable</option></select></div></div>'
+    + '<div style="display:flex;gap:12px"><button type="button" class="btn" id="cancelAddExBtn" style="flex:1;height:48px;border-radius:12px;background:#1C1C1F;color:#8A8A8E;border:none;font-size:15px;cursor:pointer">Cancel</button><button type="button" class="btn" id="confirmAddExBtn" style="flex:1;height:48px;border-radius:12px;background:#C6F432;color:#0B0B0C;border:none;font-size:15px;font-weight:700;cursor:pointer">Save & Add</button></div>'
   + '</div>';
 
   document.body.appendChild(modal);
 
-  // Body part tabs click handler
-  modal.querySelectorAll('[data-cat-bp]').forEach(function(btn) {
+  // Muscle group buttons click handler
+  modal.querySelectorAll('[data-muscle-group]').forEach(function(btn) {
     btn.onclick = function() {
-      activeBodyPart = btn.dataset.catBp;
-      modal.querySelectorAll('[data-cat-bp]').forEach(function(b) {
-        var isAct = b.dataset.catBp === activeBodyPart;
+      activeGroup = btn.dataset.muscleGroup;
+      modal.querySelectorAll('[data-muscle-group]').forEach(function(b) {
+        var isAct = b.dataset.muscleGroup === activeGroup;
         b.style.background = isAct ? '#F5F5F4' : '#1C1C1F';
         b.style.color = isAct ? '#0B0B0C' : '#8A8A8E';
       });
+      if (!modal.querySelector('#newExName').value) {
+        modal.querySelector('#newExMuscle').value = activeGroup === 'all' ? 'other' : activeGroup;
+      }
       renderCatalogueList();
     };
   });
@@ -211,7 +189,7 @@ export function openAddExerciseModal(onAdd) {
 
   modal.querySelector('#confirmAddExBtn').onclick = function() {
     var name = modal.querySelector('#newExName').value.trim();
-    if (!name) { showToast('Please enter an exercise name', 'warn'); return; }
+    if (!name) { showToast('Please select or enter an exercise name', 'warn'); return; }
     var muscle = modal.querySelector('#newExMuscle').value.trim() || 'other';
     var sets = parseInt(modal.querySelector('#newExSets').value, 10) || 2;
     var reps = modal.querySelector('#newExReps').value.trim() || '8–12';
