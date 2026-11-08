@@ -271,10 +271,10 @@ export function renderGym() {
         tagHTML = '<div style="font-size:11px;color:var(--text-secondary);padding-left:24px;margin-top:-2px;margin-bottom:6px">' + esc(ex.setTags[i]) + '</div>';
       }
 
-      var rowInner = '<span class="set-row-num" data-ex-id="' + ex.id + '" data-set-index="' + i + '" data-is-logged="' + (logged ? '1' : '0') + '" title="Long-press for options" style="font-size:17px;font-weight:600;color:var(--text-secondary);font-variant-numeric:tabular-nums;width:24px;text-align:center;cursor:pointer">' + (i + 1) + '</span>'
+      var rowInner = '<span class="set-row-num" data-ex-id="' + ex.id + '" data-set-index="' + i + '" data-is-logged="' + (logged ? '1' : '0') + '" title="Long-press for options" style="font-size:15px;font-weight:700;color:var(--text-secondary);font-variant-numeric:tabular-nums;text-align:center;cursor:pointer">' + (i + 1) + '</span>'
         + '<input type="text" id="set_weight_' + ex.id + '_' + i + '" placeholder="' + displayPlaceholderW + '" class="precision-input set-weight ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillW + '" data-ex="' + ex.id + '" data-set-index="' + i + '" data-is-bw="' + (isBW ? '1' : '0') + '" value="' + inputW + '" inputmode="decimal" enterkeyhint="next">'
         + '<input type="text" id="set_reps_' + ex.id + '_' + i + '" placeholder="' + displayPlaceholderR + '" class="precision-input set-reps ' + (usePrefill ? 'prefill ' : '') + '" data-prefill="' + prefillR + '" data-ex="' + ex.id + '" data-set-index="' + i + '" value="' + inputR + '" inputmode="numeric" enterkeyhint="next">'
-        + '<button type="button" class="rir-cycle-text" data-cycle-rir="' + ex.id + '" data-set-index="' + i + '" style="min-width:48px;height:48px;background:none;border:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0"><span class="hist-rir-badge" style="display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;min-width:18px;border-radius:4px;background:var(--surface-raised);font-size:11px;font-weight:600;color:' + (rirDisplay === 'F' ? 'var(--lime)' : 'var(--text-secondary)') + '">' + rirDisplay + '</span></button>'
+        + '<button type="button" class="rir-cycle-text" data-cycle-rir="' + ex.id + '" data-set-index="' + i + '" style="height:42px;background:none;border:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0"><span class="hist-rir-badge" style="display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;min-width:18px;border-radius:6px;background:var(--surface2);border:1px solid rgba(255,255,255,0.08);font-size:11px;font-weight:700;color:' + (rirDisplay === 'F' ? 'var(--accent-pink)' : 'var(--text-secondary)') + '">' + rirDisplay + '</span></button>'
         + '<select class="set-rir" data-ex="' + ex.id + '" data-set-index="' + i + '" style="display:none"><option value="3" ' + (valueRir === 3 ? 'selected' : '') + '>3+</option><option value="2" ' + (valueRir === 2 ? 'selected' : '') + '>RIR 2</option><option value="1" ' + (valueRir === 1 || valueRir == null ? 'selected' : '') + '>RIR 1</option><option value="0" ' + (valueRir === 0 ? 'selected' : '') + '>F</option></select>'
         + '<button type="button" class="precision-circle-tap ' + (logged ? 'done' : 'btn-log') + '" ' + (logged ? ('data-quick-edit-logged="' + ex.id + '"') : ('data-logset="' + ex.id + '"')) + ' data-set-index="' + i + '" data-ex-name="' + esc(ex.name) + '" data-weight="' + (logged ? (logged.weight || 0) : '') + '" data-reps="' + (logged ? logged.reps : '') + '" data-rir="' + (logged && logged.rir != null ? logged.rir : '') + '" ' + (!logged && !hasValues ? 'disabled' : '') + ' aria-label="' + (logged ? 'Edit logged set' : 'Log set') + '">'
           + '<span class="precision-circle ' + (logged ? 'done' : '') + '">' + (logged ? '<svg class="check-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path class="check-path" d="M5 13l4 4L19 7"/></svg>' : '') + '</span>'
@@ -312,12 +312,12 @@ export function renderGym() {
       ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--lime);margin-left:8px;vertical-align:middle"><span style="width:6px;height:6px;border-radius:50%;background:var(--lime);display:inline-block"></span>Catch-up</span>'
       : '';
 
-    var colHeaders = '<div class="set-col-headers" style="display:flex;align-items:center;gap:var(--spacing-8);padding:0 0 6px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">'
-      + '<span style="width:24px;text-align:center">Set</span>'
-      + '<span style="flex:1;text-align:center">Kg</span>'
-      + '<span style="flex:1;text-align:center">Reps</span>'
-      + '<span style="min-width:48px;text-align:center">Rir</span>'
-      + '<span style="width:var(--tap-min)"></span>'
+    var colHeaders = '<div class="set-col-headers" style="padding:0 0 6px;font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">'
+      + '<span style="text-align:center">Set</span>'
+      + '<span style="text-align:center">Kg</span>'
+      + '<span style="text-align:center">Reps</span>'
+      + '<span style="text-align:center">Rir</span>'
+      + '<span></span>'
       + '</div>';
 
     return '<section class="gym-ex-section-expanded' + (isCurrent ? ' is-current' : '') + '" id="exsec-' + ex.id + '" style="padding:16px 0 12px;border-bottom:1px solid var(--hairline)">'

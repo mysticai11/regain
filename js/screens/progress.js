@@ -2,7 +2,7 @@
 
 import { profile, setTab } from "../state.js";
 import { dayRecord, saveDayRecord, sv, allDayKeys, getWorkoutSessions } from "../storage.js";
-import { getDayTotals, calcE1RM } from "../lib/calc.js";
+import { getDayTotals, calcE1RM, getTargetsForDate } from "../lib/calc.js";
 import { getActiveProgram, getExerciseData, isBodyweightExercise } from "../data/plan.js";
 import { esc, todayKey, goalDirection } from "../lib/format.js";
 import { ic, triggerHaptic, animateNumber } from "../lib/dom.js";
@@ -148,7 +148,7 @@ export function renderProgressSimple(mode, historySubTab) {
 
     var recentRecords = records.slice(-7);
     var avgCalories = recentRecords.length ? Math.round(recentRecords.reduce(function(s, r){ return s + (r.kcal || 0); }, 0) / recentRecords.length) : 0;
-    var targetCal = (profile && (profile.calTargetGym || profile.calTargetRest)) || 2700;
+    var targetCal = getTargetsForDate(todayKey()).kcal;
 
     var advisorCard = '';
     if (entries.length >= 5 && weeklyRate != null) {
@@ -246,7 +246,8 @@ export function renderProgressSimple(mode, historySubTab) {
   var viewContent = mode === 'body' ? ('<div class="app-view">' + bodySection + '</div>') : (mode === 'lifts' ? ('<div class="app-view">' + getResumeWorkoutCardHTML() + liftChartBlock + weeklyWorkBlock + '</div>') : buildHistoryScreenHTML(historySubTab));
 
   document.getElementById('content').innerHTML =
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">'
+    '<div class="progress-screen" style="padding-bottom:120px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">'
       + '<div>'
         + '<h1 style="font-size:28px;font-weight:700;color:#F5F5F4;letter-spacing:-0.02em;margin:0;line-height:1.2">Progress</h1>'
         + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8A8A8E;text-transform:uppercase;margin-top:2px">Analytics & History</div>'
@@ -257,7 +258,7 @@ export function renderProgressSimple(mode, historySubTab) {
       + '<button type="button" class="seg-tab-btn' + (mode === 'body' ? ' active' : '') + '" id="bodyProgressBtn" role="tab" aria-selected="' + (mode === 'body' ? 'true' : 'false') + '" style="flex:1;height:40px;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;padding:0 8px;margin:0;box-sizing:border-box;' + (mode === 'body' ? 'background:#1C1C1F;color:#F5F5F4;border:1px solid #222222' : 'background:transparent;color:#8A8A8E;border:1px solid transparent') + '">Body</button>'
       + '<button type="button" class="seg-tab-btn' + (mode === 'lifts' ? ' active' : '') + '" id="liftProgressBtn" role="tab" aria-selected="' + (mode === 'lifts' ? 'true' : 'false') + '" style="flex:1;height:40px;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;padding:0 8px;margin:0;box-sizing:border-box;' + (mode === 'lifts' ? 'background:#1C1C1F;color:#F5F5F4;border:1px solid #222222' : 'background:transparent;color:#8A8A8E;border:1px solid transparent') + '">Lifts</button>'
       + '<button type="button" class="seg-tab-btn' + (mode === 'history' ? ' active' : '') + '" id="historyProgressBtn" role="tab" aria-selected="' + (mode === 'history' ? 'true' : 'false') + '" style="flex:1;height:40px;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;padding:0 8px;margin:0;box-sizing:border-box;' + (mode === 'history' ? 'background:#1C1C1F;color:#F5F5F4;border:1px solid #222222' : 'background:transparent;color:#8A8A8E;border:1px solid transparent') + '">History</button>'
-    + '</div>' + viewContent;
+    + '</div>' + viewContent + '</div>';
 
   var settingsBtn = document.getElementById('settingsBtn');
   if (settingsBtn) settingsBtn.onclick = function(e) { if (e && e.stopPropagation) e.stopPropagation(); openSettings(); };

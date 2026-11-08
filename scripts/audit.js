@@ -4,7 +4,8 @@ const path = require('path');
 const allowedHex = new Set([
   '#0B0B0C', '#141416', '#1C1C1F', '#222222', '#222', '#F5F5F4', '#8A8A8E', '#55555A', '#C6F432',
   '#FF4D4F', '#FFFFFF', '#FFF', '#000000', '#000',
-  '#8B5CF6', '#38BDF8', '#09090B', '#18181B', '#27272A', '#FAFAFA', '#A1A1AA', '#EC4899'
+  '#8B5CF6', '#38BDF8', '#09090B', '#18181B', '#27272A', '#FAFAFA', '#A1A1AA', '#EC4899',
+  '#0D0D12', '#1A1A24', '#06B6D4', '#242432'
 ]);
 
 const allowedFontSizes = new Set([96, 64, 48, 32, 28, 17, 15, 12, 11]);

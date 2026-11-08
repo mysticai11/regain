@@ -209,7 +209,7 @@ export function buildCalRingHTML(kcalLogged, kcalTarget, protLogged, protTarget,
   var protPct = Math.min(100, Math.round(protLogged / Math.max(1, protTarget) * 100));
 
   var heroNumber = isOver ? ('+' + (kcalLogged - kcalTarget).toLocaleString()) : (remaining > 0 ? remaining.toLocaleString() : kcalLogged.toLocaleString());
-  var heroLabel = isOver ? 'over target' : (remaining > 0 ? 'remaining' : 'eaten');
+  var heroLabel = isOver ? 'KCAL OVER' : 'KCAL REMAINING';
   var rawVal = isOver ? (kcalLogged - kcalTarget) : (remaining > 0 ? remaining : kcalLogged);
 
   var cTarget = Number(carbsTarget) || 415;
@@ -217,15 +217,15 @@ export function buildCalRingHTML(kcalLogged, kcalTarget, protLogged, protTarget,
   var carbsPct = Math.min(100, Math.round(((carbsLogged || 0) / Math.max(1, cTarget)) * 100));
   var fatPct = Math.min(100, Math.round(((fatLogged || 0) / Math.max(1, fTarget)) * 100));
 
-  var centerHTML = '<div style="color:var(--accent-primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:2px">' + ic('flame', 20) + '</div>'
-    + '<div class="t-display tabnum" id="todayHeroCal" style="font-size:var(--fs-64);font-weight:700;line-height:1;color:var(--text);margin-bottom:4px"><span id="todayHeroCalNum" data-value="' + rawVal + '">' + heroNumber + '</span></div>'
-    + '<div style="font-size:var(--fs-12);font-weight:600;letter-spacing:0.05em;color:var(--text-secondary);font-variant-numeric:tabular-nums">' + Number(kcalLogged).toLocaleString() + ' / ' + Number(kcalTarget).toLocaleString() + ' kcal</div>'
-    + '<div style="font-size:var(--fs-12);color:var(--text-secondary);margin-top:2px;letter-spacing:0.05em;text-transform:uppercase">' + heroLabel + '</div>';
+  var centerHTML = '<div style="color:var(--accent-primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:2px">' + ic('flame', 18) + '</div>'
+    + '<div class="t-display tabnum" id="todayHeroCal" style="font-size:var(--fs-64);font-weight:800;line-height:0.95;color:var(--text);letter-spacing:-0.03em;margin-bottom:4px"><span id="todayHeroCalNum" data-value="' + rawVal + '">' + heroNumber + '</span></div>'
+    + '<div style="font-size:11px;font-weight:700;letter-spacing:0.08em;color:var(--accent-primary);text-transform:uppercase">' + heroLabel + '</div>'
+    + '<div style="font-size:12px;font-weight:500;color:var(--text-secondary);margin-top:6px;font-variant-numeric:tabular-nums">' + Number(kcalLogged).toLocaleString() + ' / ' + Number(kcalTarget).toLocaleString() + ' kcal</div>';
 
   var ringHTML = buildSegmentedRing({ progress: calPct, size: 240, strokeWidth: 14, color: 'var(--accent-primary)', trackColor: 'var(--hairline)', centerHTML: centerHTML });
 
   var macroRowHTML = '<div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;margin-top:20px;margin-bottom:20px">'
-    + '<div class="metric-card" style="padding:12px 10px">'
+    + '<div class="metric-card" style="padding:14px 12px">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
         + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.06em;color:var(--text-secondary);text-transform:uppercase">PROTEIN</span>'
         + '<div style="width:24px;height:24px;border-radius:50%;background:rgba(139, 92, 246, 0.15);color:var(--accent-primary);display:inline-flex;align-items:center;justify-content:center">' + ic('bolt', 13) + '</div>'
@@ -233,21 +233,21 @@ export function buildCalRingHTML(kcalLogged, kcalTarget, protLogged, protTarget,
       + '<div style="font-size:var(--fs-15);font-weight:600;color:var(--text);font-variant-numeric:tabular-nums"><span id="todayProtNum" data-value="' + Math.round(protLogged) + '">' + Math.round(protLogged) + '</span> <span style="font-size:var(--fs-caption);font-weight:400;color:var(--text-secondary)">/ ' + Math.round(protTarget) + 'g</span></div>'
       + '<div class="prog-line" style="height:4px;border-radius:9999px;background:var(--hairline);margin-top:8px;overflow:hidden"><div class="prog-line-fill" id="todayProtFill" style="height:100%;border-radius:9999px;background:var(--accent-primary);transform-origin:left;transform:scaleX(' + (protPct / 100) + ')"></div></div>'
     + '</div>'
-    + '<div class="metric-card" style="padding:12px 10px">'
+    + '<div class="metric-card" style="padding:14px 12px">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
-        + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.06em;color:var(--text-secondary);text-transform:uppercase">CARBS</span>'
-        + '<div style="width:24px;height:24px;border-radius:50%;background:rgba(139, 92, 246, 0.15);color:var(--accent-primary);display:inline-flex;align-items:center;justify-content:center">' + ic('bowl', 13) + '</div>'
+        + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.06em;color:var(--accent-secondary);text-transform:uppercase">CARBS</span>'
+        + '<div style="width:24px;height:24px;border-radius:50%;background:rgba(6, 182, 212, 0.15);color:var(--accent-secondary);display:inline-flex;align-items:center;justify-content:center">' + ic('bowl', 13) + '</div>'
       + '</div>'
       + '<div style="font-size:var(--fs-15);font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + Math.round(carbsLogged || 0) + ' <span style="font-size:var(--fs-caption);font-weight:400;color:var(--text-secondary)">/ ' + Math.round(cTarget) + 'g</span></div>'
-      + '<div class="prog-line" style="height:4px;border-radius:9999px;background:var(--hairline);margin-top:8px;overflow:hidden"><div class="prog-line-fill" style="height:100%;border-radius:9999px;background:var(--accent-primary);transform-origin:left;transform:scaleX(' + (carbsPct / 100) + ')"></div></div>'
+      + '<div class="prog-line" style="height:4px;border-radius:9999px;background:var(--hairline);margin-top:8px;overflow:hidden"><div class="prog-line-fill" style="height:100%;border-radius:9999px;background:var(--accent-secondary);transform-origin:left;transform:scaleX(' + (carbsPct / 100) + ')"></div></div>'
     + '</div>'
-    + '<div class="metric-card" style="padding:12px 10px">'
+    + '<div class="metric-card" style="padding:14px 12px">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
-        + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.06em;color:var(--text-secondary);text-transform:uppercase">FATS</span>'
-        + '<div style="width:24px;height:24px;border-radius:50%;background:rgba(139, 92, 246, 0.15);color:var(--accent-primary);display:inline-flex;align-items:center;justify-content:center">' + ic('avocado', 13) + '</div>'
+        + '<span style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.06em;color:var(--accent-pink);text-transform:uppercase">FATS</span>'
+        + '<div style="width:24px;height:24px;border-radius:50%;background:rgba(236, 72, 153, 0.15);color:var(--accent-pink);display:inline-flex;align-items:center;justify-content:center">' + ic('avocado', 13) + '</div>'
       + '</div>'
       + '<div style="font-size:var(--fs-15);font-weight:600;color:var(--text);font-variant-numeric:tabular-nums">' + Math.round(fatLogged || 0) + ' <span style="font-size:var(--fs-caption);font-weight:400;color:var(--text-secondary)">/ ' + Math.round(fTarget) + 'g</span></div>'
-      + '<div class="prog-line" style="height:4px;border-radius:9999px;background:var(--hairline);margin-top:8px;overflow:hidden"><div class="prog-line-fill" style="height:100%;border-radius:9999px;background:var(--accent-primary);transform-origin:left;transform:scaleX(' + (fatPct / 100) + ')"></div></div>'
+      + '<div class="prog-line" style="height:4px;border-radius:9999px;background:var(--hairline);margin-top:8px;overflow:hidden"><div class="prog-line-fill" style="height:100%;border-radius:9999px;background:var(--accent-pink);transform-origin:left;transform:scaleX(' + (fatPct / 100) + ')"></div></div>'
     + '</div>'
   + '</div>'
   + '<div id="todayCalFill" style="display:none;transform:scaleX(' + (calPct / 100) + ')"></div>';

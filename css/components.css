@@ -350,9 +350,10 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
 .precision-input {
   height: 42px !important;
   min-height: 42px !important;
-  background: var(--surface2) !important;
-  border: 1.5px solid transparent !important;
-  border-radius: var(--r-control) !important;
+  background: rgba(13, 13, 18, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-bottom: 2px solid rgba(139, 92, 246, 0.4) !important;
+  border-radius: 8px !important;
   color: var(--text) !important;
   font-size: var(--fs-17) !important;
   font-weight: 600 !important;
@@ -360,18 +361,26 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   font-variant-numeric: tabular-nums !important;
   text-align: center !important;
   outline: none !important;
-  box-shadow: none !important;
-  flex: 1 1 0% !important;
+  box-shadow: var(--input-shadow) !important;
   min-width: 0 !important;
   box-sizing: border-box !important;
   padding: 0 var(--spacing-4) !important;
-  transition: border-color var(--dur-150) var(--ease-standard);
+  transition: all var(--dur-150) var(--ease-standard);
+}
+.precision-input:hover {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  background: rgba(26, 26, 36, 0.9) !important;
 }
 .precision-input:focus,
 .precision-input:focus-visible {
   border-color: var(--lime) !important;
+  border-bottom-color: var(--lime) !important;
+  background: rgba(26, 26, 36, 0.95) !important;
+  box-shadow: 0 0 12px var(--accent-glow), inset 0 1px 2px rgba(0, 0, 0, 0.2) !important;
   outline: none !important;
-  box-shadow: none !important;
+}
+.precision-input:focus-visible {
+  border-color: var(--lime) !important;
 }
 .precision-input::placeholder { color: var(--text3) !important; opacity: 1 !important; }
 .precision-input.prefill { color: var(--text3) !important; font-weight: 400 !important; }
@@ -399,10 +408,18 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   z-index: 1 !important;
   opacity: 0;
 }
-.set-row-precision {
-  display: flex !important;
+.set-col-headers {
+  display: grid !important;
+  grid-template-columns: 28px 1fr 1fr 52px 48px !important;
   align-items: center !important;
-  gap: var(--spacing-8) !important;
+  column-gap: 8px !important;
+  box-sizing: border-box !important;
+}
+.set-row-precision {
+  display: grid !important;
+  grid-template-columns: 28px 1fr 1fr 52px 48px !important;
+  align-items: center !important;
+  column-gap: 8px !important;
   min-height: var(--tap-min) !important;
   box-sizing: border-box !important;
   background: var(--bg) !important;
@@ -523,17 +540,22 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
 
 /* F6: PR Moment */
 .set-pr-badge {
+  position: absolute;
+  top: -8px;
+  right: 12px;
+  z-index: 5;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: var(--fs-11);
-  font-weight: 600;
-  color: var(--accent-dark);
-  background: var(--lime);
+  font-weight: 700;
+  color: #0B0B0C;
+  background: var(--accent-pink);
   border-radius: 4px;
-  padding: 2px 6px;
+  padding: 1px 6px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  box-shadow: var(--pr-badge-shadow);
 }
 
 .set-pr-badge.anim-pr {
@@ -654,7 +676,9 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
 .dialog-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(9, 9, 11, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -668,8 +692,9 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
 }
 .dialog-surface {
   background: var(--surface);
-  border: 1px solid var(--hairline);
-  border-radius: var(--r-sheet);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   padding: var(--spacing-24);
   max-width: 400px;
   width: 100%;
@@ -794,14 +819,16 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
 
 /* ── Metric Card & Pill Toggle ── */
 .metric-card {
-  background: linear-gradient(180deg, rgba(30, 30, 35, 0.7) 0%, rgba(20, 20, 24, 0.9) 100%);
-  border-radius: var(--r-card, 24px);
+  background: var(--surface);
+  border-radius: var(--r-card, 16px);
   padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--hairline);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   box-sizing: border-box;
+  transition: border-color var(--dur-150) var(--ease-standard);
+}
 }
 
 .pill-toggle {

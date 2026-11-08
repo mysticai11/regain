@@ -24,7 +24,13 @@ export function computeWeeklyStatTiles({
   }
 
   var targetWeight = Number(profile.targetWeight) || 60;
-  var targetCal = Number(profile.calTargetGym || profile.calTargetRest) || 2700;
+  var targetCal = (profile && profile.currentTargetKcal) || (function() {
+    var tdays = profile.trainingDays || [1, 2, 4, 5, 6];
+    var parts = todayDateKey.split('-').map(Number);
+    var d = new Date(parts[0], parts[1] - 1, parts[2]);
+    var isTrain = tdays.includes(d.getDay());
+    return isTrain ? (Number(profile.calTargetGym) || 3000) : (Number(profile.calTargetRest) || 2700);
+  })();
   var targetProt = Number(profile.protTargetGym || profile.protTargetRest) || 150;
   var plannedSessionsPerWeek = (Array.isArray(profile.trainingDays) && profile.trainingDays.length) ? profile.trainingDays.length : 5;
 

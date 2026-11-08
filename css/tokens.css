@@ -1,16 +1,16 @@
 /* Design tokens: CSS variables for colors, typography scale, spacing grid, radii, and tap targets */
 :root {
   /* Backgrounds */
-  --bg: #09090B; /* Deepest black */
-  --surface: #18181B; /* Card background */
-  --surface2: #27272A; /* Raised elements */
-  --surface-raised: #27272A;
-  --surface-hi: #27272A;
-  --hairline: rgba(255, 255, 255, 0.08); /* Soft borders, not harsh hex */
-  --divider: rgba(255, 255, 255, 0.08);
-  --div: rgba(255, 255, 255, 0.08);
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.12);
+  --bg: #0D0D12; /* Deep, rich charcoal/black */
+  --surface: #1A1A24; /* Card background: slightly lighter dark gray */
+  --surface2: #242432; /* Raised elements */
+  --surface-raised: #242432;
+  --surface-hi: #242432;
+  --hairline: rgba(255, 255, 255, 0.05); /* Subtle 1px inner strokes */
+  --divider: rgba(255, 255, 255, 0.05);
+  --div: rgba(255, 255, 255, 0.05);
+  --border: rgba(255, 255, 255, 0.05);
+  --border-strong: rgba(255, 255, 255, 0.10);
 
   --text: #FAFAFA;
   --text2: #9E9EA4;
@@ -20,16 +20,22 @@
   --text-tertiary: #71717A;
   --text-dim: #55555A;
 
-  /* Accents (Violet / Indigo & Soft Blue) */
-  --accent-primary: #8B5CF6; /* Violet */
+  /* Accents (Neon Violet, Cyan, and Pink) */
+  --accent-primary: #8B5CF6; /* Neon Violet */
   --accent-glow: rgba(139, 92, 246, 0.4); /* For SVG Glows */
-  --accent-secondary: #38BDF8; /* Soft Blue for Activity */
-  --accent-pink: #EC4899; /* Radiant Pink for Hero Ring Gradient */
+  --accent-secondary: #06B6D4; /* Neon Cyan */
+  --accent-cyan: #06B6D4;
+  --accent-pink: #EC4899; /* Radiant Pink */
+  --sparkline-weight: #8B5CF6;
+  --sparkline-nutrition: #06B6D4;
+  --sparkline-activity: #EC4899;
   --icon-glow-violet: 0 0 12px rgba(139, 92, 246, 0.25);
-  --icon-glow-blue: 0 0 12px rgba(56, 189, 248, 0.25);
+  --icon-glow-blue: 0 0 12px rgba(6, 182, 212, 0.25);
+  --input-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  --pr-badge-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
   --accent: var(--accent-primary);
   --lime: var(--accent-primary);
-  --accent-dark: #09090B;
+  --accent-dark: #0D0D12;
   --lime-border: var(--accent-primary);
   --accent-blue: var(--accent-secondary);
   --amber: var(--accent-primary);
@@ -99,14 +105,14 @@
   --spacing-xxl: 32px;
   --spacing-hero: 48px;
 
-  /* Geometry & Radii: 24 (cards), 12 (controls), 9999 (chips), 28 (sheet top) */
-  --r-card: 24px;
+  /* Geometry & Radii: 16 (cards), 12 (controls), 9999 (chips), 28 (sheet top) */
+  --r-card: 16px;
   --r-surface: 16px;
   --r-sheet: 28px;
   --r-control: 12px;
   --r-chip: 9999px;
   --r-full: 9999px;
-  --r-lg: 24px;
+  --r-lg: 16px;
   --r-sm: 12px;
   --r-xs: 8px;
 

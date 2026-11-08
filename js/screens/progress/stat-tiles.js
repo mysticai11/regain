@@ -15,11 +15,18 @@ export function buildWeeklyStatTilesHTML(tiles) {
 
   var cardsHTML = tiles.map(function(tile) {
     var sparklineHTML = '';
+    var strokeColor = 'var(--accent-primary)';
+    if (tile.id === 'calories' || tile.id === 'protein') {
+      strokeColor = 'var(--accent-secondary)';
+    } else if (tile.id === 'workouts' || tile.id === 'sets' || tile.id === 'rate') {
+      strokeColor = 'var(--accent-pink)';
+    }
+
     if (tile.sparklinePoints && tile.sparklinePoints.length > 0) {
       sparklineHTML = renderSparklineSVG(tile.sparklinePoints, {
         width: 56,
         height: 20,
-        stroke: tile.id === 'protein' ? '#F5F5F4' : 'var(--accent-secondary)',
+        stroke: strokeColor,
         strokeWidth: 1.5
       });
     } else if (tile.trend) {
@@ -28,14 +35,14 @@ export function buildWeeklyStatTilesHTML(tiles) {
       sparklineHTML = '<span style="font-size:15px;font-weight:600;color:' + color + ';line-height:1">' + arrow + '</span>';
     }
 
-    return '<div class="stat-tile" style="background:#141416;border:1px solid #222222;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;min-height:98px;min-width:0;overflow:hidden;box-sizing:border-box">'
+    return '<div class="stat-tile metric-card" style="padding:16px;display:flex;flex-direction:column;justify-content:space-between;min-height:106px;min-width:0;box-sizing:border-box">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;width:100%;min-width:0">'
-        + '<span style="font-size:11px;font-weight:600;letter-spacing:0.04em;color:#8A8A8E;text-transform:uppercase;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(tile.title) + '">' + esc(tile.title) + '</span>'
+        + '<span style="font-size:11px;font-weight:700;letter-spacing:0.06em;color:var(--text-secondary);text-transform:uppercase;min-width:0;flex:1;line-height:1.2;word-break:break-word">' + esc(tile.title) + '</span>'
         + '<span style="flex-shrink:0">' + sparklineHTML + '</span>'
       + '</div>'
       + '<div style="margin-top:8px;min-width:0;overflow:hidden">'
-        + '<div style="font-size:28px;font-weight:600;line-height:1.1;color:#F5F5F4;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(tile.value) + (tile.unit ? (' <span style="font-size:15px;font-weight:500;color:#8A8A8E">' + esc(tile.unit) + '</span>') : '') + '</div>'
-        + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#8A8A8E;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + esc(tile.subtitle) + '">' + esc(tile.subtitle) + '</div>'
+        + '<div style="font-size:28px;font-weight:700;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(tile.value) + (tile.unit ? (' <span style="font-size:15px;font-weight:500;color:var(--text-secondary)">' + esc(tile.unit) + '</span>') : '') + '</div>'
+        + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-secondary);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + esc(tile.subtitle) + '">' + esc(tile.subtitle) + '</div>'
       + '</div>'
       + '</div>';
   }).join('');

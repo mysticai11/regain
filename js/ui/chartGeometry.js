@@ -214,7 +214,11 @@ function buildTicks(dMin, dMax, mapY) {
   else if (range <= 15) step = 2.5;
   else if (range <= 30) step = 5;
   else if (range <= 60) step = 10;
-  else step = 20;
+  else if (range <= 150) step = 25;
+  else if (range <= 300) step = 50;
+  else if (range <= 600) step = 100;
+  else if (range <= 1500) step = 250;
+  else step = Math.pow(10, Math.floor(Math.log10(range)));
 
   var startVal = Math.ceil(dMin / step) * step;
   for (var val = startVal; val <= dMax + 0.0001; val += step) {

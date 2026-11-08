@@ -181,14 +181,15 @@ export function workoutHistoryHTML() {
         }).join('');
         var isLast = exIdx === exercises.length - 1;
         return '<div style="padding:14px 0;' + (isLast ? '' : 'border-bottom:1px solid var(--hairline)') + '">'
-          + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px">'
-            + '<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 auto;overflow:hidden">'
-              + '<span class="history-ex-num" style="display:inline-block;width:24px;min-width:24px;flex-shrink:0;font-size:15px;color:var(--text-secondary);font-variant-numeric:tabular-nums">' + (exIdx + 1) + '</span>'
-              + '<span class="history-ex-name" style="font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(exData.name) + '</span>'
-              + progressTagHTML
-              + (isPrInSession ? '<span class="set-pr-badge" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--accent-primary);letter-spacing:0.08em;text-transform:uppercase;flex-shrink:0"><span style="width:5px;height:5px;border-radius:50%;background:var(--accent-primary);display:inline-block"></span>PR<!-- border-radius:50%;background:#C6F432;display:inline-block"></span>PR --></span>' : '')
+          + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px">'
+            + '<div style="display:flex;align-items:flex-start;gap:8px;min-width:0;flex:1">'
+              + '<span class="history-ex-num" style="display:inline-block;width:24px;min-width:24px;flex-shrink:0;font-size:15px;color:var(--text-secondary);font-variant-numeric:tabular-nums;margin-top:1px">' + (exIdx + 1) + '</span>'
+              + '<div style="min-width:0;flex:1">'
+                + '<div class="history-ex-name" style="font-size:15px;font-weight:600;color:var(--text);line-height:1.25;word-break:break-word">' + esc(exData.name) + '</div>'
+                + ((progressTagHTML || isPrInSession) ? ('<div style="display:flex;align-items:center;gap:6px;margin-top:4px">' + progressTagHTML + (isPrInSession ? '<span class="set-pr-badge" style="position:static;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--accent-pink);background:rgba(236,72,153,0.15);padding:1px 6px;border-radius:4px;letter-spacing:0.06em;text-transform:uppercase">PR<!-- border-radius:50%;background:#C6F432;display:inline-block"></span>PR --></span>' : '') + '</div>') : '')
+              + '</div>'
             + '</div>'
-            + '<span style="font-size:11px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0">' + esc(summaryText) + '</span>'
+            + '<span style="font-size:11px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0;margin-top:2px">' + esc(summaryText) + '</span>'
           + '</div>'
           + tableHeaderHTML + '<div class="history-set-rows-wrap">' + setRowsHTML + '</div></div>';
       }).join('');
@@ -197,7 +198,7 @@ export function workoutHistoryHTML() {
       var isFirstInWeek = (sIdx === 0 && wkIdx === 0);
 
       html += '<div class="history-session-card-wrap" style="position:relative;margin-bottom:12px">'
-        + '<details class="history-session-details" ' + (isFirstInWeek ? 'open' : '') + ' style="margin-bottom:0;background:#141416;border:1px solid #222222;border-radius:16px;overflow:hidden">'
+        + '<details class="history-session-details" ' + (isFirstInWeek ? 'open' : '') + ' style="margin-bottom:0;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-card,16px);box-shadow:0 4px 16px rgba(0,0,0,0.3);overflow:hidden">'
         + '<summary class="history-session-header" style="min-height:64px;height:auto;padding:10px 10px;display:flex;align-items:center;cursor:pointer;list-style:none;user-select:none;box-sizing:border-box;gap:8px">'
           + '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;width:44px;text-align:center">'
             + '<div style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1.1;letter-spacing:0.04em;text-transform:uppercase">' + esc(dayLabel) + '</div>'
