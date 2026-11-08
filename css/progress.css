@@ -480,8 +480,8 @@
 .cal-grid.dot-grid {
   display: grid !important;
   grid-template-columns: repeat(7, 1fr) !important;
-  gap: 6px !important;
-  min-height: calc(6 * 44px + 5 * 6px) !important; /* 294px: fixed 6 rows to prevent layout shift */
+  gap: 6px 4px !important;
+  min-height: 240px !important;
   justify-items: center !important;
   align-items: center !important;
   box-sizing: border-box !important;
@@ -492,10 +492,9 @@
   position: relative !important;
   aspect-ratio: 1 !important;
   width: 100% !important;
-  max-width: 44px !important;
-  height: 44px !important;
-  min-height: 44px !important;
-  border-radius: 12px !important;
+  max-width: 40px !important;
+  height: auto !important;
+  border-radius: 9999px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -505,24 +504,26 @@
   line-height: 1 !important;
   border: none !important;
   background: transparent !important;
-  color: var(--text-dim, #55555A) !important;
+  color: #8A8A8E !important;
   box-sizing: border-box !important;
   padding: 0 !important;
   margin: 0 !important;
   font-family: inherit !important;
-  transition: transform 150ms ease, opacity 150ms ease !important;
+  user-select: none !important;
+  transition: transform 120ms ease, opacity 120ms ease !important;
 }
 
 .cal-cell.is-interactive {
   cursor: pointer !important;
 }
 .cal-cell.is-interactive:active {
-  transform: scale(0.94) !important;
+  transform: scale(0.9) !important;
 }
 
 .cal-cell--trained {
   background: var(--lime, #C6F432) !important;
   color: #0B0B0C !important;
+  font-weight: 600 !important;
 }
 
 .cal-cell--planned {
@@ -533,25 +534,27 @@
 
 .cal-cell--skipped {
   background: transparent !important;
-  border: 1px solid #55555A !important;
-  color: var(--text-dim, #55555A) !important;
+  border: 1px dashed #55555A !important;
+  color: #55555A !important;
 }
 
 .cal-cell--rest {
-  background: #141416 !important;
-  color: var(--text-dim, #55555A) !important;
+  background: transparent !important;
+  color: #55555A !important;
 }
 
 .cal-cell.is-today {
   outline: 2px solid #FFFFFF !important;
-  outline-offset: 2px !important;
+  outline-offset: 1px !important;
 }
 
 .cal-cell.empty {
   visibility: hidden !important;
   pointer-events: none !important;
-  width: 44px !important;
-  height: 44px !important;
+  aspect-ratio: 1 !important;
+  width: 100% !important;
+  max-width: 40px !important;
+  height: auto !important;
 }
 
 

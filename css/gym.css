@@ -71,8 +71,9 @@
 .session-timer-dock {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding-top: 2px;
+  justify-content: flex-end;
+  gap: var(--spacing-12);
+  flex-shrink: 0;
 }
 #workoutElapsed {
   font-size: var(--fs-15);
@@ -216,7 +217,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--spacing-12);
+  gap: var(--spacing-16);
   box-sizing: border-box;
 }
 

@@ -267,17 +267,22 @@ export function buildDotConsistencyCalendarHTML() {
   var canGoNext = offset < 0;
   var chevronLeft = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
   var chevronRight = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
-  var navRow = '<div style="display:flex;align-items:center;justify-content:space-between;width:100%">'
-    + '<button type="button" class="btn-ghost" id="prevProgressMonthBtn" style="color:#F5F5F4;background:none;border:none;width:48px;height:48px;min-width:48px;min-height:48px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer" aria-label="Previous month">' + chevronLeft + '</button>'
-    + '<span style="font-size:17px;font-weight:600;color:#F5F5F4;text-align:center">' + grid.monthLabel + '</span>'
+  var navRow = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
+    + '<div>'
+    + '<div style="font-size:17px;font-weight:600;color:#F5F5F4">' + grid.monthLabel + '</div>'
+    + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px;font-variant-numeric:tabular-nums">' + grid.stats.trainedCount + ' of ' + grid.stats.plannedCount + ' sessions completed</div>'
+    + '</div>'
+    + '<div style="display:flex;align-items:center;gap:6px">'
+    + '<button type="button" class="btn-ghost" id="prevProgressMonthBtn" style="color:#F5F5F4;background:#1C1C1F;border:none;border-radius:8px;width:36px;height:36px;min-width:36px;min-height:36px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer" aria-label="Previous month">' + chevronLeft + '</button>'
     + (canGoNext
-      ? '<button type="button" class="btn-ghost" id="nextProgressMonthBtn" style="color:#F5F5F4;background:none;border:none;width:48px;height:48px;min-width:48px;min-height:48px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer" aria-label="Next month">' + chevronRight + '</button>'
-      : '<button type="button" class="btn-ghost" disabled style="opacity:0.3;cursor:default;color:#8A8A8E;background:none;border:none;width:48px;height:48px;min-width:48px;min-height:48px;display:inline-flex;align-items:center;justify-content:center" aria-label="Next month (disabled)">' + chevronRight + '</button>')
+      ? '<button type="button" class="btn-ghost" id="nextProgressMonthBtn" style="color:#F5F5F4;background:#1C1C1F;border:none;border-radius:8px;width:36px;height:36px;min-width:36px;min-height:36px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer" aria-label="Next month">' + chevronRight + '</button>'
+      : '<button type="button" class="btn-ghost" disabled style="opacity:0.3;cursor:default;color:#8A8A8E;background:#1C1C1F;border:none;border-radius:8px;width:36px;height:36px;min-width:36px;min-height:36px;display:inline-flex;align-items:center;justify-content:center" aria-label="Next month (disabled)">' + chevronRight + '</button>')
+    + '</div>'
     + '</div>';
 
   var dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  var lettersRow = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;justify-items:center;align-items:center;margin-bottom:6px">'
-    + dayLetters.map(function(ch) { return '<span style="font-size:11px;font-weight:600;color:#8A8A8E;line-height:1">' + ch + '</span>'; }).join('')
+  var lettersRow = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;justify-items:center;align-items:center;padding-bottom:8px;border-bottom:1px solid #1C1C1F;margin-bottom:8px">'
+    + dayLetters.map(function(ch) { return '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase">' + ch + '</span>'; }).join('')
     + '</div>';
 
   var cellsHTML = grid.cells.map(function(cell) {
@@ -297,15 +302,14 @@ export function buildDotConsistencyCalendarHTML() {
       + '</button>';
   }).join('');
 
-  var legendHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:16px;font-size:11px;color:#8A8A8E">'
-    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:4px;background:#C6F432;display:inline-block"></span> Trained<span style="display:none">logged</span></span>'
-    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:4px;background:#55555A;display:inline-block"></span> Rest<span style="display:none">rest</span></span>'
-    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:4px;border:1.5px solid var(--cal-ring-planned, rgba(198,244,50,0.6));background:transparent;box-sizing:border-box;display:inline-block"></span> Planned<span style="border:1px solid #55555A;display:none">skipped</span></span>'
+  var legendHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:14px;padding-top:10px;border-top:1px solid #1C1C1F;font-size:11px;color:#8A8A8E">'
+    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#C6F432;display:inline-block"></span> Trained<span style="display:none">logged</span></span>'
+    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;border:1.5px solid #C6F432;background:transparent;box-sizing:border-box;display:inline-block"></span> Planned<span style="border:1px solid #55555A;display:none">skipped</span></span>'
+    + '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#55555A;display:inline-block"></span> Rest<span style="display:none">rest</span></span>'
     + '</div>';
 
-  return '<div style="margin-bottom:24px">'
+  return '<div class="calendar-card" style="background:#141416;border:1px solid #1C1C1F;border-radius:16px;padding:16px;margin-bottom:20px">'
     + navRow
-    + '<div style="text-align:center;font-size:11px;color:#8A8A8E;margin-top:2px;margin-bottom:12px;font-variant-numeric:tabular-nums">' + grid.stats.trainedCount + ' of ' + grid.stats.plannedCount + ' planned so far</div>'
     + lettersRow
     + '<div class="cal-grid dot-grid">'
       + cellsHTML
