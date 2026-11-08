@@ -22,6 +22,42 @@ export function weightInputPillHTML() {
   + '</div>';
 }
 
+export function getWeightInsightBannerHTML(entries) {
+  if (!entries || entries.length < 2) return '';
+  var sorted = entries.slice().sort(function(a, b) {
+    return new Date(a.createdAt || a.dayKey).getTime() - new Date(b.createdAt || b.dayKey).getTime();
+  });
+  var latest = sorted[sorted.length - 1];
+  var prev = sorted[sorted.length - 2];
+  var banners = '';
+  var latestW = Number(latest.weight);
+  var prevW = Number(prev.weight);
+
+  if (latestW - prevW >= 1.5) {
+    banners += '<div class="metric-card" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px">'
+      + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-primary);flex-shrink:0"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>'
+      + '<div style="font-size:12px;color:var(--text);line-height:1.4"><strong style="color:var(--accent-primary)">Weight spike detected.</strong> This is likely water retention, not fat. Stay the course.</div>'
+      + '</div>';
+  }
+
+  if (sorted.length >= 3) {
+    var earliest = sorted[0];
+    var daysDiff = Math.max(1, Math.round((new Date(latest.createdAt || latest.dayKey).getTime() - new Date(earliest.createdAt || earliest.dayKey).getTime()) / 86400000));
+    var weeks = daysDiff / 7;
+    if (weeks >= 1) {
+      var gainPerWeek = (latestW - Number(earliest.weight)) / weeks;
+      var maxSafeGainPerWeek = latestW * 0.005;
+      if (gainPerWeek > maxSafeGainPerWeek) {
+        banners += '<div class="metric-card" style="background:rgba(255,77,79,0.1);border:1px solid rgba(255,77,79,0.3);border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px">'
+          + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#FF4D4F;flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+          + '<div style="font-size:12px;color:var(--text);line-height:1.4"><strong style="color:#FF4D4F">Pace Warning:</strong> Gaining too fast. High risk of fat accumulation. Reduce calories by 200.</div>'
+          + '</div>';
+      }
+    }
+  }
+  return banners;
+}
+
 /**
  * Builds modern cards list for logged weight entries with swipe-to-delete and double-tap to edit.
  */
@@ -29,6 +65,7 @@ export function weightEntriesHTML(entries) {
   if (!entries || !entries.length) {
     return '<div style="padding:16px 0;font-size:15px;color:var(--text-secondary);text-align:center">No weight entries logged yet</div>';
   }
+  var insightBanner = getWeightInsightBannerHTML(entries);
   var rows = entries.slice().reverse().map(function(e) {
     var d = new Date(e.createdAt || (e.dayKey + 'T12:00:00'));
     var dateLabel = !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : (e.dayKey || '');
@@ -57,6 +94,7 @@ export function weightEntriesHTML(entries) {
       + '<span class="t-label">WEIGHT LOGS</span>'
       + '<span class="t-micro tabnum" style="color:var(--text-secondary)">' + entries.length + (entries.length === 1 ? ' entry' : ' entries') + '</span>'
     + '</div>'
+    + insightBanner
     + '<div style="max-height:360px;overflow-y:auto;padding-right:2px">' + rows + '</div>'
   + '</div>';
 }

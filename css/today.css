@@ -102,35 +102,39 @@
   transition: transform 150ms ease, opacity 150ms ease;
   position: relative;
   background: transparent;
+  border: 1px solid var(--hairline);
 }
 .week-strip-cell:active .day-circle {
   transform: scale(0.92);
 }
 .day-circle--done {
-  background: var(--accent-primary);
-  color: var(--text);
-  box-shadow: 0 0 10px var(--accent-glow);
+  background: rgba(139, 92, 246, 0.25) !important;
+  color: var(--accent-primary) !important;
+  border: 1px solid var(--accent-primary) !important;
+}
+.day-circle.is-today {
+  background: var(--accent-primary) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  box-shadow: 0 0 10px var(--accent-glow) !important;
 }
 .day-circle--planned {
   background: transparent;
-  border: 1.5px solid var(--accent-primary);
+  border: 1px solid var(--hairline);
 }
 .day-circle--skipped {
   background: transparent;
-  border: 1px solid var(--cal-ring-skipped);
+  border: 1px solid var(--hairline);
   color: var(--text-dim);
 }
 .day-circle--rest {
-  background: var(--surface);
-  border: 1px solid transparent;
-}
-.day-circle.is-today {
-  border: 1.5px solid var(--accent-primary);
-  box-shadow: 0 0 10px var(--accent-glow);
+  background: transparent;
+  border: 1px solid var(--hairline);
 }
 .day-circle.is-selected:not(.is-today) {
-  border: 1.5px solid #F5F5F4;
+  border: 1.5px solid var(--hairline);
 }
+/* dot legacy: border: 1.5px solid #F5F5F4; background:#F5F5F4 */
 .day-circle-rest-dot {
   width: 4px;
   height: 4px;

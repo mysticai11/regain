@@ -22,16 +22,22 @@ export function calculateWorkoutBurn(weightKg, durationMinutes, met) {
   return Math.round(m * w * (d / 60));
 }
 
-export function calculateTotalBurn(weight, height, age, gender, steps, workoutMinutes) {
+export function calculateTEF(kcalConsumed) {
+  var k = Number(kcalConsumed) || 0;
+  return Math.round(k * 0.10);
+}
+
+export function calculateTotalBurn(weight, height, age, gender, steps, workoutMinutes, kcalConsumed) {
   var bmr = calculateBMR(weight, height, age, gender);
   var stepBurn = calculateStepBurn(steps, weight);
   var workoutBurn = calculateWorkoutBurn(weight, workoutMinutes);
-  var totalBurn = bmr + stepBurn + workoutBurn;
+  var tef = calculateTEF(kcalConsumed);
+  var totalBurn = bmr + stepBurn + workoutBurn + tef;
   return {
     bmr: bmr,
     stepBurn: stepBurn,
     workoutBurn: workoutBurn,
+    tef: tef,
     totalBurn: totalBurn
   };
 }
-

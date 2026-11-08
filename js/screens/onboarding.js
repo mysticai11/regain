@@ -28,52 +28,113 @@ export function openSplitPreview() {
 
 export function renderOnboarding() {
   document.getElementById('app').innerHTML =
-    '<div class="onboard">'
-    + '<div class="onboard-title">Regain</div>'
-    + '<div class="onboard-sub">One-time configuration. All data remains locally on this device.</div>'
-    + '<label style="margin-top:16px">Your Name (optional)</label>'
-    + '<input type="text" id="obName" placeholder="e.g. Arjun">'
-    + '<label style="margin-top:16px">Starting Weight (kg)</label>'
-    + '<input type="number" step="0.1" id="obWeight" value="54.0" placeholder="e.g. 54.0" inputmode="decimal">'
-    + '<label style="margin-top:16px">Primary Goal</label>'
-    + '<select id="obGoal"><option value="gain">Build muscle / gain weight</option><option value="loss">Lose fat / lose weight</option><option value="recomp">Recomposition</option><option value="strength">Strength</option></select>'
-    + '<label style="margin-top:16px">Goal Weight (kg)</label>'
-    + '<input type="number" step="0.1" id="obTargetWeight" value="60.0" placeholder="e.g. 60.0" inputmode="decimal">'
-    + '<label style="margin-top:16px">Equipment Access</label>'
-    + '<select id="obEquipment">'
-      + '<option value="full">Full Gym (Barbell, Dumbbells, Cables, Machines)</option>'
-      + '<option value="home">Home Gym (Barbell, Dumbbells, Bench)</option>'
-      + '<option value="db">Dumbbells Only</option>'
-      + '<option value="body">Bodyweight / Calisthenics</option>'
-    + '</select>'
-    + '<label style="margin-top:16px">Dietary Pattern</label>'
-    + '<select id="obDiet">'
-      + '<option value="nonveg">Non-Vegetarian</option>'
-      + '<option value="eggitarian">Eggitarian</option>'
-      + '<option value="veg">Vegetarian</option>'
-      + '<option value="vegan">Vegan</option>'
-    + '</select>'
-    + '<div class="small dim" style="margin-top:14px">Regain uses the preloaded 5-day split: Monday, Tuesday, Wednesday, Friday and Saturday.</div>'
-    + '<button class="btn btn-primary" style="margin-top:28px" id="obStartBtn">Start tracking</button>'
+    '<div class="onboard" style="padding-bottom:calc(48px + var(--safe-b))">'
+    + '<div style="text-align:center;margin-bottom:24px">'
+      + '<div class="onboard-title" style="font-size:32px;letter-spacing:-0.02em">Welcome to Regain</div>'
+      + '<div class="onboard-sub" style="font-size:12px;color:var(--text-secondary);margin-top:6px">Evidence-based progression and nutrition. All data stays private on your device.</div>'
+    + '</div>'
+
+    // SECTION 1: ABOUT YOU
+    + '<div style="margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">1. About You</span></div>'
+    + '<div class="metric-card" style="background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:16px;margin-bottom:20px">'
+      + '<div style="margin-bottom:14px">'
+        + '<label for="obName">Your Name</label>'
+        + '<input type="text" id="obName" placeholder="e.g. Arjun" style="margin-top:6px;background:var(--surface2);border:1px solid var(--hairline);border-radius:12px;color:var(--text);height:44px;padding:0 14px;width:100%;box-sizing:border-box">'
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">'
+        + '<div>'
+          + '<label for="obAge">Age</label>'
+          + '<input type="number" id="obAge" value="25" inputmode="numeric" placeholder="25" style="margin-top:6px;background:var(--surface2);border:1px solid var(--hairline);border-radius:12px;color:var(--text);height:44px;padding:0 14px;width:100%;box-sizing:border-box">'
+        + '</div>'
+        + '<div>'
+          + '<label for="obHeight">Height (cm)</label>'
+          + '<input type="number" id="obHeight" value="175" inputmode="numeric" placeholder="175" style="margin-top:6px;background:var(--surface2);border:1px solid var(--hairline);border-radius:12px;color:var(--text);height:44px;padding:0 14px;width:100%;box-sizing:border-box">'
+        + '</div>'
+      + '</div>'
+      + '<div>'
+        + '<label for="obGender">Biological Sex</label>'
+        + '<select id="obGender" style="margin-top:6px;background:var(--surface2);border:1px solid var(--hairline);border-radius:12px;color:var(--text);height:44px;padding:0 14px;width:100%;box-sizing:border-box">'
+          + '<option value="male" selected>Male (Standard TDEE)</option>'
+          + '<option value="female">Female (Standard TDEE)</option>'
+        + '</select>'
+      + '</div>'
+    + '</div>'
+
+    // SECTION 2: YOUR GOAL
+    + '<div style="margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">2. Your Goal</span></div>'
+    + '<div class="metric-card" style="background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:16px;margin-bottom:20px">'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">'
+        + '<div>'
+          + '<label for="obWeight">Current (kg)</label>'
+          + '<input type="number" step="0.1" id="obWeight" value="54.0" placeholder="54.0" inputmode="decimal" style="margin-top:6px;background:var(--surface2);border:1px solid var(--hairline);border-radius:12px;color:var(--text);height:44px;padding:0 14px;width:100%;box-sizing:border-box">'
+        + '</div>'
+        + '<div>'
+          + '<label for="obTargetWeight">Target (kg)</label>'
+          + '<input type="number" step="0.1" id="obTargetWeight" value="60.0" placeholder="60.0" inputmode="decimal" style="margin-top:6px;background:var(--surface2);border:1px solid var(--hairline);border-radius:12px;color:var(--text);height:44px;padding:0 14px;width:100%;box-sizing:border-box">'
+        + '</div>'
+      + '</div>'
+      + '<div>'
+        + '<label for="obGoal">Primary Objective</label>'
+        + '<select id="obGoal" style="margin-top:6px;background:var(--surface2);border:1px solid var(--hairline);border-radius:12px;color:var(--text);height:44px;padding:0 14px;width:100%;box-sizing:border-box">'
+          + '<option value="gain" selected>Build Muscle / Lean Bulk</option>'
+          + '<option value="loss">Lose Fat / Cut</option>'
+          + '<option value="recomp">Body Recomposition</option>'
+          + '<option value="strength">Pure Strength</option>'
+        + '</select>'
+      + '</div>'
+    + '</div>'
+
+    // SECTION 3: PREFERENCES
+    + '<div style="margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">3. Setup & Preferences</span></div>'
+    + '<div class="metric-card" style="background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:16px;margin-bottom:24px">'
+      + '<div style="margin-bottom:14px">'
+        + '<label for="obEquipment">Equipment Access</label>'
+        + '<select id="obEquipment" style="margin-top:6px;background:var(--surface2);border:1px solid var(--hairline);border-radius:12px;color:var(--text);height:44px;padding:0 14px;width:100%;box-sizing:border-box">'
+          + '<option value="full" selected>Full Gym (Barbell, Dumbbells, Cables, Machines)</option>'
+          + '<option value="home">Home Gym (Barbell, Dumbbells, Bench)</option>'
+          + '<option value="db">Dumbbells Only</option>'
+          + '<option value="body">Bodyweight / Calisthenics</option>'
+        + '</select>'
+      + '</div>'
+      + '<div>'
+        + '<label for="obDiet">Dietary Pattern</label>'
+        + '<select id="obDiet" style="margin-top:6px;background:var(--surface2);border:1px solid var(--hairline);border-radius:12px;color:var(--text);height:44px;padding:0 14px;width:100%;box-sizing:border-box">'
+          + '<option value="nonveg" selected>Non-Vegetarian</option>'
+          + '<option value="eggitarian">Eggitarian</option>'
+          + '<option value="veg">Vegetarian</option>'
+          + '<option value="vegan">Vegan</option>'
+        + '</select>'
+      + '</div>'
+    + '</div>'
+
+    + '<button class="btn" style="width:100%;height:50px;border-radius:9999px;background:var(--accent-primary);color:#0B0B0C;font-size:15px;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(139,92,246,0.3)" id="obStartBtn">Start tracking</button>'
     + '</div>';
 
   var startBtn = document.getElementById('obStartBtn');
   if (startBtn) {
     var onStart = function() {
-      var name = (document.getElementById('obName').value.trim()) || 'You';
-      var w = parseFloat(document.getElementById('obWeight').value);
+      var name = (document.getElementById('obName')?.value.trim()) || 'You';
+      var w = parseFloat(document.getElementById('obWeight')?.value);
       if (!w || w < 30 || w > 250) { showToast('Enter a valid starting weight', 'warn'); return; }
-      var targetW = parseFloat(document.getElementById('obTargetWeight').value);
-      var goal = document.getElementById('obGoal').value;
+      var targetW = parseFloat(document.getElementById('obTargetWeight')?.value);
+      var goal = document.getElementById('obGoal')?.value || 'gain';
       if (!targetW || targetW < 30 || targetW > 250 || (goal === 'loss' && targetW >= w) || (goal !== 'loss' && targetW <= w)) {
         showToast(goal === 'loss' ? 'Loss goal must be below starting weight' : 'Goal weight must be above starting weight', 'warn');
         return;
       }
       
-      var equip = document.getElementById('obEquipment').value;
-      var diet = document.getElementById('obDiet').value;
+      var age = parseInt(document.getElementById('obAge')?.value, 10) || 25;
+      var heightCm = parseFloat(document.getElementById('obHeight')?.value) || 175;
+      var gender = document.getElementById('obGender')?.value || 'male';
+      var equip = document.getElementById('obEquipment')?.value || 'full';
+      var diet = document.getElementById('obDiet')?.value || 'nonveg';
       var newProfile = {
         name: name,
+        age: age,
+        heightCm: heightCm,
+        gender: gender,
+        theme: 'dark',
+        hapticsEnabled: true,
         startDate: todayKey(),
         startWeight: w,
         targetWeight: targetW,

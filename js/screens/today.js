@@ -17,6 +17,7 @@ import { openSettings } from "./settings.js";
 import { sessionSetCount } from "../lib/schedule.js";
 import { fetchTodaySteps } from "../lib/steps.js";
 import { calculateTotalBurn } from "../lib/energy.js";
+import { renderSmartInsightsHTML } from "../lib/insights.js";
 import { buildActivityGridHTML, bindActivityGridEvents, buildActivityInsightHTML } from "./today/activity-grid.js";
 import { bindTodayWeightEvents } from "./today/weight-handler.js";
 import { addFoodToDay, migrateFoodTotals } from "./nutrition.js";
@@ -143,6 +144,7 @@ export function renderTodaySimple() {
         + '<span style="font-size:12px;font-weight:600;letter-spacing:0.02em">Steps</span>'
       + '</button>'
     + '</div>'
+    + renderSmartInsightsHTML(activeDateKey)
     + activityGridHTML
     + weekDotHTML
     + (function() {
@@ -161,8 +163,8 @@ export function renderTodaySimple() {
             + '<span>Completed · ' + durMin + ' min</span>'
           + '</div>'
           + '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
-            + '<button type="button" class="btn" id="trainAgainBtn" style="height:48px;min-height:48px;padding:0 20px;border-radius:12px;background:#1C1C1F;border:1px solid #222222;color:#F5F5F4;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center">Train again</button>'
-            + (hasOverride ? '<button type="button" class="btn-text-action" id="resetSuggestedWorkoutBtn" style="height:48px;min-height:48px;color:#8A8A8E;font-size:15px;background:none;border:none;padding:0 8px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center">Reset to suggested</button>' : '')
+            + '<button type="button" class="btn" id="trainAgainBtn" style="height:48px;min-height:48px;padding:0 20px;border-radius:12px;background:var(--surface2);border:1px solid var(--hairline);color:var(--text);font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center">Train again</button>'
+            + (hasOverride ? '<button type="button" class="btn-text-action" id="resetSuggestedWorkoutBtn" style="height:48px;min-height:48px;color:var(--text-secondary);font-size:15px;background:none;border:none;padding:0 8px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center">Reset to suggested</button>' : '')
           + '</div>';
       } else {
         var btnText = !isRest ? (loggedSets > 0 ? 'Keep logging' : 'Start Workout') : 'Choose workout';
@@ -170,12 +172,12 @@ export function renderTodaySimple() {
           + '<div style="font-size:15px;color:var(--text-secondary);margin-bottom:16px">'
             + (isRest ? 'Scheduled rest & active recovery day' : (loggedSets + ' of ' + totalPlannedSets + ' sets logged'))
           + '</div>'
-          + '<button class="btn btn-primary btn-start" id="startWorkout" style="background:var(--accent-primary);color:#000;border-radius:12px;font-weight:700;width:100%;height:50px;font-size:17px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:none">'
+          + '<button class="btn btn-primary btn-start" id="startWorkout" style="background:var(--accent-primary);color:#000;border-radius:12px;font-weight:700;width:100%;height:50px;font-size:17px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:none;margin-bottom:20px">'
             + btnText
           + '</button><!-- background:#C6F432;color:#0B0B0C -->'
-          + (hasOverride ? '<div style="margin-top:12px;text-align:center"><button type="button" class="btn-text-action" id="resetSuggestedWorkoutBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0;cursor:pointer">Reset to suggested</button></div>' : '');
+          + (hasOverride ? '<div style="margin-top:12px;text-align:center"><button type="button" class="btn-text-action" id="resetSuggestedWorkoutBtn" style="color:var(--text-secondary);font-size:15px;background:none;border:none;padding:0;cursor:pointer">Reset to suggested</button></div>' : '');
       }
-      return '<div class="today-workout-block metric-card" style="background:#141416;border-radius:20px;padding:20px;margin-bottom:24px;border:1px solid var(--hairline);box-sizing:border-box">'
+      return '<div class="today-workout-block metric-card" style="background:var(--surface);border-radius:20px;padding:20px;margin-bottom:24px;border:1px solid var(--hairline);box-sizing:border-box">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
           + '<span class="t-label" style="font-size:11px;font-weight:700;letter-spacing:0.08em;color:var(--text-secondary);text-transform:uppercase">' + esc(workoutBlockDateLabel) + '</span>'
           + '<button type="button" class="btn-text-action" id="changeWorkoutBtn" style="color:var(--text);font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">Change</button>'

@@ -240,7 +240,10 @@ export function releaseWakeLock() {
 export function triggerHaptic(type) {
   try {
     var p = (typeof window !== 'undefined' && window.profile) || null;
-    if (p && (p.hapticsMuted === true || p.hapticsEnabled === false)) return;
+    if (!p && typeof window !== 'undefined' && typeof window.getState === 'function') {
+      try { p = window.getState().profile; } catch(e) {}
+    }
+    if (p && (p.hapticsEnabled === false || p.hapticsMuted === true)) return;
     var dur = 15;
     if (type === 'medium') dur = 35;
     else if (type === 'selection') dur = 8;

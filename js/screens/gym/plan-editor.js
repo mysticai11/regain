@@ -60,74 +60,75 @@ export function openSplitManagerSheet() {
   function renderSplitUI() {
     var dayTogglesHTML = weekDaysMeta.map(function (d) {
       var act = tdays.includes(d.js);
-      return '<button type="button" class="day-toggle ' + (act ? 'active' : '') + '" data-split-day="' + d.js + '">' + d.name + '</button>';
+      var style = act ? 'background:var(--accent-primary);color:#0B0B0C;border-color:var(--accent-primary);' : 'background:var(--surface2);color:var(--text-secondary);border:1px solid var(--hairline);';
+      return '<button type="button" class="day-toggle ' + (act ? 'active' : '') + '" style="' + style + '" data-split-day="' + d.js + '">' + d.name + '</button>';
     }).join('');
 
     var daysHTML = prog.map(function (day, dIdx) {
       var exCount = (day.exercises || []).length;
       var exListHTML = (day.exercises || []).map(function (ex, eIdx) {
-        var upBtn = '<button type="button" data-ex-up="' + dIdx + ',' + eIdx + '" style="background:none;border:none;padding:2px 4px;font-size:11px;color:' + (eIdx > 0 ? '#F5F5F4' : '#55555A') + ';cursor:' + (eIdx > 0 ? 'pointer' : 'default') + '"' + (eIdx === 0 ? ' disabled' : '') + '>▲</button>';
-        var downBtn = '<button type="button" data-ex-down="' + dIdx + ',' + eIdx + '" style="background:none;border:none;padding:2px 4px;font-size:11px;color:' + (eIdx < exCount - 1 ? '#F5F5F4' : '#55555A') + ';cursor:' + (eIdx < exCount - 1 ? 'pointer' : 'default') + '"' + (eIdx === exCount - 1 ? ' disabled' : '') + '>▼</button>';
-        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #222;gap:8px">'
+        var upBtn = '<button type="button" data-ex-up="' + dIdx + ',' + eIdx + '" style="background:none;border:none;padding:2px 4px;font-size:11px;color:' + (eIdx > 0 ? 'var(--text)' : 'var(--text-dim)') + ';cursor:' + (eIdx > 0 ? 'pointer' : 'default') + '"' + (eIdx === 0 ? ' disabled' : '') + '>▲</button>';
+        var downBtn = '<button type="button" data-ex-down="' + dIdx + ',' + eIdx + '" style="background:none;border:none;padding:2px 4px;font-size:11px;color:' + (eIdx < exCount - 1 ? 'var(--text)' : 'var(--text-dim)') + ';cursor:' + (eIdx < exCount - 1 ? 'pointer' : 'default') + '"' + (eIdx === exCount - 1 ? ' disabled' : '') + '>▼</button>';
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--hairline);gap:8px">'
           + '<div style="display:flex;flex-direction:column;gap:2px;margin-right:6px">' + upBtn + downBtn + '</div>'
           + '<div style="flex:1;min-width:0;padding-right:8px">'
-            + '<div style="font-size:17px;font-weight:500;color:#F5F5F4;line-height:1.25">' + esc(ex.name) + '</div>'
-            + '<div style="font-size:15px;color:#8A8A8E;margin-top:2px">' + ex.sets + ' sets · ' + esc(ex.reps) + (ex.rir ? ' · ' + esc(ex.rir) + ' RIR' : '') + '</div>'
+            + '<div style="font-size:17px;font-weight:500;color:var(--text);line-height:1.25">' + esc(ex.name) + '</div>'
+            + '<div style="font-size:15px;color:var(--text-secondary);margin-top:2px">' + ex.sets + ' sets · ' + esc(ex.reps) + (ex.rir ? ' · ' + esc(ex.rir) + ' RIR' : '') + '</div>'
           + '</div>'
           + '<div style="display:flex;align-items:center;gap:6px">'
-            + '<button type="button" class="btn-text-action" data-ex-swap="' + dIdx + ',' + eIdx + '" style="font-size:15px;color:#F5F5F4;background:none;border:none;padding:4px 6px;cursor:pointer">Swap</button>'
-            + '<button type="button" class="btn-ghost" data-ex-menu="' + dIdx + ',' + eIdx + '" style="font-size:17px;line-height:1;padding:4px 6px;color:#8A8A8E;background:none;border:none;cursor:pointer">···</button>'
+            + '<button type="button" class="btn-text-action" data-ex-swap="' + dIdx + ',' + eIdx + '" style="font-size:15px;color:var(--text);background:none;border:none;padding:4px 6px;cursor:pointer">Swap</button>'
+            + '<button type="button" class="btn-ghost" data-ex-menu="' + dIdx + ',' + eIdx + '" style="font-size:17px;line-height:1;padding:4px 6px;color:var(--text-secondary);background:none;border:none;cursor:pointer">···</button>'
           + '</div>'
           + '</div>';
       }).join('');
 
       var totalSets = (day.exercises || []).reduce(function (acc, item) { return acc + (Number(item.sets) || 0); }, 0);
       var displayLabel = canonicalSessionLabel(day, dIdx);
-      return '<div class="split-day-card" style="padding:16px 0;border-bottom:1px solid #222;margin-bottom:8px">'
+      return '<div class="split-day-card metric-card" style="background:var(--surface2);border-radius:16px;border:1px solid var(--hairline);padding:16px;margin-bottom:12px">'
         + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:8px">'
           + '<div style="flex:1;min-width:0">'
-            + '<div style="font-size:17px;font-weight:600;color:#F5F5F4;line-height:1.25">' + esc(displayLabel) + '</div>'
-            + '<div style="font-size:15px;color:#8A8A8E;margin-top:2px">' + exCount + ' exercises · ' + totalSets + ' sets</div>'
+            + '<div style="font-size:17px;font-weight:600;color:var(--text);line-height:1.25">' + esc(displayLabel) + '</div>'
+            + '<div style="font-size:15px;color:var(--text-secondary);margin-top:2px">' + exCount + ' exercises · ' + totalSets + ' sets</div>'
           + '</div>'
-          + '<button type="button" class="btn-ghost" data-day-menu="' + dIdx + '" style="font-size:17px;line-height:1;padding:4px 8px;color:#8A8A8E;background:none;border:none;cursor:pointer">···</button>'
+          + '<button type="button" class="btn-ghost" data-day-menu="' + dIdx + '" style="font-size:17px;line-height:1;padding:4px 8px;color:var(--text-secondary);background:none;border:none;cursor:pointer">···</button>'
         + '</div>'
-        + (exListHTML || '<div style="font-size:15px;color:#55555A;padding:8px 0">No exercises yet in this workout day.</div>')
-        + '<div style="margin-top:10px"><button type="button" class="btn-text-action" data-add-ex-day="' + dIdx + '" style="font-size:15px;color:#F5F5F4;font-weight:600;background:none;border:none;padding:6px 0;cursor:pointer">+ Add exercise</button></div>'
+        + (exListHTML || '<div style="font-size:15px;color:var(--text-dim);padding:8px 0">No exercises yet in this workout day.</div>')
+        + '<div style="margin-top:10px"><button type="button" class="btn-text-action" data-add-ex-day="' + dIdx + '" style="font-size:15px;color:var(--text);font-weight:600;background:none;border:none;padding:6px 0;cursor:pointer">+ Add exercise</button></div>'
         + '</div>';
     }).join('');
 
     var val = validateTrainingDays(prog, tdays);
     var mismatchWarningHTML = !val.valid
-      ? ('<div id="planMismatchWarning" style="background:#1C1C1F;border:1px solid #FF4D4F;border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">'
+      ? ('<div id="planMismatchWarning" style="background:var(--surface2);border:1px solid #FF4D4F;border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">'
           + '<div>'
           + '<div style="color:#FF4D4F;font-weight:600;font-size:15px">Schedule mismatch</div>'
-          + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">' + esc(val.message) + '</div>'
+          + '<div style="font-size:11px;color:var(--text-secondary);margin-top:2px">' + esc(val.message) + '</div>'
           + '</div>'
           + '<button type="button" class="btn-text-action" id="fixTrainingDaysBtn" style="color:var(--accent-primary);font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;padding:0">Fix</button>'
         + '</div>')
       : '';
 
-    overlay.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%">'
+    overlay.innerHTML = '<div class="sheet" style="background:var(--surface);border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%">'
       + '<div class="sheet-handle"></div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-        + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">Plan Editor</div>'
+        + '<div style="font-size:28px;font-weight:600;color:var(--text);line-height:1.15">Plan Editor</div>'
         + '<div style="display:flex;align-items:center;gap:16px">'
-          + '<button type="button" class="btn-text-action" id="resetDefaultSplitBtn" style="font-size:15px;color:#F5F5F4;background:none;border:none;padding:0;cursor:pointer">Reset default</button>'
-          + '<button type="button" class="btn-text-action" id="closeSplitEditorBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:0;cursor:pointer">Close</button>'
+          + '<button type="button" class="btn-text-action" id="resetDefaultSplitBtn" style="font-size:15px;color:var(--text-secondary);background:none;border:none;padding:0;cursor:pointer">Reset default</button>'
+          + '<button type="button" class="btn-text-action" id="closeSplitEditorBtn" style="font-size:15px;color:var(--text);background:none;border:none;padding:0;cursor:pointer">Close</button>'
         + '</div>'
       + '</div>'
-      + '<div style="font-size:15px;color:#8A8A8E;margin-bottom:16px">Customize days, sessions, exercise order, and swaps. Saved plans apply to future workouts.</div>'
+      + '<div style="font-size:15px;color:var(--text-secondary);margin-bottom:16px">Customize days, sessions, exercise order, and swaps. Saved plans apply to future workouts.</div>'
       + mismatchWarningHTML
       + '<div style="margin-bottom:20px">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span class="eyebrow">Days You Train</span><span style="font-size:11px;color:#8A8A8E;font-weight:600">' + tdays.length + ' training · ' + (7 - tdays.length) + ' rest</span></div>'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span class="eyebrow">Days You Train</span><span style="font-size:11px;color:var(--text-secondary);font-weight:600">' + tdays.length + ' training · ' + (7 - tdays.length) + ' rest</span></div>'
         + '<div class="day-toggles">' + dayTogglesHTML + '</div>'
       + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
         + '<span class="eyebrow">Workout Sessions (' + prog.length + ' days in split)</span>'
-        + '<button type="button" class="btn-text-action" id="addNewSplitDayBtn" style="color:#F5F5F4;font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">+ Workout day</button>'
+        + '<button type="button" class="btn-text-action" id="addNewSplitDayBtn" style="color:var(--text);font-size:15px;font-weight:600;background:none;border:none;padding:0;cursor:pointer">+ Workout day</button>'
       + '</div>'
-      + '<div class="split-manager-list" style="max-height:50vh;overflow-y:auto">' + (daysHTML || '<div style="text-align:center;color:#55555A;padding:20px 0">No workout days in this plan yet.</div>') + '</div>'
-      + '<div style="margin-top:20px"><button type="button" class="btn" id="saveCloseSplitBtn" style="width:100%;height:48px;border-radius:12px;background:#F5F5F4;color:#0B0B0C;border:none;font-size:15px;font-weight:600;cursor:pointer">Save & Apply Plan</button></div>'
+      + '<div class="split-manager-list" style="max-height:50vh;overflow-y:auto">' + (daysHTML || '<div style="text-align:center;color:var(--text-dim);padding:20px 0">No workout days in this plan yet.</div>') + '</div>'
+      + '<div style="margin-top:20px"><button type="button" class="btn" id="saveCloseSplitBtn" style="width:100%;height:48px;border-radius:12px;background:var(--accent-primary);color:#0B0B0C;border:none;font-size:15px;font-weight:700;cursor:pointer">Save & Apply Plan</button></div>'
       + '</div>';
 
     overlay.querySelector('#closeSplitEditorBtn').onclick = function () { overlay.remove(); };
@@ -344,14 +345,14 @@ export function openCustomRoutineManager() {
     var exerciseList = routine.map(function (ex) {
       return '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;font-size:11px;color:var(--text-secondary)"><span style="flex:1">' + esc(ex.name) + '</span><button class="btn-ghost" data-routine-remove="' + day + '" data-exid="' + ex.id + '" style="color:#FF4D4F;font-size:11px">Remove</button></div>';
     }).join('');
-    return '<div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #222">'
-      + '<div style="flex:1"><div style="font-size:15px;font-weight:600;color:#F5F5F4">' + names[day] + '</div><div style="font-size:11px;color:#8A8A8E">' + count + ' exercise' + (count === 1 ? '' : 's') + ' saved</div>' + exerciseList + '</div>'
-      + '<button class="btn" data-routine-day="' + day + '" style="height:36px;padding:0 12px;font-size:15px;background:#1C1C1F;color:#F5F5F4;border:none;border-radius:8px;cursor:pointer">Add</button></div>';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--hairline)">'
+      + '<div style="flex:1"><div style="font-size:15px;font-weight:600;color:var(--text)">' + names[day] + '</div><div style="font-size:11px;color:var(--text-secondary)">' + count + ' exercise' + (count === 1 ? '' : 's') + ' saved</div>' + exerciseList + '</div>'
+      + '<button class="btn" data-routine-day="' + day + '" style="height:36px;padding:0 12px;font-size:15px;background:var(--surface2);color:var(--text);border:1px solid var(--hairline);border-radius:8px;cursor:pointer">Add</button></div>';
   }).join('');
-  overlay.innerHTML = '<div class="sheet" style="background:#141416;border-radius:20px 20px 0 0;padding:20px"><div class="sheet-handle"></div><div class="sheet-title" style="font-size:28px;font-weight:600;color:#F5F5F4">Custom routines</div>'
-    + '<div style="font-size:11px;color:#8A8A8E;line-height:1.45;margin-bottom:12px">Build each training day separately. Your sets, reps, and weight stay in the daily log.</div>'
+  overlay.innerHTML = '<div class="sheet" style="background:var(--surface);border-radius:20px 20px 0 0;padding:20px"><div class="sheet-handle"></div><div class="sheet-title" style="font-size:28px;font-weight:600;color:var(--text)">Custom routines</div>'
+    + '<div style="font-size:11px;color:var(--text-secondary);line-height:1.45;margin-bottom:12px">Build each training day separately. Your sets, reps, and weight stay in the daily log.</div>'
     + rows
-    + '<button class="btn" id="closeRoutineManagerBtn" style="margin-top:16px;width:100%;height:48px;border-radius:12px;background:#1C1C1F;color:#8A8A8E;border:none;font-size:15px;cursor:pointer">Close</button></div>';
+    + '<button class="btn" id="closeRoutineManagerBtn" style="margin-top:16px;width:100%;height:48px;border-radius:12px;background:var(--surface2);color:var(--text);border:1px solid var(--hairline);font-size:15px;cursor:pointer">Close</button></div>';
   document.body.appendChild(overlay);
   overlay.querySelector('#closeRoutineManagerBtn').onclick = function () { overlay.remove(); };
   overlay.querySelectorAll('[data-routine-remove]').forEach(function (btn) {

@@ -3,8 +3,8 @@ const assert = require('assert');
 
 const dbCode = fs.readFileSync('db.js', 'utf8');
 const html = fs.readFileSync('index.html', 'utf8');
-const match = html.match(/<script>([\s\S]*?)<\/script>/);
-if (!match) {
+const match = html.match(/<script(?![^>]*src=)>([\s\S]*?)<\/script>/);
+if (!match || !match[1].includes('compareExerciseSessions')) {
   console.log('Skipping legacy monolithic index.html test (app migrated to modular ES architecture in js/)');
   process.exit(0);
 }

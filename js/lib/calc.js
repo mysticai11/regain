@@ -7,6 +7,7 @@ import { DEFAULT_MEAL_PLAN } from "../data/foods.js";
 import { getAllKnownExercises } from "../data/exercises.js";
 import { dateKey, todayKey, addDays, allDayKeys } from "./format.js";
 export * from "./progression.js";
+export * from "./sports-science.js";
 
 export function getWeeklyVolume() {
   var prog = getActiveProgram();

@@ -227,6 +227,7 @@ export function setProfile(p) {
     if (p.age == null) p.age = 25;
     if (p.gender == null) p.gender = 'male';
     if (!p.theme) p.theme = 'dark';
+    if (p.hapticsEnabled == null) p.hapticsEnabled = (p.hapticsMuted !== true);
     if (Array.isArray(p.customStaples)) {
       var seenStaple = {};
       p.customStaples = p.customStaples.filter(function(s) {
@@ -242,6 +243,16 @@ export function setProfile(p) {
   }
   profile = p;
   if (typeof window !== 'undefined') window.profile = p;
+}
+
+export function setHapticsEnabled(enabled) {
+  var val = !!enabled;
+  if (profile) {
+    profile.hapticsEnabled = val;
+    profile.hapticsMuted = !val;
+    sv('rg_profile', profile);
+  }
+  scheduleNotification();
 }
 
 export function setTheme(newTheme) {

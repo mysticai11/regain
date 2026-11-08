@@ -56,38 +56,38 @@ export function openSettings() {
     return '<button type="button" class="day-toggle settings-day-toggle' + (active ? ' active' : '') + '" data-day="' + d.js + '" aria-label="' + esc(d.fullName) + '" aria-pressed="' + (active ? 'true' : 'false') + '">' + d.letter + '</button>';
   }).join('');
 
-  overlay.innerHTML = '<div class="sheet" style="background:#141416;border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%;max-height:88vh;overflow-y:auto">'
+  overlay.innerHTML = '<div class="sheet" style="background:var(--surface);border:none;border-radius:20px 20px 0 0;padding:20px 20px calc(24px + var(--safe-b));max-width:480px;width:100%;max-height:88vh;overflow-y:auto">'
     + '<div class="sheet-handle"></div>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
-      + '<div style="font-size:28px;font-weight:600;color:#F5F5F4;line-height:1.15">Settings</div>'
-      + '<button type="button" class="btn-text-action" id="closeSettingsBtn" style="font-size:15px;color:#8A8A8E;background:none;border:none;padding:8px 0;cursor:pointer;min-height:48px;min-width:48px;display:inline-flex;align-items:center;justify-content:flex-end">Close</button>'
+      + '<div style="font-size:28px;font-weight:600;color:var(--text);line-height:1.15">Settings</div>'
+      + '<button type="button" class="btn-text-action" id="closeSettingsBtn" style="font-size:15px;color:var(--text-secondary);background:none;border:none;padding:8px 0;cursor:pointer;min-height:48px;min-width:48px;display:inline-flex;align-items:center;justify-content:flex-end">Close</button>'
     + '</div>'
 
     // TARGETS (iOS Grouped List Card)
     + '<div style="margin-top:20px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">Targets</span></div>'
-    + '<div class="metric-card" style="background:#141416;border-radius:16px;border:1px solid var(--hairline);overflow:hidden;padding:0 16px;margin-bottom:24px">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;min-height:50px;border-bottom:1px solid rgba(255,255,255,0.06)">'
+    + '<div class="metric-card" style="background:var(--surface2);border-radius:16px;border:1px solid var(--hairline);overflow:hidden;padding:0 16px;margin-bottom:24px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;min-height:50px;border-bottom:1px solid var(--hairline)">'
         + '<span style="font-size:15px;color:var(--text);font-weight:500">Rest Day Calories</span>'
         + '<div class="field-num" style="background:transparent;border:none;box-shadow:none;height:48px;padding:0;display:inline-flex;align-items:center;justify-content:flex-end" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
           + '<input type="number" id="setTargetRest" value="' + restKcal + '" inputmode="numeric" style="background:transparent;border:none;outline:none;text-align:right;font-size:17px;font-weight:600;color:var(--text);width:70px">'
           + '<span class="field-unit" style="font-size:12px;color:var(--text-secondary);margin-left:4px">kcal</span>'
         + '</div>'
       + '</div>'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;min-height:50px;border-bottom:1px solid rgba(255,255,255,0.06)">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;min-height:50px;border-bottom:1px solid var(--hairline)">'
         + '<span style="font-size:15px;color:var(--text);font-weight:500">Gym Day Calories</span>'
         + '<div class="field-num" style="background:transparent;border:none;box-shadow:none;height:48px;padding:0;display:inline-flex;align-items:center;justify-content:flex-end" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
           + '<input type="number" id="setTargetGym" value="' + gymKcal + '" inputmode="numeric" style="background:transparent;border:none;outline:none;text-align:right;font-size:17px;font-weight:600;color:var(--text);width:70px">'
           + '<span class="field-unit" style="font-size:12px;color:var(--text-secondary);margin-left:4px">kcal</span>'
         + '</div>'
       + '</div>'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;min-height:50px;border-bottom:1px solid rgba(255,255,255,0.06)">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;min-height:50px;border-bottom:1px solid var(--hairline)">'
         + '<span style="font-size:15px;color:var(--text);font-weight:500">Rest Day Protein</span>'
         + '<div class="field-num" style="background:transparent;border:none;box-shadow:none;height:48px;padding:0;display:inline-flex;align-items:center;justify-content:flex-end" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
           + '<input type="number" id="setProtRest" value="' + restProt + '" inputmode="numeric" style="background:transparent;border:none;outline:none;text-align:right;font-size:17px;font-weight:600;color:var(--text);width:54px">'
           + '<span class="field-unit" style="font-size:12px;color:var(--text-secondary);margin-left:4px">g</span>'
         + '</div>'
       + '</div>'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;min-height:50px;border-bottom:1px solid rgba(255,255,255,0.06)">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;min-height:50px;border-bottom:1px solid var(--hairline)">'
         + '<span style="font-size:15px;color:var(--text);font-weight:500">Gym Day Protein</span>'
         + '<div class="field-num" style="background:transparent;border:none;box-shadow:none;height:48px;padding:0;display:inline-flex;align-items:center;justify-content:flex-end" onclick="var i=this.querySelector(\'input\');if(i)i.focus();">'
           + '<input type="number" id="setProtGym" value="' + gymProt + '" inputmode="numeric" style="background:transparent;border:none;outline:none;text-align:right;font-size:17px;font-weight:600;color:var(--text);width:54px">'
@@ -104,16 +104,16 @@ export function openSettings() {
     + '</div>'
 
     // TRAINING DAYS
-    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Training days</span></div>'
-    + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px">'
-      + '<div style="font-size:15px;font-weight:600;color:#F5F5F4;margin-bottom:2px">Days you train</div>'
-      + '<div id="trainingDaysSubtitle" style="font-size:11px;color:#8A8A8E;margin-bottom:14px">' + esc(formatTrainingSubtitle(tdays)) + '</div>'
+    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">Training days</span></div>'
+    + '<div style="background:var(--surface2);border-radius:16px;padding:16px;margin-bottom:24px;border:1px solid var(--hairline)">'
+      + '<div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:2px">Days you train</div>'
+      + '<div id="trainingDaysSubtitle" style="font-size:11px;color:var(--text-secondary);margin-bottom:14px">' + esc(formatTrainingSubtitle(tdays)) + '</div>'
       + '<div class="settings-day-toggles">' + dayTogglesHTML + '</div>'
     + '</div>'
 
     // PROFILE (Rows with chevron right, opening bottom-sheet picker)
-    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Profile</span></div>'
-    + '<div style="background:#1C1C1F;border-radius:16px;padding:4px 16px;margin-bottom:24px">'
+    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">Profile</span></div>'
+    + '<div style="background:var(--surface2);border-radius:16px;padding:4px 16px;margin-bottom:24px;border:1px solid var(--hairline)">'
       + (function() {
         var r = function(rowId, valId, title, valText) {
           return '<div id="' + rowId + '" class="settings-profile-row">'
@@ -133,47 +133,47 @@ export function openSettings() {
     + '</div>'
 
     // PLAN
-    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Plan</span></div>'
-    + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">'
+    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">Plan</span></div>'
+    + '<div style="background:var(--surface2);border-radius:16px;padding:16px;margin-bottom:24px;border:1px solid var(--hairline);display:flex;justify-content:space-between;align-items:center">'
       + '<div>'
-        + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">Routine & Split</div>'
-        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px">Custom 5-day split & exercise catalog</div>'
+        + '<div style="font-size:15px;font-weight:600;color:var(--text)">Routine & Split</div>'
+        + '<div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Custom 5-day split & exercise catalog</div>'
       + '</div>'
-      + '<button type="button" class="btn" id="openPlanFromSettingsBtn" style="white-space:nowrap;height:36px;padding:0 14px;border-radius:8px;background:#141416;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Edit plan</button>'
+      + '<button type="button" class="btn" id="openPlanFromSettingsBtn" style="white-space:nowrap;height:36px;padding:0 14px;border-radius:8px;background:var(--surface);color:var(--text);font-size:15px;font-weight:600;border:1px solid var(--hairline);cursor:pointer">Edit plan</button>'
     + '</div>'
 
     // APPEARANCE (Theme Mode)
-    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Appearance</span></div>'
-    + '<div style="background:#1C1C1F;border-radius:16px;padding:14px 16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">'
-      + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Theme</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Dark & light mode</div></div>'
-      + '<div style="display:inline-flex;background:#141416;border-radius:10px;padding:3px;gap:4px">'
-        + '<button type="button" id="themeDarkBtn" style="border:none;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;' + (profile.theme !== 'light' ? 'background:var(--accent-primary);color:#0B0B0C;' : 'background:transparent;color:#8A8A8E;') + '">Dark</button>'
-        + '<button type="button" id="themeLightBtn" style="border:none;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;' + (profile.theme === 'light' ? 'background:var(--accent-primary);color:#0B0B0C;' : 'background:transparent;color:#8A8A8E;') + '">Light</button>'
+    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">Appearance</span></div>'
+    + '<div style="background:var(--surface2);border-radius:16px;padding:14px 16px;margin-bottom:24px;border:1px solid var(--hairline);display:flex;justify-content:space-between;align-items:center">'
+      + '<div><div style="font-size:15px;font-weight:600;color:var(--text)">Theme</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Dark & light mode</div></div>'
+      + '<div style="display:inline-flex;background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:3px;gap:4px">'
+        + '<button type="button" id="themeDarkBtn" style="border:none;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;' + (profile.theme !== 'light' ? 'background:var(--accent-primary);color:var(--bg);' : 'background:transparent;color:var(--text-secondary);') + '">Dark</button>'
+        + '<button type="button" id="themeLightBtn" style="border:none;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;' + (profile.theme === 'light' ? 'background:var(--accent-primary);color:var(--bg);' : 'background:transparent;color:var(--text-secondary);') + '">Light</button>'
       + '</div>'
     + '</div>'
 
     // ADVANCED (Unified Card with native switch toggles)
-    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Advanced</span></div>'
-    + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid #141416">'
-        + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Haptic feedback</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Vibrate on taps and logged sets</div></div>'
-        + renderSwitchHTML('toggleHapticsBtn', !profile.hapticsMuted, 'Haptic feedback')
+    + '<div style="margin-top:24px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em">Advanced</span></div>'
+    + '<div style="background:var(--surface2);border-radius:16px;padding:16px;margin-bottom:24px;border:1px solid var(--hairline)">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--hairline)">'
+        + '<div><div style="font-size:15px;font-weight:600;color:var(--text)">Haptic feedback</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Vibrate on taps and logged sets</div></div>'
+        + renderSwitchHTML('toggleHapticsBtn', profile.hapticsEnabled !== false && !profile.hapticsMuted, 'Haptic feedback')
       + '</div>'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
-        + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Auto-start rest timer</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Counts down after saving a set</div></div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--hairline)">'
+        + '<div><div style="font-size:15px;font-weight:600;color:var(--text)">Auto-start rest timer</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Counts down after saving a set</div></div>'
         + renderSwitchHTML('toggleAutoRestBtn', profile.autoStartRestTimer !== false, 'Auto-start rest timer')
       + '</div>'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
-        + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Swipe navigation system</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Swipe between Body, Lifts and History</div></div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--hairline)">'
+        + '<div><div style="font-size:15px;font-weight:600;color:var(--text)">Swipe navigation system</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Swipe between Body, Lifts and History</div></div>'
         + renderSwitchHTML('toggleSwipeNavBtn', !(profile.disableSwipeNav || profile.disableSlideNav), 'Swipe navigation system')
       + '</div>'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
-        + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Streak shields</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">' + shields + (shields === 1 ? ' shield' : ' shields') + ' available</div></div>'
-        + '<button type="button" class="btn" id="buyShieldBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#141416;color:' + (((profile.xp || 0) < 100) ? '#55555A' : '#F5F5F4') + ';font-size:15px;font-weight:600;border:1px solid #222;cursor:' + (((profile.xp || 0) < 100) ? 'not-allowed' : 'pointer') + '"' + (((profile.xp || 0) < 100) ? ' disabled' : '') + '>Buy · 100 XP</button>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--hairline)">'
+        + '<div><div style="font-size:15px;font-weight:600;color:var(--text)">Streak shields</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px">' + shields + (shields === 1 ? ' shield' : ' shields') + ' available</div></div>'
+        + '<button type="button" class="btn" id="buyShieldBtn" style="height:36px;padding:0 14px;border-radius:8px;background:var(--surface);color:' + (((profile.xp || 0) < 100) ? 'var(--text-secondary)' : 'var(--text)') + ';font-size:15px;font-weight:600;border:1px solid var(--hairline);cursor:' + (((profile.xp || 0) < 100) ? 'not-allowed' : 'pointer') + '"' + (((profile.xp || 0) < 100) ? ' disabled' : '') + '>Buy · 100 XP</button>'
       + '</div>'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #141416">'
-        + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Custom foods</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Manage custom items & staples</div></div>'
-        + '<button type="button" class="btn" id="editCustomFoodsBtn" style="height:36px;padding:0 14px;border-radius:8px;background:#141416;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Manage</button>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--hairline)">'
+        + '<div><div style="font-size:15px;font-weight:600;color:var(--text)">Custom foods</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Manage custom items & staples</div></div>'
+        + '<button type="button" class="btn" id="editCustomFoodsBtn" style="height:36px;padding:0 14px;border-radius:8px;background:var(--surface);color:var(--text);font-size:15px;font-weight:600;border:1px solid var(--hairline);cursor:pointer">Manage</button>'
       + '</div>'
       + (function() {
         var lastBackupStr = 'Never', lastBackupTime = ls('rg_last_backup') || ls('tally_last_backup');
@@ -182,10 +182,10 @@ export function openSettings() {
           lastBackupStr = diff === 0 ? 'Today' : (diff + (diff === 1 ? ' day ago' : ' days ago'));
         }
         return '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:14px">'
-          + '<div><div style="font-size:15px;font-weight:600;color:#F5F5F4">Data backup</div><div style="font-size:11px;color:#8A8A8E;margin-top:2px">Last backup: ' + lastBackupStr + '</div></div>'
+          + '<div><div style="font-size:15px;font-weight:600;color:var(--text)">Data backup</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Last backup: ' + lastBackupStr + '</div></div>'
           + '<div style="display:flex;gap:8px">'
-            + '<button type="button" class="btn" id="exportBtn" style="height:36px;padding:0 12px;border-radius:8px;background:#141416;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Export</button>'
-            + '<button type="button" class="btn" id="importBtn" style="height:36px;padding:0 12px;border-radius:8px;background:#141416;color:#F5F5F4;font-size:15px;font-weight:600;border:1px solid #222;cursor:pointer">Import</button>'
+            + '<button type="button" class="btn" id="exportBtn" style="height:36px;padding:0 12px;border-radius:8px;background:var(--surface);color:var(--text);font-size:15px;font-weight:600;border:1px solid var(--hairline);cursor:pointer">Export</button>'
+            + '<button type="button" class="btn" id="importBtn" style="height:36px;padding:0 12px;border-radius:8px;background:var(--surface);color:var(--text);font-size:15px;font-weight:600;border:1px solid var(--hairline);cursor:pointer">Import</button>'
           + '</div>'
         + '</div>';
       })()
@@ -196,20 +196,20 @@ export function openSettings() {
     + '<div style="margin-top:36px;padding-top:20px;border-top:1px solid var(--hairline);margin-bottom:8px">'
       + '<span style="font-size:11px;font-weight:600;color:#FF4D4F;text-transform:uppercase;letter-spacing:0.08em">Danger Zone</span>'
     + '</div>'
-    + '<div style="background:#1C1C1F;border-radius:16px;padding:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;gap:16px">'
+    + '<div style="background:var(--surface2);border-radius:16px;padding:16px;margin-bottom:24px;border:1px solid var(--hairline);display:flex;justify-content:space-between;align-items:center;gap:16px">'
       + '<div style="flex:1;min-width:0;margin-right:16px">'
-        + '<div style="font-size:15px;font-weight:600;color:#F5F5F4">Reset all data</div>'
-        + '<div style="font-size:11px;color:#8A8A8E;margin-top:2px;line-height:1.4">Irreversibly delete all workout & nutrition logs</div>'
+        + '<div style="font-size:15px;font-weight:600;color:var(--text)">Reset all data</div>'
+        + '<div style="font-size:11px;color:var(--text-secondary);margin-top:2px;line-height:1.4">Irreversibly delete all workout & nutrition logs</div>'
       + '</div>'
-      + '<button type="button" id="resetBtn" style="white-space:nowrap;flex-shrink:0;height:36px;padding:0 14px;border-radius:8px;background:#141416;border:1px solid #FF4D4F;color:#FF4D4F;font-size:15px;font-weight:600;cursor:pointer">Reset</button>'
+      + '<button type="button" id="resetBtn" style="white-space:nowrap;flex-shrink:0;height:36px;padding:0 14px;border-radius:8px;background:var(--surface);border:1px solid #FF4D4F;color:#FF4D4F;font-size:15px;font-weight:600;cursor:pointer">Reset</button>'
     + '</div>'
 
     // BOTTOM CLOSE / DONE BUTTON
     + '<div style="margin-top:16px">'
-      + '<button type="button" class="btn" id="closeSettingsBottomBtn" style="width:100%;height:48px;border-radius:12px;background:#1C1C1F;color:#F5F5F4;border:1px solid #222;font-size:15px;font-weight:600;cursor:pointer">Done</button>'
+      + '<button type="button" class="btn" id="closeSettingsBottomBtn" style="width:100%;height:48px;border-radius:12px;background:var(--surface2);color:var(--text);border:1px solid var(--hairline);font-size:15px;font-weight:600;cursor:pointer">Done</button>'
       + '<button type="button" id="saveSettingsBtn" style="display:none"></button>'
     + '</div>'
-    + '<div style="text-align:center;padding:24px 0 8px;font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.06em">'
+    + '<div style="text-align:center;padding:24px 0 8px;font-size:11px;font-weight:600;color:var(--text-secondary);letter-spacing:0.06em">'
       + 'Regain · v2.0.0'
     + '</div>'
     + '</div>';
@@ -340,8 +340,10 @@ export function openSettings() {
   var toggleHapticsBtn = overlay.querySelector('#toggleHapticsBtn');
   if (toggleHapticsBtn) {
     toggleHapticsBtn.onclick = function() {
-      triggerHaptic('selection'); profile.hapticsMuted = !profile.hapticsMuted; sv('rg_profile', profile);
-      updateSwitchUI(toggleHapticsBtn, !profile.hapticsMuted); showToast(profile.hapticsMuted ? 'Haptics muted' : 'Haptics active', 'ok');
+      triggerHaptic('selection');
+      var nextVal = !(profile.hapticsEnabled !== false && !profile.hapticsMuted);
+      profile.hapticsEnabled = nextVal; profile.hapticsMuted = !nextVal; sv('rg_profile', profile);
+      updateSwitchUI(toggleHapticsBtn, nextVal); showToast(nextVal ? 'Haptics active' : 'Haptics muted', 'ok');
     };
   }
 

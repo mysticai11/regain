@@ -881,14 +881,19 @@ input::placeholder, textarea::placeholder, #progressWeight::placeholder, #todayW
   transition: transform 250ms var(--ease-m3), opacity 200ms ease;
   will-change: transform, opacity;
 }
+[data-theme="light"] .bottomnav,
+[data-theme="light"] .tab-bar,
+[data-theme="light"] .bottom-nav {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
 body.kb-open .bottomnav,
 body.kb-open .tab-bar,
 body.kb-open .bottom-nav,
 body.keyboard-open .bottomnav,
 body.keyboard-open .tab-bar,
-body.keyboard-open .bottom-nav,
-body.kb-open #globalFabBtn,
-body.keyboard-open #globalFabBtn {
+body.keyboard-open .bottom-nav {
   transform: translateY(150%);
   opacity: 0;
   pointer-events: none;

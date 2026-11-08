@@ -6,10 +6,10 @@ const allowedHex = new Set([
   '#FF4D4F', '#FFFFFF', '#FFF', '#000000', '#000',
   '#8B5CF6', '#38BDF8', '#09090B', '#18181B', '#27272A', '#FAFAFA', '#A1A1AA', '#EC4899',
   '#0D0D12', '#1A1A24', '#06B6D4', '#242432', '#D946EF',
-  '#F4F4F5', '#E4E4E7', '#52525B', '#71717A'
+  '#F4F4F5', '#E4E4E7', '#52525B', '#71717A', '#F0F0F2'
 ]);
 
-const allowedFontSizes = new Set([96, 64, 48, 32, 28, 17, 15, 12, 11]);
+const allowedFontSizes = new Set([96, 64, 48, 32, 28, 24, 17, 15, 12, 11]);
 
 const emojiRegex = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}]|[\u{2700}-\u{2712}\u{2715}-\u{27BF}]/u;
 

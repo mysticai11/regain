@@ -7,6 +7,7 @@ import { calcE1RM, getBestE1RM } from "./calc.js";
 import { esc, allDayKeys } from "./format.js";
 import { isBodyweightExercise } from "../screens/gym/sets.js";
 export * from "./progression-compare.js";
+export * from "./sports-science.js";
 
 export function getPlateBreakdown(targetWeightKg, barWeightKg) {
   barWeightKg = barWeightKg || 20;

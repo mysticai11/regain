@@ -78,7 +78,7 @@ export function buildOverloadAdviceBadgeHTML(ex, lastSets) {
 
   var label = 'Overload Advice';
   if (advice.type === 'increase_weight') {
-    label = '↑ Increase Weight';
+    label = advice.suggestedWeight ? ('↑ Increase Weight · Target: ' + advice.suggestedWeight + 'kg (You hit the top of the range!)') : '↑ Increase Weight';
   } else if (advice.type === 'add_reps') {
     label = '+ Add Reps';
   } else if (advice.type === 'science_rec') {

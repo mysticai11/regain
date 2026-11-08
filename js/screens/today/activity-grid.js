@@ -59,7 +59,7 @@ export function buildActivityGridHTML(data) {
         + '</div>'
       + '</div>'
       + '<div style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.08em;color:var(--accent-secondary);text-transform:uppercase;margin-bottom:4px">ACTIVE BURN</div>'
-      + '<div style="font-size:var(--fs-28);font-weight:700;color:var(--text);line-height:1.1;font-variant-numeric:tabular-nums;margin-bottom:6px">'
+      + '<div style="font-size:24px;white-space:nowrap;font-weight:700;color:var(--text);line-height:1.1;font-variant-numeric:tabular-nums;margin-bottom:6px">'
         + burnDisplay
       + '</div>'
       + '<div style="font-size:var(--fs-caption);color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(burnSubtext) + '</div>'
