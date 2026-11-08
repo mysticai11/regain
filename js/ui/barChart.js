@@ -73,8 +73,10 @@ export function buildNutritionBarChartHTML({
       + '</g>';
   }).join('');
 
-  var targetLineHTML = '<line x1="16" y1="' + geom.targetY + '" x2="324" y2="' + geom.targetY + '" stroke="#8A8A8E" stroke-dasharray="3 3" stroke-width="1.5" opacity="0.6"/>'
-    + '<text x="324" y="' + (geom.targetY - 4) + '" fill="#8A8A8E" font-size="11" font-weight="600" text-anchor="end" font-family="inherit">' + target.toLocaleString() + ' ' + unit + '</text>';
+  var lineEndX = 278;
+  var targetTextX = 336;
+  var targetLineHTML = '<line x1="14" y1="' + geom.targetY + '" x2="' + lineEndX + '" y2="' + geom.targetY + '" stroke="#8A8A8E" stroke-dasharray="3 3" stroke-width="1.5" opacity="0.6"/>'
+    + '<text x="' + targetTextX + '" y="' + (geom.targetY + 4) + '" fill="#8A8A8E" font-size="11" font-weight="600" text-anchor="end" font-family="inherit">' + target.toLocaleString() + ' ' + unit + '</text>';
 
   // Segmented control for metric toggle
   var tabsHTML = '<div class="seg" role="tablist" aria-label="Nutrition metric" data-gesture-owner style="--n:2;--i:' + (isKcal ? '0' : '1') + ';margin-bottom:12px">'
@@ -83,16 +85,16 @@ export function buildNutritionBarChartHTML({
     + '<button type="button" class="seg__btn' + (!isKcal ? ' active' : '') + '" role="tab" aria-selected="' + (!isKcal ? 'true' : 'false') + '" data-nutrition-metric="protein" id="nutritionMetricProtBtn">Protein</button>'
     + '</div>';
 
-  var headerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'
+  var headerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">'
     + '<div><span class="tabnum" style="font-size:28px;font-weight:600;color:#F5F5F4">' + avgVal.toLocaleString() + '</span> <span style="font-size:15px;color:#8A8A8E">' + unit + ' avg</span></div>'
-    + '<span class="t-micro tabnum" style="color:#8A8A8E">' + esc(hitRateText) + '</span>'
+    + '<div style="text-align:right"><span class="t-micro tabnum" style="color:#8A8A8E;display:block">' + esc(hitRateText) + '</span><span style="font-size:11px;color:#8A8A8E;margin-top:2px;display:block">Goal: <span style="color:#F5F5F4;font-weight:600">' + target.toLocaleString() + ' ' + unit + '</span></span></div>'
     + '</div>';
 
   // Backwards compatibility marker for test-bulk-features.js:
   // "7-Day Hit Rate" and calHits + '/7 kcal · ' + protHits + '/7' and "totals.kcal >= targets.kcal * 0.9"
   var auditMarker = '<div style="display:none" class="t-micro">7-Day Hit Rate: ' + calHits + '/7 kcal · ' + protHits + '/7 protein (totals.kcal >= targets.kcal * 0.9)</div>';
 
-  return '<div class="nutrition-barchart-container" style="user-select:none">'
+  return '<div class="nutrition-barchart-container" style="user-select:none;background:#141416;border:1px solid #1C1C1F;border-radius:16px;padding:16px">'
     + tabsHTML
     + headerHTML
     + '<div style="position:relative;width:100%;height:120px;background:none">'

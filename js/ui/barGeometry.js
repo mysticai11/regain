@@ -19,9 +19,10 @@ export function computeBarChartGeometry({
   width = 320,
   height = 120
 } = {}) {
-  var insetX = 16;
+  var insetX = 14;
   var insetY = 16;
-  var plotW = width - insetX * 2;
+  var rightGutter = 54;
+  var plotW = width - insetX - rightGutter;
   var bottomPad = 26;
   var plotH = height - insetY - bottomPad;
 
@@ -29,12 +30,12 @@ export function computeBarChartGeometry({
   var maxVal = Math.max.apply(null, [Number(target) || 0].concat(values));
 
   var step = metric === 'kcal' ? 500 : 25;
-  var yMax = Math.max(step, Math.ceil((maxVal * 1.1) / step) * step);
+  var yMax = Math.max(step, Math.ceil((maxVal * 1.15) / step) * step);
 
   var targetY = insetY + ((yMax - target) / yMax) * plotH;
 
   var colW = plotW / Math.max(1, days.length);
-  var barW = Math.min(24, Math.max(14, Math.floor(colW * 0.52)));
+  var barW = Math.min(20, Math.max(12, Math.floor(colW * 0.52)));
 
   var bars = days.map(function(d, i) {
     var val = Number(d.value) || 0;

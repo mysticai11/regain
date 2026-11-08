@@ -197,7 +197,7 @@ export function renderProgressSimple(mode, historySubTab) {
     + '<div id="weightPlot" data-gesture-owner="chart"></div><div id="weightMeta" class="tabnum" style="font-size:15px;color:var(--text-secondary);margin-top:10px;line-height:1.4"></div>'
     + '<div class="field" style="margin-top:16px"><input id="progressWeight" type="number" step="0.1" min="20" max="300" placeholder="0.0" inputmode="decimal"><span class="field-unit">kg</span><button type="button" class="btn btn-primary field-btn" id="saveProgressWeight" style="height:40px;min-height:40px;padding:0 14px;border-radius:10px;cursor:pointer">Save</button></div>'
     + '<div id="weightEntriesContainer"></div><div id="weeklyStatTilesContainer"></div></div>'
-    + '<div style="margin-top:28px"><div class="t-label" style="margin-bottom:8px">Nutrition · Last 7 days</div>' + nutritionProgressHTML(records) + '</div>';
+    + '<div style="margin-top:28px;padding-bottom:calc(56px + var(--safe-b))"><div class="t-label" style="margin-bottom:10px">Nutrition · Last 7 days</div>' + nutritionProgressHTML(records) + '</div>';
   var curExObj = exOptions.find(function(e){ return e.id === selected; }) || exOptions[0] || { id: 'bench_press', name: 'Bench Press' };
   var curExCount = exerciseSessionCounts[curExObj.id] || 0;
   var liftChartBlock = '<div style="margin-top:28px;margin-bottom:28px">'
