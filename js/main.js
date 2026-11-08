@@ -6,7 +6,7 @@ import { DEFAULT_MEAL_PLAN } from "./data/foods.js";
 import { migrateWorkoutRoutineSwap, getActiveProgram } from "./data/plan.js";
 import { todayKey, esc } from "./lib/format.js";
 import { ic, triggerHaptic, initMaterialRipple } from "./lib/dom.js";
-import { renderTodaySimple, migrateFoodTotals, openCheckinSheet } from "./screens/today.js";
+import { renderTodaySimple, migrateFoodTotals, openCheckinSheet } from "./screens/today.js?v=26";
 import { renderProgressSimple } from "./screens/progress.js?v=25";
 import { renderGym } from "./screens/gym.js";
 import { renderOnboarding, openSettings } from "./screens/settings.js";
@@ -232,7 +232,7 @@ function onStorageReady() {
 // ── Service Worker ──────────────────────────────────────────────────────────────
 if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('sw.js?v=regain-v25').then(function (reg) {
+    navigator.serviceWorker.register('sw.js?v=regain-v26').then(function (reg) {
       if (!reg) return;
       var showUpdateBanner = function () {
         if (document.getElementById('swUpdateBanner')) return;

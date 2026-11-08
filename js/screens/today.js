@@ -12,7 +12,7 @@ import { confirmDialog } from "../components/dialog.js";
 import { buildGauge, statusPill, macroBar } from "../components/gauge.js";
 import { openFoodSearch, openCustomFoodBuilder, openRecipeBuilder, openCustomFoodsManager, openMealEditor, openEditItemSheet } from "./today/food-modal.js";
 import { addQuickFood, getStaplesShelfHTML, getMergedStaples, openPortionSheet, buildWeekDotRowHTML, openWorkoutOverrideSheet, buildCalRingHTML, buildWeightTrendChip, buildBackupNudgeHTML, bindBackupNudgeEvents, triggerTodayAnimations } from "./today/widgets.js";
-import { buildCatchupCardHTML, bindCatchupCardEvents } from "./today/catchup-card.js";
+import { buildCatchupCardHTML, bindCatchupCardEvents } from "./today/catchup-card.js?v=26";
 import { openSettings } from "./settings.js";
 import { sessionSetCount } from "../lib/schedule.js";
 import { setGestureCooldown, claimGestureOwner, releaseGestureOwner } from "../lib/gesture.js";

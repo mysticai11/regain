@@ -2,7 +2,7 @@
 
 import { detectMissedDay, planSlide, planSpreadAcrossWeek, buildMergedSession } from "../../lib/catchup.js";
 import { getWeekOverrides, saveWeekOverrides, getCatchupDecisions, setCatchupDecision, getCatchupSettings } from "../../storage-catchup.js";
-import { scheduledSessionFor, canonicalSessionName, canonicalSessionLabel, getWeekDays } from "../../lib/schedule.js";
+import { scheduledSessionFor, canonicalSessionName, canonicalSessionLabel } from "../../lib/schedule.js";
 import { getActiveProgram, getWeeklySchedule } from "../../data/plan.js";
 import { dayRecord, saveDayRecord, allDayKeys } from "../../storage.js";
 import { todayKey, esc } from "../../lib/format.js";
@@ -20,32 +20,6 @@ export function buildCatchupCardHTML(currentDateKey) {
   var prog = getActiveProgram(), overrides = getWeekOverrides(), decisions = getCatchupDecisions();
   var records = {};
   allDayKeys().forEach(function (k) { records[k] = dayRecord(k); });
-
-  var weekDays = getWeekDays(tKey);
-  var appliedDate = weekDays.find(function(d) { return decisions[d] === 'spread' || decisions[d] === 'slid' || decisions[d] === 'merged'; });
-  if (appliedDate) {
-    var appliedDec = decisions[appliedDate];
-    var isFb = weekDays.some(function(d) { return overrides[d] && overrides[d].isFullBody; });
-    var aObj = new Date(appliedDate + 'T00:00:00');
-    var isSameDay = (appliedDate === tKey);
-    var dayShort = isSameDay ? (new Date(tKey + 'T00:00:00')).toLocaleDateString('en-GB', { weekday: 'short' }) : ('Applied ' + aObj.toLocaleDateString('en-GB', { weekday: 'short' }));
-    var planSummary = appliedDec === 'slid'
-      ? ('Schedule shifted +1d · ' + dayShort)
-      : (appliedDec === 'merged'
-        ? ('Merged workout · ' + dayShort)
-        : (isFb ? ('Full-body week · ' + dayShort) : ('Volume spread across week · ' + dayShort)));
-
-    var checkSVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
-
-    return '<div class="catchup-applied-pill" style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--hairline);border-radius:20px;padding:12px 16px;margin-bottom:16px;min-height:56px;overflow:hidden;box-sizing:border-box;width:100%">'
-      + '<span class="catchup-applied-pill-icon" style="flex:none;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:var(--lime)">' + checkSVG + '</span>'
-      + '<div class="catchup-applied-pill-text" style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px;overflow:hidden">'
-        + '<div class="catchup-applied-pill-title" style="font-size:15px;font-weight:400;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2">Plan applied</div>'
-        + '<div class="catchup-applied-pill-summary" style="font-size:11px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2">' + esc(planSummary) + '</div>'
-      + '</div>'
-      + '<button type="button" class="btn-text-action" id="catchupReviewPlanBtn" style="flex:none;font-size:15px;color:var(--text-secondary);font-weight:600;min-height:48px;min-width:48px;padding:0 8px;background:none;border:none;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center" aria-label="Review applied plan">Review</button>'
-    + '</div>';
-  }
 
   var detection = detectMissedDay(tKey, { prog: prog, weekOverrides: overrides, decisions: decisions, records: records });
   if (!detection.missed || !detection.date || !detection.session) return '';
