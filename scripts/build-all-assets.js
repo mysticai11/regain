@@ -147,22 +147,11 @@ densities.forEach(d => {
   renderPng(foregroundSvgPath, path.join(dir, 'ic_launcher_foreground.png'), d.fgSize, d.fgSize, '#00000000');
 });
 
-// 4. Generate Android Splash Screens (#0B0B0C with centered logo)
+// 4. Generate Android Splash Screens (Clean #0B0B0C without static logo)
 console.log('\n--- Generating Android Splash Screens ---');
-// Splash SVG: full viewport with centered Tally mark logo
 function createSplashSvg(w, h) {
-  const logoSize = Math.min(w, h) * 0.36;
-  const x = (w - logoSize) / 2;
-  const y = (h - logoSize) / 2;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}">
   <rect width="${w}" height="${h}" fill="#0B0B0C"/>
-  <g transform="translate(${x}, ${y}) scale(${logoSize / 1024})" stroke-linecap="round">
-    <line x1="310" y1="280" x2="310" y2="744" stroke="#F5F5F4" stroke-width="64"/>
-    <line x1="424" y1="280" x2="424" y2="744" stroke="#F5F5F4" stroke-width="64"/>
-    <line x1="538" y1="280" x2="538" y2="744" stroke="#F5F5F4" stroke-width="64"/>
-    <line x1="652" y1="280" x2="652" y2="744" stroke="#F5F5F4" stroke-width="64"/>
-    <line x1="220" y1="670" x2="740" y2="354" stroke="#C6F432" stroke-width="64"/>
-  </g>
 </svg>`;
 }
 

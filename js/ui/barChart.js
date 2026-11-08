@@ -49,7 +49,7 @@ export function buildNutritionBarChartHTML({
     days: mappedDays,
     metric: activeMetric,
     target: target,
-    width: 340,
+    width: 360,
     height: 120
   });
 
@@ -98,7 +98,7 @@ export function buildNutritionBarChartHTML({
     + tabsHTML
     + headerHTML
     + '<div style="position:relative;width:100%;height:120px;background:none">'
-      + '<svg viewBox="0 0 340 120" style="width:100%;height:120px;overflow:hidden">'
+      + '<svg viewBox="0 0 360 120" style="width:100%;height:120px;overflow:hidden">'
         + targetLineHTML
         + barsHTML
       + '</svg>'

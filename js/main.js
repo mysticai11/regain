@@ -227,6 +227,20 @@ function onStorageReady() {
     }
   }
   initEdgeToEdgeAndSplash();
+  dismissOpeningVisual();
+}
+
+function dismissOpeningVisual() {
+  if (typeof document === 'undefined' || !document.getElementById) return;
+  var opening = document.getElementById('appOpeningVisual');
+  if (opening && opening.classList && opening.classList.add) {
+    opening.classList.add('is-dismissed');
+    setTimeout(function () {
+      if (opening && opening.parentNode && opening.parentNode.removeChild) {
+        opening.parentNode.removeChild(opening);
+      }
+    }, 320);
+  }
 }
 
 // ── Service Worker ──────────────────────────────────────────────────────────────

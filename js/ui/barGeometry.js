@@ -21,7 +21,7 @@ export function computeBarChartGeometry({
 } = {}) {
   var insetX = 14;
   var insetY = 16;
-  var rightGutter = 86;
+  var rightGutter = 104;
   var plotW = width - insetX - rightGutter;
   var bottomPad = 26;
   var plotH = height - insetY - bottomPad;
@@ -35,7 +35,7 @@ export function computeBarChartGeometry({
   var targetY = insetY + ((yMax - target) / yMax) * plotH;
 
   var colW = plotW / Math.max(1, days.length);
-  var barW = Math.min(18, Math.max(12, Math.floor(colW * 0.48)));
+  var barW = Math.min(16, Math.max(12, Math.floor(colW * 0.46)));
 
   var bars = days.map(function(d, i) {
     var val = Number(d.value) || 0;
@@ -63,7 +63,7 @@ export function computeBarChartGeometry({
   });
 
   var lastBar = bars[bars.length - 1];
-  var lineEndX = lastBar ? Math.round(lastBar.x + lastBar.width + 6) : (plotW + insetX);
+  var lineEndX = lastBar ? Math.round(lastBar.x + lastBar.width + 8) : (plotW + insetX);
   var targetTextX = width - 4;
 
   return {
