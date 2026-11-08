@@ -1,9 +1,12 @@
 /* Collapsible Food Log Card Component for Today Screen */
 
-import { esc } from "../../lib/format.js";
+import { esc, todayKey } from "../../lib/format.js";
 import { triggerHaptic } from "../../lib/dom.js";
-import { ls, sv } from "../../storage.js";
+import { ls, sv, dayRecord, saveDayRecord } from "../../storage.js";
 import { claimGestureOwner, releaseGestureOwner, setGestureCooldown } from "../../lib/gesture.js";
+import { getStaplesShelfHTML } from "./widgets.js";
+import { bindStaplesShelfEvents } from "./staples-events.js";
+import { showUndoToast } from "../../components/toast.js";
 
 /**
  * Builds the collapsible food log card HTML.
@@ -23,7 +26,7 @@ export function buildCollapsibleFoodLogHTML({ key, activeDateKey, rec } = {}) {
   var isCollapsed = ls('rg_food_log_collapsed', true);
 
   if (!count) {
-    return '<div style="background:#141416;border:1px solid #222222;border-radius:16px;padding:16px;margin-top:28px;margin-bottom:40px">'
+    return '<div style="background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:16px;margin-top:16px;margin-bottom:24px">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
       + '<span style="font-size:17px;font-weight:600;color:#F5F5F4">' + title + '</span>'
       + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;letter-spacing:0.08em;text-transform:uppercase;font-variant-numeric:tabular-nums">0 items</span>'
@@ -47,7 +50,7 @@ export function buildCollapsibleFoodLogHTML({ key, activeDateKey, rec } = {}) {
   var chevronTransform = isCollapsed ? 'transform:rotate(-90deg)' : 'transform:rotate(0deg)';
   var contentDisplay = isCollapsed ? 'display:none;' : 'display:block;margin-top:4px;';
 
-  return '<div style="background:#141416;border:1px solid #222222;border-radius:16px;padding:16px;margin-top:28px;margin-bottom:40px">'
+  return '<div style="background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:16px;margin-top:16px;margin-bottom:24px">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;min-height:36px">'
     + '<button type="button" id="toggleFoodLogBtn" aria-expanded="' + (!isCollapsed) + '" aria-label="Toggle food log" style="display:flex;align-items:center;gap:10px;background:none;border:none;padding:0;cursor:pointer;color:inherit;text-align:left;flex:1;min-width:0">'
     + '<span style="font-size:17px;font-weight:600;color:#F5F5F4">' + title + '</span>'
@@ -140,5 +143,98 @@ export function bindFoodLogCardEvents({ activeDateKey, openFoodSearch, addFoodTo
       }
     }, { passive: true });
   });
+}
+
+/**
+ * Opens the dedicated, full-screen Food Logger and Staples sheet.
+ */
+export function openTodayFoodSheet({ activeDateKey, openFoodSearch, addFoodToDay, onUpdate } = {}) {
+  var dKey = activeDateKey || todayKey();
+  var sheetId = 'todayFoodSheet';
+  var existing = document.getElementById(sheetId);
+  if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+
+  var overlay = document.createElement('div');
+  overlay.id = sheetId;
+  overlay.className = 'dialog-overlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);z-index:9999;display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity 200ms ease;';
+
+  var close = function() {
+    overlay.style.opacity = '0';
+    setTimeout(function() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 200);
+  };
+
+  var renderSheetBody = function() {
+    var rec = dayRecord(dKey);
+    var sheetHTML = '<div class="dialog-surface" style="background:var(--surface);border:1px solid var(--hairline);border-radius:24px 24px 0 0;padding:24px 20px calc(28px + var(--safe-b));width:100%;max-width:540px;max-height:85vh;overflow-y:auto;box-sizing:border-box;box-shadow:0 -10px 40px rgba(0,0,0,0.6)">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">'
+        + '<div>'
+          + '<div style="font-size:28px;font-weight:700;color:var(--text);letter-spacing:-0.02em">Food & Meals</div>'
+          + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--text-secondary);text-transform:uppercase;margin-top:2px">' + esc(dKey) + '</div>'
+        + '</div>'
+        + '<button type="button" class="icon-btn" id="closeFoodSheetBtn" aria-label="Close" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center">'
+          + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>'
+        + '</button>'
+      + '</div>'
+      + '<div id="sheetStaplesMount">' + getStaplesShelfHTML() + '</div>'
+      + '<div id="sheetFoodLogMount">' + buildCollapsibleFoodLogHTML({ key: todayKey(), activeDateKey: dKey, rec: rec }) + '</div>'
+    + '</div>';
+
+    overlay.innerHTML = sheetHTML;
+
+    var closeBtn = overlay.querySelector('#closeFoodSheetBtn');
+    if (closeBtn) closeBtn.onclick = close;
+
+    bindStaplesShelfEvents(overlay, dKey, function() {
+      if (typeof onUpdate === 'function') onUpdate();
+      renderSheetBody();
+    });
+
+    var deleteFoodEntry = function(idx, row) {
+      var current = dayRecord(dKey);
+      if (!current.extra || isNaN(idx) || !current.extra[idx]) return;
+      var performDel = function() {
+        var removed = current.extra.splice(idx, 1)[0];
+        saveDayRecord(dKey, current);
+        if (typeof onUpdate === 'function') onUpdate();
+        renderSheetBody();
+        showUndoToast('Food entry deleted', function () {
+          var restored = dayRecord(dKey);
+          restored.extra = restored.extra || [];
+          restored.extra.splice(Math.min(idx, restored.extra.length), 0, removed);
+          saveDayRecord(dKey, restored);
+          if (typeof onUpdate === 'function') onUpdate();
+          renderSheetBody();
+        });
+      };
+      if (row && typeof window !== 'undefined' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        row.style.transition = 'height 150ms cubic-bezier(0.2,0,0,1), opacity 150ms cubic-bezier(0.2,0,0,1), margin 150ms cubic-bezier(0.2,0,0,1)';
+        row.style.height = row.offsetHeight + 'px'; void row.offsetHeight;
+        row.style.height = '0px'; row.style.opacity = '0'; row.style.margin = '0px'; row.style.overflow = 'hidden';
+        setTimeout(performDel, 150);
+      } else { performDel(); }
+    };
+
+    bindFoodLogCardEvents({
+      activeDateKey: dKey,
+      openFoodSearch: function() {
+        if (typeof openFoodSearch === 'function') {
+          openFoodSearch(function(food, servings) {
+            if (typeof addFoodToDay === 'function') addFoodToDay(dKey, food, servings);
+            if (typeof onUpdate === 'function') onUpdate();
+            renderSheetBody();
+          });
+        }
+      },
+      addFoodToDay: addFoodToDay,
+      deleteFoodEntry: deleteFoodEntry
+    });
+  };
+
+  overlay.onclick = function(e) { if (e.target === overlay) close(); };
+
+  renderSheetBody();
+  document.body.appendChild(overlay);
+  requestAnimationFrame(function() { overlay.style.opacity = '1'; });
 }
 

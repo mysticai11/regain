@@ -72,7 +72,7 @@ export function renderLineChart({
   svg.setAttribute('role', 'img');
   svg.setAttribute('aria-label', ariaLabel);
   svg.style.display = 'block';
-  svg.style.overflow = 'hidden';
+  svg.style.overflow = 'visible';
 
   // Readout pill
   var pill = document.createElement('div');
@@ -103,7 +103,7 @@ export function renderLineChart({
     currentGeom = computeChartGeometry(currentData, {
       width: width,
       height: height,
-      padding: { top: 12, right: 16, bottom: 24, left: 40 }
+      padding: { top: 12, right: 16, bottom: 24, left: 52 }
     });
 
     if (currentGeom.empty) {
@@ -161,7 +161,7 @@ export function renderLineChart({
     for (var i = 0; i < ticks.length; i++) {
       var tk = ticks[i];
       var gridLine = document.createElementNS(svgNS, 'line');
-      gridLine.setAttribute('x1', '40');
+      gridLine.setAttribute('x1', '52');
       gridLine.setAttribute('y1', String(tk.y));
       gridLine.setAttribute('x2', String(width - 16));
       gridLine.setAttribute('y2', String(tk.y));
@@ -170,7 +170,7 @@ export function renderLineChart({
       svg.appendChild(gridLine);
 
       var tickText = document.createElementNS(svgNS, 'text');
-      tickText.setAttribute('x', '32');
+      tickText.setAttribute('x', '44');
       tickText.setAttribute('y', String(tk.y + 4));
       tickText.setAttribute('text-anchor', 'end');
       tickText.setAttribute('fill', 'var(--text-muted, #8A8A8E)');
@@ -190,7 +190,7 @@ export function renderLineChart({
       if (xTicks.length > 1) {
         if (xi === 0) {
           anchor = 'start';
-          posX = 40;
+          posX = 52;
         } else if (xi === xTicks.length - 1) {
           anchor = 'end';
           posX = width - 16;

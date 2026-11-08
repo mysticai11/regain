@@ -8,36 +8,10 @@ import { triggerHaptic } from "../../lib/dom.js";
 import { getWorkoutSessions, allDayKeys, dayRecord } from "../../storage.js";
 
 /**
- * Builds HTML for the 3-column Personal Bests card.
+ * Builds HTML for the personal bests section (streamlined to avoid redundancy with hero summary).
  */
 export function buildPersonalBestsCardHTML(pb) {
-  if (!pb) return '';
-  var hVal = pb.heaviest ? (pb.heaviest.weight + ' kg') : '—';
-  var hSub = pb.heaviest ? (pb.heaviest.dateKey + ' · ' + pb.heaviest.reps + ' reps') : 'No data';
-
-  var eVal = pb.bestE1RM ? (pb.bestE1RM.value + ' kg') : '—';
-  var eSub = pb.bestE1RM ? (pb.bestE1RM.dateKey) : 'No data';
-
-  var vVal = pb.bestVolume ? (pb.bestVolume.value + ' kg') : '—';
-  var vSub = pb.bestVolume ? (pb.bestVolume.dateKey) : 'No data';
-
-  return '<div class="lift-summary-grid" style="margin-bottom:16px">'
-    + '<div class="lift-summary-col">'
-      + '<div class="lift-summary-label">HEAVIEST</div>'
-      + '<div class="lift-summary-value" style="color:var(--text)">' + esc(hVal) + '</div>'
-      + '<div class="t-micro tabnum" style="color:var(--text-secondary);margin-top:2px">' + esc(hSub) + '</div>'
-    + '</div>'
-    + '<div class="lift-summary-col">'
-      + '<div class="lift-summary-label">BEST 1RM</div>'
-      + '<div class="lift-summary-value" style="color:var(--text)">' + esc(eVal) + '</div>'
-      + '<div class="t-micro tabnum" style="color:var(--text-secondary);margin-top:2px">' + esc(eSub) + '</div>'
-    + '</div>'
-    + '<div class="lift-summary-col">'
-      + '<div class="lift-summary-label">BEST VOLUME</div>'
-      + '<div class="lift-summary-value" style="color:var(--text)">' + esc(vVal) + '</div>'
-      + '<div class="t-micro tabnum" style="color:var(--text-secondary);margin-top:2px">' + esc(vSub) + '</div>'
-    + '</div>'
-  + '</div>';
+  return '';
 }
 
 /**
@@ -46,21 +20,21 @@ export function buildPersonalBestsCardHTML(pb) {
 export function buildRecentSessionsHTML(recentSessions, maxShown) {
   maxShown = maxShown || 8;
   if (!Array.isArray(recentSessions) || recentSessions.length === 0) {
-    return '<div style="margin-top:24px"><div class="t-label" style="margin-bottom:12px">RECENT SESSIONS</div><div class="empty-state">No sessions recorded yet</div></div>';
+    return '<div style="margin-top:24px"><div class="t-label" style="margin-bottom:12px">RECENT SESSIONS</div><div class="empty-state" style="background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:24px;text-align:center;color:var(--text-secondary)">No sessions recorded yet</div></div>';
   }
 
   var list = recentSessions.slice(0, maxShown);
   var rows = list.map(function(s) {
     var prBadge = s.isPR
-      ? '<span class="lift-pr-badge" style="background:var(--lime);color:#0B0B0C;font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:0.04em">PR</span>'
+      ? '<span class="lift-pr-badge" style="background:rgba(139, 92, 246, 0.15);border:1px solid rgba(139, 92, 246, 0.35);color:var(--accent-primary);font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;letter-spacing:0.04em">PR</span>'
       : '';
-    return '<div class="lift-session-row" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface);border:1px solid var(--hairline);border-radius:16px;margin-bottom:8px;box-sizing:border-box">'
+    return '<div class="lift-session-row" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border:1px solid var(--hairline);border-radius:14px;margin-bottom:8px;box-sizing:border-box">'
       + '<div>'
         + '<div class="lift-session-date" style="font-size:15px;font-weight:600;color:var(--text)">' + esc(s.dateKey) + '</div>'
-        + '<div class="tabnum" style="font-size:11px;color:var(--text-secondary);margin-top:2px">Top set: ' + s.topSet.weight + ' kg × ' + s.topSet.reps + '</div>'
+        + '<div class="tabnum" style="font-size:11px;color:var(--text-secondary);margin-top:3px">Top set: <span style="color:var(--text);font-weight:600">' + s.topSet.weight + ' kg × ' + s.topSet.reps + '</span></div>'
       + '</div>'
-      + '<div style="display:flex;align-items:center;gap:10px">'
-        + '<div class="tabnum" style="font-size:var(--fs-14);color:var(--text-secondary);font-weight:500">' + s.volume + ' kg vol</div>'
+      + '<div style="display:flex;align-items:center;gap:12px">'
+        + '<div class="tabnum" style="font-size:11px;color:var(--text-secondary);font-weight:600">' + s.volume + ' kg vol</div>'
         + prBadge
       + '</div>'
     + '</div>';
@@ -68,7 +42,7 @@ export function buildRecentSessionsHTML(recentSessions, maxShown) {
 
   var expandBtn = '';
   if (recentSessions.length > maxShown) {
-    expandBtn = '<button type="button" class="btn-text-action" id="showAllLiftSessionsBtn" style="color:var(--lime);font-size:15px;background:none;border:none;padding:8px 0;cursor:pointer;font-weight:600;display:block;width:100%;text-align:center">Show all (' + recentSessions.length + ')</button>';
+    expandBtn = '<button type="button" class="btn-text-action" id="showAllLiftSessionsBtn" style="color:var(--accent-primary);font-size:15px;background:none;border:none;padding:12px 0;cursor:pointer;font-weight:600;display:block;width:100%;text-align:center">Show all (' + recentSessions.length + ')</button>';
   }
 
   return '<div style="margin-top:28px">'

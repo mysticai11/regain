@@ -14,7 +14,7 @@
 export function computeChartGeometry(rawData, options) {
   var width = (options && options.width) || 320;
   var height = (options && options.height) || 180;
-  var pad = Object.assign({ top: 12, right: 16, bottom: 24, left: 40 }, (options && options.padding) || {});
+  var pad = Object.assign({ top: 12, right: 16, bottom: 24, left: 52 }, (options && options.padding) || {});
 
   // 1. Filter: require finite numbers
   if (!Array.isArray(rawData)) return { empty: true };

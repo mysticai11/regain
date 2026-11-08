@@ -70,11 +70,12 @@ export function buildActivityGridHTML(data) {
     + '</div>'
 
     /* Card 3: Weight */
-    + '<div class="metric-card" style="padding:14px 16px">'
+    + '<div class="metric-card" id="activityCardWeight" style="padding:14px 16px;cursor:pointer">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
         + '<div style="width:32px;height:32px;border-radius:10px;background:rgba(139,92,246,0.15);color:var(--accent-primary);display:flex;align-items:center;justify-content:center;box-shadow:var(--icon-glow-violet);flex-shrink:0">'
           + ic('trend_up', 16)
         + '</div>'
+        + '<span class="pill-toggle" style="font-size:11px;color:var(--accent-primary);background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.25);border-radius:9999px;padding:3px 8px;font-weight:600;letter-spacing:0.04em">Log</span>'
       + '</div>'
       + '<div style="font-size:var(--fs-caption);font-weight:600;letter-spacing:0.08em;color:var(--text-secondary);text-transform:uppercase;margin-bottom:4px">BODYWEIGHT</div>'
       + '<div style="font-size:var(--fs-28);font-weight:700;color:var(--text);line-height:1.1;font-variant-numeric:tabular-nums;margin-bottom:6px">'
@@ -136,4 +137,11 @@ export function bindActivityGridEvents(container, opts) {
   };
 
   if (editBtn) editBtn.onclick = handleEdit;
+
+  var weightCard = (typeof container.querySelector === 'function')
+    ? container.querySelector('#activityCardWeight')
+    : ((typeof document !== 'undefined' && typeof document.getElementById === 'function') ? document.getElementById('activityCardWeight') : null);
+  if (weightCard && typeof options.onOpenWeightModal === 'function') {
+    weightCard.onclick = function() { options.onOpenWeightModal(); };
+  }
 }

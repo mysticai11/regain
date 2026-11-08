@@ -213,7 +213,7 @@ export function progressPlot(values, goal, unit, isLift) {
       + headerRightHTML
     + '</div>'
     + '<div style="position:relative;width:100%;height:120px;background:none">'
-      + '<svg viewBox="0 0 340 120" style="width:100%;height:120px;overflow:hidden">'
+      + '<svg viewBox="0 0 340 120" style="width:100%;height:120px;overflow:visible">'
         + guideLinesHTML
         + goalLineHTML
         + (values.length > 1 ? '<polyline points="' + poly + '" class="chart-line-poly" fill="none" stroke="#F5F5F4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>' : '')

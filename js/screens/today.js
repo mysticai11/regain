@@ -13,7 +13,7 @@ import { buildGauge, statusPill, macroBar } from "../components/gauge.js";
 import { openFoodSearch, openCustomFoodBuilder, openRecipeBuilder, openCustomFoodsManager, openMealEditor, openEditItemSheet } from "./today/food-modal.js";
 import { addQuickFood, getStaplesShelfHTML, getMergedStaples, openPortionSheet, buildWeekDotRowHTML, openWorkoutOverrideSheet, buildCalRingHTML, buildWeightTrendChip, buildBackupNudgeHTML, bindBackupNudgeEvents, triggerTodayAnimations } from "./today/widgets.js";
 import { buildCatchupCardHTML, bindCatchupCardEvents } from "./today/catchup-card.js?v=26";
-import { buildCollapsibleFoodLogHTML, bindFoodLogCardEvents } from "./today/food-log-card.js?v=26";
+import { buildCollapsibleFoodLogHTML, bindFoodLogCardEvents, openTodayFoodSheet } from "./today/food-log-card.js?v=26";
 import { openSettings } from "./settings.js";
 import { sessionSetCount } from "../lib/schedule.js";
 import { setGestureCooldown, claimGestureOwner, releaseGestureOwner } from "../lib/gesture.js";
@@ -177,67 +177,57 @@ export function renderTodaySimple() {
         + '</div>' + cardInner + '</div>';
     })()
     + (function () {
-      var lastW = currentWeight(), bwPlaceholder = lastW ? lastW.toFixed(1) : '54.0', bwValue = rec.weight ? rec.weight : '';
-      var saveLabel = bwValue ? 'Saved' : 'Save';
-      var saveStyle = bwValue ? 'background:#1C1C1F;color:#8A8A8E;border:1px solid #222222;cursor:default' : 'background:var(--accent-primary);color:var(--text);border:none;cursor:pointer;box-shadow:0 4px 16px var(--accent-glow)';
-      return '<div style="background:#141416;border:1px solid #222222;border-radius:16px;padding:16px;margin-bottom:24px">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
-          + '<span style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8A8A8E;text-transform:uppercase">WEIGHT</span>'
-          + (bwValue ? '<button type="button" class="btn-text-action" id="deleteTodayWeightBtn" style="color:#8A8A8E;font-size:15px;background:none;border:none;padding:0;min-height:48px;cursor:pointer;display:inline-flex;align-items:center">Clear</button>' : '')
+      var mealCount = (rec && rec.extra) ? rec.extra.length : 0;
+      var mealKcal = (rec && rec.extra) ? Math.round(rec.extra.reduce(function(sum, x){ return sum + (x.kcal || 0); }, 0)) : 0;
+      var mealSub = mealCount ? (mealCount + (mealCount === 1 ? ' meal logged' : ' meals logged') + ' · ' + mealKcal.toLocaleString() + ' kcal') : 'No meals logged yet';
+      return '<div style="background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:16px 18px;margin-bottom:24px;box-shadow:0 4px 16px rgba(0,0,0,0.25)">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center">'
+          + '<div>'
+            + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--text-secondary);text-transform:uppercase">TODAY\'S NUTRITION</div>'
+            + '<div style="font-size:17px;font-weight:700;color:var(--text);margin-top:2px">' + esc(mealSub) + '</div>'
+          + '</div>'
+          + '<button type="button" class="btn btn-primary" id="openTodayFoodLogBtn" style="height:38px;min-height:38px;padding:0 14px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">'
+            + (mealCount ? 'View & Log' : '+ Log Food')
+          + '</button>'
         + '</div>'
-        + '<div class="field">'
-          + '<input type="number" id="todayWeight" step="0.1" inputmode="decimal" placeholder="' + bwPlaceholder + '" value="' + bwValue + '">'
-          + '<span class="field-unit">kg</span>'
-          + '<button type="button" class="field-btn" id="saveTodayWeight" style="height:40px;min-height:40px;padding:0 16px;border-radius:9px;font-size:15px;font-weight:600;' + saveStyle + '">' + saveLabel + '</button>'
-        + '</div></div>';
-    })()
-    + getStaplesShelfHTML()
-    + buildCollapsibleFoodLogHTML({ key: key, activeDateKey: activeDateKey, rec: rec });
+      + '</div>';
+    })();
 
   var settingsBtn = document.getElementById('settingsBtn');
   if (settingsBtn) settingsBtn.onclick = function(e) { if (e && e.stopPropagation) e.stopPropagation(); openSettings(); };
   bindBackupNudgeEvents(exportData);
   bindCatchupCardEvents(contentEl, renderTodaySimple);
-  bindActivityGridEvents(contentEl, { rec: targetRec, dateKey: activeDateKey, onUpdate: renderTodaySimple });
+  bindActivityGridEvents(contentEl, {
+    rec: targetRec,
+    dateKey: activeDateKey,
+    onUpdate: renderTodaySimple,
+    onOpenWeightModal: function() { openTodayWeightModal(activeDateKey); }
+  });
 
+  var handleOpenFood = function() {
+    triggerHaptic();
+    openTodayFoodSheet({ activeDateKey: activeDateKey, openFoodSearch: openFoodSearch, addFoodToDay: addFoodToDay, onUpdate: renderTodaySimple });
+  };
+  var openFoodLogBtn = document.getElementById('openTodayFoodLogBtn');
+  if (openFoodLogBtn) openFoodLogBtn.onclick = handleOpenFood;
   var quickLogFoodBtn = document.getElementById('todayQuickLogFoodBtn');
-  if (quickLogFoodBtn) {
-    quickLogFoodBtn.onclick = function() {
-      triggerHaptic();
-      openFoodSearch(activeDateKey);
-    };
-  }
+  if (quickLogFoodBtn) quickLogFoodBtn.onclick = handleOpenFood;
 
   var quickLogWorkoutBtn = document.getElementById('todayQuickLogWorkoutBtn');
   if (quickLogWorkoutBtn) {
     quickLogWorkoutBtn.onclick = function() {
-      triggerHaptic();
-      window.activeGymDateKey = activeDateKey;
-      setTab('gym');
-      renderApp();
+      triggerHaptic(); window.activeGymDateKey = activeDateKey; setTab('gym'); renderApp();
     };
   }
 
   var quickLogWeightBtn = document.getElementById('todayQuickLogWeightBtn');
-  if (quickLogWeightBtn) {
-    quickLogWeightBtn.onclick = function() {
-      triggerHaptic();
-      var wInput = document.getElementById('todayWeight');
-      if (wInput) {
-        if (typeof wInput.scrollIntoView === 'function') wInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        if (typeof wInput.focus === 'function') wInput.focus();
-      }
-    };
-  }
+  if (quickLogWeightBtn) quickLogWeightBtn.onclick = function() { triggerHaptic(); openTodayWeightModal(activeDateKey); };
 
   var quickLogStepsBtn = document.getElementById('todayQuickLogStepsBtn');
   if (quickLogStepsBtn) {
     quickLogStepsBtn.onclick = function() {
-      triggerHaptic();
-      var editSteps = document.getElementById('editTodayStepsBtn');
-      if (editSteps && typeof editSteps.click === 'function') {
-        editSteps.click();
-      }
+      triggerHaptic(); var editSteps = document.getElementById('editTodayStepsBtn');
+      if (editSteps && typeof editSteps.click === 'function') editSteps.click();
     };
   }
 
@@ -300,37 +290,58 @@ export function renderTodaySimple() {
       }
     };
   }
+}
 
-  bindTodayWeightEvents(activeDateKey, rec, renderTodaySimple);
+export function openTodayWeightModal(activeDateKey) {
+  var dKey = activeDateKey || todayKey();
+  var rec = dayRecord(dKey);
+  var lastW = currentWeight(), bwPlaceholder = lastW ? lastW.toFixed(1) : '54.0', bwValue = rec.weight ? rec.weight : '';
+  var saveLabel = bwValue ? 'Saved' : 'Save';
+  var saveStyle = bwValue ? 'background:var(--surface2);color:var(--text-secondary);border:1px solid var(--hairline);cursor:default' : 'background:var(--accent-primary);color:var(--text);border:none;cursor:pointer;box-shadow:0 4px 16px var(--accent-glow)';
 
-  bindStaplesShelfEvents(contentEl, activeDateKey, renderTodaySimple);
+  var overlay = document.createElement('div');
+  overlay.id = 'todayWeightModal';
+  overlay.className = 'dialog-overlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);z-index:9999;display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity 200ms ease;';
 
-  var deleteFoodEntry = function(idx, row) {
-    var current = dayRecord(activeDateKey);
-    if (!current.extra || isNaN(idx) || !current.extra[idx]) return;
-    var performDel = function() {
-      var removed = current.extra.splice(idx, 1)[0];
-      saveDayRecord(activeDateKey, current); renderTodaySimple();
-      showUndoToast('Food entry deleted', function () {
-        var restored = dayRecord(activeDateKey);
-        restored.extra = restored.extra || []; restored.extra.splice(Math.min(idx, restored.extra.length), 0, removed);
-        saveDayRecord(activeDateKey, restored); renderTodaySimple();
-      });
-    };
-    if (row && typeof window !== 'undefined' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      row.style.transition = 'height 150ms cubic-bezier(0.2,0,0,1), opacity 150ms cubic-bezier(0.2,0,0,1), margin 150ms cubic-bezier(0.2,0,0,1)';
-      row.style.height = row.offsetHeight + 'px'; void row.offsetHeight;
-      row.style.height = '0px'; row.style.opacity = '0'; row.style.margin = '0px'; row.style.overflow = 'hidden';
-      setTimeout(performDel, 150);
-    } else { performDel(); }
+  var sheetHTML = '<div class="dialog-surface" style="background:var(--surface);border:1px solid var(--hairline);border-radius:24px 24px 0 0;padding:24px 20px calc(24px + var(--safe-b));width:100%;max-width:480px;box-sizing:border-box;box-shadow:0 -10px 40px rgba(0,0,0,0.6)">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
+      + '<div>'
+        + '<div style="font-size:28px;font-weight:700;color:var(--text);letter-spacing:-0.02em">Log Bodyweight</div>'
+        + '<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--text-secondary);text-transform:uppercase;margin-top:2px">' + esc(dKey) + '</div>'
+      + '</div>'
+      + '<button type="button" class="icon-btn" id="closeWeightModalBtn" aria-label="Close" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center">'
+        + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>'
+      + '</button>'
+    + '</div>'
+    + '<div class="field">'
+      + '<input type="number" id="todayWeight" step="0.1" inputmode="decimal" placeholder="' + bwPlaceholder + '" value="' + bwValue + '">'
+      + '<span class="field-unit">kg</span>'
+      + '<button type="button" class="field-btn" id="saveTodayWeight" style="height:40px;min-height:40px;padding:0 16px;border-radius:9px;font-size:15px;font-weight:600;' + saveStyle + '">' + saveLabel + '</button>'
+    + '</div>'
+    + (bwValue ? '<div style="margin-top:16px;text-align:center"><button type="button" class="btn-text-action" id="deleteTodayWeightBtn" style="color:#FF4D4F;font-size:15px;background:none;border:none;padding:8px 16px;cursor:pointer">Clear Log (' + bwValue + ' kg)</button></div>' : '')
+  + '</div>';
+
+  overlay.innerHTML = sheetHTML;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(function() { overlay.style.opacity = '1'; });
+
+  var close = function() {
+    overlay.style.opacity = '0';
+    setTimeout(function() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 200);
   };
 
-  bindFoodLogCardEvents({
-    activeDateKey: activeDateKey,
-    openFoodSearch: openFoodSearch,
-    addFoodToDay: addFoodToDay,
-    deleteFoodEntry: deleteFoodEntry
+  var closeBtn = overlay.querySelector('#closeWeightModalBtn');
+  if (closeBtn) closeBtn.onclick = close;
+  overlay.onclick = function(e) { if (e.target === overlay) close(); };
+
+  bindTodayWeightEvents(dKey, rec, function() {
+    close();
+    renderTodaySimple();
   });
+
+  var input = overlay.querySelector('#todayWeight');
+  if (input && typeof input.focus === 'function') setTimeout(function() { input.focus(); }, 80);
 }
 
 export function renderChecklistHTML() { return ''; }
