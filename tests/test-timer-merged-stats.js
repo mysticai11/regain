@@ -69,13 +69,15 @@ var totalLoggedSets = sessions[0].exercises.reduce(function(acc, ex) {
 assert.strictEqual(totalLoggedSets, 8, 'Total logged sets in merged session must equal 8');
 console.log('✓ Merged workout successfully saved as 1 session with all ' + totalLoggedSets + ' sets across 4 exercises');
 
-// 3. Verify rest timer dock is lightweight and not a disruptive modal sheet
+// 3. Verify rest timer dock is lightweight and provides -30s and +30s adjustments
 console.log('\n[3/3] Verifying rest timer dock structure...');
 import fs from 'node:fs';
 var timerContent = fs.readFileSync('./js/screens/gym/timer.js', 'utf8');
 assert.ok(timerContent.includes('rest-timer-dock'), 'timer.js must render a lightweight rest-timer-dock');
 assert.ok(!timerContent.includes('class="sheet rest-timer-sheet"'), 'timer.js must not render rest timer as a heavy sheet modal');
-console.log('✓ Rest timer dock structure verified (lightweight dock, non-blocking)');
+assert.ok(timerContent.includes('id="subRest30Btn"'), 'timer.js must provide -30s rest timer adjustment button');
+assert.ok(timerContent.includes('id="addRest30Btn"'), 'timer.js must provide +30s rest timer adjustment button');
+console.log('✓ Rest timer dock structure verified (lightweight dock with -30s and +30s adjustments)');
 
 console.log('\n=============================================');
 console.log(' ALL MERGED & TIMER TESTS PASSED (100%) ');

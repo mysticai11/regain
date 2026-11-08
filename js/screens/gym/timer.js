@@ -69,85 +69,41 @@ export function renderWorkoutTimer(dayKey, rec, session, programDayIndex) {
     }, 1000);
   }
 
-  // Start button handler
   var startBtn = document.getElementById('startWorkoutBtn');
-  if (startBtn) {
-    startBtn.onclick = function() {
-      startWorkoutSession(dayKey, session, programDayIndex);
-    };
-  }
-
-  // Enter time manually button handler
+  if (startBtn) startBtn.onclick = function() { startWorkoutSession(dayKey, session, programDayIndex); };
   var enterTimeBtn = document.getElementById('enterTimeBtn');
-  if (enterTimeBtn) {
-    enterTimeBtn.onclick = function() {
-      setManualSessionDuration(dayKey, session, programDayIndex);
-    };
-  }
-
+  if (enterTimeBtn) enterTimeBtn.onclick = function() { setManualSessionDuration(dayKey, session, programDayIndex); };
   var timerFinishBtn = document.getElementById('timerFinishBtn');
-  if (timerFinishBtn) {
-    timerFinishBtn.onclick = function() {
-      showFinishWorkoutSheet(dayKey, programDayIndex, session);
-    };
-  }
+  if (timerFinishBtn) timerFinishBtn.onclick = function() { showFinishWorkoutSheet(dayKey, programDayIndex, session); };
 
-  // Pause / Resume toggle button handler
   var toggleBtn = document.getElementById('sessionTimerToggleBtn');
   if (toggleBtn) {
     toggleBtn.onclick = function() {
-      var r = dayRecord(dayKey);
-      var m = getSessionMeta(r, programDayIndex);
+      var r = dayRecord(dayKey), m = getSessionMeta(r, programDayIndex);
       if (m.pausedAt) {
-        // Resume
         var pausedDuration = Date.now() - new Date(m.pausedAt).getTime();
         m.accumulatedPausedMs = (m.accumulatedPausedMs || 0) + pausedDuration;
         m.pausedAt = null;
-        saveDayRecord(dayKey, r);
-        renderWorkoutTimer(dayKey, r, session, programDayIndex);
       } else {
-        // Pause
         m.pausedAt = new Date().toISOString();
-        saveDayRecord(dayKey, r);
-        renderWorkoutTimer(dayKey, r, session, programDayIndex);
       }
+      saveDayRecord(dayKey, r);
+      renderWorkoutTimer(dayKey, r, session, programDayIndex);
     };
   }
 
-  // "..." Options menu
   var dotsBtn = document.getElementById('sessionTimerDotsBtn');
   if (dotsBtn) {
     dotsBtn.onclick = function() {
       openActionMenuSheet('Timer', [
-        {
-          label: 'Edit full workout',
-          action: function() {
-            var sId = workoutSessionId(dayKey, programDayIndex);
-            openEditWorkoutSheet(sId);
-          }
-        },
-        {
-          label: 'Finish workout',
-          action: function() {
-            showFinishWorkoutSheet(dayKey, programDayIndex, session);
-          }
-        },
-        {
-          label: 'Enter time manually',
-          action: function() {
-            setManualSessionDuration(dayKey, session, programDayIndex);
-          }
-        },
+        { label: 'Edit full workout', action: function() { openEditWorkoutSheet(workoutSessionId(dayKey, programDayIndex)); } },
+        { label: 'Finish workout', action: function() { showFinishWorkoutSheet(dayKey, programDayIndex, session); } },
+        { label: 'Enter time manually', action: function() { setManualSessionDuration(dayKey, session, programDayIndex); } },
         {
           label: 'Reset timer',
           destructive: true,
           action: async function() {
-            var ok = await confirmDialog({
-              title: 'Reset Timer?',
-              message: 'Reset timer to 0:00? (Logged sets will be kept)',
-              confirmLabel: 'Reset Timer',
-              destructive: true
-            });
+            var ok = await confirmDialog({ title: 'Reset Timer?', message: 'Reset timer to 0:00? (Logged sets will be kept)', confirmLabel: 'Reset Timer', destructive: true });
             if (ok) {
               var r = dayRecord(dayKey), m = getSessionMeta(r, programDayIndex);
               m.startedAt = null; m.pausedAt = null; m.accumulatedPausedMs = 0; m.completedAt = null; m.durationMinutes = 0;
@@ -264,41 +220,64 @@ export function renderRestTimer() {
     return;
   }
 
-  wrap.innerHTML = '<div class="rest-timer-dock" id="restTimerDock" style="position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 8px);left:16px;right:16px;max-width:448px;margin:0 auto;height:48px;box-sizing:border-box;background:#141416;border:1px solid #1C1C1F;border-radius:16px;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;z-index:150;contain:layout paint;will-change:transform,opacity;pointer-events:auto;overflow:hidden">'
+  wrap.innerHTML = '<div class="rest-timer-dock" id="restTimerDock" style="position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 8px);left:16px;right:16px;max-width:448px;margin:0 auto;height:48px;box-sizing:border-box;background:#141416;border:1px solid #1C1C1F;border-radius:16px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;z-index:150;contain:layout paint;will-change:transform,opacity;pointer-events:auto;overflow:hidden">'
     + '<div class="rest-timer-bar" style="position:absolute;top:0;left:0;right:0;height:2px;overflow:hidden;background:#222"><div class="rest-timer-bar-fill" id="restTimerBarFill" style="height:100%;width:100%;background:#C6F432;transform-origin:left;transform:scaleX(1)"></div></div>'
     + '<div style="display:flex;align-items:center;gap:8px">'
       + '<span style="font-size:11px;font-weight:600;color:#8A8A8E;text-transform:uppercase;letter-spacing:0.08em">Rest</span>'
       + '<span id="restTimerCountdown" style="font-size:17px;font-weight:600;color:#C6F432;font-variant-numeric:tabular-nums;width:52px;display:inline-block;text-align:center">' + timeStr + '</span>'
     + '</div>'
-    + '<div style="display:flex;align-items:center;gap:8px">'
-      + '<button type="button" class="btn-text-action" id="addRest30Btn" style="font-size:15px;font-weight:600;color:#F5F5F4;background:none;border:none;padding:6px 8px;cursor:pointer">+30s</button>'
-      + '<button type="button" class="btn-text-action" id="pauseRestBtn" style="font-size:15px;font-weight:600;color:#F5F5F4;background:none;border:none;padding:6px 8px;cursor:pointer">' + (restTimer.isPaused ? 'Resume' : 'Pause') + '</button>'
-      + '<button type="button" class="btn-text-action" id="skipRestBtn" style="font-size:15px;font-weight:600;color:#FF4D4F;background:none;border:none;padding:6px 8px;cursor:pointer">Skip</button>'
+    + '<div style="display:flex;align-items:center;gap:4px">'
+      + '<button type="button" class="btn-text-action" id="subRest30Btn" style="font-size:15px;font-weight:600;color:#F5F5F4;background:none;border:none;padding:6px 6px;cursor:pointer">-30s</button>'
+      + '<button type="button" class="btn-text-action" id="addRest30Btn" style="font-size:15px;font-weight:600;color:#F5F5F4;background:none;border:none;padding:6px 6px;cursor:pointer">+30s</button>'
+      + '<button type="button" class="btn-text-action" id="pauseRestBtn" style="font-size:15px;font-weight:600;color:#F5F5F4;background:none;border:none;padding:6px 6px;cursor:pointer">' + (restTimer.isPaused ? 'Resume' : 'Pause') + '</button>'
+      + '<button type="button" class="btn-text-action" id="skipRestBtn" style="font-size:15px;font-weight:600;color:#FF4D4F;background:none;border:none;padding:6px 6px;cursor:pointer">Skip</button>'
     + '</div>'
     + '</div>';
 
   var closeTimer = function() {
     clearInterval(restTimer.interval);
-    restTimer.endAt = 0;
-    restTimer.remaining = 0;
-    restTimer.isPaused = false;
+    restTimer.endAt = 0; restTimer.remaining = 0; restTimer.isPaused = false;
     wrap.innerHTML = '';
     releaseWakeLock();
+  };
+
+  var updateCountdownDisplay = function() {
+    var cd = document.getElementById('restTimerCountdown');
+    if (cd) {
+      var m = Math.floor(restTimer.remaining / 60), s = restTimer.remaining % 60;
+      cd.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    }
+    var bf = document.getElementById('restTimerBarFill');
+    if (bf) {
+      var tot = restTimer.totalDuration || restTimer.defaultDuration || 90;
+      bf.style.transform = 'scaleX(' + Math.max(0, Math.min(1, restTimer.remaining / tot)) + ')';
+    }
   };
 
   var skipBtn = document.getElementById('skipRestBtn');
   if (skipBtn) skipBtn.onclick = closeTimer;
 
+  var sub30Btn = document.getElementById('subRest30Btn');
+  if (sub30Btn) sub30Btn.onclick = function() {
+    if (restTimer.remaining <= 30) {
+      closeTimer();
+      playSound('timer_done');
+      triggerHaptic('success');
+      showToast('Rest complete!', 'ok');
+      return;
+    }
+    restTimer.remaining -= 30;
+    if (restTimer.endAt) restTimer.endAt -= 30000;
+    updateCountdownDisplay();
+  };
+
   var add30Btn = document.getElementById('addRest30Btn');
   if (add30Btn) add30Btn.onclick = function() {
     restTimer.remaining += 30;
     if (restTimer.endAt) restTimer.endAt += 30000;
-    var cd = document.getElementById('restTimerCountdown');
-    if (cd) {
-      var m = Math.floor(restTimer.remaining / 60);
-      var s = restTimer.remaining % 60;
-      cd.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
-    }
+    var tot = restTimer.totalDuration || restTimer.defaultDuration || 90;
+    if (restTimer.remaining > tot) restTimer.totalDuration = restTimer.remaining;
+    updateCountdownDisplay();
   };
   var pauseBtn = document.getElementById('pauseRestBtn');
   if (pauseBtn) pauseBtn.onclick = function() {
